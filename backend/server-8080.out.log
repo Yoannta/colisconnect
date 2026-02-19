@@ -1,0 +1,6 @@
+ColisConnect backend SQL v2: http://127.0.0.1:8080
+{"ts":"2026-02-18T19:28:37.050Z","method":"GET","path":"/api/flights/verify?number=ZZ9999&date=2026-03-15&origin=France&destination=Cote%20d%27Ivoire","ip":"127.0.0.1","status":200,"durationMs":6}
+{"ts":"2026-02-18T19:28:37.061Z","method":"GET","path":"/api/flights/verify?number=AF750&date=2026-03-15&origin=France&destination=Cote%20d%27Ivoire","ip":"127.0.0.1","status":200,"durationMs":1}
+{"ts":"2026-02-18T19:28:52.157Z","method":"POST","path":"/api/auth/register","ip":"127.0.0.1","status":201,"durationMs":58}
+{"ts":"2026-02-18T19:28:52.221Z","method":"POST","path":"/api/offers","ip":"127.0.0.1","status":400,"durationMs":3}
+{"ts":"2026-02-18T19:28:52.257Z","method":"POST","path":"/api/offers","ip":"127.0.0.1","status":201,"durationMs":4}

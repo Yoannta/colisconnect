@@ -1,0 +1,62 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="index.html">ColisConnect</a></div>
+                <div class="nav-links">
+                    <a href="index.html">Accueil</a>
+                    <a href="results.html">Offres</a>
+                    <a href="post_trip.html">Proposer un trajet</a>
+                    <a href="dashboard.html" class="active">Dashboard</a>
+                    <a href="chat.html">Messages</a>
+                    <a href="admin.html" data-admin-link hidden>Admin</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="auth.html" class="btn btn-secondary" data-auth-login>Connexion</a>
+                    <a href="auth.html#register" class="btn btn-primary" data-auth-register>Inscription</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-main">
+        <div class="container">
+            <section class="page-header" data-animate>
+                <p class="section-kicker">Pilotage utilisateur</p>
+                <h1>Dashboard operationnel</h1>
+                <p id="dashboard-user">Chargement du profil...</p>
+            </section>
+
+            <section class="dashboard-grid" data-animate>
+                <article class="glass-panel dashboard-card">
+                    <h3>Mes offres de place</h3>
+                    <div id="dash-offers" class="dashboard-list"></div>
+                </article>
+                <article class="glass-panel dashboard-card">
+                    <h3>Mes conversations</h3>
+                    <div id="dash-conversations" class="dashboard-list"></div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <script src="mock-api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

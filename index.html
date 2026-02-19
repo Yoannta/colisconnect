@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColisConnect | Livraison internationale premium entre voyageurs</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="index.html">ColisConnect</a></div>
+                <div class="nav-links">
+                    <a href="index.html" class="active">Accueil</a>
+                    <a href="results.html">Offres</a>
+                    <a href="post_trip.html">Proposer un trajet</a>
+                    <a href="dashboard.html">Dashboard</a>
+                    <a href="chat.html">Messages</a>
+                    <a href="admin.html" data-admin-link hidden>Admin</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="auth.html" class="btn btn-secondary" data-auth-login>Connexion</a>
+                    <a href="auth.html#register" class="btn btn-primary" data-auth-register>Inscription</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="promo-bar" data-animate>
+            <div class="container promo-bar-inner">
+                <p><strong>Offre lancement février 2026:</strong> 0% de frais plateforme sur vos 2 premiers envois.</p>
+                <a href="results.html" class="btn btn-accent">Activer l'offre</a>
+            </div>
+        </section>
+
+        <section class="hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="liquid-layer" data-tilt data-animate>
+                        <span class="badge"><ion-icon name="shield-checkmark-outline"></ion-icon> Premium sécurisé</span>
+                        <h1 class="headline">Envoyez vos colis à l'international avec une expérience ultra fluide.</h1>
+                        <p class="lead">ColisConnect connecte expéditeurs et voyageurs vérifiés pour des envois plus rapides, plus économiques et mieux suivis.</p>
+
+                        <div class="hero-actions">
+                            <a href="results.html" class="btn btn-primary">Trouver un voyageur maintenant</a>
+                            <a href="post_trip.html" class="btn btn-secondary">Proposer mes kilos</a>
+                        </div>
+
+                        <ul class="hero-guarantees">
+                            <li><ion-icon name="checkmark-circle-outline"></ion-icon> Paiement sécurisé et traçable</li>
+                            <li><ion-icon name="checkmark-circle-outline"></ion-icon> Garantie satisfait ou remboursé</li>
+                            <li><ion-icon name="checkmark-circle-outline"></ion-icon> Support premium 7j/7</li>
+                        </ul>
+
+                        <div class="trust-strip">
+                            <article class="stat-card">
+                                <strong>12k+</strong>
+                                <span>Colis livrés ce trimestre</span>
+                            </article>
+                            <article class="stat-card">
+                                <strong>4.9/5</strong>
+                                <span>Note moyenne voyageurs</span>
+                            </article>
+                            <article class="stat-card">
+                                <strong><span id="slot-count">8</span></strong>
+                                <span>slots premium restants aujourd'hui</span>
+                            </article>
+                        </div>
+                    </div>
+
+                    <div class="search-container liquid-layer decision-card" data-tilt data-animate>
+                        <p class="decision-card-title">Choisissez votre objectif</p>
+                        <div class="decision-square">
+                            <button type="button" class="decision-zone decision-zone-send" data-action-target="results.html">
+                                <div class="decision-content">
+                                    <span class="decision-kicker">Option A</span>
+                                    <strong>Je veux envoyer</strong>
+                                    <small>Trouver un voyageur vérifié</small>
+                                    <ion-icon class="decision-arrow" name="arrow-forward-outline"></ion-icon>
+                                </div>
+                            </button>
+                            <button type="button" class="decision-zone decision-zone-travel" data-action-target="post_trip.html">
+                                <div class="decision-content">
+                                    <span class="decision-kicker">Option B</span>
+                                    <strong>Je veux proposer des places</strong>
+                                    <small>Publier mes kilos disponibles</small>
+                                    <ion-icon class="decision-arrow" name="arrow-forward-outline"></ion-icon>
+                                </div>
+                            </button>
+                            <span class="decision-diagonal" aria-hidden="true"></span>
+                        </div>
+                        <p class="search-evidence"><ion-icon name="pulse-outline"></ion-icon> <span id="daily-requests">120</span> demandes validées aujourd'hui.</p>
+                        <p class="decision-hint">Connecté: accès direct. Non connecté: choix Connexion ou Inscription puis redirection automatique.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="features">
+            <div class="container">
+                <div class="section-header" data-animate>
+                    <p class="section-kicker">Expérience ColisConnect</p>
+                    <h2>Un parcours premium de bout en bout</h2>
+                    <p>Chaque étape est conçue pour maximiser la confiance, la rapidité et la transparence entre expéditeurs et voyageurs.</p>
+                </div>
+
+                <div class="features-grid">
+                    <article class="feature-card" data-animate>
+                        <div class="feature-icon"><ion-icon name="search-outline"></ion-icon></div>
+                        <h3 class="feature-title">Matching intelligent</h3>
+                        <p>Visualisez en quelques secondes les voyageurs disponibles, leurs notes, leurs kilos libres et leurs tarifs.</p>
+                    </article>
+
+                    <article class="feature-card" data-animate>
+                        <div class="feature-icon"><ion-icon name="chatbubbles-outline"></ion-icon></div>
+                        <h3 class="feature-title">Messagerie intégrée</h3>
+                        <p>Négociez les détails en direct avec un historique clair, des confirmations et des échanges sécurisés.</p>
+                    </article>
+
+                    <article class="feature-card" data-animate>
+                        <div class="feature-icon"><ion-icon name="shield-checkmark-outline"></ion-icon></div>
+                        <h3 class="feature-title">Confiance renforcée</h3>
+                        <p>Profils vérifiés, avis authentifiés et preuves de livraison pour un service qui inspire la sérénité.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="premium-band">
+            <div class="container">
+                <div class="premium-grid">
+                    <article class="premium-card" data-animate>
+                        <h3>Tarification transparente</h3>
+                        <p>Un tarif au kilo clair, sans mauvaise surprise, avec visibilité immédiate du coût total estimé.</p>
+                    </article>
+                    <article class="premium-card" data-animate>
+                        <h3>Performance opérationnelle</h3>
+                        <p>Suivez vos demandes, vos réservations et vos conversations depuis un espace unique et intuitif.</p>
+                    </article>
+                    <article class="premium-card" data-animate>
+                        <h3>Support prioritaire</h3>
+                        <p>Une assistance dédiée pour résoudre rapidement toute question liée à vos envois internationaux.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonials">
+            <div class="container">
+                <div class="section-header" data-animate>
+                    <p class="section-kicker">Preuve sociale</p>
+                    <h2>Les utilisateurs premium recommandent ColisConnect</h2>
+                </div>
+
+                <div class="testimonials-grid">
+                    <article class="testimonial-card" data-animate>
+                        <p>"J'ai économisé 42% sur mes envois vers Abidjan et le suivi en chat est impeccable."</p>
+                        <h4>Fatou N. - Expéditrice Pro</h4>
+                    </article>
+                    <article class="testimonial-card" data-animate>
+                        <p>"En tant que voyageur, je rentabilise chaque vol et je reçois des demandes qualifiées."</p>
+                        <h4>Marc D. - Voyageur Vérifié</h4>
+                    </article>
+                    <article class="testimonial-card" data-animate>
+                        <p>"Service premium réel: rapide, fiable, sans friction. On a basculé toute notre logistique légère ici."</p>
+                        <h4>Hawa K. - E-commerce Manager</h4>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="closing-cta" data-animate>
+            <div class="container closing-cta-inner">
+                <div>
+                    <p class="section-kicker">Passez à l'action</p>
+                    <h2>Lancez votre expédition premium en moins de 2 minutes.</h2>
+                    <p>Places à capacité réduite selon les destinations: réservez votre voyageur maintenant.</p>
+                </div>
+                <a href="results.html" class="btn btn-primary">Démarrer ma recherche premium</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h4>ColisConnect</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">À propos</a></li>
+                        <li><a href="#">Confiance et sécurité</a></li>
+                        <li><a href="#">Presse</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Utilisateurs</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Comment ça marche</a></li>
+                        <li><a href="#">Publier un trajet</a></li>
+                        <li><a href="#">Devenir voyageur vérifié</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Aide</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Centre d'aide</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Règles d'utilisation</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h4>Légal</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Mentions légales</a></li>
+                        <li><a href="#">Confidentialité</a></li>
+                        <li><a href="#">Cookies</a></li>
+                    </ul>
+                </div>
+            </div>
+            <p class="footer-note">© <span id="year"></span> ColisConnect. Tous droits réservés.</p>
+        </div>
+    </footer>
+
+    <div class="auth-gate" id="auth-gate" hidden>
+        <div class="auth-gate-panel glass-panel">
+            <h3>Connexion requise</h3>
+            <p>Pour continuer, connectez-vous ou créez votre compte.</p>
+            <div class="hero-actions">
+                <a id="auth-gate-login" class="btn btn-secondary" href="auth.html">Se connecter</a>
+                <a id="auth-gate-register" class="btn btn-primary" href="auth.html#register">Créer un compte</a>
+            </div>
+            <button type="button" id="auth-gate-cancel" class="btn btn-secondary">Plus tard</button>
+        </div>
+    </div>
+
+    <script src="mock-api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
+
+
+
+

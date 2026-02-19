@@ -1,0 +1,3 @@
+ColisConnect backend SQL v2: http://127.0.0.1:8098
+{"ts":"2026-02-19T10:30:01.329Z","method":"GET","path":"/api/health","ip":"127.0.0.1","status":200,"durationMs":11}
+{"ts":"2026-02-19T10:30:01.337Z","method":"GET","path":"/api/conversations","ip":"127.0.0.1","status":200,"durationMs":5}

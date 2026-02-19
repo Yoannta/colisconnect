@@ -1,0 +1,86 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offres | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="index.html">ColisConnect</a></div>
+                <div class="nav-links">
+                    <a href="index.html">Accueil</a>
+                    <a href="results.html" class="active">Offres</a>
+                    <a href="post_trip.html">Proposer un trajet</a>
+                    <a href="dashboard.html">Dashboard</a>
+                    <a href="chat.html">Messages</a>
+                    <a href="admin.html" data-admin-link hidden>Admin</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="auth.html" class="btn btn-secondary" data-auth-login>Connexion</a>
+                    <a href="auth.html#register" class="btn btn-primary" data-auth-register>Inscription</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-main">
+        <div class="container">
+            <section class="page-header" data-animate>
+                <p class="section-kicker">Recherche colis</p>
+                <h1>Toutes les offres disponibles</h1>
+                <p><span id="search-count">0</span> offres visibles selon vos filtres.</p>
+            </section>
+
+            <section class="results-shell">
+                <aside class="filters-panel glass-panel" data-animate>
+                    <h3>Filtres de recherche</h3>
+                    <form id="offer-filter-form" class="search-form-advanced">
+                        <div class="filter-group">
+                            <label for="country-origin">Pays de depart</label>
+                            <input id="country-origin" class="form-input" list="country-options" placeholder="Choisir un pays" autocomplete="off">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="country-destination">Pays d'arrivee</label>
+                            <input id="country-destination" class="form-input" list="country-options" placeholder="Choisir un pays" autocomplete="off">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="date-limit">Date limite (optionnel)</label>
+                            <input id="date-limit" type="date" class="form-input">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="max-price-input">Prix maximal par kilo (optionnel)</label>
+                            <div class="input-with-suffix">
+                                <input id="max-price-input" type="number" class="form-input" min="1" placeholder="Ex: 15">
+                                <span>EUR</span>
+                            </div>
+                        </div>
+
+                        <button id="search-submit" type="submit" class="btn btn-primary">Rechercher</button>
+                    </form>
+                    <datalist id="country-options" data-country-list></datalist>
+                </aside>
+
+                <div class="traveler-list" id="traveler-list" data-animate></div>
+            </section>
+        </div>
+    </main>
+
+    <script src="mock-api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

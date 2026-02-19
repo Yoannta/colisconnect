@@ -1,0 +1,91 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="index.html">ColisConnect</a></div>
+                <div class="nav-links">
+                    <a href="index.html">Accueil</a>
+                    <a href="results.html">Offres</a>
+                    <a href="post_trip.html">Proposer un trajet</a>
+                    <a href="dashboard.html">Dashboard</a>
+                    <a href="chat.html">Messages</a>
+                    <a href="admin.html" data-admin-link hidden>Admin</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="auth.html" class="btn btn-secondary" data-auth-login>Connexion</a>
+                    <a href="auth.html#register" class="btn btn-primary" data-auth-register>Inscription</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-main">
+        <div class="container auth-shell">
+            <section class="auth-grid">
+                <article class="glass-panel auth-card" data-animate>
+                    <h2>Connexion</h2>
+                    <p>Accedez a vos reservations, vos offres et vos messages.</p>
+                    <form id="login-form" class="trip-form">
+                        <div class="form-group">
+                            <label for="login-email">Email</label>
+                            <input type="email" id="login-email" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="login-password">Mot de passe</label>
+                            <input type="password" id="login-password" class="form-input" minlength="8" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Se connecter</button>
+                    </form>
+                </article>
+
+                <article class="glass-panel auth-card" id="register-card" data-animate>
+                    <h2>Creer un compte</h2>
+                    <p>Inscrivez-vous pour publier, reserver et discuter sur la plateforme.</p>
+                    <form id="register-form" class="trip-form">
+                        <div class="form-group">
+                            <label for="register-name">Nom complet</label>
+                            <input type="text" id="register-name" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-email">Email</label>
+                            <input type="email" id="register-email" class="form-input" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="register-password">Mot de passe</label>
+                            <input type="password" id="register-password" class="form-input" minlength="8" required>
+                        </div>
+                        <button type="submit" class="btn btn-accent">Creer mon compte</button>
+                    </form>
+                </article>
+            </section>
+
+            <section class="glass-panel account-panel" id="account-panel" hidden>
+                <h2>Compte connecte</h2>
+                <p id="account-text"></p>
+                <div class="hero-actions">
+                    <a href="dashboard.html" class="btn btn-primary">Aller au dashboard</a>
+                    <button type="button" class="btn btn-secondary" id="logout-btn">Se deconnecter</button>
+                </div>
+            </section>
+
+            <p class="auth-feedback" id="auth-feedback"></p>
+        </div>
+    </main>
+
+    <script src="auth.js"></script>
+</body>
+
+</html>

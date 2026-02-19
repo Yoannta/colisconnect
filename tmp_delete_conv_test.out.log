@@ -1,0 +1,12 @@
+ColisConnect backend SQL v2: http://127.0.0.1:8096
+{"ts":"2026-02-19T09:40:26.749Z","method":"GET","path":"/api/health","ip":"127.0.0.1","status":200,"durationMs":14}
+{"ts":"2026-02-19T09:40:27.061Z","method":"POST","path":"/api/auth/register","ip":"127.0.0.1","status":201,"durationMs":86}
+{"ts":"2026-02-19T09:40:27.115Z","method":"POST","path":"/api/auth/register","ip":"127.0.0.1","status":201,"durationMs":52}
+{"ts":"2026-02-19T09:40:27.125Z","method":"POST","path":"/api/offers","ip":"127.0.0.1","status":201,"durationMs":6}
+{"ts":"2026-02-19T09:40:27.131Z","method":"POST","path":"/api/parcel-requests","ip":"127.0.0.1","status":201,"durationMs":4}
+{"ts":"2026-02-19T09:40:27.140Z","method":"POST","path":"/api/reservations","ip":"127.0.0.1","status":201,"durationMs":6}
+{"ts":"2026-02-19T09:40:27.150Z","method":"POST","path":"/api/conversations/by-reservation","ip":"127.0.0.1","status":200,"durationMs":9}
+{"ts":"2026-02-19T09:40:27.153Z","method":"GET","path":"/api/conversations","ip":"127.0.0.1","status":200,"durationMs":3}
+{"ts":"2026-02-19T09:40:27.164Z","method":"DELETE","path":"/api/conversations/th_1771494027143_812","ip":"127.0.0.1","status":200,"durationMs":5}
+{"ts":"2026-02-19T09:40:27.168Z","method":"GET","path":"/api/conversations","ip":"127.0.0.1","status":200,"durationMs":3}
+{"ts":"2026-02-19T09:40:27.191Z","method":"GET","path":"/api/conversations/th_1771494027143_812/messages","ip":"127.0.0.1","status":404,"durationMs":2}
