@@ -1,0 +1,118 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="index.html">ColisConnect</a></div>
+                <div class="nav-links">
+                    <a href="index.html">Accueil</a>
+                    <a href="results.html">Offres</a>
+                    <a href="post_trip.html">Proposer un trajet</a>
+                    <a href="dashboard.html">Dashboard</a>
+                    <a href="chat.html">Messages</a>
+                    <a href="admin.html" data-admin-link class="active">Admin</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="auth.html" class="btn btn-secondary" data-auth-login>Connexion</a>
+                    <a href="auth.html#register" class="btn btn-primary" data-auth-register>Inscription</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-main" id="admin-root">
+        <div class="container">
+            <section class="page-header" data-animate>
+                <p class="section-kicker">Backoffice</p>
+                <h1>Pilotage admin</h1>
+                <p>Verification des offres, suivi reservations et moderation.</p>
+            </section>
+
+            <section id="admin-metrics" class="metric-grid" data-animate></section>
+
+            <section class="admin-grid">
+                <article class="glass-panel table-shell" data-animate>
+                    <h3>Offres en attente de verification</h3>
+                    <div class="table-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Proprietaire</th>
+                                    <th>Route</th>
+                                    <th>Kg</th>
+                                    <th>Prix/kg</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-pending-offers"></tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="glass-panel table-shell" data-animate>
+                    <h3>Reservations</h3>
+                    <div class="table-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Requester</th>
+                                    <th>Voyageur</th>
+                                    <th>Destination</th>
+                                    <th>Statut</th>
+                                    <th>Prix</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-reservations"></tbody>
+                        </table>
+                    </div>
+                </article>
+
+                <article class="glass-panel table-shell" data-animate>
+                    <h3>Moderation (flags)</h3>
+                    <form id="admin-flag-form" class="admin-flag-form">
+                        <input id="flag-entity-type" class="form-input" type="text" placeholder="entity type (offer/reservation)" required>
+                        <input id="flag-entity-id" class="form-input" type="number" placeholder="entity id" min="1" required>
+                        <input id="flag-reason" class="form-input" type="text" placeholder="motif" required>
+                        <button type="submit" class="btn btn-primary">Creer flag</button>
+                    </form>
+                    <div class="table-wrap">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Entite</th>
+                                    <th>Motif</th>
+                                    <th>Statut</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-flags"></tbody>
+                        </table>
+                    </div>
+                </article>
+            </section>
+        </div>
+    </main>
+
+    <script src="mock-api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

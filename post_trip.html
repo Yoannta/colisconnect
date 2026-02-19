@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposer un trajet | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="index.html">ColisConnect</a></div>
+                <div class="nav-links">
+                    <a href="index.html">Accueil</a>
+                    <a href="results.html">Offres</a>
+                    <a href="post_trip.html" class="active">Proposer un trajet</a>
+                    <a href="dashboard.html">Dashboard</a>
+                    <a href="chat.html">Messages</a>
+                    <a href="admin.html" data-admin-link hidden>Admin</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="auth.html" class="btn btn-secondary" data-auth-login>Connexion</a>
+                    <a href="auth.html#register" class="btn btn-primary" data-auth-register>Inscription</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-main">
+        <div class="container">
+            <section class="page-header" data-animate>
+                <p class="section-kicker">Monetisez votre trajet</p>
+                <h1>Publiez vos kilos disponibles</h1>
+                <p>Definissez votre route, votre prix au kilo et recevez des demandes qualifiees.</p>
+            </section>
+
+            <section class="post-shell">
+                <aside class="trip-benefits glass-panel" data-animate>
+                    <h3>Pourquoi publier sur ColisConnect ?</h3>
+                    <ul>
+                        <li><ion-icon name="cash-outline"></ion-icon> Revenus complementaires sur chaque deplacement.</li>
+                        <li><ion-icon name="shield-checkmark-outline"></ion-icon> Echanges securises avec profils verifies.</li>
+                        <li><ion-icon name="flash-outline"></ion-icon> Mise en relation rapide avec des expéditeurs serieux.</li>
+                        <li><ion-icon name="star-outline"></ion-icon> Reputation construite via les avis.</li>
+                    </ul>
+                </aside>
+
+                <section class="trip-form-card glass-panel" data-animate>
+                    <form class="trip-form" id="trip-form">
+                        <div class="form-group">
+                            <label for="departure">Pays de depart</label>
+                            <input type="text" id="departure" class="form-input" list="country-options-trip" placeholder="Choisir un pays" autocomplete="off" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="destination">Pays d'arrivee</label>
+                            <input type="text" id="destination" class="form-input" list="country-options-trip" placeholder="Choisir un pays" autocomplete="off" required>
+                        </div>
+                        <datalist id="country-options-trip" data-country-list></datalist>
+
+                        <div class="form-group">
+                            <label for="date-depart">Date du voyage</label>
+                            <input type="date" id="date-depart" class="form-input" required>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="kilos">Kilos disponibles</label>
+                                <div class="input-with-suffix">
+                                    <input type="number" id="kilos" class="form-input" placeholder="0" min="1" required>
+                                    <span>kg</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="price">Prix par kilo</label>
+                                <div class="input-with-suffix">
+                                    <input type="number" id="price" class="form-input" placeholder="0" min="1" required>
+                                    <span>EUR</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description">Informations complementaires</label>
+                            <textarea id="description" class="form-input" rows="4" placeholder="Objets acceptes, lieu de remise, contraintes..."></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Publier mon trajet</button>
+                    </form>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script src="mock-api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

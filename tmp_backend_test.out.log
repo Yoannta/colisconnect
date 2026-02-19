@@ -1,0 +1,6 @@
+ColisConnect backend SQL v2: http://127.0.0.1:8091
+{"ts":"2026-02-17T08:47:03.008Z","method":"GET","path":"/api/health","ip":"127.0.0.1","status":200,"durationMs":9}
+{"ts":"2026-02-17T08:47:03.205Z","method":"POST","path":"/api/auth/register","ip":"127.0.0.1","status":201,"durationMs":66}
+{"ts":"2026-02-17T08:47:03.215Z","method":"POST","path":"/api/offers","ip":"127.0.0.1","status":201,"durationMs":4}
+{"ts":"2026-02-17T08:47:03.220Z","method":"POST","path":"/api/offers","ip":"127.0.0.1","status":201,"durationMs":3}
+{"ts":"2026-02-17T08:47:03.225Z","method":"GET","path":"/api/offers?scope=mine","ip":"127.0.0.1","status":200,"durationMs":3}

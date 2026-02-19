@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <div class="logo"><a href="index.html">ColisConnect</a></div>
+                <div class="nav-links">
+                    <a href="index.html">Accueil</a>
+                    <a href="results.html">Offres</a>
+                    <a href="post_trip.html">Proposer un trajet</a>
+                    <a href="dashboard.html">Dashboard</a>
+                    <a href="chat.html" class="active">Messages</a>
+                    <a href="admin.html" data-admin-link hidden>Admin</a>
+                </div>
+                <div class="auth-buttons">
+                    <a href="auth.html" class="btn btn-secondary" data-auth-login>Connexion</a>
+                    <a href="auth.html#register" class="btn btn-primary" data-auth-register>Inscription</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-main">
+        <div class="container">
+            <section class="chat-shell glass-panel" data-animate>
+                <aside class="chat-sidebar">
+                    <div class="chat-sidebar-head">
+                        <h2>Discussions</h2>
+                    </div>
+                    <div class="conversation-list" id="conversation-list"></div>
+                </aside>
+
+                <section class="chat-thread">
+                    <div class="chat-thread-head">
+                        <div class="chat-thread-user">
+                            <img src="https://i.pravatar.cc/150?u=default" id="chat-user-avatar" alt="Contact">
+                            <div>
+                                <h3 id="chat-user-name">Chargement...</h3>
+                                <p id="chat-user-status">Connexion en cours</p>
+                            </div>
+                        </div>
+                        <div class="chat-thread-actions">
+                            <button type="button" id="chat-agree-btn" class="btn btn-primary" hidden>
+                                <ion-icon name="checkmark-circle-outline"></ion-icon> Accord
+                            </button>
+                            <a class="btn btn-secondary" href="dashboard.html">Retour dashboard</a>
+                        </div>
+                    </div>
+
+                    <div id="message-container" class="message-container"></div>
+
+                    <form class="message-form" id="chat-form">
+                        <input type="text" id="message-input" class="form-input" placeholder="Ecrivez votre message..." autocomplete="off">
+                        <button type="submit" class="btn btn-primary"><ion-icon name="send"></ion-icon> Envoyer</button>
+                    </form>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <script src="mock-api.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
