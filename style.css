@@ -94,6 +94,14 @@ p {
     margin-inline: auto;
 }
 
+.hero-content > *,
+.results-shell > *,
+.post-shell > *,
+.chat-shell > *,
+.dashboard-grid > * {
+    min-width: 0;
+}
+
 .glass-panel {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -336,7 +344,7 @@ nav {
 
 .decision-square {
     position: relative;
-    width: min(100%, 340px);
+    width: clamp(270px, 86vw, 340px);
     margin-inline: auto;
     aspect-ratio: 1 / 1;
     border-radius: 22px;
@@ -368,7 +376,7 @@ nav {
     display: flex;
     flex-direction: column;
     gap: 0.28rem;
-    width: 64%;
+    width: min(70%, 228px);
     padding: 0.62rem 0.74rem;
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.26);
@@ -1138,6 +1146,7 @@ input[type="range"] {
 .message-form {
     display: flex;
     gap: 0.6rem;
+    align-items: center;
     padding: var(--space-3);
     border-top: 1px solid rgba(157, 176, 211, 0.2);
 }
@@ -1370,6 +1379,16 @@ input[type="range"] {
         display: none;
     }
 
+    nav {
+        min-height: auto;
+        padding: 0.7rem 0;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
     .hero-content,
     .auth-grid,
     .post-shell,
@@ -1400,15 +1419,28 @@ input[type="range"] {
 
 @media (max-width: 760px) {
     nav {
-        flex-wrap: wrap;
-        justify-content: center;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
         padding: 0.8rem 0;
+    }
+
+    .logo {
+        text-align: center;
     }
 
     .nav-links {
         width: 100%;
-        overflow-x: auto;
-        justify-content: flex-start;
+        overflow-x: visible;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        padding: 0.35rem;
+    }
+
+    .nav-links a {
+        font-size: 0.88rem;
+        padding: 0.45rem 0.7rem;
     }
 
     .hero {
@@ -1440,6 +1472,24 @@ input[type="range"] {
         align-items: flex-start;
     }
 
+    .promo-bar-inner .btn,
+    .closing-cta-inner .btn,
+    .hero-actions .btn,
+    .message-form .btn,
+    .dash-actions .btn,
+    .admin-actions .btn {
+        width: 100%;
+    }
+
+    .message-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .message-form .form-input {
+        width: 100%;
+    }
+
     .traveler-head {
         grid-template-columns: auto 1fr;
     }
@@ -1457,6 +1507,11 @@ input[type="range"] {
     .chat-thread-head {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .chat-thread-actions {
+        width: 100%;
+        flex-wrap: wrap;
     }
 
     .message-bubble {
@@ -1480,8 +1535,99 @@ input[type="range"] {
         font-size: 0.76rem;
     }
 
+    .dash-item header {
+        flex-wrap: wrap;
+        align-items: flex-start;
+    }
+
+    .dash-offer-head-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .table-shell {
+        padding: var(--space-2);
+    }
+
+    .admin-table {
+        min-width: 620px;
+    }
+
     .admin-flag-form {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 560px) {
+    .container {
+        width: min(1120px, 94vw);
+    }
+
+    .page-main {
+        padding: var(--space-4) 0;
+    }
+
+    .headline {
+        font-size: clamp(1.7rem, 8vw, 2.2rem);
+    }
+
+    .lead {
+        font-size: 0.97rem;
+    }
+
+    .decision-square {
+        width: min(100%, 300px);
+    }
+
+    .decision-content {
+        width: min(72%, 205px);
+        padding: 0.5rem 0.58rem;
+    }
+
+    .decision-zone strong {
+        font-size: 0.9rem;
+    }
+
+    .decision-zone small {
+        font-size: 0.7rem;
+    }
+
+    .traveler-head {
+        grid-template-columns: 1fr;
+    }
+
+    .traveler-avatar {
+        width: 52px;
+        height: 52px;
+    }
+
+    .price-block {
+        grid-column: auto;
+    }
+
+    .traveler-route {
+        gap: 0.5rem 1rem;
+        font-size: 0.88rem;
+    }
+
+    .chat-shell {
+        min-height: 78vh;
+    }
+
+    .chat-sidebar-head,
+    .chat-thread-head,
+    .message-container,
+    .message-form {
+        padding-left: var(--space-2);
+        padding-right: var(--space-2);
+    }
+
+    .message-bubble {
+        max-width: 94%;
+    }
+
+    .btn {
+        padding: 0.64rem 1rem;
     }
 }
 
