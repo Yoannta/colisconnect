@@ -395,10 +395,5 @@
         sendMessage,
         sendAutoReply
     };
-<<<<<<< HEAD
 })();
 
-=======
-})();
-
->>>>>>> 3cd5b03ac341107952511772ee29f9fbb136fe7a
