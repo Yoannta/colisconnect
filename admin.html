@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            var isMobile = window.innerWidth <= 800 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            document.documentElement.classList.add(isMobile ? 'mobile-mode' : 'desktop-mode');
+        })();
+    </script>
+    <title>Admin - ColisConnect</title>
+    <meta name="description" content="Backoffice admin ColisConnect: moderation, securite, reservations et audit.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="admin-refonte.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="responsive.js"></script>
+    <script defer src="password-toggle.js"></script>
+    <script defer src="standalone-common.js"></script>
+    <script defer src="admin.js"></script>
+    <style>
+        /* AI Assistant Quick styles */
+        .ai-assistant-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 250px);
+            background: rgba(10, 14, 20, 0.4);
+            border: 1px solid var(--adm-border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 20px;
+            box-shadow: var(--adm-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .ai-message {
+            display: flex;
+            max-width: 85%;
+            animation: adminSlideUp 0.3s ease-out;
+        }
+
+        @keyframes adminSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .ai-message.bot {
+            align-self: flex-start;
+        }
+
+        .ai-message.user {
+            align-self: flex-end;
+        }
+
+        .ai-message .msg-bubble {
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .ai-message.bot .msg-bubble {
+            background: rgba(15, 34, 72, 0.85);
+            color: var(--adm-text);
+            border: 1px solid var(--adm-border);
+            border-top-left-radius: 2px;
+        }
+
+        .ai-message.user .msg-bubble {
+            background: var(--adm-primary);
+            color: #fff;
+            font-weight: 500;
+            border-top-right-radius: 2px;
+        }
+
+        .ai-chat-input-area {
+            padding: 20px;
+            background: rgba(7, 17, 41, 0.7);
+            border-top: 1px solid var(--adm-border);
+            display: flex;
+            gap: 12px;
+        }
+
+        .ai-chat-input-area input {
+            flex: 1;
+            background: rgba(15, 34, 72, 0.8);
+            border: 1px solid var(--adm-border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #fff;
+            outline: none;
+        }
+
+        .ai-chat-loading {
+            font-size: 0.8rem;
+            color: var(--adm-text-soft);
+            padding: 0 24px 10px;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body class="admin-ops">
+    <a class="skip-link" href="#admin-content">Aller au contenu principal</a>
+    <div class="noise-layer" aria-hidden="true"></div>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="sidebar-logo">
+                <img src="logo_final.png" alt="Logo">
+                <span>CC Admin</span>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="side-link active" data-section="dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Dashboard
+                </button>
+                <button class="side-link" data-section="users">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    Utilisateurs
+                </button>
+                <button class="side-link" data-section="offers">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                        </path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    Offres
+                </button>
+                <button class="side-link" data-section="moderation">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    Modération
+                </button>
+                <button class="side-link" data-section="ai-moderation">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M12 2V6M12 18V22M4.93 4.93L7.76 7.76M16.24 16.24L19.07 19.07M2 12H6M18 12H22M4.93 19.07L7.76 16.24M16.24 7.76L19.07 4.93">
+                        </path>
+                        <circle cx="12" cy="12" r="4"></circle>
+                    </svg>
+                    Modération IA
+                    <span id="admin-ai-badge" class="notif-bubble hidden">0</span>
+                </button>
+                <button class="side-link" data-section="ai-assistant">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        <circle cx="12" cy="11" r="3"></circle>
+                    </svg>
+                    Assistant IA
+                </button>
+                <button class="side-link" data-section="financials">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Finances
+                </button>
+                <button class="side-link" data-section="security">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    </svg>
+                    Sécurité
+                </button>
+                <button class="side-link" data-section="audit">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Audit
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="index.html" class="btn secondary sm" style="width:100%">Accueil</a>
+            </div>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div class="topbar-left">
+                    <button id="admin-menu-toggle" class="admin-menu-toggle" aria-label="Menu">
+                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="topbar-title-group">
+                        <h1 id="current-section-title">Tableau de bord</h1>
+                        <p class="topbar-subtitle">Centre de controle operationnel, moderation et securite.</p>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <span class="admin-live-pill"><span class="admin-live-dot"></span>Live</span>
+                    <button id="admin-refresh-btn" class="btn secondary sm">Rafraîchir</button>
+                    <div class="admin-profile">
+                        <span id="admin-user-chip" class="user-chip"></span>
+                        <button id="admin-logout-btn" class="btn ghost sm">Déconnexion</button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Accès Requis -->
+            <section id="admin-guard" class="admin-view hidden">
+                <div class="glass-card center">
+                    <h2>Accès restreint</h2>
+                    <p>Connectez-vous avec un compte administrateur.</p>
+                    <button id="admin-login-btn" class="btn primary">Connexion</button>
+                </div>
+            </section>
+
+            <!-- Contenu Admin -->
+            <div id="admin-content" class="admin-view hidden">
+
+                <!-- Section Dashboard -->
+                <div id="section-dashboard" class="content-section active">
+                    <section class="admin-hero-panel">
+                        <div class="admin-hero-copy">
+                            <p class="admin-hero-kicker">Operations Hub</p>
+                            <h2>Vue prioritaire des flux critiques</h2>
+                            <p>Suivez les indicateurs, validez les comptes sensibles et traitez les incidents sans
+                                quitter l ecran de pilotage.</p>
+                        </div>
+                        <div class="admin-hero-meta">
+                            <div class="hero-meta-card">
+                                <span>Mode</span>
+                                <strong>Data Dense</strong>
+                            </div>
+                            <div class="hero-meta-card">
+                                <span>Scope</span>
+                                <strong>Users, Offers, Security</strong>
+                            </div>
+                        </div>
+                    </section>
+                    <section id="admin-stats" class="stat-grid"></section>
+
+                    <div class="dashboard-secondary">
+                        <section class="admin-card">
+                            <div class="card-header">
+                                <h3>Analytics journalières</h3>
+                                <div class="card-actions">
+                                    <input id="admin-days" type="number" min="7" max="60" value="14" class="sm">
+                                    <button id="admin-reload-analytics-btn" class="btn ghost sm">Actualiser</button>
+                                </div>
+                            </div>
+                            <div id="admin-analytics" class="mini-chart"></div>
+                        </section>
+
+                        <section id="admin-approvals-card" class="admin-card hidden">
+                            <div class="card-header">
+                                <h3>Approbations <span id="admin-approvals-badge" class="notif-bubble">0</span></h3>
+                            </div>
+                            <div id="admin-approvals-note" class="admin-note"></div>
+                            <a href="approvals.html" class="btn primary sm" style="margin-top:12px">Voir les
+                                demandes</a>
+                        </section>
+
+                        <section class="admin-card">
+                            <div class="card-header">
+                                <h3>QR Code ColisConnect</h3>
+                            </div>
+                            <p class="admin-note">Ce QR code est affiché aux clients pour le paiement de la commission
+                                (étape 1).</p>
+                            <div class="qr-management-area">
+                                <div id="admin-platform-qr-preview" class="qr-preview-box">
+                                    <span class="placeholder">Aucun QR code</span>
+                                </div>
+                                <div class="qr-upload-controls">
+                                    <input type="file" id="admin-platform-qr-input" accept="image/*" class="hidden">
+                                    <label for="admin-platform-qr-input" class="btn secondary sm">Choisir une
+                                        image</label>
+                                    <button id="admin-platform-qr-save-btn" class="btn primary sm" disabled>Mettre à
+                                        jour</button>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- Section Utilisateurs -->
+                <div id="section-users" class="content-section">
+                    <section class="admin-card">
+                        <div class="card-header">
+                            <h3>Gestion des Utilisateurs</h3>
+                            <div class="card-actions">
+                                <input id="admin-users-q" type="text" placeholder="Nom ou email...">
+                                <button id="admin-users-search-btn" class="btn secondary sm">Filtrer</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Nom</th>
+                                        <th>Pays</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Statut</th>
+                                        <th>Profil</th>
+                                        <th>Activité</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-users-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Section Offres -->
+                <div id="section-offers" class="content-section">
+                    <section class="admin-card">
+                        <div class="card-header">
+                            <h3>Gestion des Offres</h3>
+                            <div class="card-actions">
+                                <input id="admin-offers-q" type="text" placeholder="Recherche trajet...">
+                                <button id="admin-offers-search-btn" class="btn secondary sm">Chercher</button>
+                                <button id="admin-offers-pending-btn" class="btn ghost sm">En attente</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Propriétaire</th>
+                                        <th>Route</th>
+                                        <th>Date</th>
+                                        <th>Prix</th>
+                                        <th>État</th>
+                                        <th>Vérif.</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-offers-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Section Modération (Combiné Reservations + Flags) -->
+                <!-- Section Finances -->
+                <div id="section-financials" class="content-section">
+                    <div class="view-head">
+                        <h2>Finances & Transactions</h2>
+                        <div class="card-actions">
+                            <button id="admin-refresh-finance" class="btn secondary sm">Actualiser</button>
+                        </div>
+                    </div>
+
+                    <div class="stat-grid"
+                        style="margin-bottom: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                        <article class="stat-card">
+                            <span>Total Commissions</span>
+                            <strong id="admin-total-commission">0 ¥</strong>
+                        </article>
+                        <article class="stat-card">
+                            <span>Volume P2P Total</span>
+                            <strong id="admin-total-volume">0 ¥</strong>
+                        </article>
+                    </div>
+
+                    <div class="admin-grid-2col" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                        <section class="admin-card">
+                            <div class="card-header">
+                                <h3>Évolution des revenus</h3>
+                            </div>
+                            <div style="height: 300px; width: 100%;">
+                                <canvas id="admin-revenue-chart"></canvas>
+                            </div>
+                        </section>
+
+                        <section class="admin-card">
+                            <div class="card-header">
+                                <h3>Transactions récentes</h3>
+                            </div>
+                            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                                <table class="admin-table" style="width: 100%; border-collapse: collapse;">
+                                    <thead>
+                                        <tr style="text-align: left; border-bottom: 1px solid var(--line);">
+                                            <th style="padding: 10px;">Date</th>
+                                            <th style="padding: 10px;">Type</th>
+                                            <th style="padding: 10px;">Client</th>
+                                            <th style="padding: 10px;">Montant</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="admin-transactions-list"></tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+
+                <div id="section-moderation" class="content-section">
+                    <!-- Existing Moderation content -->
+                    <section class="admin-card">
+                        <h3>Réservations Actives</h3>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Client</th>
+                                        <th>Voyageur</th>
+                                        <th>Trajet</th>
+                                        <th>Statut</th>
+                                        <th>Chat</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-reservations-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="admin-card" style="margin-top:20px">
+                        <div class="card-header">
+                            <h3>Signalements (Flags)</h3>
+                            <div class="card-actions">
+                                <input id="admin-flag-entity-type" type="text" placeholder="Type" class="sm">
+                                <input id="admin-flag-entity-id" type="number" placeholder="ID" class="sm">
+                                <input id="admin-flag-reason" type="text" placeholder="Motif" class="sm">
+                                <button id="admin-flag-create-btn" class="btn secondary sm">Signaler</button>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Entité</th>
+                                        <th>Motif</th>
+                                        <th>Statut</th>
+                                        <th>Créé le</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-flags-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Section Modération IA -->
+                <div id="section-ai-moderation" class="content-section">
+                    <div class="view-head">
+                        <h2>🤖 Modération Intelligente (IA)</h2>
+                        <div class="card-actions">
+                            <button id="admin-ai-refresh-btn" class="btn secondary sm">Actualiser</button>
+                        </div>
+                    </div>
+
+                    <section class="admin-card">
+                        <div class="card-header">
+                            <h3>Alertes et Risques Détectés</h3>
+                            <p class="admin-note">Analyses automatiques effectuées par DeepSeek toutes les 10 minutes.
+                            </p>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Chat</th>
+                                        <th>Risque</th>
+                                        <th>Résumé de l'IA</th>
+                                        <th>Flags</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-ai-logs-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Section Assistant IA -->
+                <div id="section-ai-assistant" class="content-section">
+                    <div class="view-head">
+                        <h2>✨ Assistant IA (God Mode)</h2>
+                        <p class="admin-note">Posez des questions ou demandez des actions sur le système en langage
+                            naturel.</p>
+                    </div>
+
+                    <div class="ai-assistant-container">
+                        <div id="admin-ai-chat-history" class="ai-chat-history">
+                            <div class="ai-message bot">
+                                <div class="msg-bubble">Bonjour ! Je suis votre assistant administratif. Comment puis-je
+                                    vous aider aujourd'hui ?</div>
+                            </div>
+                        </div>
+                        <div class="ai-chat-input-area">
+                            <input id="admin-ai-input" type="text"
+                                placeholder="Tapez une commande (ex: Cherche l'utilisateur Jean, Stats système...)"
+                                autocomplete="off">
+                            <button id="admin-ai-send-btn" class="btn primary">Envoyer</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section Sécurité -->
+                <div id="section-security" class="content-section">
+                    <section class="admin-card">
+                        <div class="card-header">
+                            <h3>Contrôle d'accès & Bannissements</h3>
+                            <div class="card-actions">
+                                <select id="admin-block-type">
+                                    <option value="email">Email</option>
+                                    <option value="ip">IP</option>
+                                </select>
+                                <input id="admin-block-value" type="text" placeholder="Valeur...">
+                                <input id="admin-block-reason" type="text" placeholder="Motif...">
+                                <button id="admin-block-create-btn" class="btn danger sm">Bannir</button>
+                            </div>
+                        </div>
+                        <p id="admin-login-rate-note" class="admin-note"></p>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Type</th>
+                                        <th>Valeur</th>
+                                        <th>Motif</th>
+                                        <th>Expiration</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-blocks-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Section Audit -->
+                <div id="section-audit" class="content-section">
+                    <section class="admin-card">
+                        <h3>Journal d'Audit</h3>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Admin</th>
+                                        <th>Action</th>
+                                        <th>Entité</th>
+                                        <th>Détails</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-audit-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="admin-toast" class="toast hidden" aria-live="polite"></div>
+
+    <!-- Navigation Mobile Basse -->
+    <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
+        <a href="index.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M3 9.5L12 3L21 9.5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V9.5Z" />
+            </svg>
+            <span>Accueil</span>
+        </a>
+        <a href="results.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" />
+            </svg>
+            <span>Explorer</span>
+        </a>
+        <a href="post_trip.html" class="mob-nav-item highlight">
+            <div class="plus-btn">+</div>
+        </a>
+        <a href="chat.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" />
+            </svg>
+            <span>Messages</span>
+        </a>
+        <a href="dashboard.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" />
+                <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" />
+            </svg>
+            <span>Profil</span>
+        </a>
+        <a href="admin.html" id="mobile-admin-link" class="mob-nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>Admin</span>
+        </a>
+    </nav>
+
+    <script>
+        // Start session for common parts (nav/header)
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.CCCommon) window.CCCommon.init();
+        });
+    </script>
+</body>
+
+</html>

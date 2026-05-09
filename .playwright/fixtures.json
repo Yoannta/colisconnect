@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-05-09T22:24:44.670Z",
+  "buyer": {
+    "fullName": "Playwright Buyer",
+    "email": "playwright-buyer@example.com",
+    "password": "Playwright123!",
+    "country": "France"
+  },
+  "seller": {
+    "fullName": "Playwright Seller",
+    "email": "playwright-seller@example.com",
+    "password": "Playwright123!",
+    "country": "France"
+  },
+  "seededOfferId": 77
+}

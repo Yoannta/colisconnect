@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        (function () {
+            var isMobile = window.innerWidth <= 800 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            document.documentElement.classList.add(isMobile ? 'mobile-mode' : 'desktop-mode');
+        })();
+    </script>
+    <title>Verification profil | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script defer src="responsive.js"></script>
+    <script defer src="password-toggle.js"></script>
+    <script defer src="standalone-common.js"></script>
+    <script defer src="datalist-helper.js"></script>
+    <script defer src="admin-banner.js"></script>
+    <script defer src="verification.js"></script>
+</head>
+
+<body>
+    <div class="noise-layer" aria-hidden="true"></div>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="brand">
+            <div class="brand-logo">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#000" />
+                    <path d="M2 17L12 22L22 17" stroke="#000" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                    <path d="M2 12L12 17L22 12" stroke="#000" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </div>
+            <div>
+                <p class="brand-name">ColisConnect</p>
+                <p class="brand-sub">Transport de colis entre particuliers</p>
+            </div>
+        </div>
+
+        <nav class="main-nav" aria-label="Navigation principale">
+            <a href="index.html" class="nav-link">Accueil</a>
+            <a href="results.html" class="nav-link">Explorer</a>
+            <a href="post_trip.html" class="nav-link">Publier</a>
+            <a href="chat.html" class="nav-link">Messages</a>
+            <a href="partner.html" id="nav-partner-link" class="nav-link hidden">Partenaire</a>
+        </nav>
+
+        <div class="header-auth">
+            <p id="user-chip" class="user-chip hidden"></p>
+            <a id="admin-link" href="admin.html" class="btn secondary hidden">Admin</a>
+            <a id="auth-open-btn" href="auth.html" class="btn primary">Login</a>
+            <button id="logout-btn" class="btn secondary hidden">Quitter</button>
+        </div>
+    </header>
+
+    <main class="app-shell">
+        <section class="view is-active" id="verification-view">
+            <div class="view-head">
+                <div>
+                    <p class="kicker">Verification profil</p>
+                    <h2>Completer mon inscription</h2>
+                    <p class="brand-sub">Ajoutez vos informations pour activer les actions sensibles.</p>
+                </div>
+            </div>
+
+            <div class="forms-grid">
+                <article class="form-card">
+                    <h3>Progression actuelle</h3>
+                    <div class="profile-progress-head">
+                        <strong id="verification-progress-value">25%</strong>
+                        <span id="verification-progress-label" class="brand-sub">Profil incomplet</span>
+                    </div>
+                    <div class="profile-progress-track">
+                        <div id="verification-progress-bar" class="profile-progress-bar" style="width:25%"></div>
+                    </div>
+                    <p id="verification-missing" class="admin-note"></p>
+                    <div id="verification-admin-messages" class="admin-feedback-list hidden"></div>
+                </article>
+
+                <form id="verification-form" class="form-card">
+                    <h3>Informations de verification</h3>
+                    <label>Numero de telephone
+                        <input id="verification-phone" type="tel" placeholder="+33 6 00 00 00 00"
+                            list="verification-phone-codes">
+                    </label>
+                    <label>Piece justificative (photo CNI/Passeport)
+                        <input id="verification-id-document" type="file" accept="image/png,image/jpeg,image/webp">
+                    </label>
+                    <label>Photo de profil
+                        <input id="verification-photo" type="file" accept="image/png,image/jpeg,image/webp">
+                    </label>
+                    <p id="verification-feedback" class="auth-feedback"></p>
+                    <button type="submit" class="btn primary">Enregistrer</button>
+                    <div style="margin-top: 1rem; text-align: center;">
+                        <button type="button"
+                            onclick="window.CCCommon.setSession(null, null); window.location.href='index.html';"
+                            class="btn ghost btn-sm" style="width: 100%;">Me déconnecter / Annuler</button>
+                    </div>
+                </form>
+                <datalist id="verification-phone-codes">
+                    <option value="+221">Sénégal</option>
+                    <option value="+225">Côte d'Ivoire</option>
+                    <option value="+223">Mali</option>
+                    <option value="+226">Burkina Faso</option>
+                    <option value="+227">Niger</option>
+                    <option value="+228">Togo</option>
+                    <option value="+229">Bénin</option>
+                    <option value="+236">Centrafrique</option>
+                    <option value="+237">Cameroun</option>
+                    <option value="+238">Cap-Vert</option>
+                    <option value="+239">Sao Tomé-et-Principe</option>
+                    <option value="+240">Guinée équatoriale</option>
+                    <option value="+241">Gabon</option>
+                    <option value="+242">Congo</option>
+                    <option value="+243">RDC</option>
+                    <option value="+244">Angola</option>
+                    <option value="+245">Guinée-Bissau</option>
+                    <option value="+246">Aldabra</option>
+                    <option value="+249">Soudan</option>
+                    <option value="+250">Rwanda</option>
+                    <option value="+251">Éthiopie</option>
+                    <option value="+252">Somalie</option>
+                    <option value="+253">Djibouti</option>
+                    <option value="+254">Kenya</option>
+                    <option value="+255">Tanzanie</option>
+                    <option value="+256">Ouganda</option>
+                    <option value="+257">Burundi</option>
+                    <option value="+258">Mozambique</option>
+                    <option value="+260">Zambie</option>
+                    <option value="+261">Madagascar</option>
+                    <option value="+262">Réunion</option>
+                    <option value="+263">Zimbabwe</option>
+                    <option value="+264">Namibie</option>
+                    <option value="+265">Malawi</option>
+                    <option value="+266">Lesotho</option>
+                    <option value="+267">Botswana</option>
+                    <option value="+268">Eswatini</option>
+                    <option value="+269">Comores</option>
+                    <option value="+27">Afrique du Sud</option>
+                    <option value="+211">Soudan du Sud</option>
+                </datalist>
+            </div>
+        </section>
+    </main>
+
+    <!-- Navigation Mobile Basse -->
+    <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
+        <a href="index.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M3 9.5L12 3L21 9.5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V9.5Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Accueil</span>
+        </a>
+        <a href="results.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Explorer</span>
+        </a>
+        <a href="post_trip.html" class="mob-nav-item highlight">
+            <div class="plus-btn">+</div>
+        </a>
+        <a href="chat.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Messages</span>
+        </a>
+        <a href="partner.html" id="mobile-partner-link" class="mob-nav-item hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+            <span>Partenaire</span>
+        </a>
+    </nav>
+
+    <!-- Modal de confirmation d'analyse -->
+    <div id="wait-modal" class="modal hidden"
+        style="z-index: 10000; position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;">
+        <div class="modal-card"
+            style="text-align: center; max-width: 400px; background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
+            <h3 style="color: var(--brand-accent); margin-bottom: 1rem;">Analyse en cours</h3>
+            <p style="line-height: 1.6; margin-bottom: 1.5rem;">
+                Vos informations ont été enregistrées avec succès.
+                <br><br>
+                <strong>Délai d'analyse : 5 à 10 minutes.</strong>
+                <br><br>
+                Veuillez vérifier vos messages internes pour voir si votre document a été accepté ou refusé.
+            </p>
+            <button id="wait-modal-ok" class="btn primary" style="width: 100%;">J'ai compris</button>
+        </div>
+    </div>
+</body>
+
+</html>

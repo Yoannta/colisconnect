@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approbations en attente | ColisConnect Admin</title>
+    <meta name="description" content="Validation des utilisateurs en attente d'approbation admin.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script defer src="responsive.js"></script>
+    <script defer src="password-toggle.js"></script>
+    <script defer src="standalone-common.js"></script>
+    <script defer src="approvals.js"></script>
+</head>
+
+<body>
+    <div class="noise-layer" aria-hidden="true"></div>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <header class="site-header">
+        <div class="brand">
+            <img src="logo_final.png" alt="ColisConnect Logo" class="brand-logo">
+            <div>
+                <p class="brand-name">ColisConnect Admin</p>
+                <p class="brand-sub">Approbations utilisateurs</p>
+            </div>
+        </div>
+
+        <nav class="main-nav" aria-label="Navigation admin">
+            <a href="admin.html" class="nav-link is-active"
+                style="text-decoration:none;display:inline-flex;align-items:center;">Retour Management</a>
+        </nav>
+
+        <div class="header-auth">
+            <p id="approvals-user-chip" class="user-chip hidden"></p>
+            <button id="approvals-login-btn" class="btn ghost">Se connecter</button>
+            <button id="approvals-logout-btn" class="btn ghost hidden">Deconnexion</button>
+        </div>
+    </header>
+
+    <main class="admin-shell">
+        <section class="admin-head">
+            <p class="kicker">Validation</p>
+            <h1>Approbations en attente</h1>
+            <p>Validez les utilisateurs eligibles (75%+) pour activer leur badge verifie et leurs actions sensibles.</p>
+            <div class="admin-tools">
+                <button id="approvals-refresh-btn" class="btn primary">Rafraichir</button>
+                <span id="approvals-count" class="notif-bubble">0</span>
+            </div>
+        </section>
+
+        <section id="approvals-guard" class="admin-card hidden">
+            <h2>Acces admin requis</h2>
+            <p class="admin-note">Connecte-toi avec un compte role <code>admin</code>.</p>
+            <div class="admin-tools">
+                <button id="approvals-guard-login-btn" class="btn primary">Connexion</button>
+                <a class="btn secondary" href="index.html#home">Retour accueil</a>
+            </div>
+        </section>
+
+        <section id="approvals-content" class="admin-grid hidden">
+            <section class="admin-card">
+                <h2>Liste des utilisateurs a approuver</h2>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nom</th>
+                                <th>Email</th>
+                                <th>Progression</th>
+                                <th>CNI/Passeport</th>
+                                <th>Photo</th>
+                                <th>Derniere activite</th>
+                                <th>Etat global</th>
+                            </tr>
+                        </thead>
+                        <tbody id="approvals-body"></tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <div id="approvals-toast" class="toast hidden" aria-live="polite"></div>
+
+    <!-- Navigation Mobile Basse -->
+    <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
+        <a href="index.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M3 9.5L12 3L21 9.5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V9.5Z" />
+            </svg>
+            <span>Accueil</span>
+        </a>
+        <a href="results.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" />
+            </svg>
+            <span>Explorer</span>
+        </a>
+        <a href="post_trip.html" class="mob-nav-item highlight">
+            <div class="plus-btn">+</div>
+        </a>
+        <a href="chat.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" />
+            </svg>
+            <span>Messages</span>
+        </a>
+        <a href="dashboard.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path
+                    d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" />
+                <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" />
+            </svg>
+            <span>Profil</span>
+        </a>
+        <a href="admin.html" id="mobile-admin-link" class="mob-nav-item active">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <span>Admin</span>
+        </a>
+    </nav>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            if (window.CCCommon) window.CCCommon.init();
+        });
+    </script>
+</body>
+
+</html>

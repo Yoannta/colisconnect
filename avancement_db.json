@@ -1,0 +1,226 @@
+[
+  {
+    "id": "avis-notes",
+    "status": "pending",
+    "title": "Système d'Avis (Étoiles)",
+    "purpose": "Permettre aux clients de noter les voyageurs.",
+    "updates": [
+      {
+        "date": "Backend",
+        "text": "Structure prête dans la BDD."
+      }
+    ],
+    "tasks": [
+      {
+        "id": "t_1774827643556",
+        "title": "avis client ",
+        "prompt": "lorsque un utilisateur fini d'etre payer automatiquement un fenetre popo apparais pour demander au client de donner sa note sur un vooyageur la note est sur 10",
+        "status": "pending",
+        "memory": ""
+      },
+      {
+        "id": "t_1774888838861",
+        "title": "signalement ",
+        "prompt": "un cleint ou un voyageur peut signaler l'autre , quand il clique on doit lui demander les raisons et il cliquer ok a coter du bouton payer dans le chat",
+        "status": "pending",
+        "memory": ""
+      },
+      {
+        "id": "t_1774888971998",
+        "title": "creer profil utilisateur ",
+        "prompt": "les utilisateur peuvent oir les info entre eux , pour voyageur on peut voir ses note , ces istorique de voyage taux de reussite et autre , pour le client on peut voir les voyageur avec qui il on deja effectuer des transaction les note et autre",
+        "status": "pending",
+        "memory": ""
+      },
+      {
+        "id": "t_1774889269293",
+        "title": "systeme de bage ",
+        "prompt": "baser sur le nombre de voyage de 1-2 debutant 3-5 fiable 6-10 pro 11 et plus expert",
+        "status": "pending",
+        "memory": ""
+      }
+    ]
+  },
+  {
+    "id": "alertes-sms",
+    "status": "pending",
+    "title": "Alertes Hors-Ligne (SMS/Email)",
+    "purpose": "Prévenir l'utilisateur d'un nouveau message sur son mobile.",
+    "updates": [
+      {
+        "date": "Actuel",
+        "text": "Ntfy admin uniquement."
+      }
+    ],
+    "tasks": []
+  },
+  {
+    "id": "demandes-colis",
+    "status": "pending",
+    "title": "Demandes de Transport (Expéditeur)",
+    "purpose": "Permettre aux clients de poster des annonces de recherche.",
+    "updates": [
+      {
+        "date": "Backend",
+        "text": "Routes API prêtes mais bouton caché."
+      }
+    ],
+    "tasks": []
+  },
+  {
+    "id": "timeline-colis",
+    "status": "pending",
+    "title": "Ligne de Suivi du Colis",
+    "purpose": "Affichage visuel du statut (Pris ➡️ En vol ➡️ Livré).",
+    "updates": [
+      {
+        "date": "Mécanique",
+        "text": "Status changent mais pas de design visuel."
+      }
+    ],
+    "tasks": []
+  },
+  {
+    "id": "kyc-auto",
+    "status": "done",
+    "title": "Vérification KYC & Anti-Leak",
+    "purpose": "Sécurité automatique par IA pour les IDs et WhatsApp.",
+    "updates": [
+      {
+        "date": "Achevé",
+        "text": "IA Gemini Vision active."
+      }
+    ]
+  },
+  {
+    "id": "1774743767385",
+    "status": "pending",
+    "title": "espace debuging ancienne idee",
+    "purpose": "les anciennes idee qui etais sur le projet qui on besoin de maintenance ou debuging son traiter ici",
+    "updates": [
+      {
+        "date": "Idée Initiale",
+        "text": "les anciennes idee qui etais sur le projet qui on besoin de maintenance ou debuging son traiter ici"
+      },
+      {
+        "date": "12/04/2026",
+        "text": "Validation Payement V2 : DeepSeek analyse désormais les négociations pour valider le montant de la commission."
+      }
+    ],
+    "tasks": [
+      {
+        "id": "t_1774744160896",
+        "title": "message admin to user",
+        "prompt": "lorsq'un utilisateur recois un messge de la part des admins on avais fait de sorte que l'utilisateur recoive une bule de notification sur en forme de paneau jaune , mais meme quand l'utilisateur vois le message la notif es toujour la , fait de sorte que ca disparraise quand l'utilisateur vois le message de la par des admins , mais pour les message normaux (chat) ne change rien (en ce qui concerne les notification chat )",
+        "status": "done",
+        "memory": "Ajout d'un UPDATE SQL automatique dans /api/admin/inbox : les messages admin sont désormais marqués comme lus dès leur consultation. Le badge jaune disparaît ainsi correctement sans toucher au système de chat."
+      },
+      {
+        "id": "t_1774827287137",
+        "title": "systeme de payement incomplet ",
+        "prompt": "quand l'utilisateur appui sur payer->fenetre popop (combien devez vous payer)->il met la soome-> le qr de colisconecte apparait -> il paye ->message (Paiement plateforme reçu ! Vous pouvez maintenant payer le voyageur directement) -> ca affiche dans le chat(colis connect payee)-> la meme fentre qui demande le montant reaparait (premier bug regle ca)     ensuite normalement des que colis connecte est payee la meme fentre popo qui affiche le qr de colis connect devais s'afficher mais cette fois avec le qr du voyageur et le meme systeme de upload photo de justification donc regle le probleme le qr du voyageur doit automatiqment s'aficher imediatment apres  que le voyageur nous ai payer. tu comprend ",
+        "status": "done",
+        "memory": "Correction de la boucle de modal via paramétrage de openSplitPaymentModal et mapping SQL du QR Code depuis la table 'offers' au lieu de 'users'. Le flux est fluide : (12% plateforme -> 88% voyageur) sans redemander le montant."
+      },
+      {
+        "id": "t_ca_descend_trop",
+        "title": "ca descend trop",
+        "prompt": "je ne sais pas comment expliquer mais sur dashboard.html la section Mes conversations plus j'ai de converstion plus la page s'allonge ca fais que par exempe si j'ai dix conversation comme cela la page vas devenir tres longue genr ele scroll fait de sorte que le nombre de conversation n'affecte pas la longeur de la age elle meme ",
+        "status": "done",
+        "memory": "Limitation de la hauteur de .threads-list à 480px avec overflow-y auto et scrollbar personnalisée dans style.css. La page dashboard conserve désormais une hauteur stable peu importe le nombre de conversations."
+      },
+      {
+        "id": "t_galerie_conversations",
+        "title": "refonte des cartes dashboard en galerie",
+        "prompt": "bride la longeur du cadre qui affiche les info d'une conversation sur le dashbord c'est trop log fait ca en un rectangle de 400px de hauteur et 480px de longeur. et que les chat soit afficher horizontalement les un a coter des autre 4 chat maximum par ligne (ca depend de lecran) mais ca doit etre maximi, 4 chat aligner le 5eme retourne a la lgine et ca continu. maintenant si il y un messase trop long pour etre afficher dans le cadre du chat on ecris ce qui peut apparaitre dans le cadre et on tmet ... our le reste par exempe bonjour j'ai.... ok vas sy ",
+        "status": "done",
+        "memory": "Refonte en format Micro-Cartes : Rectangles de 200x150px, typographie compacte, troncature à 2 lignes. Format optimisé pour la densité d'information."
+      },
+      {
+        "id": "t_1774829393524",
+        "title": "ca descend trop",
+        "prompt": "je ne sais pas comment expliquer mais sur dashboard.html la section Mes conversations  plus j'ai de converstion plus la page s'allonge ca fais que par exempe si j'ai dix conversation comme cela la page vas devenir tres longue genr ele scroll fait de sorte que le nombre de conversation n'affecte pas la longeur de la age elle meme ",
+        "status": "done",
+        "memory": "Transformation de la liste en galerie horizontale compacte (200x150px) avec troncature à 2 lignes. Ce design empêche l'allongement infini de la page et optimise l'espace dashboard en affichant les conversations côte à côte."
+      },
+      {
+        "id": "t_1774911934098",
+        "title": "systeme de payement v2",
+        "prompt": "ok met ca en place , pour deepsek c'est deja en place je pense que tu dois juste ajuster ou faire un petit script pour que des que le client upload la photo de preuve de notre payement gemini check pour verifier que c'est relement un recus et si c'est rellement un reccu gemini recense le prix il donne juste le prix afficher pour eviter le gaspyage de token en output de que gemini ecris le chiffre deepsek verife les 30 dernier message pour voir si il ya negociation ou pas , si il vois negoction et regarde le prix sur lequele il se sont entendu si 15% de ce prix correspond a ce que gemini a ecrit alors le qr du voyageur peut s'afficher.",
+        "status": "done",
+        "memory": "Intégration de DeepSeek pour l'analyse sémantique des négociations dans le chat. Détection automatique des prix convenus et blocage des tentatives de fraude sur la commission (12%) via l'endpoint /check-deal-price."
+      },
+      {
+        "id": "t_1774912688751",
+        "title": "systeme de payement v2 gemini",
+        "prompt": "base toi sur le systeme qui existe deja pour verifier les pasport des voyageur par gemini, tu vas juste mettre ce meme systeme en place pour le system de payement. le systeme ce met en place imediatement quand le client upload la photo de payement de colis connect et valide, le bot a deux mission. premier s'assurer que c'est payement authentique de alipay ou weechat ce n'est pas diffice a reconnaitre ,la plus par du temp c'est une page avec le la somme du la transcation. si c'est qui n'a rien a voir avec un recus de payement le bot dois annuler et faire apparaitre un fenetre popop avec un paneau triangle jaune pour dire veuiller uplod le vrai recus, si c'est un vrais recu la deuxieme tache du bot es de recesser le prix sur le recu pour voir si ca coorespon a 15% de la somme que il doit payer au voyageur , commencons par ca d'abord si c'est valider apres on vas intaller deepseek pour le scannage des message",
+        "status": "done",
+        "memory": "Implémentation de Gemini 2.5 Flash pour valider l'authenticité des reçus (Alipay/WeChat) et extraire le montant réel via OCR. Ajout d'une comparaison automatique avec la commission de 12% déclarée (tolérance 1 RMB) et feedback UI en cas d'erreur."
+      },
+      {
+        "id": "t_1774923218021",
+        "title": "ne plus payer colis connect encore ",
+        "prompt": "souvent il peut arriver que au niveau ou il doit payer le voyageur il sort ou un problem arrive il n'a pas pu scaner le qr du voygeur , il vas cliquer sur payer mais on vas lui redemander de nous payer encore ce qui est mauvais , fait de sorte que si il nous a deja payer si il reclique sur le bouton payer c'est l'etape 2/2 qui apparais celle ou le qr du voyageur apparais ",
+        "status": "in_progress",
+        "memory": ""
+      },
+      {
+        "id": "t_1775242427190",
+        "title": "passport deux fois ",
+        "prompt": "faut pas il vont mettre passport deux fois , il faut que pour chaque analyse de passport on puisse enrgistrer le nom exacte du client comme ceal il ne pourra pas prendre son passpor pour creer un deuxieme compte ",
+        "status": "pending",
+        "memory": ""
+      },
+      {
+        "id": "t_1775961103292",
+        "title": "bouton deconneter sur mobile",
+        "prompt": "trouve un espace bien placer pour mettre le bouton de deconnection sur le dashobord utilisteur ",
+        "status": "in_progress",
+        "memory": ""
+      },
+      {
+        "id": "t_1775962952589",
+        "title": "image dans le chat",
+        "prompt": "quand une image es mis dans le chat le info de l'image sont afficher dans la zone des chat , pas a l'interriur, quand on est sur la page de chat on les petit debut de message quon peut voir detetaille s les info des image au lieu de juste mettre ✅ Capture de paiement commission reçue. ca met : data:image/jpeg;base64.....",
+        "status": "pending",
+        "memory": ""
+      }
+    ]
+  },
+  {
+    "id": "f_1774828526695",
+    "status": "pending",
+    "title": "dashbord qr code alipay ou weechat",
+    "purpose": "au lieux que les utilisateur upload toujour leur qr pour chaque offre on vas centraliser ca et leur dire de upload sur leur dashbord leur qr alipay et leur qr weechat comme ca il n'on pas besoin de toujour upload et ca economise de l'espace",
+    "updates": [
+      {
+        "date": "12/04/2026",
+        "text": "QR Codes centralisés : Tunnel de config fonctionnel avec redirection intelligente."
+      }
+    ],
+    "tasks": [
+      {
+        "id": "t_1774881437817",
+        "title": "centralisation des qr code",
+        "prompt": "les utilisateur actuellement pour ceux qui veulent publier des offres il s doivent a chaque fois upload les moyen de pyement qr code alipay ou weechat , on vas centraliser ca , sur le dashbord remplace le bouton \n\"Gerer mon identite\" par \"placer mes moyen de payement\" si l'utilisateur clique une fenetre popop en apparait qui vaas faire en deux etape exactement comme le systeme de payement ou tu a mis 1/2 la premiere sera alipay on vas lui dire faire une capture de ton qr code alipay et upload le ici , pareille pour le deuxieme etape. simulaton :l'utilisateur veut publier un offre pour la premiere fois->il met ces info il clique sur choisir son moyen de payement -> la fenetre qui lui dit choisir alipay ou weechat apparait -> il choisi l'un des deux -> automatiquement ce lui dit vous devez intaller vos qr code sur votre dashbord pour faciliter vos payement cela se fera une seule fois -> il clique sur le bouton aller -> ca le redirige vers le dashbord et fait un system d'ancre pour l'envoyer au niveau du bouton placer mes moyen de payement -> le bouton doit cligntoner et briller pour indiquer que c'est sur ce bouton il doit appuyertna que il n'a pas appuyer ca clignote et brille -> la clique sur le bouton \"\"placer mes moyen de payement\" -> fenetre popop apparais avec info (faire une capture de ton qr code alipay et upload le ici) toujour en etape 1/2 -> il upload -> la fentre 2/2 apparait avec les info (faire une capture de ton qr code weechat et upload le ici) il upload. -> et ca dit a la fin felicitation vous ete pret a etre payer sans soucis maintenant avec le boutons ok -> quand il clique sur ok si il vient de la page publication ca le reamne a l'etat ou il etait on lui demandait de choisir soi weechat ou alipay. mais si le client ne vient pas de la page de publication il a cliquer directement sur placer mes moyen de payement depuis le dashbord pas besoind de le ramener sur la page de pun=blication",
+        "status": "done",
+        "memory": "Tunnel de configuration des QR Codes (Pays, Alipay, WeChat) sur le Dashboard avec système d'ancre (?setup_payment=true) et bouton pulsé. Redirection intelligente post-configuration vers la publication."
+      }
+    ]
+  },
+  {
+    "id": "f_1775964709836",
+    "status": "pending",
+    "title": "rappel argent",
+    "purpose": "pour les truc a payer comme les api ",
+    "tasks": [
+      {
+        "id": "t_1775964868948",
+        "title": "gemini api ",
+        "prompt": "payer l'api de gemini pour les image soit par le compte international de qualqu1 ou par https://gptsapi.net/api ou on peut payer par rmb",
+        "status": "pending",
+        "memory": ""
+      }
+    ]
+  }
+]

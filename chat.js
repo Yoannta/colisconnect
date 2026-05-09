@@ -1,0 +1,619 @@
+(() => {
+    const state = {
+        userId: null,
+        conversations: [],
+        adminInbox: [],
+        activeThreadId: null,
+        activeThreadData: null, // full thread object including offer data
+        messages: [],
+        // payment modal state
+        receiptBase64: null,
+        paymentType: "regular",
+    };
+
+    const els = {
+        refreshBtn: document.getElementById("refresh-conversations-btn"),
+        adminInboxList: document.getElementById("admin-inbox-list"),
+        conversationsList: document.getElementById("conversations-list"),
+        chatMeta: document.getElementById("chat-meta"),
+        chatOfferInfo: document.getElementById("chat-offer-info"),
+        chatAvatarInitials: document.getElementById("chat-avatar-initials"),
+        chatPanelHeader: document.getElementById("chat-panel-header"),
+        chatEmptyState: document.getElementById("chat-empty-state"),
+        chatSidebar: document.getElementById("chat-sidebar"),
+        chatPanel: document.getElementById("chat-panel"),
+        chatBackBtn: document.getElementById("chat-back-btn"),
+        convSearchInput: document.getElementById("conv-search-input"),
+        messagesList: document.getElementById("messages-list"),
+        messageForm: document.getElementById("message-form"),
+        messageInput: document.getElementById("message-input"),
+        chatPayBtn: document.getElementById("chat-pay-btn"),
+        paymentModal: document.getElementById("chat-payment-modal"),
+        cpmCloseBtn: document.getElementById("cpm-close-btn"),
+        cpmQrDisplay: document.getElementById("cpm-qr-display"),
+        cpmMethodBadge: document.getElementById("cpm-method-badge"),
+        cpmMethodName: document.getElementById("cpm-method-name"),
+        cpmAmount: document.getElementById("cpm-amount"),
+        cpmReceiptInput: document.getElementById("cpm-receipt-input"),
+        cpmReceiptPlaceholder: document.getElementById("cpm-receipt-placeholder"),
+        cpmReceiptPreview: document.getElementById("cpm-receipt-preview"),
+        cpmConfirmBtn: document.getElementById("cpm-confirm-btn"),
+    };
+
+    // ---- Mobile Nav Helpers ----
+    function isMobileView() {
+        return window.innerWidth <= 800 || document.documentElement.classList.contains('mobile-mode');
+    }
+
+    function showChatView() {
+        if (!isMobileView()) return;
+        els.chatSidebar?.classList.add('mobile-hidden');
+        els.chatPanel?.classList.add('mobile-active');
+    }
+
+    function showListView() {
+        if (!isMobileView()) return;
+        els.chatSidebar?.classList.remove('mobile-hidden');
+        els.chatPanel?.classList.remove('mobile-active');
+    }
+
+    // ---- Conversations ----
+    function getInitials(name) {
+        const parts = String(name || "?").trim().split(" ").filter(Boolean);
+        if (parts.length === 0) return "?";
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    }
+
+    function formatConvTime(isoDate) {
+        if (!isoDate) return "";
+        try {
+            const d = new Date(isoDate);
+            const now = new Date();
+            const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+            if (diffDays === 1) return "Hier";
+            if (diffDays < 7) return d.toLocaleDateString("fr-FR", { weekday: "short" });
+            return d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
+        } catch { return ""; }
+    }
+
+    function renderConversations(filterText = "") {
+        if (!els.conversationsList) return;
+        const term = filterText.toLowerCase().trim();
+        const visible = term
+            ? state.conversations.filter(t => (t.travelerName || "").toLowerCase().includes(term) || (t.preview || "").toLowerCase().includes(term))
+            : state.conversations;
+
+        if (!visible.length) {
+            els.conversationsList.innerHTML = '<div class="chat-empty-conv">Aucune conversation.</div>';
+            return;
+        }
+        els.conversationsList.innerHTML = visible
+            .map((thread) => {
+                const active = thread.id === state.activeThreadId ? "is-active" : "";
+                const name = window.CCCommon.escapeHtml(thread.travelerName || "Contact");
+                const initials = getInitials(thread.travelerName || "Contact");
+                const preview = window.CCCommon.escapeHtml(thread.preview || "Aucun message");
+                const time = formatConvTime(thread.lastMessageAt || thread.updatedAt);
+                const statusClass =
+                    thread.status === "voyageur_paye" ? "status-voyageur-paye" :
+                        thread.status === "colisconnect_paye" ? "status-colisconnect-paye" : "";
+
+                let statusLabel = "";
+                if (thread.isOfferOwner && thread.status === "voyageur_paye") {
+                    statusLabel = "payer colisconnect";
+                }
+
+                return `
+<button class="chat-conv-item ${active}" data-thread-id="${window.CCCommon.escapeHtml(thread.id)}">
+    <div class="conv-avatar ${statusClass}">${initials}</div>
+    <div class="conv-info">
+        <div class="conv-top-row">
+            <span class="conv-name">${name}</span>
+            <span class="conv-time">${time}</span>
+        </div>
+        <div class="conv-bottom-row">
+            <span class="conv-preview">${preview}</span>
+            ${statusLabel ? `<span class="conv-status-pill">${window.CCCommon.escapeHtml(statusLabel)}</span>` : ""}
+        </div>
+    </div>
+</button>`;
+            })
+            .join("\n");
+    }
+
+    function renderAdminInbox() {
+        const section = document.getElementById("admin-inbox-section");
+        if (!els.adminInboxList) return;
+        if (!state.adminInbox.length) {
+            if (section) section.style.display = "none";
+            els.adminInboxList.innerHTML = "";
+            return;
+        }
+        if (section) section.style.display = "flex";
+        els.adminInboxList.innerHTML = state.adminInbox
+            .map((item) => `
+<article class="chat-admin-item">
+    <div class="chat-admin-item-top">
+        <span class="conv-status-pill">${window.CCCommon.escapeHtml(item.section || "general")}</span>
+        <span class="conv-time">${formatConvTime(item.createdAt)}</span>
+    </div>
+    <p class="chat-admin-item-text">${window.CCCommon.escapeHtml(item.text || "")}</p>
+</article>`)
+            .join("\n");
+    }
+
+    // ---- Message rendering ----
+    function formatMsgTime(isoDate) {
+        if (!isoDate) return "";
+        try { return new Date(isoDate).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); }
+        catch { return ""; }
+    }
+
+    function renderMessages(messages) {
+        if (!els.messagesList) return;
+        const rows = Array.isArray(messages) ? messages : [];
+
+        if (!rows.length) {
+            els.messagesList.innerHTML = '<div class="chat-no-messages"><span>💬</span>Pas encore de messages.<br><small>Commencez la conversation !</small></div>';
+        } else {
+            els.messagesList.innerHTML = rows.map(renderSingleMessage).join("\n");
+            els.messagesList.scrollTop = els.messagesList.scrollHeight;
+        }
+        state.messages = rows;
+    }
+
+    function renderSingleMessage(msg) {
+        const sender = String(msg.sender || "system");
+        const msgType = String(msg.messageType || msg.message_type || "text");
+        const timeStr = formatMsgTime(msg.createdAt || msg.created_at);
+
+        // ---- Special message types: checked FIRST regardless of sender ----
+
+        if (msgType === "reversal_request") {
+            let parsed = {};
+            try { parsed = JSON.parse(msg.text || "{}"); } catch { }
+            const commission = Number(parsed.commission || 0).toFixed(2);
+            const amountPaid = Number(parsed.amountPaid || 0).toFixed(2);
+            return `<div class="chat-msg-row chat-msg-system">
+    <div class="chat-bubble-reversal">
+        <div class="reversal-header">💰 Reversement de commission</div>
+        <p>Le client a payé <strong>${window.CCCommon.escapeHtml(String(amountPaid))} EUR</strong>.</p>
+        <p>Veuillez reverser <strong class="reversal-amount">${window.CCCommon.escapeHtml(String(commission))} EUR (10%)</strong> à ColisConnect.</p>
+        <button class="btn secondary reversal-done-btn" data-commission="${window.CCCommon.escapeHtml(String(commission))}">✅ J'ai reversé</button>
+    </div>
+</div>`;
+        }
+
+        if (msgType === "payment_receipt") {
+            const side = sender === "user" ? "chat-msg-right" : "chat-msg-left";
+            const bubbleCss = sender === "user" ? "chat-bubble-user" : "chat-bubble-traveler";
+            const src = window.CCCommon.escapeHtml(msg.text || "");
+            return `<div class="chat-msg-row ${side}">
+    <div class="${bubbleCss} chat-bubble-img">
+        <div class="msg-receipt-label">📎 Capture de paiement</div>
+        <img src="${src}" alt="Reçu de paiement" class="msg-receipt-img" loading="lazy">
+        ${timeStr ? `<span class="chat-msg-time">${timeStr}</span>` : ""}
+    </div>
+</div>`;
+        }
+
+        if (sender === "system") {
+            return `<div class="chat-msg-row chat-msg-system"><span class="chat-bubble-system">${window.CCCommon.escapeHtml(msg.text || "")}</span></div>`;
+        }
+
+        const side = sender === "user" ? "chat-msg-right" : "chat-msg-left";
+        const bubbleCss = sender === "user" ? "chat-bubble-user" : "chat-bubble-traveler";
+
+        return `<div class="chat-msg-row ${side}">
+    <div class="${bubbleCss}">
+        ${window.CCCommon.escapeHtml(msg.text || "")}
+        ${timeStr ? `<span class="chat-msg-time">${timeStr}</span>` : ""}
+    </div>
+</div>`;
+    }
+
+    function currentThread() {
+        return state.conversations.find((item) => item.id === state.activeThreadId);
+    }
+
+    // ---- Visibility of "Payer" button ----
+    function updatePaymentButtonVisibility() {
+        const thread = currentThread();
+        if (!thread || !window.CCCommon.state?.user) {
+            els.chatPayBtn?.classList.add("hidden");
+            return;
+        }
+        // Show Payer button for the requester (client) when status is pending OR commission_payee
+        const payableStatuses = ["pending", "commission_payee", "agreed"];
+        const isClientSide = !thread.isOfferOwner && payableStatuses.includes(String(thread.status || ""));
+        if (els.chatPayBtn) {
+            els.chatPayBtn.classList.toggle("hidden", !isClientSide);
+            // Update button label to reflect current step
+            if (!isClientSide) return;
+            if (thread.status === "commission_payee") {
+                els.chatPayBtn.innerHTML = "💸 Payer le Voyageur (2/2)";
+            } else {
+                els.chatPayBtn.innerHTML = "💳 Payer la Commission (1/2)";
+            }
+        }
+    }
+
+    function renderConversationMeta(thread) {
+        if (!thread) return;
+        els.chatPanelHeader?.classList.remove("hidden");
+        els.chatEmptyState?.classList.add("hidden");
+        if (els.chatAvatarInitials) els.chatAvatarInitials.textContent = getInitials(thread.travelerName || "Contact");
+        if (els.chatMeta) els.chatMeta.textContent = thread.travelerName || "Contact";
+        if (els.chatOfferInfo) els.chatOfferInfo.textContent = thread.offerTitle || "";
+    }
+
+    async function openThread(threadId) {
+        if (!threadId) return;
+        const selected = state.conversations.find((item) => item.id === threadId);
+        state.activeThreadId = threadId;
+        state.activeThreadData = selected || null;
+        renderConversations();
+        showChatView(); // Mobile: switch to chat panel
+
+        const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
+        renderMessages(messages);
+        renderConversationMeta(selected);
+        updatePaymentButtonVisibility();
+    }
+
+
+    async function loadConversations() {
+        const [rows, inboxPayload] = await Promise.all([
+            window.CCCommon.api("/api/conversations"),
+            window.CCCommon.api("/api/admin/inbox")
+        ]);
+        state.conversations = Array.isArray(rows) ? rows : [];
+        state.adminInbox = Array.isArray(inboxPayload?.items) ? inboxPayload.items : [];
+        renderAdminInbox();
+        renderConversations();
+
+        if (!state.activeThreadId && state.conversations.length) {
+            state.activeThreadId = state.conversations[0].id;
+        }
+
+        if (state.activeThreadId) {
+            await openThread(state.activeThreadId);
+        } else {
+            renderMessages([]);
+            if (els.chatMeta) els.chatMeta.textContent = "Aucune conversation pour le moment.";
+        }
+    }
+
+    async function ensureConversationForOffer(offerId) {
+        if (!offerId) return;
+        const numericId = Number(offerId);
+        if (!Number.isFinite(numericId) || numericId <= 0) return;
+
+        const thread = await window.CCCommon.api("/api/conversations/by-offer", {
+            method: "POST",
+            body: { offerId: numericId }
+        });
+
+        await loadConversations();
+        if (thread?.id) {
+            state.activeThreadId = thread.id;
+            await openThread(thread.id);
+        }
+    }
+
+    // ---- Anti-Leak: Client-side patterns (lightweight) ----
+    const LEAK_PATTERNS_CLIENT = [
+        /(?:\+|00)?\d[\d\s\-\.]{7,}/,          // phone-like sequences
+        /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i, // email
+        /whatsapp|wa\.me|telegram|t\.me/i,      // messaging apps
+        /@[a-z0-9._]{3,}/i,                     // @username
+        /https?:\/\/|www\./i,                    // URL
+        /facebook|instagram|tiktok|snapchat|twitter/i, // socials
+    ];
+
+    function detectLeakClient(text) {
+        if (!text) return false;
+        const norm = text.trim().toLowerCase();
+        return LEAK_PATTERNS_CLIENT.some(p => p.test(norm));
+    }
+
+    function showLeakWarning(show) {
+        let banner = document.getElementById("chat-leak-warning");
+        if (show) {
+            if (!banner) {
+                banner = document.createElement("div");
+                banner.id = "chat-leak-warning";
+                banner.className = "chat-leak-banner";
+                banner.innerHTML = `⚠️ <strong>Contenu interdit détecté.</strong> Partager des coordonnées personnelles (numéro, email, réseaux sociaux...) est interdit et enregistré.`;
+                els.messageForm?.parentNode?.insertBefore(banner, els.messageForm);
+            }
+            banner.classList.add("visible");
+            if (els.messageForm?.querySelector("[type='submit']")) {
+                els.messageForm.querySelector("[type='submit']").disabled = true;
+            }
+        } else {
+            if (banner) banner.classList.remove("visible");
+            if (els.messageForm?.querySelector("[type='submit']")) {
+                els.messageForm.querySelector("[type='submit']").disabled = false;
+            }
+        }
+    }
+
+    async function submitMessage(event) {
+        event.preventDefault();
+        if (!window.CCCommon.requireCompletedProfile()) return;
+        const text = String(els.messageInput?.value || "").trim();
+        if (!text) return;
+        if (!state.activeThreadId) {
+            alert("Sélectionnez une conversation.");
+            return;
+        }
+
+        // Client-side quick check
+        if (detectLeakClient(text)) {
+            showLeakWarning(true);
+            return;
+        }
+
+        try {
+            await window.CCCommon.api(`/api/conversations/${encodeURIComponent(state.activeThreadId)}/messages`, {
+                method: "POST",
+                body: { text }
+            });
+            if (els.messageInput) els.messageInput.value = "";
+            showLeakWarning(false);
+            await openThread(state.activeThreadId);
+        } catch (error) {
+            if (error?.payload?.code === "CONTACT_INFO_BLOCKED") {
+                showLeakWarning(true);
+                // Replace generic alert with inline warning (already shown)
+            } else {
+                alert(error.message || "Envoi impossible.");
+            }
+        }
+    }
+
+    // ---- Payment & Checkout (Split P2P) ----
+    const PAYMENT_STATE = { step: null, amount: 0 };
+
+    function fileToDataUrl(file) {
+        return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(String(r.result || ""));
+            r.onerror = () => reject(new Error("Lecture fichier impossible."));
+            r.readAsDataURL(file);
+        });
+    }
+
+    async function openSplitPaymentModal() {
+        if (!state.activeThreadId || !state.activeThreadData) return alert("Sélectionnez une conversation d'abord.");
+        const res = state.activeThreadData.reservation || state.activeThreadData;
+        if (!res) return;
+
+        // On affiche directement le Hub de paiement (sans demander si réduction)
+        const modal = document.getElementById("payment-hub-modal");
+        const amountDisplay = document.getElementById("payment-hub-amount-banner");
+        const localIcons = document.getElementById("local-payment-icons");
+        const localName = document.getElementById("local-payment-name");
+
+        const userCountry = window.CCCommon.state.user?.country || "France";
+        const userCur = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
+
+        // Calcul du montant total fixe
+        const pricePerKg = res.proposedPricePerKg || 0;
+        const weight = res.weightKg || 1;
+        const totalAmountBase = pricePerKg * weight;
+        const localAmount = window.CCCommon.convertCurrency(totalAmountBase, "EUR", userCur);
+
+        amountDisplay.textContent = window.CCCommon.formatAmount(localAmount, userCur);
+
+        // Config dynamique selon le pays
+        localIcons.innerHTML = "";
+        if (userCountry === "Chine") {
+            localName.textContent = "Alipay / WeChat Pay";
+            localIcons.innerHTML = `
+                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4b/Alipay_logo.svg" style="height:14px; margin: 2px">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/WeChat_Pay_logo.svg" style="height:14px; margin: 2px">
+            `;
+        } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso"].includes(userCountry)) {
+            localName.textContent = "Mobile Money (Afrique)";
+            localIcons.innerHTML = `
+                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Orange-logo.svg" style="height:14px; margin: 2px">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/MTN_Logo.svg/1024px-MTN_Logo.svg.png" style="height:14px; margin: 2px">
+            `;
+        } else {
+            localName.textContent = "Méthodes Locales";
+            localIcons.innerHTML = "🌍";
+        }
+
+        modal.classList.remove("hidden");
+    }
+
+    async function submitSplitPayment() {
+        console.log("[Payment Debug] Début de la soumission...");
+        const receiptInput = document.getElementById("split-payment-receipt");
+        const file = receiptInput?.files?.[0];
+        if (!file) return alert("Veuillez uploader la capture d'écran du paiement.");
+
+
+        const submitBtn = document.getElementById("split-payment-submit");
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner"></span> Envoi...';
+
+        try {
+            const base64 = await fileToDataUrl(file);
+            const isCommission = PAYMENT_STATE.step === "commission";
+            const reservationId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id;
+            console.log("[Payment Debug] ID de réservation trouvé :", reservationId);
+
+            if (!reservationId) {
+                console.error("[Payment Debug] Erreur: ID manquant dans state.activeThreadData :", state.activeThreadData);
+                throw new Error("Erreur système : ID de réservation introuvable.");
+            }
+            alert(`[DEBUG] Envoi paiement pour réservation #${reservationId}`);
+
+
+            const endpoint = isCommission
+                ? `/api/reservations/${reservationId}/pay-commission`
+                : `/api/reservations/${reservationId}/pay-traveler`;
+
+            console.log(`[Payment] Envoi vers ${endpoint} (Montant: ${PAYMENT_STATE.amount})`);
+
+            await window.CCCommon.api(endpoint, {
+                method: "POST",
+                body: { receiptData: base64, amount: PAYMENT_STATE.amount }
+            });
+
+
+            document.getElementById("split-payment-modal").classList.add("hidden");
+
+            if (isCommission) {
+                // Automatically transition to step 2 (Traveler payment)
+                alert("Paiement plateforme reçu ! Vous pouvez maintenant payer le voyageur directement.");
+                // We need to re-fetch the thread data to ensure we have the updated status
+                await loadConversations();
+
+                // Use the saved totalAmount
+                if (PAYMENT_STATE.totalAmount > 0) {
+                    await openSplitPaymentModal("traveler", PAYMENT_STATE.totalAmount);
+                }
+            } else {
+                alert("Preuve de paiement envoyée au voyageur avec succès !");
+                await openThread(state.activeThreadId);
+            }
+        } catch (err) {
+            const feedback = document.getElementById("split-payment-feedback");
+            if (err.payload?.code === "RECEIPT_INVALID") {
+                if (feedback) {
+                    feedback.innerHTML = `<div class="payment-error-box">⚠️ <strong>Reçu non reconnu</strong><br>${err.payload.detail || "Veuillez uploader un vrai reçu de paiement Mobile Money."}</div>`;
+                }
+            } else if (err.payload?.code === "AMOUNT_MISMATCH") {
+                if (feedback) {
+                    feedback.innerHTML = `<div class="payment-error-box">⚠️ <strong>Montant incorrect</strong><br>${err.payload.detail}</div>`;
+                }
+            } else if (err.payload?.code === "PRICE_FRAUD") {
+                if (feedback) {
+                    feedback.innerHTML = `<div class="payment-error-box" style="border-color: #ff4d4d; color: #ff4d4d;">🛑 <strong>Tentative de fraude detected</strong><br>${err.payload.detail}</div>`;
+                }
+            } else {
+
+                alert(err.message || "Erreur lors de l'envoi.");
+            }
+        } finally {
+
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "Confirmer le paiement";
+        }
+    }
+
+    // ---- Events ----
+    function bindEvents() {
+        // Refresh
+        els.refreshBtn?.addEventListener("click", () => {
+            loadConversations().catch((error) => alert(error.message || "Rafraîchissement impossible."));
+        });
+
+        // Conversations click
+        els.conversationsList?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-thread-id]");
+            if (!button) return;
+            const threadId = button.getAttribute("data-thread-id");
+            if (threadId) openThread(threadId).catch((error) => alert(error.message || "Ouverture impossible."));
+        });
+
+        // Mobile back button
+        els.chatBackBtn?.addEventListener("click", () => {
+            showListView();
+        });
+
+        // Search filter
+        els.convSearchInput?.addEventListener("input", () => {
+            renderConversations(els.convSearchInput.value);
+        });
+
+        // Message form
+        els.messageForm?.addEventListener("submit", (event) => {
+            submitMessage(event).catch((error) => alert(error.message || "Envoi impossible."));
+        });
+
+        els.messageInput?.addEventListener("input", () => {
+            const text = els.messageInput.value;
+            if (detectLeakClient(text)) {
+                showLeakWarning(true);
+            } else {
+                showLeakWarning(false);
+            }
+        });
+
+        // Split Payment Setup
+        els.chatPayBtn?.addEventListener("click", () => openSplitPaymentModal());
+
+        // [PROTOTYPE] Hub Events
+        const hubModal = document.getElementById("payment-hub-modal");
+        document.getElementById("payment-hub-close")?.addEventListener("click", () => hubModal.classList.add("hidden"));
+
+        document.getElementById("method-local")?.addEventListener("click", async () => {
+            const resId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id;
+            if (!resId) return alert("Impossible de récupérer l'identifiant de la réservation.");
+
+            const btn = document.getElementById("method-local");
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = `<div class="method-icons"><span class="spinner"></span></div><div class="method-info"><span class="method-name">Connexion en cours...</span></div>`;
+            btn.style.pointerEvents = "none";
+
+            try {
+                const result = await window.CCCommon.api("/api/payments/initiate", {
+                    method: "POST",
+                    body: { reservationId: resId }
+                });
+
+                if (result.paymentLink) {
+                    // Redirection vers le Hub de paiement (FedaPay, Paystack, etc.)
+                    window.location.href = result.paymentLink;
+                } else {
+                    throw new Error("Lien de paiement introuvable.");
+                }
+            } catch (err) {
+                btn.innerHTML = originalContent;
+                btn.style.pointerEvents = "";
+                alert(`Erreur : ${err.message || "Impossible d'accéder au service de paiement."}`);
+                console.error("[Payment] Erreur initiation:", err);
+            }
+        });
+
+        document.getElementById("method-global")?.addEventListener("click", () => {
+            // Stripe Checkout — à implémenter ultérieurement
+            alert("Paiement par carte arrive bientôt !");
+        });
+
+    }
+
+    // ---- Bootstrap ----
+    async function bootstrap() {
+        await window.CCCommon.init("chat");
+        if (!window.CCCommon.requireAuth("chat.html")) return;
+        state.userId = window.CCCommon.state.user?.id;
+
+        const params = new URLSearchParams(window.location.search || "");
+        const offerId = params.get("offerId");
+
+        bindEvents();
+
+        if (offerId) {
+            await ensureConversationForOffer(offerId);
+        } else {
+            await loadConversations();
+        }
+
+        // Refresh notification badges after entering chat (messages are being read)
+        setTimeout(() => {
+            window.CCCommon?.syncNotificationBadges?.();
+        }, 1500);
+    }
+
+    bootstrap().catch((error) => {
+        alert(error.message || "Initialisation impossible.");
+    });
+})();

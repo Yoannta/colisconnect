@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antigravity Miracle Dashboard 🚀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --neon-teal: #00f2ff;
+            --neon-orange: #ff7300;
+            --bg-dark: #0a0e14;
+            --card-bg: #161b22;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e6e6e6;
+            font-family: 'Roboto', sans-serif;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a2332 0%, #0d1117 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid var(--neon-teal);
+            box-shadow: 0 4px 20px rgba(0, 242, 255, 0.2);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--neon-teal);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            flex: 1;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 242, 255, 0.1);
+            position: relative;
+        }
+
+        .led {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff0000;
+            box-shadow: 0 0 10px #ff0000;
+            animation: pulse 1.5s infinite;
+        }
+
+        .led.active {
+            background: var(--neon-teal);
+            box-shadow: 0 0 10px var(--neon-teal);
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .progress-container {
+            height: 8px;
+            background: #252b36;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-teal), var(--neon-orange));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        #ai-thought {
+            font-style: italic;
+            color: #b0b0b0;
+            min-height: 50px;
+            font-size: 1.1rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .btn-action {
+            padding: 12px;
+            background: #30363d;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .btn-action:active {
+            background: var(--neon-teal);
+            color: black;
+        }
+
+        .command-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            background: #1e242c;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            color: white;
+            padding: 15px;
+            font-size: 1.1rem;
+            resize: none;
+            outline: none;
+        }
+
+        button.btn-send {
+            padding: 15px;
+            background: var(--neon-teal);
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 10px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .btn-health {
+            margin-top: 25px;
+            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: white;
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+        }
+
+        #notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--neon-teal);
+            color: black;
+            padding: 10px 30px;
+            border-radius: 30px;
+            display: none;
+            font-weight: bold;
+            box-shadow: 0 0 15px var(--neon-teal);
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>📡 Miracle Control</h1>
+    </header>
+
+    <div class="container">
+        <div class="status-card">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px">
+                <span>Antigravity Bridge</span>
+                <div id="status-led" class="led active"></div>
+            </div>
+            <p id="ai-thought">Initialisation du pont...</p>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+            <p id="task-name" style="color: var(--neon-teal); font-size: 0.9rem">...</p>
+        </div>
+
+        <div class="quick-actions">
+            <button class="btn-action" onclick="sendCommand('TEST')">Test Rapide</button>
+            <button class="btn-action" onclick="sendCommand('STATUS')">État Général</button>
+            <button class="btn-action" onclick="sendCommand('STRIPE')">Logs Stripe</button>
+            <button class="btn-action" onclick="sendCommand('RESTART')">Reload Link</button>
+        </div>
+
+        <div class="command-section">
+            <textarea id="command-input" placeholder="Écris ici ton message de test..."></textarea>
+            <button class="btn-send" onclick="sendInput()">Envoyer au Miracle 🛠️</button>
+        </div>
+
+        <button class="btn-health" onclick="alert('Repose-toi, je m\'occupe de tout ! ❤️')">SOIGNE-TOI BIEN !</button>
+    </div>
+
+    <div id="notification">Satellite OK ✅</div>
+
+    <script>
+        async function updateStatus() {
+            try {
+                const res = await fetch('/api/miracle/status');
+                const data = await res.json();
+                document.getElementById('ai-thought').innerText = data.thought || "A l'écoute...";
+                document.getElementById('progress-bar').style.width = data.progress + "%";
+                document.getElementById('task-name').innerText = data.task || "Prêt.";
+            } catch (e) { }
+        }
+
+        async function sendCommand(cmd) {
+            if (!cmd) return;
+            try {
+                const res = await fetch('/api/miracle/command', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ command: cmd })
+                });
+                const data = await res.json();
+                showNotice("📡 " + (data.autoResponse || "Commande reçue"));
+                updateStatus();
+            } catch (e) { alert("Signal perdu 🔌"); }
+        }
+
+        function sendInput() {
+            const input = document.getElementById('command-input');
+            sendCommand(input.value);
+            input.value = "";
+        }
+
+        function showNotice(msg) {
+            const n = document.getElementById('notification');
+            n.innerText = msg;
+            n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 3000);
+        }
+
+        setInterval(updateStatus, 3000);
+        updateStatus();
+    </script>
+
+</body>
+
+</html>

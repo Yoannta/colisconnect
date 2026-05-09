@@ -1,0 +1,9 @@
+ColisConnect backend SQL v2: http://127.0.0.1:8091
+{"ts":"2026-02-20T00:01:59.940Z","method":"GET","path":"/api/health","ip":"127.0.0.1","status":200,"durationMs":6}
+{"ts":"2026-02-20T00:02:00.024Z","method":"POST","path":"/api/auth/login","ip":"127.0.0.1","status":401,"durationMs":5}
+{"ts":"2026-02-20T00:02:00.133Z","method":"GET","path":"/api/admin/overview","ip":"127.0.0.1","status":401,"durationMs":1}
+{"ts":"2026-02-20T00:02:00.137Z","method":"GET","path":"/api/admin/users?q=","ip":"127.0.0.1","status":401,"durationMs":0}
+{"ts":"2026-02-20T00:02:00.141Z","method":"GET","path":"/api/admin/offers?q=","ip":"127.0.0.1","status":401,"durationMs":1}
+{"ts":"2026-02-20T00:02:00.145Z","method":"GET","path":"/api/admin/conversations","ip":"127.0.0.1","status":401,"durationMs":0}
+{"ts":"2026-02-20T00:02:00.149Z","method":"GET","path":"/api/admin/security/blocks","ip":"127.0.0.1","status":401,"durationMs":0}
+{"ts":"2026-02-20T00:02:00.153Z","method":"GET","path":"/api/admin/audit-log?limit=5","ip":"127.0.0.1","status":401,"durationMs":0}
