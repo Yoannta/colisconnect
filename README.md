@@ -1,3 +1,13 @@
+---
+title: Colisconnect
+emoji: 🚀
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+app_file: backend/server.js
+pinned: false
+---
 # ColisConnect | Premium Parcel Stream
 
 ## 🌌 Vision & Excellence
