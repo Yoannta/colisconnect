@@ -212,14 +212,36 @@
                 return { message: "Inscription réussie", user: data.user };
             }
 
-            // 3. READ : Offers
+            // 3. AUTH : Session Profile (me)
+            if (path.includes("/auth/me")) {
+                const { data: { user }, error: authErr } = await window.ccSupabase.auth.getUser();
+                if (authErr || !user) throw authErr || new Error("No user");
+
+                // Récupérer le profil public pour avoir le role réel
+                const { data: profile, error: profErr } = await window.ccSupabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+
+                return { 
+                    user: { 
+                        ...user, 
+                        ...user.user_metadata,
+                        ...(profile || {}), // Priorité aux données de la table profiles
+                        id: user.id // Garantir que l'ID reste celui de Supabase
+                    } 
+                };
+            }
+
+            // 4. READ : Offers
             if (path.includes("/api/offers") && (options.method === "GET" || !options.method)) {
                 const { data, error } = await window.ccSupabase.from('offers').select('*').eq('status', 'active');
                 if (error) throw error;
                 return { items: data || [] };
             }
 
-            // 4. PAYMENTS
+            // 5. PAYMENTS
             if (path.includes("/payments") || path.includes("/initiate-payment")) {
                 const { data, error } = await window.ccSupabase.functions.invoke('initiate-payment', { body: options.body });
                 if (error) throw error;
