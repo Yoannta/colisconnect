@@ -178,7 +178,7 @@
             }
         }
 
-        const fallbackOrigins = [fallbackBase, "http://127.0.0.1:8080", "http://localhost:8080", "http://127.0.0.1:8090", "http://localhost:8090"];
+        const fallbackOrigins = [window.location.origin]; // Uniquement le domaine actuel en fallback final
         for (const origin of fallbackOrigins) {
             if (!origin) continue;
             const url = `${origin.replace(/\/$/, "")}${normalizedPath}`;
@@ -189,7 +189,7 @@
     }
 
     async function api(path, options = {}) {
-        // [SUPABASE BRIDGE UNIVERSEL]
+        // [SUPABASE BRIDGE UNIVERSEL V3 - ULTRA DROIT]
         if (window.ccSupabase) {
             const p = path.toLowerCase();
 
@@ -211,7 +211,14 @@
                 return { user: { ...user, ...user.user_metadata, ...(profile || {}), id: user.id } };
             }
 
-            // 2. OFFERS (CRUD)
+            // 2. PROFILE UPDATE (PATCH)
+            if (p.includes("/users/me/profile") && options.method === "PATCH") {
+                const { data, error } = await window.ccSupabase.from('profiles').update(options.body).eq('id', state.user?.id).select();
+                if (error) throw error;
+                return { success: true, user: { ...state.user, ...data[0] } };
+            }
+
+            // 3. OFFERS (CRUD)
             if (p.includes("/api/offers")) {
                 const idMatch = path.match(/\/api\/offers\/([^\/\?]+)/);
                 if (options.method === "DELETE" && idMatch) {
@@ -233,20 +240,26 @@
                 return { items: data || [] };
             }
 
-            // 3. CONVERSATIONS & MESSAGES
+            // 4. CONVERSATIONS & MESSAGES
             if (p.includes("/api/conversations")) {
-                // Simplification : on retourne une liste vide pour l'instant ou on mappe vers chat_threads
-                const { data, error } = await window.ccSupabase.from('chat_threads').select('*');
+                const threadMatch = path.match(/\/api\/conversations\/([^\/\?]+)\/messages/);
+                if (threadMatch) { // GET MESSAGES
+                    const { data, error } = await window.ccSupabase.from('chat_messages').select('*').eq('thread_id', threadMatch[1]).order('created_at', { ascending: true });
+                    if (error) throw error;
+                    return data || [];
+                }
+                // LIST CONVS
+                const { data, error } = await window.ccSupabase.from('chat_threads').select('*').or(`participant_a.eq.${state.user?.id},participant_b.eq.${state.user?.id}`);
                 if (error) throw error;
                 return data || [];
             }
 
-            // 4. ADMIN & NOTIFS
+            // 5. ADMIN & NOTIFS
             if (p.includes("/admin/inbox") || p.includes("/notification-counts")) {
-                return { chatUnread: 0, adminUnread: 0, items: [] }; // Fallback neutre
+                return { chatUnread: 0, adminUnread: 0, items: [] }; 
             }
 
-            // 5. PAYMENTS
+            // 6. PAYMENTS
             if (p.includes("/payments") || p.includes("/initiate-payment")) {
                 const { data, error } = await window.ccSupabase.functions.invoke('initiate-payment', { body: options.body });
                 if (error) throw error;

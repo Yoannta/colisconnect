@@ -1,4 +1,4 @@
-﻿const AUTH_TOKEN_KEY = "cc_auth_token";
+const AUTH_TOKEN_KEY = "cc_auth_token";
 const API_BASE_KEY = "cc_api_base";
 const mockApi = window.MockApi || {};
 const hasHttpRuntime = ["http:", "https:"].includes(window.location.protocol);
@@ -218,6 +218,14 @@ function showAdminLinks(user) {
 }
 
 async function api(path, options = {}, withAuth = false) {
+    // [SUPABASE BRIDGE UNIVERSEL]
+    if (window.ccSupabase) {
+        // On redirige vers le bridge moderne de standalone-common s'il existe
+        if (window.CCCommon && window.CCCommon.api) {
+            return window.CCCommon.api(path, { ...options, auth: withAuth });
+        }
+    }
+
     const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
     if (withAuth) {
         const t = token();
