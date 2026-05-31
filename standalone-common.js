@@ -82,7 +82,7 @@
 
 
     const state = {
-        token: localStorage.getItem("cc_token") || "",
+        token: localStorage.getItem("cc_auth_token") || "",
         user: null,
         pendingNavigation: "",
         pendingProfileNavigation: ""
@@ -328,9 +328,9 @@
         state.token = token || "";
         state.user = user || null;
         if (state.token) {
-            localStorage.setItem("cc_token", state.token);
+            localStorage.setItem("cc_auth_token", state.token);
         } else {
-            localStorage.removeItem("cc_token");
+            localStorage.removeItem("cc_auth_token");
         }
     }
 
