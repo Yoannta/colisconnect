@@ -33,14 +33,18 @@ async function createFedaPayLink({ amount, description, customerEmail, customerN
             }
         });
 
-        const transactionId = response.data.v1.transaction.id;
+        // Debug: Afficher la réponse brute
+        console.log("[FedaPay] Réponse Création:", JSON.stringify(response.data));
+
+        const transactionId = response.data.v1 ? response.data.v1.transaction.id : response.data.transaction.id;
 
         // Générer le lien de paiement (token de redirection)
         const tokenResponse = await axios.post(`${FEDAPAY_BASE_URL}/transactions/${transactionId}/token`, {}, {
             headers: { 'Authorization': `Bearer ${FEDAPAY_SECRET_KEY}` }
         });
 
-        return tokenResponse.data.v1.token.url;
+        const tokenUrl = tokenResponse.data.v1 ? tokenResponse.data.v1.token.url : tokenResponse.data.token.url;
+        return tokenUrl;
     } catch (error) {
         console.error('[FedaPay] Error:', error.response?.data || error.message);
         throw new Error("Échec de l'initialisation du paiement FedaPay.");

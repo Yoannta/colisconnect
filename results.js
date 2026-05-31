@@ -73,7 +73,7 @@
                 const baseCur = offer.baseCurrency || 'EUR';  // [MULTI-CURRENCY]
                 const userCur = state.userCurrency;
                 const convertedPrice = convertCurrency(pricePerKgRaw, baseCur, userCur);
-                const availableKg = offer.kilosAvailable || offer.kilos_available || 0;
+                const availableKg = offer.availableKg || 0;
                 const priceDisplay = formatAmount(convertedPrice, userCur);
                 const originalDisplay = baseCur !== userCur ? `<span class="price-original">(${formatAmount(pricePerKgRaw, baseCur)})</span>` : '';
 

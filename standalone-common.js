@@ -55,7 +55,31 @@
         "Australie": "AUD", "Fidji": "FJD", "Kiribati": "AUD", "Nauru": "AUD", "Nouvelle-Zélande": "NZD", "Palaos": "USD", "Papouasie-Nouvelle-Guinée": "PGK", "Salomon": "SBD", "Samoa": "WST", "Tonga": "TOP", "Tuvalu": "AUD", "Vanuatu": "VUV"
     };
 
+    const COUNTRY_CALLING_CODES = {
+        // Afrique de l'Ouest
+        "Bénin": "+229", "Burkina Faso": "+226", "Côte d'Ivoire": "+225", "Guinée-Bissau": "+245", "Mali": "+223", "Niger": "+227", "Sénégal": "+221", "Togo": "+228",
+        // Afrique Centrale
+        "Cameroun": "+237", "République centrafricaine": "+236", "République du Congo": "+242", "Gabon": "+241", "Guinée équatoriale": "+240", "Tchad": "+235",
+        // Afrique du Nord
+        "Algérie": "+213", "Égypte": "+20", "Libye": "+218", "Maroc": "+212", "Tunisie": "+216", "Sahara occidental": "+212",
+        // Reste de l'Afrique
+        "Afrique du Sud": "+27", "Angola": "+244", "Botswana": "+267", "Burundi": "+257", "Cap-Vert": "+238", "Comores": "+269", "Djibouti": "+253", "Érythrée": "+291", "Éthiopie": "+251", "Gambie": "+220", "Ghana": "+233", "Guinée": "+224", "Kenya": "+254", "Lesotho": "+266", "Liberia": "+231", "Madagascar": "+261", "Malawi": "+265", "Maurice": "+230", "Mauritanie": "+222", "Mozambique": "+258", "Namibie": "+264", "Nigeria": "+234", "Ouganda": "+256", "Rwanda": "+250", "Sao Tomé-et-Principe": "+239", "Seychelles": "+248", "Sierra Leone": "+232", "Somalie": "+252", "Soudan": "+249", "Soudan du Sud": "+211", "Eswatini": "+268", "Tanzanie": "+255", "Zambie": "+260", "Zimbabwe": "+263", "République démocratique du Congo": "+243",
+        // Europe
+        "Allemagne": "+49", "Andorre": "+376", "Autriche": "+43", "Belgique": "+32", "Chypre": "+357", "Croatie": "+385", "Espagne": "+34", "Estonie": "+372", "Finlande": "+358", "France": "+33", "Grèce": "+30", "Irlande": "+353", "Italie": "+39", "Lettonie": "+371", "Lituanie": "+370", "Luxembourg": "+352", "Malte": "+356", "Monaco": "+377", "Monténégro": "+382", "Pays-Bas": "+31", "Portugal": "+351", "Saint-Marin": "+378", "Slovaquie": "+421", "Slovénie": "+386", "Vatican": "+379",
+        "Albanie": "+355", "Arménie": "+374", "Azerbaïdjan": "+994", "Biélorussie": "+375", "Bosnie-Herzégovine": "+387", "Bulgarie": "+359", "Danemark": "+45", "Géorgie": "+995", "Hongrie": "+36", "Islande": "+354", "Kazakhstan": "+7", "Liechtenstein": "+423", "Macédoine du Nord": "+389", "Moldavie": "+373", "Norvège": "+47", "Pologne": "+48", "Roumanie": "+40", "Royaume-Uni": "+44", "Russie": "+7", "Serbie": "+381", "Suède": "+46", "Suisse": "+41", "République tchèque": "+420", "Turquie": "+90", "Ukraine": "+380",
+        // Moyen-Orient
+        "Arabie Saoudite": "+966", "Bahreïn": "+973", "Émirats Arabes Unis": "+971", "Irak": "+964", "Iran": "+98", "Israël": "+972", "Jordanie": "+962", "Koweït": "+965", "Liban": "+961", "Oman": "+968", "Palestine": "+970", "Qatar": "+974", "Syrie": "+963", "Yémen": "+967",
+        // Asie
+        "Afghanistan": "+93", "Bangladesh": "+880", "Bhoutan": "+975", "Birmanie": "+95", "Brunei": "+673", "Cambodge": "+855", "Chine": "+86", "Corée du Nord": "+850", "Corée du Sud": "+82", "Hong Kong": "+852", "Inde": "+91", "Indonésie": "+62", "Japon": "+81", "Kirghizistan": "+996", "Laos": "+856", "Macao": "+853", "Malaisie": "+60", "Maldives": "+960", "Mongolie": "+976", "Népal": "+977", "Ouzbékistan": "+998", "Pakistan": "+92", "Philippines": "+63", "Singapour": "+65", "Sri Lanka": "+94", "Tadjikistan": "+992", "Taïwan": "+886", "Thaïlande": "+66", "Timor oriental": "+670", "Turkménistan": "+993", "Vietnam": "+84",
+        // Amériques
+        "Bahamas": "+1-242", "Barbade": "+1-246", "Belize": "+501", "Canada": "+1", "Costa Rica": "+506", "Cuba": "+53", "Dominique": "+1-767", "États-Unis": "+1", "Grenade": "+1-473", "Guatemala": "+502", "Haïti": "+509", "Honduras": "+504", "Jamaïque": "+1-876", "Mexique": "+52", "Nicaragua": "+505", "Panama": "+507", "République dominicaine": "+1-809", "Saint-Kitts-et-Nevis": "+1-869", "Sainte-Lucie": "+1-758", "Saint-Vincent-et-les Grenadines": "+1-784", "Salvador": "+503", "Trinité-et-Tobago": "+1-868",
+        "Argentine": "+54", "Bolivie": "+591", "Brésil": "+55", "Chili": "+56", "Colombie": "+57", "Équateur": "+593", "Guyana": "+592", "Paraguay": "+595", "Pérou": "+51", "Suriname": "+597", "Uruguay": "+598", "Venezuela": "+58",
+        // Océanie
+        "Australie": "+61", "Fidji": "+679", "Kiribati": "+686", "Nauru": "+674", "Nouvelle-Zélande": "+64", "Palaos": "+680", "Papouasie-Nouvelle-Guinée": "+675", "Salomon": "+677", "Samoa": "+685", "Tonga": "+676", "Tuvalu": "+688", "Vanuatu": "+678"
+    };
+
     const COUNTRY_OPTIONS = Object.keys(COUNTRY_CURRENCIES).sort((a, b) => a.localeCompare(b, "fr"));
+
 
     const state = {
         token: localStorage.getItem("cc_token") || "",
@@ -96,27 +120,40 @@
             .trim();
     }
 
+    function getSmartRoundedAmount(amount, currency) {
+        currency = String(currency || "").toUpperCase();
+        // Groupe 1 : Centaine supérieure (ex: Afrique de l'Ouest/Centrale)
+        if (["XOF", "XAF", "GNF", "NGN", "RWF", "CDF", "MGA"].includes(currency)) {
+            return Math.ceil(amount / 100) * 100;
+        }
+        // Groupe 2 : Unité supérieure (ex: Chine, Ghana, Maroc)
+        if (["CNY", "GHS", "MAD", "ZAR", "DZD", "KES", "INR", "MUR"].includes(currency)) {
+            return Math.ceil(amount);
+        }
+        // Groupe 3 : Précision 0.10 (ex: EUR, USD)
+        if (["EUR", "USD", "GBP", "CHF", "CAD", "AUD"].includes(currency)) {
+            return Math.ceil(amount * 10) / 10;
+        }
+        // Défaut : Entier supérieur
+        return Math.ceil(amount);
+    }
+
     function formatAmount(amount, currency) {
-        const isCFA = ['XOF', 'XAF'].includes(currency);
-        // Les monnaies CFA n'utilisent généralement pas de centimes en pratique
-        const rounded = isCFA ? Math.round(amount) : Math.round(amount * 100) / 100;
+        const rounded = getSmartRoundedAmount(amount, currency);
+        const isLowValue = ["XOF", "XAF", "GNF", "NGN", "RWF", "CDF", "MGA"].includes(currency);
 
         const symbols = { EUR: '€', USD: '$', GBP: '£', CNY: '¥', JPY: '¥', XOF: ' FCFA', XAF: ' FCFA', NGN: '₦' };
         const sym = symbols[currency] || ` ${currency}`;
 
-        // On utilise le formatage français (espaces pour milliers, virgule pour décimales)
         const formatted = new Intl.NumberFormat('fr-FR', {
             minimumFractionDigits: 0,
-            maximumFractionDigits: isCFA ? 0 : 2
+            maximumFractionDigits: isLowValue ? 0 : 2
         }).format(rounded);
 
         if (['EUR', 'USD', 'GBP', 'CNY', 'JPY'].includes(currency)) {
-            // Symbole avant pour les monnaies internationales
             const internationalSymbols = { EUR: '€', USD: '$', GBP: '£', CNY: '¥', JPY: '¥' };
             return `${internationalSymbols[currency]}${formatted}`;
         }
-
-        // Symbole après pour le reste (CFA, etc.)
         return `${formatted}${sym}`;
     }
 
@@ -1015,8 +1052,10 @@
         stopNotifPolling,
         formatAmount,
         convertCurrency,
+        getSmartRoundedAmount,
         EXCHANGE_RATES,
         COUNTRY_CURRENCIES,
+        COUNTRY_CALLING_CODES,
         COUNTRY_OPTIONS
     };
 

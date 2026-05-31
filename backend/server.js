@@ -744,6 +744,10 @@ CREATE TABLE IF NOT EXISTS offers (
   reviews INTEGER NOT NULL DEFAULT 0,
   is_verified INTEGER NOT NULL DEFAULT 1,
   status TEXT NOT NULL DEFAULT 'active',
+  base_currency TEXT NOT NULL DEFAULT 'EUR',
+  partner_referral_code TEXT,
+  payment_method TEXT NOT NULL DEFAULT '',
+  payment_qr TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -914,6 +918,8 @@ CREATE INDEX IF NOT EXISTS idx_ai_logs_risk ON ai_moderation_logs(risk_level, is
     ensureColumn("offers", "flight_number", "TEXT NOT NULL DEFAULT ''");
     ensureColumn("offers", "payment_method", "TEXT NOT NULL DEFAULT ''");
     ensureColumn("offers", "payment_qr", "TEXT NOT NULL DEFAULT ''");
+    ensureColumn("offers", "base_currency", "TEXT NOT NULL DEFAULT 'EUR'");
+    ensureColumn("offers", "partner_referral_code", "TEXT");
     ensureColumn("chat_threads", "is_suspended", "INTEGER NOT NULL DEFAULT 0");
     ensureColumn("chat_threads", "suspended_at", "TEXT");
     ensureColumn("chat_threads", "suspended_reason", "TEXT");
@@ -3599,8 +3605,9 @@ async function handleApi(req, res, requestUrl) {
             return sendJson(res, 403, { error: "Action non autorisée." });
         }
 
-        // Calcul du montant TOTAL en EUR (Prix fixe * Kilos)
-        const totalEUR = (reservation.pricePerKg || 0) * (reservation.weightKg || 1);
+        // Calcul du montant de prestation FIXE de 20 RMB
+        const currencyService = require('./currencyService');
+        const totalEUR = await currencyService.convertCurrency(20, "CNY", "EUR");
 
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:8080";
         const callbackUrl = `${frontendUrl}/chat.html?payment_success=1&resId=${reservationId}`;
@@ -3703,76 +3710,31 @@ async function handleApi(req, res, requestUrl) {
         return sendJson(res, 200, { received: true });
     }
 
-    // Route 3 : Webhook Genius Pay (Côte d'Ivoire)
-    if (pathname === "/api/payments/webhook/genius" && req.method === "POST") {
-        const bodyText = await parseBodyText(req); // On a besoin du texte brut pour le hash
-        const body = JSON.parse(bodyText);
-
-        const signature = req.headers["x-webhook-signature"];
-        const timestamp = req.headers["x-webhook-timestamp"];
-        const secret = process.env.GENIUS_WEBHOOK_SECRET;
-
-        // 1. Vérification de la signature (Sécurité)
-        if (secret && signature && timestamp) {
-            const crypto = require('crypto');
-            const dataToVerify = timestamp + "." + bodyText;
-            const expectedSignature = crypto.createHmac('sha256', secret).update(dataToVerify).digest('hex');
-
-            if (expectedSignature !== signature) {
-                console.warn("[GeniusPay Webhook] Signature invalide détectée !");
-                return sendJson(res, 401, { error: "Invalid signature" });
-            }
-
-            // 2. Vérification du timestamp (Protection Replay Attack - 5 min)
-            const now = Math.floor(Date.now() / 1000);
-            if (Math.abs(now - Number(timestamp)) > 300) {
-                console.warn("[GeniusPay Webhook] Timestamp trop ancien (Replay Attack ?)");
-                return sendJson(res, 400, { error: "Timestamp expired" });
-            }
-        }
+    // Webhook GeniusPay (Côte d'Ivoire)
+    if (pathname === "/api/payments/webhook/geniuspay" && req.method === "POST") {
+        const body = await parseBody(req);
+        console.log("[GeniusPay Webhook] Reçu :", JSON.stringify(body, null, 2));
 
         const event = body.event;
         const data = body.data || {};
 
-        if (event === "payment.success" && data.status === "completed") {
-            const resId = data.metadata?.orderId;
-            const payoutAmount = data.metadata?.payoutAmount;
-            const travelerPhone = data.metadata?.travelerPayoutNumber;
-
+        if (event === "payment.success" || event === "payment.completed") {
+            const resId = data.metadata?.reservationId || data.metadata?.orderId;
             if (resId) {
                 const reservation = db.prepare("SELECT id, status FROM reservations WHERE id=?").get(resId);
-                // Utilisation du statut standard 'commission_payee' pour compatibilité
                 if (reservation && reservation.status !== "commission_payee") {
                     const t = nowIso();
                     db.prepare("UPDATE reservations SET status='commission_payee', updated_at=? WHERE id=?")
                         .run(t, reservation.id);
 
-                    // --- AUTOMATISATION DU REVERSEMENT VOYAGEUR ---
-                    if (payoutAmount && travelerPhone) {
-                        console.log(`[GeniusPay Webhook] 💸 Tentative de reversement de ${payoutAmount} XOF vers ${travelerPhone}...`);
-                        const geniusPay = require('./geniusPayService');
-                        geniusPay.createTransfer({
-                            amount: payoutAmount,
-                            phoneNumber: travelerPhone,
-                            reservationId: resId,
-                            description: `Reversement ColisConnect #${resId}`
-                        }).then(payoutResult => {
-                            if (payoutResult.success) {
-                                console.log(`[GeniusPay Webhook] ✅ Reversement réussi pour résa #${resId}`);
-                            } else {
-                                console.error(`[GeniusPay Webhook] ❌ Échec reversement :`, payoutResult.message);
-                            }
-                        });
-                    }
-
                     const thread = db.prepare("SELECT id FROM chat_threads WHERE reservation_id = ?").get(reservation.id);
                     if (thread) {
                         db.prepare(`
-                            INSERT INTO chat_messages (thread_id, sender_id, sender_type, message_type, text, created_at)
-                            VALUES (?, 0, 'system', 'text', ?, ?)
-                        `).run(thread.id, `✅ Paiement réussi via Genius Pay (Wave/Orange/MTN/Moov). Référence: ${reference}. Le voyageur a été informé.`, t);
+                            INSERT INTO chat_messages (id, thread_id, sender_type, sender_user_id, text, created_at)
+                            VALUES (?, ?, 'system', NULL, ?, ?)
+                        `).run(buildMessageId(), thread.id, `✅ Paiement réussi via GeniusPay (Live). Le voyageur a été informé et vous pouvez coordonner la remise du colis.`, t);
                     }
-                    console.log(`[GeniusPay Webhook] ✅ Paiement validé pour résa #${reservation.id}`);
+                    console.log(`[Webhook] ✅ Paiement validé pour résa #${reservation.id} via GeniusPay`);
                 }
             }
         }

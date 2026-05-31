@@ -131,7 +131,13 @@
             return;
         }
 
-        els.offers.innerHTML = items.map((item) => `
+        els.offers.innerHTML = items.map((item) => {
+            const baseCur = item.baseCurrency || 'EUR';
+            const userCur = window.CCCommon.state?.user?.country ? (window.CCCommon.COUNTRY_CURRENCIES[window.CCCommon.state.user.country] || 'EUR') : 'EUR';
+            const converted = window.CCCommon.convertCurrency(item.pricePerKg, baseCur, userCur);
+            const priceDisplay = window.CCCommon.formatAmount(converted, userCur);
+
+            return `
 <article class="dashboard-card glassmorphic offer-item">
     <div class="offer-card-head">
         <h4>${window.CCCommon.escapeHtml(item.origin || "-")} -> ${window.CCCommon.escapeHtml(item.destination || "-")}</h4>
@@ -141,12 +147,13 @@
     </div>
     <div class="offer-meta">
         <span class="meta-pill">${window.CCCommon.escapeHtml(String(item.availableKg || 0))} kg</span>
-        <span class="meta-pill">${window.CCCommon.escapeHtml(String(item.pricePerKg || 0))} eur/kg</span>
+        <span class="meta-pill">${priceDisplay}/kg</span>
     </div>
     <div class="card-status status-${String(item.status || "active").toLowerCase()}">
         ${window.CCCommon.escapeHtml(String(item.status || "active").toUpperCase())}
     </div>
-</article>`).join("");
+</article>`;
+        }).join("");
     }
 
     function renderConversations(items) {

@@ -138,9 +138,25 @@
                 </div>
                 <div class="chat-panel-actions">
                     <button id="chat-pay-btn" class="btn cta-pay-btn hidden">
-                        💳 Payer
+                        Valider ma réservation
                     </button>
                 </div>
+            </div>
+
+            <!-- Overlay Tutoriel -->
+            <div id="chat-tutorial-overlay" class="tutorial-overlay hidden"></div>
+
+            <!-- Bannière d'info UX (Tutoriel Forcé) -->
+            <div id="chat-info-banner" class="chat-info-banner hidden">
+                <div class="banner-icon">💡</div>
+                <div class="banner-text">
+                    <strong>Rappel important :</strong> Les paiements ne se font pas encore sur la plateforme.
+                    Si vous tombez d'accord avec le voyageur, vous devez cliquer sur
+                    <strong>"Valider ma réservation"</strong> pour obtenir ses coordonnées.
+                </div>
+                <button type="button" id="banner-compris-btn" class="btn primary sm banner-action-btn">
+                    J'ai compris
+                </button>
             </div>
 
             <!-- Messages Zone -->
@@ -230,12 +246,9 @@
                 <div class="payment-methods-grid">
                     <!-- Section Mobile Money (Dynamique) -->
                     <div id="method-local" class="payment-method-card">
-                        <div class="method-icons" id="local-payment-icons">
-                            <!-- Les logos seront injectés par JS -->
-                        </div>
+                        <div class="method-icons" id="local-payment-icons"></div>
                         <div class="method-info">
-                            <span class="method-name" id="local-payment-name">Mobile Money</span>
-                            <span class="method-desc">Paiement local via Flutterwave</span>
+                            <span class="method-name" id="local-payment-name">Mobile Money (Afrique)</span>
                         </div>
                         <div class="method-arrow">→</div>
                     </div>
@@ -250,7 +263,6 @@
                         </div>
                         <div class="method-info">
                             <span class="method-name">Carte / Apple Pay</span>
-                            <span class="method-desc">Paiement sécurisé via Stripe</span>
                         </div>
                         <div class="method-arrow">→</div>
                     </div>

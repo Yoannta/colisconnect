@@ -18,31 +18,47 @@ const FALLBACK_RATES = {
 };
 
 /**
+ * Arrondi intelligent selon la devise
+ */
+function getSmartRoundedAmount(amount, currency) {
+    currency = String(currency || "").toUpperCase();
+    // Groupe 1 : Centaine supérieure (ex: Afrique de l'Ouest/Centrale)
+    if (["XOF", "XAF", "GNF", "NGN", "RWF", "CDF", "MGA"].includes(currency)) {
+        return Math.ceil(amount / 100) * 100;
+    }
+    // Groupe 2 : Unité supérieure (ex: Chine, Ghana, Maroc)
+    if (["CNY", "GHS", "MAD", "ZAR", "DZD", "KES", "INR", "MUR"].includes(currency)) {
+        return Math.ceil(amount);
+    }
+    // Groupe 3 : Précision 0.10 (ex: EUR, USD)
+    if (["EUR", "USD", "GBP", "CHF", "CAD", "AUD"].includes(currency)) {
+        return Math.ceil(amount * 10) / 10;
+    }
+    // Défaut
+    return Math.ceil(amount);
+}
+
+/**
  * Convertit un montant d'une devise à une autre.
- * Pour l'instant utilise les taux de secours. 
- * Évolutivité : pourra appeler une API externe plus tard.
+ * Retourne un montant arrondi "proprement".
  */
 async function convertCurrency(amount, from, to) {
-    if (from === to) return amount;
+    let result = amount;
+    if (from !== to) {
+        const pair = `${from}_${to}`;
+        const inversePair = `${to}_${from}`;
 
-    const pair = `${from}_${to}`;
-    if (FALLBACK_RATES[pair]) {
-        return amount * FALLBACK_RATES[pair];
+        if (FALLBACK_RATES[pair]) {
+            result = amount * FALLBACK_RATES[pair];
+        } else if (FALLBACK_RATES[inversePair]) {
+            result = amount / FALLBACK_RATES[inversePair];
+        } else if (from !== "EUR" && to !== "EUR") {
+            const amountInEur = await convertCurrency(amount, from, "EUR");
+            return await convertCurrency(amountInEur, "EUR", to);
+        }
     }
 
-    // Si on a l'inverse
-    const inversePair = `${to}_${from}`;
-    if (FALLBACK_RATES[inversePair]) {
-        return amount / FALLBACK_RATES[inversePair];
-    }
-
-    // Si on passe par l'EUR comme pivot (ex: CNY -> XOF)
-    if (from !== "EUR" && to !== "EUR") {
-        const amountInEur = await convertCurrency(amount, from, "EUR");
-        return await convertCurrency(amountInEur, "EUR", to);
-    }
-
-    return amount; // Par défaut si on ne sait pas convertir
+    return getSmartRoundedAmount(result, to);
 }
 
 /**
@@ -68,4 +84,4 @@ async function calculateBifurcatedPayment(totalAmount, baseCurrency, departureCu
     };
 }
 
-module.exports = { convertCurrency, calculateBifurcatedPayment };
+module.exports = { convertCurrency, calculateBifurcatedPayment, getSmartRoundedAmount };

@@ -1,0 +1,107 @@
+{
+    "gateway": {
+        "mode": "local",
+        "port": 7861,
+        "auth": {
+            "mode": "none"
+        }
+    },
+    "channels": {
+        "whatsapp": {
+            "dmPolicy": "open",
+            "enabled": true,
+            "allowFrom": [
+                "*"
+            ]
+        }
+    },
+    "models": {
+        "mode": "merge",
+        "providers": {
+            "deepseek": {
+                "baseUrl": "https://api.deepseek.com/v1",
+                "api": "openai-completions",
+                "models": [
+                    {
+                        "id": "deepseek-chat",
+                        "name": "DeepSeek Chat",
+                        "contextWindow": 65536,
+                        "maxTokens": 4096,
+                        "reasoning": false,
+                        "input": [
+                            "text"
+                        ]
+                    },
+                    {
+                        "id": "deepseek-reasoner",
+                        "name": "DeepSeek Reasoner (V4)",
+                        "contextWindow": 65536,
+                        "maxTokens": 8192,
+                        "reasoning": true,
+                        "input": [
+                            "text"
+                        ]
+                    }
+                ]
+            },
+            "kimi": {
+                "timeoutSeconds": 60,
+                "baseUrl": "https://api.moonshot.cn/v1",
+                "api": "openai-completions",
+                "models": [
+                    {
+                        "id": "moonshot-v1-8k",
+                        "name": "Kimi Chat (Fallback)",
+                        "contextWindow": 8192,
+                        "maxTokens": 4096,
+                        "input": [
+                            "text"
+                        ]
+                    }
+                ]
+            }
+        }
+    },
+    "agents": {
+        "defaults": {
+            "model": {
+                "primary": "deepseek/deepseek-chat",
+                "fallbacks": [
+                    "kimi/moonshot-v1-8k"
+                ]
+            },
+            "models": {
+                "deepseek/deepseek-chat": {},
+                "deepseek/deepseek-reasoner": {},
+                "kimi/moonshot-v1-8k": {}
+            }
+        }
+    },
+    "auth": {
+        "profiles": {
+            "deepseek:default": {
+                "provider": "deepseek",
+                "mode": "token"
+            },
+            "kimi:default": {
+                "provider": "kimi",
+                "mode": "api_key"
+            }
+        }
+    },
+    "plugins": {
+        "entries": {
+            "whatsapp": {
+                "enabled": true,
+                "autoPair": true,
+                "linkMode": "code",
+                "phoneNumber": "22553701003"
+            }
+        }
+    },
+    "messages": {
+        "groupChat": {
+            "visibleReplies": "message_tool"
+        }
+    }
+}

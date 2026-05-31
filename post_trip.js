@@ -10,7 +10,10 @@
         dateDepart: document.getElementById("date-depart"),
         kilos: document.getElementById("kilos"),
         price: document.getElementById("price"),
-        priceCurrency: document.getElementById("price-currency"),  // [MULTI-CURRENCY]
+        priceCurrencyInput: document.getElementById("price-currency"),  // [MULTI-CURRENCY]
+        currencyToggle: document.getElementById("currency-toggle-btn"),
+        currencyPopover: document.getElementById("currency-popover"),
+        currentCurrencyText: document.getElementById("current-currency-text"),
         paymentMethodInput: document.getElementById("payment-method"),
         paymentQrInput: document.getElementById("payment-qr"),
         paymentMethodLabel: document.getElementById("payment-method-label"),
@@ -25,8 +28,19 @@
         choicesContainer: document.getElementById("pm-choices-container"),
         backBtn: document.getElementById("pm-back-btn"),
         uploadTitle: document.getElementById("pm-upload-title"),
-        phoneNumberInput: document.getElementById("pm-phone-number"),
+        indicatifInput: document.getElementById("pm-indicatif"),
+        localNumberInput: document.getElementById("pm-local-number"),
         confirmBtn: document.getElementById("pm-confirm-btn"),
+        // SMS Verification
+        verifySmsBtn: document.getElementById("pm-verify-sms-btn"),
+        otpSection: document.getElementById("pm-otp-section"),
+        otpInput: document.getElementById("pm-otp-code"),
+        confirmOtpBtn: document.getElementById("pm-confirm-otp-btn"),
+        // Currency Custom
+        currencyToggle: document.getElementById("currency-toggle-btn"),
+        currencyPopover: document.getElementById("currency-popover"),
+        currentCurrencyText: document.getElementById("current-currency-text"),
+        priceCurrencyInput: document.getElementById("price-currency")
     };
 
     // ---- Payment method state ----
@@ -67,19 +81,46 @@
 
     // [MULTI-CURRENCY] Met à jour le sélecteur de monnaie selon les pays choisis
     function updateCurrencySelector() {
-        if (!els.priceCurrency) return;
+        if (!els.priceCurrencyInput) return;
         const dep = String(els.departure?.value || "").trim();
         const dst = String(els.destination?.value || "").trim();
         const depCur = COUNTRY_CURRENCIES[dep] || "EUR";
         const dstCur = COUNTRY_CURRENCIES[dst] || "EUR";
-        // Construire les options (uniques)
+
         const options = [];
-        options.push({ value: depCur, label: `${depCur} (pays de départ)` });
-        if (dstCur !== depCur) options.push({ value: dstCur, label: `${dstCur} (pays d'arrivée)` });
-        const current = els.priceCurrency.value;
-        els.priceCurrency.innerHTML = options
-            .map(o => `<option value="${o.value}"${o.value === current ? ' selected' : ''}>${o.label}</option>`)
-            .join("");
+        options.push({ value: depCur, label: `Pays de départ` });
+        if (dstCur !== depCur) options.push({ value: dstCur, label: `Pays d'arrivée` });
+
+        if (els.currencyPopover) {
+            els.currencyPopover.innerHTML = options.map(o => `
+                <div class="currency-opt" data-value="${o.value}">
+                    <span class="currency-opt-name">${o.value}</span>
+                    <span class="currency-opt-code">${o.label}</span>
+                </div>
+            `).join("");
+
+            els.currencyPopover.querySelectorAll(".currency-opt").forEach(opt => {
+                opt.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const val = opt.dataset.value;
+                    if (els.priceCurrencyInput) els.priceCurrencyInput.value = val;
+                    if (els.currentCurrencyText) els.currentCurrencyText.textContent = val;
+                    els.currencyPopover.classList.add("hidden");
+                });
+            });
+        }
+
+        // Vérifier si la sélection actuelle est toujours valide
+        const current = els.priceCurrencyInput.value;
+        const isStillValid = options.some(o => o.value === current);
+
+        if (!isStillValid) {
+            // On ne force pas le premier si rien n'est sélectionné au départ pour garder "Devise"
+            if (current !== "" && options.length > 0) {
+                els.priceCurrencyInput.value = options[0].value;
+                if (els.currentCurrencyText) els.currentCurrencyText.textContent = options[0].value;
+            }
+        }
     }
 
     function isValidCountry(value) {
@@ -90,8 +131,10 @@
 
     function initCountryDatalist() {
         if (!els.countryList) return;
+        // Correction: ne PAS échapper HTML les valeurs des options, sinon 
+        // les apostrophes deviennent des &#39; et cassent la recherche intelligente du navigateur.
         els.countryList.innerHTML = COUNTRY_OPTIONS
-            .map((country) => `<option value="${window.CCCommon.escapeHtml(country)}"></option>`)
+            .map((country) => `<option value="${country}"></option>`)
             .join("\n");
     }
 
@@ -123,10 +166,15 @@
 
     // ---- Payment Modal logic ----
     function openModal() {
-        renderDynamicPaymentChoices();
+        if (!els.departure?.value) {
+            alert("Veuillez d'abord choisir un pays de départ.");
+            return;
+        }
         els.modal?.classList.remove("hidden");
         document.body.style.overflow = "hidden";
-        showStep("choose");
+
+        // Aller directement à la saisie du numéro
+        selectPaymentProvider("direct_contact", "Contact Direct");
     }
 
     function closeModal() {
@@ -144,63 +192,55 @@
         }
     }
 
+    // Plus besoin de charger les réseaux, on va directement au numéro
     async function renderDynamicPaymentChoices() {
-        const country = normalizeCountry(els.departure?.value || "");
-        if (!country) return;
-
-        if (els.choicesContainer) {
-            els.choicesContainer.innerHTML = '<div style="text-align: center; width: 100%; padding: 20px;"><span class="spinner"></span> Chargement des réseaux...</div>';
-        }
-
-        const data = await fetchAvailableMethods(country);
-        const methods = data.methods || [];
-
-        if (els.choicesContainer) {
-            els.choicesContainer.className = "pm-choices-grid";
-
-            if (methods.length === 0) {
-                els.choicesContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">Aucun réseau trouvé pour ce pays.</p>';
-                return;
-            }
-
-            els.choicesContainer.innerHTML = methods.map(m => `
-                <div class="pm-text-btn" data-id="${m.id}" data-name="${m.name}">
-                    <span class="pm-btn-name">${m.name}</span>
-                    <span class="pm-btn-arrow">→</span>
-                </div>
-            `).join("");
-
-            const btns = els.choicesContainer.querySelectorAll('.pm-text-btn');
-            btns.forEach(b => b.addEventListener('click', () => selectPaymentProvider(b.dataset.id, b.dataset.name)));
-        }
+        return;
     }
 
     function selectPaymentProvider(methodId, methodName) {
         paymentState.selectedMethod = methodId;
         paymentState.selectedMethodName = methodName;
+        paymentState.isVerified = false; // Reset verification state
 
         // Titre dynamique
         if (els.uploadTitle) {
-            els.uploadTitle.textContent = `Numéro ${methodName}`;
+            els.uploadTitle.textContent = "Votre numéro de contact";
         }
 
-        // Reset phone field
-        if (els.phoneNumberInput) els.phoneNumberInput.value = "";
-        if (els.confirmBtn) els.confirmBtn.disabled = true;
+        // Reset and show initial step
+        if (els.otpSection) els.otpSection.classList.add("hidden");
+
+        if (els.indicatifInput) {
+            els.indicatifInput.disabled = false;
+            els.indicatifInput.value = "+";
+        }
+        if (els.localNumberInput) {
+            els.localNumberInput.disabled = false;
+            els.localNumberInput.value = "";
+        }
+
+        setTimeout(() => els.indicatifInput?.focus(), 100);
+
+        if (els.confirmBtn) {
+            els.confirmBtn.disabled = true;
+        }
 
         showStep("upload");
     }
 
     function confirmPaymentMethod() {
-        paymentState.accountNumber = els.phoneNumberInput?.value || "";
+        const fullNumber = `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`;
+        paymentState.accountNumber = fullNumber;
         if (!paymentState.selectedMethod || !paymentState.accountNumber) return;
 
         // Store in hidden fields
         if (els.paymentMethodInput) els.paymentMethodInput.value = paymentState.selectedMethod;
-        if (els.paymentQrInput) els.paymentQrInput.value = paymentState.accountNumber; // Reusing qr input for account number backwards compat
+        if (els.paymentQrInput) els.paymentQrInput.value = paymentState.accountNumber;
 
         if (els.paymentMethodLabel) {
-            els.paymentMethodLabel.innerHTML = `<span style="margin-right:8px; font-size: 1.2rem;">💸</span> ${paymentState.selectedMethodName} · ${paymentState.accountNumber}`;
+            const displayCode = els.indicatifInput?.value || "";
+            const displayLocal = els.localNumberInput?.value || "";
+            els.paymentMethodLabel.innerHTML = `📞 Contact : <strong>${displayCode}</strong> ${displayLocal}`;
         }
         closeModal();
     }
@@ -212,9 +252,82 @@
             if (e.target === els.modal) closeModal();
         });
         els.backBtn?.addEventListener("click", () => showStep("choose"));
-        els.phoneNumberInput?.addEventListener("input", (e) => {
-            if (els.confirmBtn) els.confirmBtn.disabled = e.target.value.trim().length < 6;
+
+        // Protection de l'indicatif (Fixe '+')
+        els.indicatifInput?.addEventListener("keydown", (e) => {
+            if (e.key === "Backspace" && els.indicatifInput.selectionStart <= 1) e.preventDefault();
+            if (e.key === "Delete" && els.indicatifInput.selectionStart < 1) e.preventDefault();
         });
+
+        els.indicatifInput?.addEventListener("input", () => {
+            if (!els.indicatifInput.value.startsWith("+")) {
+                els.indicatifInput.value = "+" + els.indicatifInput.value.replace("+", "");
+            }
+        });
+
+        // Validation combinée
+        const updateVerifyButton = () => {
+            const ind = els.indicatifInput?.value.trim() || "";
+            const loc = els.localNumberInput?.value.trim() || "";
+            if (els.verifySmsBtn) {
+                // Indicatif (+X) + numéro local (>4)
+                els.verifySmsBtn.disabled = (ind.length < 2 || loc.length < 5);
+            }
+        };
+
+        els.indicatifInput?.addEventListener("input", updateVerifyButton);
+        els.localNumberInput?.addEventListener("input", (e) => {
+            updateVerifyButton();
+            // Si on change après avoir vérifié, on réinitialise
+            if (paymentState.isVerified) {
+                paymentState.isVerified = false;
+                els.otpSection?.classList.add("hidden");
+                if (els.confirmBtn) els.confirmBtn.disabled = true;
+            }
+        });
+
+        // Click "Vérifier" (SMS)
+        els.verifySmsBtn?.addEventListener("click", async () => {
+            const fullPhone = `${els.indicatifInput.value.trim()}${els.localNumberInput.value.trim()}`;
+            els.verifySmsBtn.disabled = true;
+            els.verifySmsBtn.innerHTML = '<span class="spinner-sm"></span>';
+
+            // Simulation envoi SMS
+            setTimeout(() => {
+                els.verifySmsBtn.innerHTML = "Envoyé ✓";
+                els.verifySmsBtn.style.color = "#13ecc8";
+                els.otpSection?.classList.remove("hidden");
+
+                els.indicatifInput.disabled = true;
+                els.localNumberInput.disabled = true;
+
+                els.otpInput.focus();
+                alert(`SIMULATION : Code SMS envoyé au ${fullPhone}\nCode : 123456`);
+            }, 1200);
+        });
+
+        // Click "Valider" (OTP)
+        els.confirmOtpBtn?.addEventListener("click", () => {
+            const code = els.otpInput.value.trim();
+            if (code === "123456") {
+                paymentState.isVerified = true;
+                els.otpSection.innerHTML = '<p style="color: #13ecc8; font-weight: 700; margin: 0;">✓ Jamais numéro vérifié avec succès</p>';
+                if (els.confirmBtn) els.confirmBtn.disabled = false;
+            } else {
+                alert("Code invalide. Réessayez avec 123456.");
+            }
+        });
+
+        // Empêcher de placer le curseur avant le '+' au clic
+        els.phoneNumberInput?.addEventListener("click", () => {
+            const prefix = "+";
+            const start = els.phoneNumberInput.selectionStart;
+            if (start < prefix.length) {
+                const len = prefix.length;
+                els.phoneNumberInput.setSelectionRange(len, len);
+            }
+        });
+
         els.confirmBtn?.addEventListener("click", confirmPaymentMethod);
     }
 
@@ -250,7 +363,7 @@
             departureDate: String(els.dateDepart?.value || ""),
             availableKg: Number(els.kilos?.value || 0),
             pricePerKg: Number(els.price?.value || 0),
-            baseCurrency: els.priceCurrency?.value || "EUR",  // [MULTI-CURRENCY]
+            baseCurrency: els.priceCurrencyInput?.value || "EUR",  // [MULTI-CURRENCY]
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
             referralCode: String(document.getElementById("referral-code")?.value || "").trim()
@@ -293,6 +406,16 @@
     }
 
     function bindEvents() {
+        // [CURRENCY-POPOVER] Gestion de la bulle
+        els.currencyToggle?.addEventListener("click", (e) => {
+            e.stopPropagation();
+            els.currencyPopover?.classList.toggle("hidden");
+        });
+
+        document.addEventListener("click", () => {
+            els.currencyPopover?.classList.add("hidden");
+        });
+
         els.form?.addEventListener("submit", (event) => {
             submitTrip(event).catch((error) => {
                 alert(error.message || "Erreur publication.");
@@ -303,6 +426,9 @@
         els.departure?.addEventListener("input", updateCurrencySelector);
         els.destination?.addEventListener("change", updateCurrencySelector);
         els.destination?.addEventListener("input", updateCurrencySelector);
+
+        // Initial load of currency options
+        updateCurrencySelector();
     }
 
     async function bootstrap() {

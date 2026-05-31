@@ -9,6 +9,7 @@
         // payment modal state
         receiptBase64: null,
         paymentType: "regular",
+        isTutorialAccepted: false, // Forcing users to click "Compris"
     };
 
     const els = {
@@ -28,6 +29,9 @@
         messageForm: document.getElementById("message-form"),
         messageInput: document.getElementById("message-input"),
         chatPayBtn: document.getElementById("chat-pay-btn"),
+        chatInfoBanner: document.getElementById("chat-info-banner"),
+        tutorialOverlay: document.getElementById("chat-tutorial-overlay"),
+        comprisBtn: document.getElementById("banner-compris-btn"),
         paymentModal: document.getElementById("chat-payment-modal"),
         cpmCloseBtn: document.getElementById("cpm-close-btn"),
         cpmQrDisplay: document.getElementById("cpm-qr-display"),
@@ -176,12 +180,13 @@
             try { parsed = JSON.parse(msg.text || "{}"); } catch { }
             const commission = Number(parsed.commission || 0).toFixed(2);
             const amountPaid = Number(parsed.amountPaid || 0).toFixed(2);
+            const cur = parsed.currency || 'EUR';
             return `<div class="chat-msg-row chat-msg-system">
     <div class="chat-bubble-reversal">
         <div class="reversal-header">💰 Reversement de commission</div>
-        <p>Le client a payé <strong>${window.CCCommon.escapeHtml(String(amountPaid))} EUR</strong>.</p>
-        <p>Veuillez reverser <strong class="reversal-amount">${window.CCCommon.escapeHtml(String(commission))} EUR (10%)</strong> à ColisConnect.</p>
-        <button class="btn secondary reversal-done-btn" data-commission="${window.CCCommon.escapeHtml(String(commission))}">✅ J'ai reversé</button>
+        <p>Le client a payé <strong>${window.CCCommon.formatAmount(amountPaid, cur)}</strong>.</p>
+        <p>Veuillez reverser <strong class="reversal-amount">${window.CCCommon.formatAmount(commission, cur)} (10%)</strong> à ColisConnect.</p>
+        <button class="btn secondary reversal-done-btn" data-commission="${commission}">✅ J'ai reversé</button>
     </div>
 </div>`;
         }
@@ -223,21 +228,47 @@
         const thread = currentThread();
         if (!thread || !window.CCCommon.state?.user) {
             els.chatPayBtn?.classList.add("hidden");
+            els.chatInfoBanner?.classList.add("hidden");
             return;
         }
-        // Show Payer button for the requester (client) when status is pending OR commission_payee
+
+        // Show "Valider" button for the requester (client) when status is pending or agreed
         const payableStatuses = ["pending", "commission_payee", "agreed"];
         const isClientSide = !thread.isOfferOwner && payableStatuses.includes(String(thread.status || ""));
+
         if (els.chatPayBtn) {
             els.chatPayBtn.classList.toggle("hidden", !isClientSide);
-            // Update button label to reflect current step
-            if (!isClientSide) return;
-            if (thread.status === "commission_payee") {
-                els.chatPayBtn.innerHTML = "💸 Payer le Voyageur (2/2)";
-            } else {
-                els.chatPayBtn.innerHTML = "💳 Payer la Commission (1/2)";
+            if (isClientSide) {
+                // Remplacement du texte de paiement par le label de validation
+                els.chatPayBtn.innerHTML = "✅ Valider ma réservation";
             }
         }
+
+        if (els.chatInfoBanner) {
+            // La bannière s'affiche systématiquement pour le client en attente de validation
+            const shouldShowBanner = isClientSide && (thread.status === "pending" || thread.status === "agreed");
+            els.chatInfoBanner.classList.toggle("hidden", !shouldShowBanner);
+
+            // Gestion du bouton "Compris" à l'intérieur
+            if (els.comprisBtn) {
+                els.comprisBtn.classList.toggle("hidden", state.isTutorialAccepted);
+            }
+        }
+    }
+
+    function triggerTutorialFocus() {
+        if (state.isTutorialAccepted) return;
+
+        if (els.tutorialOverlay) els.tutorialOverlay.classList.remove("hidden");
+        if (els.chatInfoBanner) {
+            els.chatInfoBanner.classList.add("tutorial-focus");
+        }
+        if (els.comprisBtn) {
+            els.comprisBtn.classList.add("highlight-mode");
+        }
+
+        // Vibration mobile si supportée
+        if (navigator.vibrate) navigator.vibrate(50);
     }
 
     function renderConversationMeta(thread) {
@@ -260,7 +291,28 @@
         const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
         renderMessages(messages);
         renderConversationMeta(selected);
+
+        // Check if tutorial was already accepted specifically for THIS thread
+        state.isTutorialAccepted = isThreadTutorialAccepted(threadId);
         updatePaymentButtonVisibility();
+    }
+
+    function isThreadTutorialAccepted(threadId) {
+        try {
+            const accepted = JSON.parse(localStorage.getItem("cc_accepted_threads") || "[]");
+            return Array.isArray(accepted) && accepted.includes(threadId);
+        } catch (e) { return false; }
+    }
+
+    function markThreadTutorialAccepted(threadId) {
+        if (!threadId) return;
+        try {
+            const accepted = JSON.parse(localStorage.getItem("cc_accepted_threads") || "[]");
+            if (!accepted.includes(threadId)) {
+                accepted.push(threadId);
+                localStorage.setItem("cc_accepted_threads", JSON.stringify(accepted));
+            }
+        } catch (e) { }
     }
 
 
@@ -351,6 +403,12 @@
             return;
         }
 
+        // Tutorial Enforcement
+        if (!state.isTutorialAccepted) {
+            triggerTutorialFocus();
+            return;
+        }
+
         // Client-side quick check
         if (detectLeakClient(text)) {
             showLeakWarning(true);
@@ -401,11 +459,9 @@
         const userCountry = window.CCCommon.state.user?.country || "France";
         const userCur = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
 
-        // Calcul du montant total fixe
-        const pricePerKg = res.proposedPricePerKg || 0;
-        const weight = res.weightKg || 1;
-        const totalAmountBase = pricePerKg * weight;
-        const localAmount = window.CCCommon.convertCurrency(totalAmountBase, "EUR", userCur);
+        // Calcul du montant de prestation fixe (20 RMB)
+        const fixedCNY = 20;
+        const localAmount = window.CCCommon.convertCurrency(fixedCNY, "CNY", userCur);
 
         amountDisplay.textContent = window.CCCommon.formatAmount(localAmount, userCur);
 
@@ -420,8 +476,8 @@
         } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso"].includes(userCountry)) {
             localName.textContent = "Mobile Money (Afrique)";
             localIcons.innerHTML = `
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/Orange-logo.svg" style="height:14px; margin: 2px">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/MTN_Logo.svg/1024px-MTN_Logo.svg.png" style="height:14px; margin: 2px">
+                <img src="https://upload.wikimedia.org/wikipedia/en/3/31/Orange_Money_logo.png" style="height:14px; margin: 2px">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/MTN_Logo.svg" style="height:14px; margin: 2px">
             `;
         } else {
             localName.textContent = "Méthodes Locales";
@@ -588,6 +644,26 @@
             alert("Paiement par carte arrive bientôt !");
         });
 
+        // Banner Tutorial Click
+        els.comprisBtn?.addEventListener("click", () => {
+            state.isTutorialAccepted = true;
+            if (state.activeThreadId) {
+                markThreadTutorialAccepted(state.activeThreadId);
+            }
+            els.tutorialOverlay?.classList.add("hidden");
+            els.chatInfoBanner?.classList.remove("tutorial-focus");
+            els.comprisBtn?.classList.remove("highlight-mode");
+            // On cache seulement le bouton, la bannière reste en rappel
+            els.comprisBtn?.classList.add("hidden");
+        });
+
+        // Bloquer le clic sur l'input si pas compris
+        els.messageInput?.addEventListener("mousedown", (e) => {
+            if (!state.isTutorialAccepted && !els.chatInfoBanner.classList.contains("hidden")) {
+                e.preventDefault();
+                triggerTutorialFocus();
+            }
+        });
     }
 
     // ---- Bootstrap ----

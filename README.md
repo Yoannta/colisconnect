@@ -6,7 +6,7 @@ colorTo: indigo
 sdk: docker
 app_port: 7860
 app_file: backend/server.js
-pinned: false
+pinned: true
 ---
 # ColisConnect | Premium Parcel Stream
 
@@ -799,6 +799,10 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 - **Filtrage Intelligent** : Les utilisateurs dont les documents ont été rejetés par l'IA sont automatiquement exclus de la file d'attente manuelle des administrateurs (`approvals.html`), leur faisant gagner un temps précieux en éliminant les faux dossiers.
 - **Mode Hybride** : Les administrateurs n'interviennent plus que sur les dossiers "pré-analysés" comme conformes, assurant un très haut niveau de confiance sur la plateforme.
 
+---
+
+---
+
 #### **Correctifs Techniques**
 
 - **Fix Contextuel** : Résolution du bug `querySelector` qui survenait lors de la soumission asynchrone du formulaire de vérification.
@@ -1032,6 +1036,31 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 1. Nettoyer les dossiers résiduels sur C: et D:.
 2. Exécuter `npm install openclaw zod` dans un nouveau dossier dédié.
 3. Lancer via `npx openclaw gateway`.
+
+---
+
+### Restauration du système Multi-Devises — 2026-05-13
+
+#### **Correction Critique de Convergence**
+
+- **Fluidité de Publication** : Résolution d'un bug majeur dans `post_trip.js` qui forçait toutes les offres en "EUR". L'application respecte désormais scrupuleusement la devise choisie par le voyageur (Yuan, CFA, Euro, etc.).
+- **Schéma DB Résilient** : Réactivation et sécurisation des colonnes `base_currency` et `partner_referral_code` dans la base de données SQLite pour garantir l'intégrité des données financières.
+- **Synchronisation du Poids** : Correction du mapping des données entre le backend (`availableKg`) et le frontend (`results.js`), résolvant le problème de l'affichage "0kg" sur les offres.
+
+#### **Expérience Utilisateur (UX) Multizone**
+
+- **Conversion Automatique Intelligente** : Les prix sur les pages **Explorer** et le **Dashboard** sont désormais convertis en temps réel selon la devise de l'utilisateur (ex: un client au Sénégal voit les prix en CFA, un utilisateur en France les voit en EUR), avec rappel du prix original.
+- **Harmonisation UI (Prix)** : Refonte visuelle du champ "Prix par kilo" avec une structure symétrique en 3 blocs pour une esthétique premium et une parfaite cohérence avec le design system.
+- **Chat Financier Précis** : Les messages de reversement de commission dans le chat ne sont plus limités à l'Euro. Ils affichent désormais les montants et les symboles monétaires correspondant à l'offre réelle.
+
+#### **Fichiers modifiés**
+
+- `backend/server.js` (Schema & API consistency)
+- `post_trip.js` (Currency variable fix)
+- `results.js` (Dynamic conversion engine)
+- `dashboard.js` (Traveler price formatting)
+- `chat.js` (Cross-currency system messages)
+- `post_trip.html` & `style.css` (UI symmetry & cleanup)
 
 ---
 *Mise à jour effectuée. Le système ColisConnect est stabilisé sur le plan financier, l'agent de communication passe en phase de remise au propre.*

@@ -2,7 +2,6 @@
 // Ce registre définit quel agrégateur gère quel pays et quelles méthodes il propose.
 
 const { getCurrencyByCountry } = require('./currencyRegistry');
-const fedapay = require('./fedapayService');
 const geniusPay = require('./geniusPayService');
 
 /**
@@ -17,50 +16,7 @@ function normalizeText(text) {
 }
 
 const REGISTRY = {
-    // --- ZONE FEDAPAY (Afrique Francophone) ---
-    "benin": {
-        aggregator: "FedaPay",
-        currency: "XOF",
-        methods: [
-            { id: "mtn_bj", name: "MTN Mobile Money", type: "mobile_money" },
-            { id: "moov_bj", name: "Moov Money", type: "mobile_money" }
-        ]
-    },
-    "togo": {
-        aggregator: "FedaPay",
-        currency: "XOF",
-        methods: [
-            { id: "tmoney_tg", name: "T-Money", type: "mobile_money" },
-            { id: "moov_tg", name: "Moov Money", type: "mobile_money" }
-        ]
-    },
-    "senegal": {
-        aggregator: "FedaPay",
-        currency: "XOF",
-        methods: [
-            { id: "orange_sn", name: "Orange Money", type: "mobile_money" },
-            { id: "wave_sn", name: "Wave", type: "mobile_money" },
-            { id: "free_sn", name: "Free Money", type: "mobile_money" }
-        ]
-    },
-    "niger": {
-        aggregator: "FedaPay",
-        currency: "XOF",
-        methods: [
-            { id: "moov_ne", name: "Moov Money", type: "mobile_money" },
-            { id: "airtel_ne", name: "Airtel Money", type: "mobile_money" }
-        ]
-    },
-    "cameroun": {
-        aggregator: "FedaPay",
-        currency: "XAF",
-        methods: [
-            { id: "mtn_cm", name: "MTN Mobile Money", type: "mobile_money" },
-            { id: "orange_cm", name: "Orange Money", type: "mobile_money" }
-        ]
-    },
-
-    // --- ZONE GENIUS PAY (Côte d'Ivoire Prioritaire) ---
+    // --- ZONE GENIUS PAY (Liste Officielle Validée) ---
     "cote d'ivoire": {
         aggregator: "Genius Pay",
         currency: "XOF",
@@ -71,8 +27,99 @@ const REGISTRY = {
             { id: "moov_ci", name: "Moov Money", type: "mobile_money" }
         ]
     },
+    "senegal": {
+        aggregator: "Genius Pay",
+        currency: "XOF",
+        methods: [
+            { id: "orange_sn", name: "Orange Money", type: "mobile_money" },
+            { id: "wave_sn", name: "Wave", type: "mobile_money" },
+            { id: "free_sn", name: "Free Money", type: "mobile_money" }
+        ]
+    },
+    "benin": {
+        aggregator: "Genius Pay",
+        currency: "XOF",
+        methods: [
+            { id: "mtn_bj", name: "MTN Mobile Money", type: "mobile_money" },
+            { id: "moov_bj", name: "Moov Money", type: "mobile_money" }
+        ]
+    },
+    "cameroun": {
+        aggregator: "Genius Pay",
+        currency: "XAF",
+        methods: [
+            { id: "mtn_cm", name: "MTN Mobile Money", type: "mobile_money" },
+            { id: "orange_cm", name: "Orange Money", type: "mobile_money" }
+        ]
+    },
+    "republique democratique du congo": {
+        aggregator: "Genius Pay",
+        currency: "CDF",
+        methods: [
+            { id: "mpesa_cd", name: "M-Pesa", type: "mobile_money" },
+            { id: "orange_cd", name: "Orange Money", type: "mobile_money" },
+            { id: "airtel_cd", name: "Airtel Money", type: "mobile_money" }
+        ]
+    },
+    "congo": {
+        aggregator: "Genius Pay",
+        currency: "XAF",
+        methods: [
+            { id: "mtn_cg", name: "MTN Mobile Money", type: "mobile_money" },
+            { id: "airtel_cg", name: "Airtel Money", type: "mobile_money" }
+        ]
+    },
+    "gabon": {
+        aggregator: "Genius Pay",
+        currency: "XAF",
+        methods: [
+            { id: "airtel_ga", name: "Airtel Money", type: "mobile_money" },
+            { id: "moov_ga", name: "Moov Money", type: "mobile_money" }
+        ]
+    },
+    "kenya": {
+        aggregator: "Genius Pay",
+        currency: "KES",
+        methods: [
+            { id: "mpesa_ke", name: "M-Pesa", type: "mobile_money" },
+            { id: "airtel_ke", name: "Airtel Money", type: "mobile_money" }
+        ]
+    },
+    "ouganda": {
+        aggregator: "Genius Pay",
+        currency: "UGX",
+        methods: [
+            { id: "mtn_ug", name: "MTN Mobile Money", type: "mobile_money" },
+            { id: "airtel_ug", name: "Airtel Money", type: "mobile_money" }
+        ]
+    },
+    "rwanda": {
+        aggregator: "Genius Pay",
+        currency: "RWF",
+        methods: [
+            { id: "mtn_rw", name: "MTN Mobile Money", type: "mobile_money" },
+            { id: "airtel_rw", name: "Airtel Money", type: "mobile_money" }
+        ]
+    },
+    "zambie": {
+        aggregator: "Genius Pay",
+        currency: "ZMW",
+        methods: [
+            { id: "mtn_zm", name: "MTN Mobile Money", type: "mobile_money" },
+            { id: "airtel_zm", name: "Airtel Money", type: "mobile_money" },
+            { id: "zamtel_zm", name: "Zamtel Kwacha", type: "mobile_money" }
+        ]
+    },
+    "sierra leone": {
+        aggregator: "Genius Pay",
+        currency: "SLE",
+        methods: [
+            { id: "orange_sl", name: "Orange Money", type: "mobile_money" },
+            { id: "afrimoney_sl", name: "Afrimoney", type: "mobile_money" }
+        ]
+    },
 
-    // --- ZONE PAYSTACK (Reste de l'Afrique) ---
+    // --- ZONE PAYSTACK (Reste du monde / Secours) ---
     "nigeria": {
         aggregator: "Paystack",
         currency: "NGN",
@@ -108,13 +155,15 @@ function getAvailableMethods(countryName) {
         };
     }
 
+    // FALLBACK UNIVERSEL via Genius Pay (Grâce à l'intégration Stripe)
     return {
-        status: "fallback",
-        aggregator: null,
-        message: "Paiement manuel recommandé.",
+        status: "supported",
+        aggregator: "Genius Pay",
+        currency: "XOF", // Genius Pay convertira
+        message: "Paiement international sécurisé disponible.",
         methods: [
-            { id: "bank_transfer", name: "Virement Bancaire", type: "manual" },
-            { id: "cash_pickup", name: "Cash / Main à main", type: "manual" }
+            { id: "stripe", name: "Carte Bancaire / International", type: "card" },
+            { id: "mobile_money", name: "Mobile Money", type: "mobile_money" }
         ]
     };
 }
@@ -128,9 +177,9 @@ async function initiateSmartPayment({ reservationId, departureCountry, amountEUR
 
     console.log(`[SmartPayment] Initiation pour ${departureCountry} via ${methodsInfo.aggregator}`);
 
-    // LOGIQUE GENIUS PAY
-    if (methodsInfo.aggregator === "Genius Pay") {
-        const finalAmount = Math.round(amountEUR * 655.957);
+    // LOGIQUE UNIVERSELLE GENIUS PAY (Gère désormais Stripe pour les autres pays)
+    if (methodsInfo.aggregator === "Genius Pay" || !methodsInfo.aggregator) {
+        const finalAmount = 400; // FIXE POUR TEST LIVE (demandé par l'utilisateur)
         const commissionRate = 0.12; // 12% pour la plateforme
         const commissionAmount = Math.round(finalAmount * commissionRate);
         const travelerAmount = finalAmount - commissionAmount;
@@ -142,12 +191,13 @@ async function initiateSmartPayment({ reservationId, departureCountry, amountEUR
             email: customerEmail,
             orderId: reservationId,
             userId: userId,
-            redirectUrl: callbackUrl, // Ajout de l'URL de redirection
+            redirectUrl: callbackUrl,
             metadata: {
                 reservationId,
                 travelerPayoutNumber: travelerPayoutNumber,
                 payoutAmount: travelerAmount,
-                commissionAmount: commissionAmount
+                commissionAmount: commissionAmount,
+                country: departureCountry
             }
         });
 
@@ -156,17 +206,9 @@ async function initiateSmartPayment({ reservationId, departureCountry, amountEUR
         }
     }
 
-    // LOGIQUE FEDAPAY
-    if (nativeCurrency === 'XOF' || nativeCurrency === 'XAF') {
-        const finalAmount = Math.round(amountEUR * 655.957);
-        const link = await fedapay.createFedaPayLink({
-            amount: finalAmount,
-            description: `Commission ColisConnect #${reservationId}`,
-            customerEmail,
-            customerName,
-            callbackUrl
-        });
-        return { paymentLink: link, provider: 'FedaPay', currency: nativeCurrency, amount: finalAmount };
+    // Cas spécifique Paystack (Nigeria/Ghana)
+    if (methodsInfo.aggregator === "Paystack") {
+        // ... (Si on veut implémenter un appel direct Paystack plus tard)
     }
 
     throw new Error(`Paiement automatique non disponible pour ${departureCountry}.`);
