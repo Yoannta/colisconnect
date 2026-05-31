@@ -189,8 +189,37 @@
     }
 
     async function api(path, options = {}) {
-        // [SUPABASE BRIDGE] Redirection vers Edge Functions ou Client
+        // [SUPABASE BRIDGE]
         if (window.ccSupabase) {
+            // 1. AUTH : Login
+            if (path.includes("/auth/login")) {
+                const { data, error } = await window.ccSupabase.auth.signInWithPassword({
+                    email: options.body.email,
+                    password: options.body.password
+                });
+                if (error) throw error;
+                return { token: data.session.access_token, user: { ...data.user, ...data.user.user_metadata } };
+            }
+
+            // 2. AUTH : Register
+            if (path.includes("/auth/register")) {
+                const { data, error } = await window.ccSupabase.auth.signUp({
+                    email: options.body.email,
+                    password: options.body.password,
+                    options: { data: { full_name: options.body.fullName } }
+                });
+                if (error) throw error;
+                return { message: "Inscription réussie", user: data.user };
+            }
+
+            // 3. READ : Offers
+            if (path.includes("/api/offers") && (options.method === "GET" || !options.method)) {
+                const { data, error } = await window.ccSupabase.from('offers').select('*').eq('status', 'active');
+                if (error) throw error;
+                return { items: data || [] };
+            }
+
+            // 4. PAYMENTS
             if (path.includes("/payments") || path.includes("/initiate-payment")) {
                 const { data, error } = await window.ccSupabase.functions.invoke('initiate-payment', { body: options.body });
                 if (error) throw error;
