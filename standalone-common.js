@@ -189,60 +189,65 @@
     }
 
     async function api(path, options = {}) {
-        // [SUPABASE BRIDGE]
+        // [SUPABASE BRIDGE UNIVERSEL]
         if (window.ccSupabase) {
-            // 1. AUTH : Login
-            if (path.includes("/auth/login")) {
-                const { data, error } = await window.ccSupabase.auth.signInWithPassword({
-                    email: options.body.email,
-                    password: options.body.password
-                });
+            const p = path.toLowerCase();
+
+            // 1. AUTH
+            if (p.includes("/auth/login")) {
+                const { data, error } = await window.ccSupabase.auth.signInWithPassword({ email: options.body.email, password: options.body.password });
                 if (error) throw error;
                 return { token: data.session.access_token, user: { ...data.user, ...data.user.user_metadata } };
             }
-
-            // 2. AUTH : Register
-            if (path.includes("/auth/register")) {
-                const { data, error } = await window.ccSupabase.auth.signUp({
-                    email: options.body.email,
-                    password: options.body.password,
-                    options: { data: { full_name: options.body.fullName } }
-                });
+            if (p.includes("/auth/register")) {
+                const { data, error } = await window.ccSupabase.auth.signUp({ email: options.body.email, password: options.body.password, options: { data: { full_name: options.body.fullName } } });
                 if (error) throw error;
                 return { message: "Inscription réussie", user: data.user };
             }
-
-            // 3. AUTH : Session Profile (me)
-            if (path.includes("/auth/me")) {
+            if (p.includes("/auth/me")) {
                 const { data: { user }, error: authErr } = await window.ccSupabase.auth.getUser();
                 if (authErr || !user) throw authErr || new Error("No user");
-
-                // Récupérer le profil public pour avoir le role réel
-                const { data: profile, error: profErr } = await window.ccSupabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
-
-                return { 
-                    user: { 
-                        ...user, 
-                        ...user.user_metadata,
-                        ...(profile || {}), // Priorité aux données de la table profiles
-                        id: user.id // Garantir que l'ID reste celui de Supabase
-                    } 
-                };
+                const { data: profile } = await window.ccSupabase.from('profiles').select('*').eq('id', user.id).single();
+                return { user: { ...user, ...user.user_metadata, ...(profile || {}), id: user.id } };
             }
 
-            // 4. READ : Offers
-            if (path.includes("/api/offers") && (options.method === "GET" || !options.method)) {
-                const { data, error } = await window.ccSupabase.from('offers').select('*').eq('status', 'active');
+            // 2. OFFERS (CRUD)
+            if (p.includes("/api/offers")) {
+                const idMatch = path.match(/\/api\/offers\/([^\/\?]+)/);
+                if (options.method === "DELETE" && idMatch) {
+                    const { error } = await window.ccSupabase.from('offers').delete().eq('id', idMatch[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                if (options.method === "POST") {
+                    const { data, error } = await window.ccSupabase.from('offers').insert([{ ...options.body, user_id: state.user?.id }]).select();
+                    if (error) throw error;
+                    return data[0];
+                }
+                // GET
+                let query = window.ccSupabase.from('offers').select('*');
+                if (p.includes("scope=mine")) query = query.eq('user_id', state.user?.id);
+                else query = query.eq('status', 'active');
+                const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
                 return { items: data || [] };
             }
 
+            // 3. CONVERSATIONS & MESSAGES
+            if (p.includes("/api/conversations")) {
+                // Simplification : on retourne une liste vide pour l'instant ou on mappe vers chat_threads
+                const { data, error } = await window.ccSupabase.from('chat_threads').select('*');
+                if (error) throw error;
+                return data || [];
+            }
+
+            // 4. ADMIN & NOTIFS
+            if (p.includes("/admin/inbox") || p.includes("/notification-counts")) {
+                return { chatUnread: 0, adminUnread: 0, items: [] }; // Fallback neutre
+            }
+
             // 5. PAYMENTS
-            if (path.includes("/payments") || path.includes("/initiate-payment")) {
+            if (p.includes("/payments") || p.includes("/initiate-payment")) {
                 const { data, error } = await window.ccSupabase.functions.invoke('initiate-payment', { body: options.body });
                 if (error) throw error;
                 return data;
