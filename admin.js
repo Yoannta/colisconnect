@@ -1,7 +1,7 @@
 
 (() => {
     const state = {
-        token: localStorage.getItem("cc_token") || "",
+        token: localStorage.getItem("cc_auth_token") || "",
         user: null,
         usersQuery: "",
         offersQuery: "",
@@ -17,7 +17,7 @@
         guard: document.getElementById("admin-guard"),
         content: document.getElementById("admin-content"),
 
-        refreshBtn: document.getElementById("admin-refresh-btn"),
+         refreshBtn: document.getElementById("admin-refresh-btn"),
         approvalsCard: document.getElementById("admin-approvals-card"),
         approvalsBadge: document.getElementById("admin-approvals-badge"),
         approvalsNote: document.getElementById("admin-approvals-note"),
@@ -85,29 +85,19 @@
     };
 
     function updateSection(sectionId) {
-        // Update UI
         document.querySelectorAll(".content-section").forEach(s => s.classList.remove("active"));
         const target = document.getElementById(`section-${sectionId}`);
         if (target) target.classList.add("active");
-
         document.querySelectorAll(".side-link").forEach(l => l.classList.toggle("active", l.dataset.section === sectionId));
-
         const titleEl = document.getElementById("current-section-title");
         if (titleEl) titleEl.textContent = sectionTitles[sectionId] || "Admin";
-
-        // Scroll to top
         const main = document.querySelector(".admin-main");
         if (main) main.scrollTop = 0;
     }
 
     function escapeHtml(value) {
         if (value === null || value === undefined) return "";
-        return String(value)
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
+        return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
     }
 
     function fmtDate(value) {
@@ -134,8 +124,7 @@
 
     function statusBadge(status) {
         const key = String(status || "").toLowerCase();
-        const label = (key === "voyageur_paye") ? "Attente reversement" :
-            (key === "colisconnect_paye") ? "Payé" : (key || "-");
+        const label = (key === "voyageur_paye") ? "Attente reversement" : (key === "colisconnect_paye") ? "Payé" : (key || "-");
         let cls = "";
         if (["active", "accepted", "agreed", "delivered", "ok", "resolved", "colisconnect_paye"].includes(key)) cls = "ok";
         if (["pending", "in_transit", "open", "matched", "hidden", "verified"].includes(key)) cls = "warn";
@@ -152,29 +141,11 @@
         return labels.join(", ");
     }
 
-    function buildApiCandidates(path) {
-        if (/^https?:\/\//i.test(path)) return [path];
-        const normalizedPath = String(path || "").startsWith("/") ? String(path) : `/${path}`;
-        const candidates = [];
-        const fallbackBase = localStorage.getItem("cc_api_base") || "http://127.0.0.1:8080";
-
-        if (window.location.protocol !== "file:") candidates.push(normalizedPath);
-
-        const origins = [fallbackBase, "http://127.0.0.1:8080", "http://localhost:8080", "http://127.0.0.1:8090", "http://localhost:8090"];
-        for (const origin of origins) {
-            if (!origin) continue;
-            const url = `${origin.replace(/\/$/, "")}${normalizedPath}`;
-            if (!candidates.includes(url)) candidates.push(url);
-        }
-        return candidates;
-    }
-
-    function shouldTryNextCandidate(response, url) {
-        if (!url.startsWith("http")) return response.status === 404 || response.status === 405;
-        return false;
-    }
-
     async function api(path, options = {}) {
+        // [SUPABASE ADMIN BRIDGE]
+        if (window.CCCommon && window.CCCommon.api) {
+            return window.CCCommon.api(path, { ...options, auth: options.auth !== false });
+        }
         const method = options.method || "GET";
         const headers = {};
         const config = { method, headers };
