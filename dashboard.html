@@ -1,4 +1,4 @@
-ï»¿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css">`n    <!-- Supabase Core & Init -->`n    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>`n    <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
     <script defer src="standalone-common.js"></script>
@@ -109,7 +109,7 @@
                         <button id="complete-profile-btn" class="btn secondary full-width hidden">Completer mon
                             profil</button>
                         <button id="logout-mobile-btn" class="btn tertiary full-width mobile-only">Se
-                            dÃ©connecter</button>
+                            déconnecter</button>
                     </div>
                 </article>
 
@@ -191,12 +191,12 @@
         <div class="modal-card">
             <button class="close-modal" id="close-setup-modal">x</button>
             <div class="modal-panel">
-                <div class="step-indicator">Ã‰tape <span id="setup-step-num">1</span>/3</div>
+                <div class="step-indicator">Étape <span id="setup-step-num">1</span>/3</div>
                 <h3 id="setup-step-title">Configuration Profil</h3>
-                <p id="setup-step-desc">VÃ©rifiez votre pays de rÃ©sidence pour ajuster les tarifs.</p>
+                <p id="setup-step-desc">Vérifiez votre pays de résidence pour ajuster les tarifs.</p>
 
                 <div id="setup-country-container" style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Votre Pays de rÃ©sidence</label>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Votre Pays de résidence</label>
                     <input type="text" id="setup-country-input" list="destination-list" class="estimator-input"
                         placeholder="Ex: France" style="width: 100%; height: 45px;">
                 </div>
@@ -212,7 +212,7 @@
                         <span>Cliquer pour uploader</span>
                     </label>
                     <div id="setup-preview-container" class="hidden">
-                        <img id="setup-qr-preview" alt="AperÃ§u QR Code">
+                        <img id="setup-qr-preview" alt="Aperçu QR Code">
                     </div>
                 </div>
 
@@ -224,13 +224,13 @@
         </div>
     </div>
 
-    <!-- Modale FÃ©licitations -->
+    <!-- Modale Félicitations -->
     <div id="setup-success-modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-card">
             <div class="modal-panel" style="text-align: center;">
-                <div class="verified-badge" style="width: 60px; height: 60px; margin: 0 auto 20px;">âœ…</div>
-                <h3>FÃ©licitations !</h3>
-                <p>Vos moyens de paiement sont maintenant centralisÃ©s. Vous Ãªtes prÃªt Ã  Ãªtre payÃ© sans soucis.</p>
+                <div class="verified-badge" style="width: 60px; height: 60px; margin: 0 auto 20px;">?</div>
+                <h3>Félicitations !</h3>
+                <p>Vos moyens de paiement sont maintenant centralisés. Vous êtes prêt à être payé sans soucis.</p>
                 <button id="setup-success-ok" class="btn primary full-width" style="margin-top: 20px;">OK</button>
             </div>
         </div>

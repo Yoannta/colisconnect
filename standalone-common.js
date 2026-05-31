@@ -189,6 +189,15 @@
     }
 
     async function api(path, options = {}) {
+        // [SUPABASE BRIDGE] Redirection vers Edge Functions ou Client
+        if (window.ccSupabase) {
+            if (path.includes("/payments") || path.includes("/initiate-payment")) {
+                const { data, error } = await window.ccSupabase.functions.invoke('initiate-payment', { body: options.body });
+                if (error) throw error;
+                return data;
+            }
+        }
+
         const method = options.method || "GET";
         const headers = {};
         const config = { method, headers };
