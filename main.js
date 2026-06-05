@@ -3,7 +3,7 @@
     const PROFILE_REQUIRED_VIEWS = new Set(["propose"]);
 
     const state = {
-        token: localStorage.getItem("cc_token") || "",
+        token: localStorage.getItem("cc_auth_token") || "",
         user: null,
         pendingView: null,
         pendingDestination: "",
@@ -170,6 +170,11 @@
     }
 
     async function api(path, options = {}) {
+        // [SUPABASE BRIDGE UNIVERSEL]
+        if (window.CCCommon && window.CCCommon.api) {
+            return window.CCCommon.api(path, options);
+        }
+
         const method = options.method || "GET";
         const headers = {};
         const config = { method, headers };
@@ -188,7 +193,6 @@
 
         for (const url of candidates) {
             let response;
-
             try {
                 response = await fetch(url, config);
             } catch (fetchError) {
@@ -198,7 +202,6 @@
 
             const raw = await response.text();
             let data = null;
-
             try {
                 data = raw ? JSON.parse(raw) : null;
             } catch {
@@ -206,40 +209,25 @@
             }
 
             if (!response.ok) {
-                if (shouldTryNextCandidate(response, url, path)) {
-                    lastError = new Error(data?.error || `HTTP ${response.status}`);
-                    continue;
-                }
                 const error = new Error(data?.error || `HTTP ${response.status}`);
                 error.status = response.status;
                 error.payload = data;
                 throw error;
             }
 
-            if (url.startsWith("http")) {
-                try {
-                    const base = new URL(url).origin;
-                    localStorage.setItem("cc_api_base", base);
-                } catch {
-                    // Ignore invalid URL parsing.
-                }
-            }
-
             return data;
         }
 
-        const fallbackError = new Error("Impossible de joindre le serveur API. Ouvre le site via http://127.0.0.1:8080");
-        fallbackError.cause = lastError;
-        throw fallbackError;
+        throw new Error("Impossible de joindre le serveur API.");
     }
 
     function setSession(token, user) {
         state.token = token || "";
         state.user = user || null;
         if (state.token) {
-            localStorage.setItem("cc_token", state.token);
+            localStorage.setItem("cc_auth_token", state.token);
         } else {
-            localStorage.removeItem("cc_token");
+            localStorage.removeItem("cc_auth_token");
         }
         updateAuthUi();
     }

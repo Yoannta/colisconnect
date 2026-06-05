@@ -213,7 +213,28 @@
 
             // 2. PROFILE UPDATE (PATCH)
             if (p.includes("/users/me/profile") && options.method === "PATCH") {
-                const { data, error } = await window.ccSupabase.from('profiles').update(options.body).eq('id', state.user?.id).select();
+                const mapping = {
+                    fullName: 'full_name',
+                    phoneNumber: 'phone_number',
+                    country: 'country',
+                    identityDocumentData: 'identity_document',
+                    profilePhotoData: 'profile_photo'
+                };
+                const mappedBody = {};
+                for (const k in options.body) { mappedBody[mapping[k] || k] = options.body[k]; }
+                const { data, error } = await window.ccSupabase.from('profiles').update(mappedBody).eq('id', state.user?.id).select();
+                if (error) throw error;
+                return { success: true, user: { ...state.user, ...data[0] } };
+            }
+
+            // 2b. PAYMENT QRS
+            if (p.includes("/api/me/payment-qrs") && options.method === "POST") {
+                const { alipayQr, wechatQr, country } = options.body;
+                const { data, error } = await window.ccSupabase.from('profiles').update({
+                    alipay_qr: alipayQr,
+                    wechat_qr: wechatQr,
+                    country: country
+                }).eq('id', state.user?.id).select();
                 if (error) throw error;
                 return { success: true, user: { ...state.user, ...data[0] } };
             }
@@ -227,17 +248,36 @@
                     return { success: true };
                 }
                 if (options.method === "POST") {
-                    const { data, error } = await window.ccSupabase.from('offers').insert([{ ...options.body, user_id: state.user?.id }]).select();
+                    const mapping = { availableKg: 'available_kg', pricePerKg: 'price_per_kg', departureDate: 'departure_date' };
+                    const mappedBody = {};
+                    for (const k in options.body) mappedBody[mapping[k] || k] = options.body[k];
+                    const { data, error } = await window.ccSupabase.from('offers').insert([{ ...mappedBody, user_id: state.user?.id }]).select();
                     if (error) throw error;
                     return data[0];
                 }
-                // GET
-                let query = window.ccSupabase.from('offers').select('*');
-                if (p.includes("scope=mine")) query = query.eq('user_id', state.user?.id);
-                else query = query.eq('status', 'active');
+                // GET WITH JOIN
+                let query = window.ccSupabase.from('offers').select('*, profiles(full_name, is_verified)');
+                if (p.includes("scope=mine")) {
+                    query = query.eq('user_id', state.user?.id);
+                } else {
+                    query = query.eq('status', 'active');
+                    const params = new URLSearchParams(path.split('?')[1] || "");
+                    if (params.get("destination")) query = query.ilike('destination', `%${params.get("destination")}%`);
+                    if (params.get("minKg")) query = query.gte('available_kg', parseInt(params.get("minKg")));
+                }
                 const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
-                return { items: data || [] };
+                
+                // Map fields for UI compatibility
+                const items = (data || []).map(o => ({
+                    ...o,
+                    availableKg: o.available_kg,
+                    pricePerKg: o.price_per_kg,
+                    departureDate: o.departure_date,
+                    ownerName: o.profiles?.full_name || "Voyageur",
+                    ownerIsVerified: o.profiles?.is_verified
+                }));
+                return { items };
             }
 
             // 4. CONVERSATIONS & MESSAGES
@@ -248,13 +288,22 @@
                     if (error) throw error;
                     return data || [];
                 }
-                // LIST CONVS
-                const { data, error } = await window.ccSupabase.from('chat_threads').select('*').or(`participant_a.eq.${state.user?.id},participant_b.eq.${state.user?.id}`);
-                if (error) throw error;
-                return data || [];
-            }
+                const threadId = path.match(/\/api\/conversations\/([^\/\?]+)/);
+                if (options.method === "DELETE" && threadId) {
+                     const { error } = await window.ccSupabase.from('chat_threads').delete().eq('id', threadId[1]);
+                     if (error) throw error;
+                     return { success: true };
+                }
 
-            // 5. ADMIN DATA (DASHBOARD, USERS, OFFERS)
+                // LIST CONVS
+                const { data, error } = await window.ccSupabase.from('chat_threads').select('*').or(`user_id.eq.${state.user?.id},offer_owner_id.eq.${state.user?.id}`);
+                if (error) throw error;
+                return (data || []).map(t => ({
+                    ...t,
+                    isOfferOwner: t.offer_owner_id === state.user?.id,
+                    travelerName: t.offer_owner_id === state.user?.id ? "Client" : "Voyageur" 
+                }));
+            }
             if (p.includes("/admin/overview")) {
                 const [u, o, c] = await Promise.all([
                     window.ccSupabase.from('profiles').select('id', { count: 'exact', head: true }),
@@ -268,7 +317,32 @@
                     totalCommission: 0, volumeP2P: 0, openFlags: 0 
                 };
             }
+
+            // 6. AI ASSISTANT (SECURE EDGE FUNCTION)
+            if (p.includes("/ai/chat")) {
+                const { data, error } = await window.ccSupabase.functions.invoke('ai-assistant', {
+                    body: options.body
+                });
+                if (error) throw error;
+                return data;
+            }
+            if (p.includes("/admin/users/pending-approvals")) {
+                const { data, error } = await window.ccSupabase.from('profiles').select('*').eq('kyc_status', 'pending');
+                if (error) throw error;
+                return { items: data || [] };
+            }
             if (p.includes("/admin/users")) {
+                const idMatch = path.match(/\/admin\/users\/([^\/\?]+)\/review-section/);
+                if (idMatch && options.method === "PATCH") {
+                    const { section, decision, reason } = options.body;
+                    const update = {};
+                    if (section === "identityDocument") update.identity_document_approved = (decision === "approve");
+                    if (section === "profilePhoto") update.profile_photo_approved = (decision === "approve");
+                    if (decision === "reject") update.identity_rejection_reason = reason;
+                    const { data, error } = await window.ccSupabase.from('profiles').update(update).eq('id', idMatch[1]).select();
+                    if (error) throw error;
+                    return { success: true };
+                }
                 const { data, error } = await window.ccSupabase.from('profiles').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
                 return { items: data || [] };

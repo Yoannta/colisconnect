@@ -1,8 +1,10 @@
 (() => {
     const state = {
-        token: localStorage.getItem("cc_token") || "",
+        token: localStorage.getItem("cc_auth_token") || "",
         user: null
     };
+
+    const api = window.CCCommon.api;
 
     const els = {
         userChip: document.getElementById("approvals-user-chip"),
@@ -18,12 +20,7 @@
     };
 
     function escapeHtml(value) {
-        return String(value || "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#39;");
+        return window.CCCommon.escapeHtml(value);
     }
 
     function fmtDateTime(value) {
@@ -50,62 +47,11 @@
         els.content?.classList.toggle("hidden", enabled);
     }
 
-    function buildApiCandidates(path) {
-        const normalizedPath = String(path || "").startsWith("/") ? String(path) : `/${path}`;
-        const candidates = [];
-        const fallbackBase = localStorage.getItem("cc_api_base") || "http://127.0.0.1:8080";
-
-        if (window.location.protocol !== "file:") candidates.push(normalizedPath);
-
-        const origins = [fallbackBase, "http://127.0.0.1:8080", "http://localhost:8080", "http://127.0.0.1:8090", "http://localhost:8090"];
-        for (const origin of origins) {
-            if (!origin) continue;
-            const url = `${origin.replace(/\/$/, "")}${normalizedPath}`;
-            if (!candidates.includes(url)) candidates.push(url);
-        }
-        return candidates;
-    }
-
-    async function api(path, options = {}) {
-        const method = options.method || "GET";
-        const headers = {};
-        const config = { method, headers };
-        if (options.auth !== false && state.token) headers.Authorization = `Bearer ${state.token}`;
-        if (options.body !== undefined) {
-            headers["Content-Type"] = "application/json";
-            config.body = JSON.stringify(options.body);
-        }
-
-        const candidates = buildApiCandidates(path);
-        for (const url of candidates) {
-            let response;
-            try {
-                response = await fetch(url, config);
-            } catch {
-                continue;
-            }
-            const raw = await response.text();
-            let data = null;
-            try {
-                data = raw ? JSON.parse(raw) : null;
-            } catch {
-                data = { error: raw || `HTTP ${response.status}` };
-            }
-            if (!response.ok) {
-                const err = new Error(data?.error || data?.message || `HTTP ${response.status}`);
-                err.status = response.status;
-                throw err;
-            }
-            return data;
-        }
-        throw new Error("Impossible de joindre le backend.");
-    }
-
     function setSession(token, user) {
         state.token = token || "";
         state.user = user || null;
-        if (state.token) localStorage.setItem("cc_token", state.token);
-        else localStorage.removeItem("cc_token");
+        if (state.token) localStorage.setItem("cc_auth_token", state.token);
+        else localStorage.removeItem("cc_auth_token");
     }
 
     function updateAuthUi() {

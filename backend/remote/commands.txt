@@ -1,5 +1,0 @@
-[2026-03-19T20:37:51.511Z] MOBILE: Tu arrive à voir mon message je t’écris depuis mon téléphone
-[2026-03-19T20:41:48.816Z] MOBILE: Tu es la ?
-[2026-03-19T20:54:41.550Z] MOBILE: Je suis sur mon lit actuellement tu fais quoi ?
-[2026-03-19T21:14:18.489Z] MOBILE: TU VOIS
-[2026-03-19T21:16:14.254Z] MOBILE: TU VOIS MON MESSAGE ?
