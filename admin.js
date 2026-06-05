@@ -17,7 +17,7 @@
         guard: document.getElementById("admin-guard"),
         content: document.getElementById("admin-content"),
 
-         refreshBtn: document.getElementById("admin-refresh-btn"),
+        refreshBtn: document.getElementById("admin-refresh-btn"),
         approvalsCard: document.getElementById("admin-approvals-card"),
         approvalsBadge: document.getElementById("admin-approvals-badge"),
         approvalsNote: document.getElementById("admin-approvals-note"),
@@ -142,64 +142,10 @@
     }
 
     async function api(path, options = {}) {
-        // [SUPABASE ADMIN BRIDGE]
-        if (window.CCCommon && window.CCCommon.api) {
-            return window.CCCommon.api(path, { ...options, auth: options.auth !== false });
+        if (!window.CCCommon || !window.CCCommon.api) {
+            throw new Error("Bridge CCCommon non initialisé.");
         }
-        const method = options.method || "GET";
-        const headers = {};
-        const config = { method, headers };
-
-        if (options.auth !== false && state.token) headers.Authorization = `Bearer ${state.token}`;
-        if (options.body !== undefined) {
-            headers["Content-Type"] = "application/json";
-            config.body = JSON.stringify(options.body);
-        }
-
-        const candidates = buildApiCandidates(path);
-        let lastError = null;
-
-        for (const url of candidates) {
-            let response;
-            try {
-                response = await fetch(url, config);
-            } catch (error) {
-                lastError = error;
-                continue;
-            }
-
-            const raw = await response.text();
-            let data = null;
-            try {
-                data = raw ? JSON.parse(raw) : null;
-            } catch {
-                data = { error: raw || `HTTP ${response.status}` };
-            }
-
-            if (!response.ok) {
-                if (shouldTryNextCandidate(response, url)) {
-                    lastError = new Error(data?.error || `HTTP ${response.status}`);
-                    continue;
-                }
-                const err = new Error(data?.error || `HTTP ${response.status}`);
-                err.status = response.status;
-                err.payload = data;
-                throw err;
-            }
-
-            if (url.startsWith("http")) {
-                try {
-                    localStorage.setItem("cc_api_base", new URL(url).origin);
-                } catch {
-                    // Ignore parse errors.
-                }
-            }
-            return data;
-        }
-
-        const fallbackError = new Error("Impossible de joindre le backend admin.");
-        fallbackError.cause = lastError;
-        throw fallbackError;
+        return window.CCCommon.api(path, { ...options, auth: options.auth !== false });
     }
 
     function setSession(token, user) {

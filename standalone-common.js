@@ -357,7 +357,17 @@
                 }
                 const { data, error } = await window.ccSupabase.from('profiles').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
-                return { items: data || [] };
+                const items = (data || []).map(u => ({
+                    ...u,
+                    fullName: u.full_name,
+                    isActive: u.is_active,
+                    isVerified: u.is_verified,
+                    phoneNumber: u.phone_number,
+                    email: u.email || "Utilisateur Supabase", // L'email n'est pas dans public.profiles par défaut
+                    profileCompletionPercent: 50, // Fallback simple car le calcul est complexe
+                    profileCompletionMissing: ""
+                }));
+                return { items };
             }
             if (p.includes("/admin/analytics/daily")) return { points: [] };
             if (p.includes("/admin/reservations") || p.includes("/admin/flags") || p.includes("/admin/security/blocks") || p.includes("/admin/audit-log")) return [];
