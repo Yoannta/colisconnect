@@ -754,7 +754,7 @@ ${agreementBtn}
 
             const verify = target.closest("[data-user-verify]");
             if (verify) {
-                const id = Number(verify.getAttribute("data-user-verify"));
+                const id = verify.getAttribute("data-user-verify");
                 const isVerified = Number(verify.getAttribute("data-target-verified")) === 1;
                 const ask = isVerified
                     ? "Approuver cet utilisateur ?"
@@ -766,7 +766,7 @@ ${agreementBtn}
 
             const toggle = target.closest("[data-user-toggle]");
             if (toggle) {
-                const id = Number(toggle.getAttribute("data-user-toggle"));
+                const id = toggle.getAttribute("data-user-toggle");
                 const isActive = Number(toggle.getAttribute("data-target-active"));
                 refreshAfterAction(() => api(`/api/admin/users/${id}/status`, { method: "PATCH", body: { isActive } }), "Statut utilisateur mis a jour.");
                 return;
@@ -774,7 +774,7 @@ ${agreementBtn}
 
             const role = target.closest("[data-user-role]");
             if (role) {
-                const id = Number(role.getAttribute("data-user-role"));
+                const id = role.getAttribute("data-user-role");
                 const nextRole = String(role.getAttribute("data-target-role") || "user");
                 refreshAfterAction(() => api(`/api/admin/users/${id}/role`, { method: "PATCH", body: { role: nextRole } }), "Role utilisateur mis a jour.");
                 return;
@@ -782,14 +782,14 @@ ${agreementBtn}
 
             const logout = target.closest("[data-user-logout]");
             if (logout) {
-                const id = Number(logout.getAttribute("data-user-logout"));
+                const id = logout.getAttribute("data-user-logout");
                 refreshAfterAction(() => api(`/api/admin/users/${id}/sessions`, { method: "DELETE" }), "Sessions utilisateur supprimees.");
                 return;
             }
 
             const remove = target.closest("[data-user-delete]");
             if (remove) {
-                const id = Number(remove.getAttribute("data-user-delete"));
+                const id = remove.getAttribute("data-user-delete");
                 if (!window.confirm("Supprimer cet utilisateur ?")) return;
                 refreshAfterAction(() => api(`/api/admin/users/${id}`, { method: "DELETE" }), "Utilisateur supprime.");
             }

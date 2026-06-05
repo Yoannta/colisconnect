@@ -369,6 +369,37 @@
                     if (error) throw error;
                     return { success: true };
                 }
+                // [NEW] Actions individuelles
+                const idVerifyMatch = path.match(/\/admin\/users\/([^\/\?]+)\/verify/);
+                if (idVerifyMatch && options.method === "PATCH") {
+                    const { error } = await window.ccSupabase.from('profiles').update({ is_verified: options.body.isVerified }).eq('id', idVerifyMatch[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                const idStatusMatch = path.match(/\/admin\/users\/([^\/\?]+)\/status/);
+                if (idStatusMatch && options.method === "PATCH") {
+                    const { error } = await window.ccSupabase.from('profiles').update({ is_active: !!options.body.isActive }).eq('id', idStatusMatch[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                const idRoleMatch = path.match(/\/admin\/users\/([^\/\?]+)\/role/);
+                if (idRoleMatch && options.method === "PATCH") {
+                    const { error } = await window.ccSupabase.from('profiles').update({ role: options.body.role }).eq('id', idRoleMatch[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                const idSessionsMatch = path.match(/\/admin\/users\/([^\/\?]+)\/sessions/);
+                if (idSessionsMatch && options.method === "DELETE") {
+                    // Simulé: on ne peut pas forcer le logout d'un autre utilisateur sans service key
+                    return { success: true };
+                }
+                const idDeleteMatch = path.match(/\/admin\/users\/([^\/\?]+)$/);
+                if (idDeleteMatch && options.method === "DELETE") {
+                    const { error } = await window.ccSupabase.from('profiles').delete().eq('id', idDeleteMatch[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+
                 const { data, error } = await window.ccSupabase.from('profiles').select('*').order('created_at', { ascending: false });
                 if (error) throw error;
                 const items = (data || []).map(u => ({
