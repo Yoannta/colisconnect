@@ -267,7 +267,7 @@
                     return data[0];
                 }
                 // GET WITH JOIN
-                let query = window.ccSupabase.from('offers').select('*, profiles(full_name, is_verified)');
+                let query = window.ccSupabase.from('offers').select('*, profiles!offers_user_id_fkey(full_name, is_verified)');
                 if (p.includes("scope=mine")) {
                     query = query.eq('user_id', state.user?.id);
                 } else {
