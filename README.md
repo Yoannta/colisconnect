@@ -1063,4 +1063,41 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 - `post_trip.html` & `style.css` (UI symmetry & cleanup)
 
 ---
+---
 *Mise à jour effectuée. Le système ColisConnect est stabilisé sur le plan financier, l'agent de communication passe en phase de remise au propre.*
+
+## Journal des mises à jour — 2026-06-06
+
+### ☁️ Migration Cloud & Stabilisation Infrastructure (Supabase)
+
+#### **Migration Serverless Totale**
+
+- **Architecture 100% Cloud** : Transition complète du backend local (Node.js/SQLite) vers une infrastructure **Supabase** (PostgreSQL/PostgREST). Le site est désormais hébergé sur GitHub Pages et communique exclusivement avec le Cloud.
+- **Pont API (Bridge V9)** : Refonte de `standalone-common.js` pour agir comme un intercepteur universel. Il simule les anciennes routes locales en redirigeant les appels vers les services Supabase (Auth, DB, Edge Functions).
+
+#### **Schéma de Données Cohérent**
+
+- **Refactorisation des Relations** : Migration de toutes les clés étrangères vers `public.profiles` (au lieu de `auth.users`) pour permettre les jointures PostgREST natives.
+- **Suppression d'Ambiguïté** : Nettoyage des relations doubles sur la table `offers` qui provoquaient des erreurs de chargement sur `results.html`.
+- **Fidélité de Publication** : Correction du mapping des champs lors de la publication de trajets (`base_currency`, `payment_method`, `referral_code`, etc.).
+
+#### **Gestion Admin & Sécurité (RLS)**
+
+- **Contrôles d'Accès (RLS)** : Déploiement de politiques de sécurité granulaires sur `chat_threads` et `chat_messages` pour garantir que seuls les participants peuvent lire/écrire.
+- **Actions Admin Cloud** : Implémentation des actions de modération (Approuver, Suspendre, Rendre admin, Supprimer) directement via le bridge Supabase avec support complet des identifiants UUID.
+- **Passage Prioritaire Verifié** : Mise à jour de la logique de vérification : les utilisateurs approuvés manuellement par l'administrateur contournent désormais automatiquement le tunnel de complétion de profil (KYC).
+
+#### **Amélioration de la Fiabilité (UX)**
+
+- **Capture des Erreurs 404** : Le pont API intercepte désormais les réponses HTML "Site not found" de GitHub Pages et les transforme en erreurs JSON propres, supprimant l'affichage intempestif de code HTML brut sur l'interface.
+- **Correction des Liens Cassés** : Suppression des références d'assets inexistants (logo) qui ralentissaient le chargement de la page admin.
+
+#### **Fichiers modifiés**
+
+- `standalone-common.js` : Cœur de l'interception Cloud et mapping des données.
+- `admin.js` : Logique d'administration adaptée aux UUIDs.
+- `admin.html` : Nettoyage des assets.
+- `post_trip.js` & `results.js` : Alignement des mappings de colonnes.
+- `chat.js` : Simplification de l'initialisation de conversation via offre.
+
+---
