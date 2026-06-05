@@ -1,6 +1,6 @@
 ---
 title: Colisconnect
-emoji: 🚀
+emoji: ðŸš€
 colorFrom: blue
 colorTo: indigo
 sdk: docker
@@ -10,11 +10,11 @@ pinned: true
 ---
 # ColisConnect | Premium Parcel Stream
 
-## 🌌 Vision & Excellence
+## ðŸŒŒ Vision & Excellence
 
 ColisConnect est une plateforme de logistique peer-to-peer réinventée, connectant des expéditeurs avec des voyageurs certifiés pour un transport de colis fluide, sécurisé et ultra-rapide.
 
-## 🚀 Signatures Technologiques (Redesign Premium)
+## ðŸš€ Signatures Technologiques (Redesign Premium)
 
 Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil **Stitch** :
 
@@ -24,14 +24,14 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 - **Floating Glass Navigation** : Une barre de navigation flottante et interactive.
 - **Smooth View Transitions** : Transitions fluides (fade & scale) gérées en JavaScript pour une navigation cinématique.
 
-## 🛠️ Stack Technique
+## ðŸ› ï¸ Stack Technique
 
 - **Design Engine** : Stitch (by Google)
 - **Frontend** : HTML5, Vanilla CSS, Modern JavaScript
 - **Animations** : CSS Keyframes & Web Transitions API
 - **Backend** : Node.js (V2 avec SQLite)
 
-## 📂 Structure du Projet
+## ðŸ“‚ Structure du Projet
 
 - `index.html` : Landing page et application principale (SPA).
 - `style.css` : Système de design centralisé (Emerald-Obsidian).
@@ -433,38 +433,38 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 ### Historique des mises a jour (dernier cycle)
 
 - Interface utilisateur:
-  - `index.html` / `main.js`: navigation index vers `results.html`, `post_trip.html`, `chat.html` (boutons “Explorer”, “Publier”, “Messages”) redirige vers les pages standalone attendues plutôt que des ancres `#search/#messages`.  
-  - `dashboard.html` / `dashboard.js`: progression de profil toujours visible, libellés contextuels (“Mettre à jour mes informations/pieces”), bouton reste accessible même à 100 % pour répondre à un rejet d’admin.  
+  - `index.html` / `main.js`: navigation index vers `results.html`, `post_trip.html`, `chat.html` (boutons â€œExplorerâ€, â€œPublierâ€, â€œMessagesâ€) redirige vers les pages standalone attendues plutÃ´t que des ancres `#search/#messages`.  
+  - `dashboard.html` / `dashboard.js`: progression de profil toujours visible, libellÃ©s contextuels (â€œMettre Ã  jour mes informations/piecesâ€), bouton reste accessible mÃªme Ã  100â€¯% pour rÃ©pondre Ã  un rejet dâ€™admin.  
   - `chat.html` / `chat.js`: lecture des conversations autorisée dès connexion; envoi continue de requérir profil complet.  
-  - `verification.html` / `verification.js`: étiquettes unifiées (“Compte verifié”, “Profil complet - en attente…”), redirection automatique vers le `next` seulement quand le dossier est complet (>=75 % ou déjà vérifié).  
+  - `verification.html` / `verification.js`: Ã©tiquettes unifiÃ©es (â€œCompte verifiÃ©â€, â€œProfil complet - en attenteâ€¦â€), redirection automatique vers le `next` seulement quand le dossier est complet (>=75â€¯% ou dÃ©jÃ  vÃ©rifiÃ©).  
 - Authentification et navigation:
-  - `standalone-common.js`: `chat.html`/`messages.html` retirés des vues nécessitant profil complété, message d’attente amélioré (“Vous pouvez aussi mettre à jour vos pièces”), bouton “Mettre à jour mes infos” toujours présent.  
+  - `standalone-common.js`: `chat.html`/`messages.html` retirÃ©s des vues nÃ©cessitant profil complÃ©tÃ©, message dâ€™attente amÃ©liorÃ© (â€œVous pouvez aussi mettre Ã  jour vos piÃ¨cesâ€), bouton â€œMettre Ã  jour mes infosâ€ toujours prÃ©sent.  
   - `auth.html`/`auth.js`: session set/remise à jour via `CCCommon` + redirection vers `dashboard` avec `next`.  
 - Admin + approbations:
-  - `admin.html` / `admin.js`: carte “Approbations utilisateurs” toujours visible, cardio statistique (`pendingApprovals`) calculé côté API, bouton “Aller” vers `approvals.html`, tableau utilisateurs affiche pourcentage de progression et actions cohérentes avec la logique sectionnelle.  
-  - `approvals.html` / `approvals.js`: colonnes CNI/Photo avec actions “Voir”, “Approuver”, “Annuler”, preview dans nouvelle fenêtre, workflow `PATCH /api/admin/users/:id/review-section`.  
+  - `admin.html` / `admin.js`: carte â€œApprobations utilisateursâ€ toujours visible, cardio statistique (`pendingApprovals`) calculÃ© cÃ´tÃ© API, bouton â€œAllerâ€ vers `approvals.html`, tableau utilisateurs affiche pourcentage de progression et actions cohÃ©rentes avec la logique sectionnelle.  
+  - `approvals.html` / `approvals.js`: colonnes CNI/Photo avec actions â€œVoirâ€, â€œApprouverâ€, â€œAnnulerâ€, preview dans nouvelle fenÃªtre, workflow `PATCH /api/admin/users/:id/review-section`.  
   - `backend/server.js`: endpoints admin regroupés (`overview`, `pending-approvals`, `users`, documents, section review), recalcul `recomputeUserVerification`, `admin_inbox_messages` pour notifier les rejets, contraintes profil complet contrôlant `ensureUserVerifiedForSensitiveAction` (messages, réservations, offres).  
 - Profil et vérification:
-  - `verification.js` / `/api/users/me/profile`: upload phone/CNI/photo mis à jour, envoi d’image via base64, les champs “identity_document_approved” et “profile_photo_approved” réinitialisés si le fichier est modifié.  
+  - `verification.js` / `/api/users/me/profile`: upload phone/CNI/photo mis Ã  jour, envoi dâ€™image via base64, les champs â€œidentity_document_approvedâ€ et â€œprofile_photo_approvedâ€ rÃ©initialisÃ©s si le fichier est modifiÃ©.  
   - `README.md` et `collaboration.md`: documentation synchronisée pour chaque correction (approbations, coherence, message admin, popup profil).  
 - Règle critique CNI/Passeport:
-  - `recomputeUserVerification` valide immédiatement l’utilisateur dès que la CNI/Passeport est approuvée, la photo restant facultative.
-  - La popup “Profil incomplet” reste active tant que la CNI est absente et continue d’énumérer téléphone/pièce/photo; dès qu’elle est fournie, le message passe en “dossier en attente d’approbation admin” pour que l’utilisateur conserve l’accès normal.
+  - `recomputeUserVerification` valide immÃ©diatement lâ€™utilisateur dÃ¨s que la CNI/Passeport est approuvÃ©e, la photo restant facultative.
+  - La popup â€œProfil incompletâ€ reste active tant que la CNI est absente et continue dâ€™Ã©numÃ©rer tÃ©lÃ©phone/piÃ¨ce/photo; dÃ¨s quâ€™elle est fournie, le message passe en â€œdossier en attente dâ€™approbation adminâ€ pour que lâ€™utilisateur conserve lâ€™accÃ¨s normal.
 - Responsive:
   - `style.css` reçoit de nouvelles règles `@media` (max-width: 520px) pour empiler les navs, cards et formulaires, ajouter des table-scrolls sur mobile, et harmoniser les padding/flex afin que les pages (dashboard, admin, chat, index, post_trip) conservent leur lisibilité sur smartphone.
-  - `responsive.js` détecte la largeur et applique la classe `mobile-mode`/`desktop-mode` sur le `body`, permettant d’activer dynamiquement la version mobile distincte (homogénéisation des marges, navs empilés, joues de tableau scrollables) ou la version bureau, selon l’appareil.
+  - `responsive.js` dÃ©tecte la largeur et applique la classe `mobile-mode`/`desktop-mode` sur le `body`, permettant dâ€™activer dynamiquement la version mobile distincte (homogÃ©nÃ©isation des marges, navs empilÃ©s, joues de tableau scrollables) ou la version bureau, selon lâ€™appareil.
 - Mobile-only UI :
   - `mobile-mode` ajoute `mobile-card` pour les panels, renforce les contrastes } et donne à la messagerie/aux listes un fond plus foncé sur mobile (bord arrondi, ombre douce).
-  - `password-toggle.js` équipe tous les champs `type="password"` d’un bouton œil qui affiche/masque la saisie pour les fenêtres sur lesquelles on entre un mot de passe (modal login, `auth.html`, etc.), sans impacter le desktop.
+  - `password-toggle.js` Ã©quipe tous les champs `type="password"` dâ€™un bouton Å“il qui affiche/masque la saisie pour les fenÃªtres sur lesquelles on entre un mot de passe (modal login, `auth.html`, etc.), sans impacter le desktop.
 - Destination / téléphone :
-  - `results.html` s’appuie sur un `<datalist>` de pays pour la destination, ce qui limite la saisie aux options enregistrées.
-  - `verification.html` propose un `<datalist>` de préfixes téléphoniques et `verification.js` complète automatiquement le code sélectionné pour que l’utilisateur puisse ensuite taper le reste de son numéro.
+  - `results.html` sâ€™appuie sur un `<datalist>` de pays pour la destination, ce qui limite la saisie aux options enregistrÃ©es.
+  - `verification.html` propose un `<datalist>` de prÃ©fixes tÃ©lÃ©phoniques et `verification.js` complÃ¨te automatiquement le code sÃ©lectionnÃ© pour que lâ€™utilisateur puisse ensuite taper le reste de son numÃ©ro.
 - Datalist helper :
-  - `datalist-helper.js` garde le datalist natif mais force l’ouverture complète à chaque clic/focus en vidant puis restaurant la valeur (hack `showPicker`), pour pouvoir re-choisir sans effacer le champ.
+  - `datalist-helper.js` garde le datalist natif mais force lâ€™ouverture complÃ¨te Ã  chaque clic/focus en vidant puis restaurant la valeur (hack `showPicker`), pour pouvoir re-choisir sans effacer le champ.
 - Admin alert :
-  - `admin-banner.js` vérifie `/api/admin/inbox` et affiche un bandeau rouge au-dessus de `body` dès qu’un message de rejet de CNI/Passeport (section `identityDocument`) existe, avec la raison « non-conformité » pour guider l’utilisateur vers un nouvel upload.
+  - `admin-banner.js` vÃ©rifie `/api/admin/inbox` et affiche un bandeau rouge au-dessus de `body` dÃ¨s quâ€™un message de rejet de CNI/Passeport (section `identityDocument`) existe, avec la raison Â« non-conformitÃ© Â» pour guider lâ€™utilisateur vers un nouvel upload.
 - Données africaines :
-  - Les listes de destinations et de préfixes utilisés correspondent aux pays ouest/centrafricains (Sénégal, Côte d’Ivoire, Mali, Niger, Burkina, Cameroun, Gabon, RDC, etc.), afin de refléter le marché principal.
+  - Les listes de destinations et de prÃ©fixes utilisÃ©s correspondent aux pays ouest/centrafricains (SÃ©nÃ©gal, CÃ´te dâ€™Ivoire, Mali, Niger, Burkina, Cameroun, Gabon, RDC, etc.), afin de reflÃ©ter le marchÃ© principal.
 
 ---
 
@@ -499,7 +499,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 #### Communication des rejets
 
 - **Messages de rejet admin** : Affichage direct des motifs de refus sur la page `verification.html` (ex: "Photo floue").
-- **Alerte Dashboard** : Notification visuelle (icône ⚠️) sur le tableau de bord en cas de message administratif non lu.
+- **Alerte Dashboard** : Notification visuelle (icÃ´ne âš ï¸) sur le tableau de bord en cas de message administratif non lu.
 
 #### Refonte Dashboard Premium
 
@@ -522,11 +522,11 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-## Journal des mises à jour — 2026-03-04
+## Journal des mises Ã  jour â€” 2026-03-04
 
 ### Menu hamburger Admin (mobile)
 
-- Ajout d'un bouton hamburger (☰) dans la barre de titre de `admin.html`, visible uniquement sur mobile.
+- Ajout d'un bouton hamburger (â˜°) dans la barre de titre de `admin.html`, visible uniquement sur mobile.
 - La sidebar latérale (sections Utilisateurs, Offres, Modération, Sécurité, Audit) glisse depuis la gauche lorsqu'on l'active.
 - Un overlay sombre (backdrop) apparaît en fond et referme le menu au clic.
 - Le menu se ferme automatiquement après avoir cliqué sur un lien de section.
@@ -544,8 +544,8 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 - **Problème** : Se connecter depuis le logiciel `mobile-site-viewer` (Electron) retournait une erreur **"Méthode non autorisée"** car le serveur de preview interne ne traitait que les requêtes `GET/HEAD`.
 - **Cause réelle** : Le frontend envoyait ses appels API (`POST /api/auth/login`) au serveur de preview au lieu du vrai backend (port 8080).
 - **Corrections** :
-  - `mobile-site-viewer/main.js` : Ajout d'un **proxy API** — toute requête vers `/api/...` est redirigée vers `http://127.0.0.1:8080`, les autres méthodes HTTP (POST, PATCH, DELETE) sont maintenant autorisées pour les API.
-  - `standalone-common.js` : Amélioration de la détection du serveur — si le port actuel n'est pas 8080/8090 (ex: simulateur), il n'essaie plus d'envoyer les appels en chemin relatif (évite le timeout silencieux).
+  - `mobile-site-viewer/main.js` : Ajout d'un **proxy API** â€” toute requÃªte vers `/api/...` est redirigÃ©e vers `http://127.0.0.1:8080`, les autres mÃ©thodes HTTP (POST, PATCH, DELETE) sont maintenant autorisÃ©es pour les API.
+  - `standalone-common.js` : AmÃ©lioration de la dÃ©tection du serveur â€” si le port actuel n'est pas 8080/8090 (ex: simulateur), il n'essaie plus d'envoyer les appels en chemin relatif (Ã©vite le timeout silencieux).
 
 #### Fichiers modifiés (mobile viewer fix)
 
@@ -581,10 +581,10 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 #### Mobile
 
 - **Vue 1** : Liste de conversations en plein écran.
-- **Vue 2** : Tap sur une conversation → animation slide vers le chat.
-- **Bouton retour** (← flèche) dans l'en-tête pour revenir à la liste.
+- **Vue 2** : Tap sur une conversation â†’ animation slide vers le chat.
+- **Bouton retour** (â† flÃ¨che) dans l'en-tÃªte pour revenir Ã  la liste.
 
-#### Éléments redessinés
+#### Ã‰lÃ©ments redessinÃ©s
 
 - **Cartes de conversation** : Avatar avec initiales colorées (couleur selon le statut), nom, aperçu du dernier message, horodatage formaté ("Hier", "Lun.", "10:45").
 - **Barre de recherche** pour filtrer les conversations en temps réel.
@@ -592,14 +592,14 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 - **Bulles de messages** : vos messages en dégradé vert/teal à droite, messages du contact en gris à gauche, messages système en badge centré discret.
 - **Timestamps** affichés sur chaque bulle.
 - **Bouton Rafraîchir** en icône dans le header de la sidebar.
-- **État vide** avec illustration quand aucune conversation n'est sélectionnée.
-- Tous les IDs existants préservés — aucune régression fonctionnelle.
+- **Ã‰tat vide** avec illustration quand aucune conversation n'est sÃ©lectionnÃ©e.
+- Tous les IDs existants prÃ©servÃ©s â€” aucune rÃ©gression fonctionnelle.
 
 #### Correctifs post-refonte
 
-- **Texte des aperçus en noir** → corrigé en blanc semi-transparent.
-- **Barre de saisie cachée derrière la nav bar mobile** → ajout de `padding-bottom: 70px` sur la barre d'input pour la faire remonter au-dessus de la navigation fixe.
-- **Bug d'affichage JSON brut** pour le message `reversal_request` (destiné au voyageur après paiement) → la fonction `renderSingleMessage()` vérifiait le `sender` avant le `msgType`, ce qui faisait court-circuiter le renderer spécial. Correction : les types spéciaux (`reversal_request`, `payment_receipt`) sont maintenant détectés **en priorité**, quel que soit le sender.
+- **Texte des aperÃ§us en noir** â†’ corrigÃ© en blanc semi-transparent.
+- **Barre de saisie cachÃ©e derriÃ¨re la nav bar mobile** â†’ ajout de `padding-bottom: 70px` sur la barre d'input pour la faire remonter au-dessus de la navigation fixe.
+- **Bug d'affichage JSON brut** pour le message `reversal_request` (destinÃ© au voyageur aprÃ¨s paiement) â†’ la fonction `renderSingleMessage()` vÃ©rifiait le `sender` avant le `msgType`, ce qui faisait court-circuiter le renderer spÃ©cial. Correction : les types spÃ©ciaux (`reversal_request`, `payment_receipt`) sont maintenant dÃ©tectÃ©s **en prioritÃ©**, quel que soit le sender.
 
 #### Fichiers modifiés (refonte chat)
 
@@ -609,19 +609,19 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-### Simplification du système de statuts (3 États) — 2026-03-04
+### Simplification du systÃ¨me de statuts (3 Ã‰tats) â€” 2026-03-04
 
-- **États de réservation réduits à 3 clairs** :
-  1. **🔵 En discussion (`pending`)** : État initial lors de l'ouverture d'un chat.
-  2. **🔴 Attente reversement (`voyageur_paye`)** : Activé dès que le client confirme son paiement. L'avatar de la conversation devient **rouge vif** et une alerte est envoyée.
-  3. **🟢 Payé (`colisconnect_paye`)** : Confirmé par le voyageur après son reversement à la plateforme. L'avatar devient **vert**.
+- **Ã‰tats de rÃ©servation rÃ©duits Ã  3 clairs** :
+  1. **ðŸ”µ En discussion (`pending`)** : Ã‰tat initial lors de l'ouverture d'un chat.
+  2. **ðŸ”´ Attente reversement (`voyageur_paye`)** : ActivÃ© dÃ¨s que le client confirme son paiement. L'avatar de la conversation devient **rouge vif** et une alerte est envoyÃ©e.
+  3. **ðŸŸ¢ PayÃ© (`colisconnect_paye`)** : ConfirmÃ© par le voyageur aprÃ¨s son reversement Ã  la plateforme. L'avatar devient **vert**.
 - **Indicateurs visuels dynamiques** : Les avatars et badges dans la liste des conversations changent de couleur instantanément selon l'étape du paiement (Rouge pour l'attente, Vert pour le succès).
 - **Notification Admin ntfy (Alerte Rouge)** :
   - Envoi automatique d'une notification push sur le téléphone de l'administrateur dès qu'un client confirme son paiement.
   - L'alerte inclut : Noms réels des deux parties (requête SQL corrigée), montant payé, commission exacte (10%) et lien direct vers le panel admin.
   - Fiabilisation technique : l'envoi via PowerShell (Windows) est désormais attendu (`await`) pour garantir la transmission avant la fin de la requête API.
 - **Nouveau flux de confirmation de reversement** :
-  - Le bouton **"✅ J'ai reversé"** dans le chat déclenche maintenant un appel API réel (`POST /api/conversations/:id/reversal-confirm`) pour changer le statut en base de données.
+  - Le bouton **"âœ… J'ai reversÃ©"** dans le chat dÃ©clenche maintenant un appel API rÃ©el (`POST /api/conversations/:id/reversal-confirm`) pour changer le statut en base de donnÃ©es.
   - Ajout d'un message système automatique dans le fil de discussion pour confirmer la transaction à l'utilisateur.
 - **Mise à jour du Panel Admin** :
   - Le tableau de bord administrateur reconnaît désormais ces nouveaux statuts.
@@ -636,7 +636,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-## Journal des mises à jour — 2026-03-08
+## Journal des mises Ã  jour â€” 2026-03-08
 
 ### Inscription avec sélection de rôle (Utilisateur / Partenaire)
 
@@ -644,7 +644,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
   - **Carte "Utilisateur"** : accès standard (vente de kilos, recherche de voyageurs).
   - **Carte "Partenaire"** : accès à la page dédiée `partenaire.html` (entreprises de mise en relation).
 - L'utilisateur sélectionne son rôle, puis les champs de formulaire apparaissent (Nom, Email, Mot de passe) avec un bouton "Retour au choix du profil".
-- Pour la **connexion**, rien ne change — le formulaire reste identique.
+- Pour la **connexion**, rien ne change â€” le formulaire reste identique.
 - Un champ masqué `#register-role` stocke le rôle choisi (`user` ou `partner`) et le transmet à `POST /api/auth/register`.
 
 #### Backend (inscription avec rôle)
@@ -681,9 +681,9 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 - Toutes les pages du site ont été mises à jour pour inclure ce lien (masqué par défaut, révélé par JavaScript) :
   - Desktop : `<a id="nav-partner-link" class="nav-link hidden">` dans toutes les pages.
   - Mobile : `<a id="mobile-partner-link" class="mob-nav-item hidden">` dans toutes les barres de navigation basses.
-- `standalone-common.js` → `updateHeaderUi()` : révèle `#nav-partner-link` si `role === 'partner'`.
-- `standalone-common.js` → `syncHeaderMobileUi()` : crée dynamiquement le lien `#mobile-partner-link` si l'utilisateur est partenaire, ou le supprime sinon.
-- `main.js` → `updateAuthUi()` : synchronise `#mobile-partner-link` sur la page d'accueil.
+- `standalone-common.js` â†’ `updateHeaderUi()` : rÃ©vÃ¨le `#nav-partner-link` si `role === 'partner'`.
+- `standalone-common.js` â†’ `syncHeaderMobileUi()` : crÃ©e dynamiquement le lien `#mobile-partner-link` si l'utilisateur est partenaire, ou le supprime sinon.
+- `main.js` â†’ `updateAuthUi()` : synchronise `#mobile-partner-link` sur la page d'accueil.
 - `partner.html` : barre mobile basse ajoutée + navigation complète standardisée.
 
 #### Correction referral_code manquant
@@ -702,7 +702,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-### Correction page d'approbations Admin — 2026-03-08
+### Correction page d'approbations Admin â€” 2026-03-08
 
 - **Bug corrigé** : Des utilisateurs uploadant leurs documents et déclenchant une notification ntfy n'apparaissaient pas dans la page `approvals.html`.
 - **Causes identifiées et corrigées** dans `backend/server.js` :
@@ -710,7 +710,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
   - La logique `approvalPending` ne marquait pas un utilisateur comme "en attente" s'il avait des documents non-approuvés mais un profil non encore mis à 100 %.
 - **Corrections** :
   - La requête inclut maintenant `role IN ('user', 'partner')`.
-  - La condition `approvalPending` tient compte de : document d'identité non approuvé, photo de profil non approuvée, OU progression ≥ 75%.
+  - La condition `approvalPending` tient compte de : document d'identitÃ© non approuvÃ©, photo de profil non approuvÃ©e, OU progression â‰¥ 75%.
   - Ajout de `is_active = 1` pour ne montrer que les comptes actifs.
 
 #### Fichiers modifiés (correction approbations)
@@ -719,13 +719,13 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-## Journal des mises à jour — 2026-03-13
+## Journal des mises Ã  jour â€” 2026-03-13
 
 ### Badges de notification sur le bouton Messages
 
 - Le lien "Messages" (icône chat) dans la **barre de navigation desktop** et la **barre de navigation mobile basse** affiche désormais un badge dynamique selon le type de notification :
-  - 🔴 **Bulle rouge** (avec le compteur) : indique des messages non lus dans les conversations normales entre utilisateurs.
-  - 🔺 **Triangle jaune** (avec `!`) : indique la présence de **messages envoyés par l'administrateur** non lus. Ce badge est prioritaire sur la bulle rouge.
+  - ðŸ”´ **Bulle rouge** (avec le compteur) : indique des messages non lus dans les conversations normales entre utilisateurs.
+  - ðŸ”º **Triangle jaune** (avec `!`) : indique la prÃ©sence de **messages envoyÃ©s par l'administrateur** non lus. Ce badge est prioritaire sur la bulle rouge.
 - Les badges apparaissent avec une animation `notif-pop` (scale spring).
 - Un **polling automatique** se déclenche toutes les **45 secondes** dès que l'utilisateur est connecté pour rafraîchir les compteurs en arrière-plan, sans recharger la page.
 - En arrivant sur la page `chat.html`, les badges se rafraîchissent automatiquement 1,5 secondes après le chargement (les messages étant alors en cours de lecture).
@@ -752,7 +752,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-## Journal des mises à jour — 2026-03-19
+## Journal des mises Ã  jour â€” 2026-03-19
 
 ### Consolidation du Header (Menu Profil Unique)
 
@@ -777,7 +777,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-### Automatisation KYC avec IA (Gemini 2026) — 2026-03-25
+### Automatisation KYC avec IA (Gemini 2026) â€” 2026-03-25
 
 #### **Vérification d'Identité Autonome**
 
@@ -791,7 +791,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 - **Indicateur de Transmission** : Le bouton de validation passe en état "Transmission..." pour éviter les doubles clics durant l'envoi et l'analyse.
 - **Notifications Automatisées** :
   - **Succès** : Message de félicitations automatique envoyé dans la boîte de réception interne.
-  - **Échec** : Message détaillé expliquant la raison exacte du rejet par l'IA pour permettre à l'utilisateur de corriger son upload immédiatement.
+  - **Ã‰chec** : Message dÃ©taillÃ© expliquant la raison exacte du rejet par l'IA pour permettre Ã  l'utilisateur de corriger son upload immÃ©diatement.
 - **Score de Complétion Dynamique** : Le pourcentage de progression du profil diminue automatiquement si une pièce est rejetée par l'IA, bloquant les actions sensibles jusqu'à correction.
 
 #### **Optimisation Administrative**
@@ -810,7 +810,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-### Révolution de l'Infrastructure IA (Vision & OCR) — 2026-04-11
+### RÃ©volution de l'Infrastructure IA (Vision & OCR) â€” 2026-04-11
 
 #### **Passage sur Qwen-VL-Plus (Alibaba Cloud DashScope)**
 
@@ -837,33 +837,33 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 
 ---
 
-## 🛰️ ColisConnect Tracker (Système de Management)
+## ðŸ›°ï¸ ColisConnect Tracker (SystÃ¨me de Management)
 
 Le projet intègre un gestionnaire d'avancement autonome permettant de piloter le développement via une interface dédiée.
 
-### ⚙️ Composants
+### âš™ï¸ Composants
 
 - `tracker_server.js` : Serveur Node.js indépendant tournant sur le port **3333**.
 - `avancement.html` : Interface visuelle (Tableau de bord de management).
 - `avancement_db.json` : Base de données JSON stockant les fonctionnalités et leur historique.
 
-### 🤖 Instructions pour Antigravity (IA)
+### ðŸ¤– Instructions pour Antigravity (IA)
 
 Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 1. **Lance le Tracker** : `node tracker_server.js` (si non lancé).
 2. **Vérifie les Ordres** : Lis le fichier `avancement_actions.log` pour voir les dernières demandes de l'utilisateur.
 3. **Cycle de Travail** :
-    - Toute nouvelle demande passe en statut **🟡 En cours**.
+    - Toute nouvelle demande passe en statut **ðŸŸ¡ En cours**.
     - Une fois tes modifications de code terminées, l'étape reste en attente.
-    - **Seul l'utilisateur** peut passer l'étape en **🟢 Validé** via l'interface du tracker.
+    - **Seul l'utilisateur** peut passer l'Ã©tape en **ðŸŸ¢ ValidÃ©** via l'interface du tracker.
 4. **Rigueur** : Ne considère une tâche comme "Achevée" que si elle est marquée comme telle dans `avancement_db.json`.
 
 ---
 
-## Journal des mises à jour — 2026-03-29
+## Journal des mises Ã  jour â€” 2026-03-29
 
-### 🏗️ Refonte du Projet : Focalisation P2P & Simplification Flux
+### ðŸ—ï¸ Refonte du Projet : Focalisation P2P & Simplification Flux
 
 #### **Simplification du Flux de Contact (No-Friction)**
 
@@ -903,8 +903,8 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 #### **Calcul Dynamique en Temps Réel**
 
 - **Fourchette de prix dynamique** : L'estimateur (widget principal de la page d'accueil) analyse désormais en direct les offres disponibles dans la base de données.
-- **Réalisme Tarifaire** : Au lieu d'afficher une estimation statique, l'utilisateur voit une vraie fourchette calculée selon le prix au kilo (`pricePerKg`) des voyageurs disponibles (ex: *de 13 à 18€ par kilo*).
-- **Fallback Intelligent** : En cas de problème de réseau ou d'absence d'offres exactes, une estimation générique préconfigurée (10€ à 15€) s'affiche, assurant une expérience utilisateur ininterrompue.
+- **RÃ©alisme Tarifaire** : Au lieu d'afficher une estimation statique, l'utilisateur voit une vraie fourchette calculÃ©e selon le prix au kilo (`pricePerKg`) des voyageurs disponibles (ex: *de 13 Ã  18â‚¬ par kilo*).
+- **Fallback Intelligent** : En cas de problÃ¨me de rÃ©seau ou d'absence d'offres exactes, une estimation gÃ©nÃ©rique prÃ©configurÃ©e (10â‚¬ Ã  15â‚¬) s'affiche, assurant une expÃ©rience utilisateur ininterrompue.
 
 #### **Fiabilisation des Appels API**
 
@@ -924,7 +924,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 ---
 
-## 🛰️ Context Transfer - 2026-03-20
+## ðŸ›°ï¸ Context Transfer - 2026-03-20
 
 ### Projet Miracle Dashboard & Auto-Pilote
 
@@ -933,7 +933,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
   - `backend/public/miracle.html` : Interface futuriste avec "Super-Boutons".
   - `backend/server.js` : Endpoint `/api/miracle/command` avec logique d'auto-répondeur (mots-clés : TEST, STATUS, STRIPE, TU VOIS).
   - `backend/status.json` : Fichier d'état synchronisé pour l'affichage mobile.
-- **État** : 100% opérationnel. Le serveur répond aux tests mobiles sans intervention manuelle.
+- **Ã‰tat** : 100% opÃ©rationnel. Le serveur rÃ©pond aux tests mobiles sans intervention manuelle.
 
 ### Architecture Automatisation NotebookLM (Conceptuel)
 
@@ -948,12 +948,12 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
   - **Interface JSON** : Format strict pour le passage de témoin entre notebooks (Work Order).
   - **Boucle de Feedback** : Mise à jour manuelle des skills locaux après analyse des erreurs de sortie.
 
-### Journal des mises à jour — 2026-03-26
+### Journal des mises Ã  jour â€” 2026-03-26
 
-#### Modération IA Hybride (100% Événementielle)
+#### ModÃ©ration IA Hybride (100% Ã‰vÃ©nementielle)
 
 - **Optimisation Radical des Coûts** : Suppression totale du cycle de polling (setInterval de 30 minutes). L'IA ne consomme désormais des tokens **que** lorsqu'un message suspect est réellement détecté.
-- **Déclenchement sur Événement** : Intégration d'un détecteur passif dans `messageFilter.js` qui scanne chaque message pour identifier les mots-clés de fraude (paiements hors-plateforme, coordonnées cachées).
+- **DÃ©clenchement sur Ã‰vÃ©nement** : IntÃ©gration d'un dÃ©tecteur passif dans `messageFilter.js` qui scanne chaque message pour identifier les mots-clÃ©s de fraude (paiements hors-plateforme, coordonnÃ©es cachÃ©es).
 - **Analyse de Contexte Ciblée** : Lors d'une alerte, l'IA analyse une fenêtre précise de **16 messages** (10 précédents + le message suspect + 5 suivants) pour une prise de décision ultra-précise et contextuelle.
 - **Système de Cooldown** : Mise en place d'un verrou de 5 minutes par conversation pour éviter les rafales d'appels IA inutiles en cas de discussion animée.
 
@@ -965,7 +965,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
   - Ajout du `input.select()` automatique au clic pour une modification rapide des pays.
 - **Stabilité Backend** : Correction de requêtes SQL obsolètes dans `adminBot.js` (is_active vs is_suspended).
 
-### Prochaines Étapes
+### Prochaines Ã‰tapes
 
 - Créer concrètement les structures de fichiers pour les "Archétypes" en local.
 - Définir le schéma JSON pour le "Work Order" inter-agents.
@@ -973,9 +973,9 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 ---
 
-## Journal des mises à jour — 2026-05-06
+## Journal des mises Ã  jour â€” 2026-05-06
 
-### 💳 Automatisation Totale des Paiements (Genius Pay Split)
+### ðŸ’³ Automatisation Totale des Paiements (Genius Pay Split)
 
 #### **Split Payment via Payout (Automatisé)**
 
@@ -993,7 +993,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 - **Mobile Money Voyageur** : Mise à jour de `post_trip.html` et `post_trip.js` pour collecter et stocker le numéro de réception (Orange Money, MTN, Wave, etc.) dès la création de l'offre via le champ `payment_qr`.
 
-### 🛡️ Corrections Critiques & UX Admin
+### ðŸ›¡ï¸ Corrections Critiques & UX Admin
 
 #### **Correction du Bug Multi-Devises (XOF/EUR)**
 
@@ -1017,9 +1017,9 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 ---
 
-## Journal des mises à jour — 2026-05-06 (Additif)
+## Journal des mises Ã  jour â€” 2026-05-06 (Additif)
 
-### 🤖 OpenClaw : Pivot vers Installation Locale Exclusive
+### ðŸ¤– OpenClaw : Pivot vers Installation Locale Exclusive
 
 #### **Abandon du Déploiement Hugging Face**
 
@@ -1031,7 +1031,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 - **Purge Post-Bug** : Suppression de toutes les instances d'installation corrompues sur la machine locale (dossier `local-openclaw` et dépendances orphelines).
 - **Consigne de Réinstallation** : Utilisation de la commande manuelle standard pour garantir l'intégrité des fichiers `/dist/`.
 
-#### **Prochaine Étape (User Side)**
+#### **Prochaine Ã‰tape (User Side)**
 
 1. Nettoyer les dossiers résiduels sur C: et D:.
 2. Exécuter `npm install openclaw zod` dans un nouveau dossier dédié.
@@ -1039,7 +1039,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 ---
 
-### Restauration du système Multi-Devises — 2026-05-13
+### Restauration du systÃ¨me Multi-Devises â€” 2026-05-13
 
 #### **Correction Critique de Convergence**
 
@@ -1066,9 +1066,9 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 ---
 *Mise à jour effectuée. Le système ColisConnect est stabilisé sur le plan financier, l'agent de communication passe en phase de remise au propre.*
 
-## Journal des mises à jour — 2026-06-06
+## Journal des mises Ã  jour â€” 2026-06-06
 
-### ☁️ Migration Cloud & Stabilisation Infrastructure (Supabase)
+### â˜ï¸ Migration Cloud & Stabilisation Infrastructure (Supabase)
 
 #### **Migration Serverless Totale**
 
@@ -1094,7 +1094,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 #### **Fichiers modifiés**
 
-- `standalone-common.js` : Cœur de l'interception Cloud et mapping des données.
+- `standalone-common.js` : CÅ“ur de l'interception Cloud et mapping des donnÃ©es.
 - `admin.js` : Logique d'administration adaptée aux UUIDs.
 - `admin.html` : Nettoyage des assets.
 - `post_trip.js` & `results.js` : Alignement des mappings de colonnes.
