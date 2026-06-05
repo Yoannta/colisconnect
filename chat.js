@@ -249,6 +249,11 @@
             const shouldShowBanner = isClientSide && (thread.status === "pending" || thread.status === "agreed");
             els.chatInfoBanner.classList.toggle("hidden", !shouldShowBanner);
 
+            // SI LA BANNIERE N'EST PAS REQUISE, ON VALIDE AUTOMATIQUEMENT LE TUTO POUR NE PAS BLOQUER LE CHAT
+            if (!shouldShowBanner) {
+                state.isTutorialAccepted = true;
+            }
+
             // Gestion du bouton "Compris" à l'intérieur
             if (els.comprisBtn) {
                 els.comprisBtn.classList.toggle("hidden", state.isTutorialAccepted);
@@ -258,6 +263,12 @@
 
     function triggerTutorialFocus() {
         if (state.isTutorialAccepted) return;
+
+        // Sécurité : si la bannière est masquée, on ne bloque pas l'utilisateur
+        if (els.chatInfoBanner && els.chatInfoBanner.classList.contains("hidden")) {
+            state.isTutorialAccepted = true;
+            return;
+        }
 
         if (els.tutorialOverlay) els.tutorialOverlay.classList.remove("hidden");
         if (els.chatInfoBanner) {
