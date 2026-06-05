@@ -208,7 +208,10 @@
                 const { data: { user }, error: authErr } = await window.ccSupabase.auth.getUser();
                 if (authErr || !user) throw authErr || new Error("No user");
                 const { data: profile } = await window.ccSupabase.from('profiles').select('*').eq('id', user.id).single();
-                return { user: { ...user, ...user.user_metadata, ...(profile || {}), id: user.id } };
+                const u = { ...user, ...user.user_metadata, ...(profile || {}), id: user.id };
+                if (u.is_verified !== undefined) u.isVerified = u.is_verified;
+                if (u.is_active !== undefined) u.isActive = u.is_active;
+                return { user: u };
             }
 
             // 2. PROFILE UPDATE (PATCH)
@@ -554,7 +557,9 @@
     }
 
     function isUserVerified(user = state.user) {
-        return Boolean(user && (Number(user.isVerified) === 1 || user.isVerified === true));
+        if (!user) return false;
+        const v = user.isVerified !== undefined ? user.isVerified : user.is_verified;
+        return Boolean(v === 1 || v === true || v === 'true');
     }
 
     async function restoreSession() {
