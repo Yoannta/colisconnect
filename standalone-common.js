@@ -297,15 +297,41 @@
                     const { offerId } = options.body;
                     const { data: offer } = await window.ccSupabase.from('offers').select('user_id').eq('id', offerId).single();
                     if (!offer) throw new Error("Offre introuvable");
-                    const { data: existing } = await window.ccSupabase.from('chat_threads').select('id').eq('offer_id', offerId).eq('user_id', state.user?.id).maybeSingle();
-                    if (existing) return existing;
-                    const { data: created, error } = await window.ccSupabase.from('chat_threads').insert([{
-                        offer_id: offerId,
-                        user_id: state.user?.id,
-                        offer_owner_id: offer.user_id
-                    }]).select().single();
-                    if (error) throw error;
-                    return created;
+
+                    // Vérifier si un thread existe déjà
+                    let { data: thread } = await window.ccSupabase.from('chat_threads').select('*').eq('offer_id', offerId).eq('user_id', state.user?.id).maybeSingle();
+
+                    if (!thread) {
+                        // Création d'une réservation automatique
+                        const { data: res, error: resErr } = await window.ccSupabase.from('reservations').insert({
+                            user_id: state.user?.id,
+                            offer_id: offerId,
+                            status: 'pending'
+                        }).select().single();
+                        if (resErr) throw resErr;
+
+                        // Création du thread lié
+                        const { data: created, error } = await window.ccSupabase.from('chat_threads').insert([{
+                            offer_id: offerId,
+                            user_id: state.user?.id,
+                            offer_owner_id: offer.user_id,
+                            reservation_id: res.id
+                        }]).select().single();
+                        if (error) throw error;
+                        thread = created;
+                    } else if (!thread.reservation_id) {
+                        // Réparation : créer une réservation si le thread existait sans (cas de migration)
+                        const { data: res } = await window.ccSupabase.from('reservations').insert({
+                            user_id: state.user?.id,
+                            offer_id: offerId,
+                            status: 'pending'
+                        }).select().single();
+                        if (res) {
+                            const { data: updated } = await window.ccSupabase.from('chat_threads').update({ reservation_id: res.id }).eq('id', thread.id).select().single();
+                            thread = updated;
+                        }
+                    }
+                    return thread;
                 }
                 const threadMatch = path.match(/\/api\/conversations\/([^\/\?]+)\/messages/);
                 if (threadMatch) { // GET MESSAGES
@@ -322,7 +348,7 @@
 
                 // LIST CONVS with status and traveler profile info
                 const { data, error } = await window.ccSupabase.from('chat_threads')
-                    .select('*, reservations(status), offer_owner:profiles!chat_threads_offer_owner_id_fkey(*), user:profiles!chat_threads_user_id_fkey(*)')
+                    .select('*, reservations(id, status), offer_owner:profiles!chat_threads_offer_owner_id_fkey(*), user:profiles!chat_threads_user_id_fkey(*)')
                     .or(`user_id.eq.${state.user?.id},offer_owner_id.eq.${state.user?.id}`);
 
                 if (error) throw error;
@@ -333,7 +359,9 @@
 
                     return {
                         ...t,
+                        reservation: t.reservations ? { id: t.reservations.id, status: t.reservations.status } : null,
                         status: t.reservations?.status || "pending",
+                        reservation_id: t.reservation_id || t.reservations?.id,
                         isOfferOwner: isOwner,
                         travelerName: otherPerson?.full_name || (isOwner ? "Client" : "Voyageur"),
                         travelerAlipayQr: otherPerson?.alipay_qr,
