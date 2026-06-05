@@ -282,6 +282,20 @@
 
             // 4. CONVERSATIONS & MESSAGES
             if (p.includes("/api/conversations")) {
+                if (p.includes("/by-offer") && options.method === "POST") {
+                    const { offerId } = options.body;
+                    const { data: offer } = await window.ccSupabase.from('offers').select('user_id').eq('id', offerId).single();
+                    if (!offer) throw new Error("Offre introuvable");
+                    const { data: existing } = await window.ccSupabase.from('chat_threads').select('id').eq('offer_id', offerId).eq('user_id', state.user?.id).maybeSingle();
+                    if (existing) return existing;
+                    const { data: created, error } = await window.ccSupabase.from('chat_threads').insert([{
+                        offer_id: offerId,
+                        user_id: state.user?.id,
+                        offer_owner_id: offer.user_id
+                    }]).select().single();
+                    if (error) throw error;
+                    return created;
+                }
                 const threadMatch = path.match(/\/api\/conversations\/([^\/\?]+)\/messages/);
                 if (threadMatch) { // GET MESSAGES
                     const { data, error } = await window.ccSupabase.from('chat_messages').select('*').eq('thread_id', threadMatch[1]).order('created_at', { ascending: true });
