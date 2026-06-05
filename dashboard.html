@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ï»¿<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -16,7 +16,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">    <!-- Supabase Core & Init -->    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>    <script src="supabase-init.js"></script>
+    <link rel="stylesheet" href="style.css"> <!-- Supabase Core & Init -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
     <script defer src="standalone-common.js"></script>
@@ -70,6 +72,8 @@
                     <h2 class="welcome-title">Bienvenue, <span id="dashboard-user">Utilisateur</span></h2>
                 </div>
                 <div class="view-actions">
+                    <button id="logout-mobile-btn-top" class="btn ghost btn-sm mobile-only"
+                        style="color: #ff6b6b;">Quitter</button>
                     <button id="refresh-dashboard-btn" class="btn ghost btn-sm">
                         <svg viewBox="0 0 24 24" fill="none" class="icon-sm" xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -109,7 +113,7 @@
                         <button id="complete-profile-btn" class="btn secondary full-width hidden">Completer mon
                             profil</button>
                         <button id="logout-mobile-btn" class="btn tertiary full-width mobile-only">Se
-                            déconnecter</button>
+                            dÃ©connecter</button>
                     </div>
                 </article>
 
@@ -191,12 +195,12 @@
         <div class="modal-card">
             <button class="close-modal" id="close-setup-modal">x</button>
             <div class="modal-panel">
-                <div class="step-indicator">Étape <span id="setup-step-num">1</span>/3</div>
+                <div class="step-indicator">Ã‰tape <span id="setup-step-num">1</span>/3</div>
                 <h3 id="setup-step-title">Configuration Profil</h3>
-                <p id="setup-step-desc">Vérifiez votre pays de résidence pour ajuster les tarifs.</p>
+                <p id="setup-step-desc">VÃ©rifiez votre pays de rÃ©sidence pour ajuster les tarifs.</p>
 
                 <div id="setup-country-container" style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Votre Pays de résidence</label>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Votre Pays de rÃ©sidence</label>
                     <input type="text" id="setup-country-input" list="destination-list" class="estimator-input"
                         placeholder="Ex: France" style="width: 100%; height: 45px;">
                 </div>
@@ -212,7 +216,7 @@
                         <span>Cliquer pour uploader</span>
                     </label>
                     <div id="setup-preview-container" class="hidden">
-                        <img id="setup-qr-preview" alt="Aperçu QR Code">
+                        <img id="setup-qr-preview" alt="AperÃ§u QR Code">
                     </div>
                 </div>
 
@@ -224,13 +228,13 @@
         </div>
     </div>
 
-    <!-- Modale Félicitations -->
+    <!-- Modale FÃ©licitations -->
     <div id="setup-success-modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-card">
             <div class="modal-panel" style="text-align: center;">
                 <div class="verified-badge" style="width: 60px; height: 60px; margin: 0 auto 20px;">?</div>
-                <h3>Félicitations !</h3>
-                <p>Vos moyens de paiement sont maintenant centralisés. Vous êtes prêt à être payé sans soucis.</p>
+                <h3>FÃ©licitations !</h3>
+                <p>Vos moyens de paiement sont maintenant centralisÃ©s. Vous Ãªtes prÃªt Ã  Ãªtre payÃ© sans soucis.</p>
                 <button id="setup-success-ok" class="btn primary full-width" style="margin-top: 20px;">OK</button>
             </div>
         </div>

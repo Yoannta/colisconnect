@@ -447,10 +447,28 @@
 
     async function openSplitPaymentModal() {
         if (!state.activeThreadId || !state.activeThreadData) return alert("Sélectionnez une conversation d'abord.");
-        const res = state.activeThreadData.reservation || state.activeThreadData;
-        if (!res) return;
+        const thread = state.activeThreadData;
 
-        // On affiche directement le Hub de paiement (sans demander si réduction)
+        // ÉTAPE 2/2 : Si la plateforme est déjà payée (Commission ColisConnect validée)
+        if (thread.status === "commission_payee") {
+            const qr = thread.travelerAlipayQr || thread.travelerWechatQr;
+            if (!qr) return alert("Le voyageur n'a pas encore configuré ses moyens de paiement. Veuillez lui demander dans le chat.");
+
+            PAYMENT_STATE.step = "traveler";
+            const modal = document.getElementById("split-payment-modal");
+            document.getElementById("split-payment-title").textContent = "Payer le Voyageur";
+            document.getElementById("split-payment-step-desc").textContent = "Scannez le QR Code du voyageur ci-dessous.";
+            document.getElementById("split-payment-qr-img").src = qr;
+
+            // Calcul du montant restant (88%) ou prix convenu
+            // Note: Pour simplifier, on affiche le message de rappel
+            document.getElementById("split-payment-amount").textContent = "Montant convenu";
+
+            modal.classList.remove("hidden");
+            return;
+        }
+
+        // ÉTAPE 1/2 : Paiement de la commission (Hub ColisConnect)
         const modal = document.getElementById("payment-hub-modal");
         const amountDisplay = document.getElementById("payment-hub-amount-banner");
         const localIcons = document.getElementById("local-payment-icons");
@@ -605,6 +623,12 @@
 
         // Split Payment Setup
         els.chatPayBtn?.addEventListener("click", () => openSplitPaymentModal());
+
+        // Split Payment Modal Events
+        document.getElementById("split-payment-close")?.addEventListener("click", () => {
+            document.getElementById("split-payment-modal").classList.add("hidden");
+        });
+        document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
 
         // [PROTOTYPE] Hub Events
         const hubModal = document.getElementById("payment-hub-modal");

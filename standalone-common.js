@@ -267,7 +267,7 @@
                 }
                 const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
-                
+
                 // Map fields for UI compatibility
                 const items = (data || []).map(o => ({
                     ...o,
@@ -290,19 +290,31 @@
                 }
                 const threadId = path.match(/\/api\/conversations\/([^\/\?]+)/);
                 if (options.method === "DELETE" && threadId) {
-                     const { error } = await window.ccSupabase.from('chat_threads').delete().eq('id', threadId[1]);
-                     if (error) throw error;
-                     return { success: true };
+                    const { error } = await window.ccSupabase.from('chat_threads').delete().eq('id', threadId[1]);
+                    if (error) throw error;
+                    return { success: true };
                 }
 
-                // LIST CONVS
-                const { data, error } = await window.ccSupabase.from('chat_threads').select('*').or(`user_id.eq.${state.user?.id},offer_owner_id.eq.${state.user?.id}`);
+                // LIST CONVS with status and traveler profile info
+                const { data, error } = await window.ccSupabase.from('chat_threads')
+                    .select('*, reservations(status), offer_owner:profiles!chat_threads_offer_owner_id_fkey(*), user:profiles!chat_threads_user_id_fkey(*)')
+                    .or(`user_id.eq.${state.user?.id},offer_owner_id.eq.${state.user?.id}`);
+
                 if (error) throw error;
-                return (data || []).map(t => ({
-                    ...t,
-                    isOfferOwner: t.offer_owner_id === state.user?.id,
-                    travelerName: t.offer_owner_id === state.user?.id ? "Client" : "Voyageur" 
-                }));
+
+                return (data || []).map(t => {
+                    const isOwner = t.offer_owner_id === state.user?.id;
+                    const otherPerson = isOwner ? t.user : t.offer_owner;
+
+                    return {
+                        ...t,
+                        status: t.reservations?.status || "pending",
+                        isOfferOwner: isOwner,
+                        travelerName: otherPerson?.full_name || (isOwner ? "Client" : "Voyageur"),
+                        travelerAlipayQr: otherPerson?.alipay_qr,
+                        travelerWechatQr: otherPerson?.wechat_qr
+                    };
+                });
             }
             if (p.includes("/admin/overview")) {
                 const [u, o, c] = await Promise.all([
@@ -310,11 +322,11 @@
                     window.ccSupabase.from('offers').select('id', { count: 'exact', head: true }),
                     window.ccSupabase.from('chat_threads').select('id', { count: 'exact', head: true })
                 ]);
-                return { 
+                return {
                     users: u.count || 0, activeUsers: u.count || 0, suspendedUsers: 0,
                     offers: o.count || 0, activeOffers: o.count || 0,
                     conversations: c.count || 0,
-                    totalCommission: 0, volumeP2P: 0, openFlags: 0 
+                    totalCommission: 0, volumeP2P: 0, openFlags: 0
                 };
             }
 
@@ -355,7 +367,7 @@
 
             // 6. GENERAL ADMIN & NOTIFS
             if (p.includes("/admin/inbox") || p.includes("/notification-counts")) {
-                return { chatUnread: 0, adminUnread: 0, items: [] }; 
+                return { chatUnread: 0, adminUnread: 0, items: [] };
             }
 
             // 7. PAYMENTS

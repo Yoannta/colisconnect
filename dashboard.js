@@ -21,6 +21,7 @@
         progressMissing: document.getElementById("profile-progress-missing"),
         completeProfileBtn: document.getElementById("complete-profile-btn"),
         logoutMobileBtn: document.getElementById("logout-mobile-btn"),
+        logoutMobileBtnTop: document.getElementById("logout-mobile-btn-top"),
         navTabs: document.querySelectorAll(".nav-tab"),
     };
 
@@ -198,6 +199,10 @@
         });
 
         els.logoutMobileBtn?.addEventListener("click", () => {
+            window.CCCommon.logout();
+        });
+
+        els.logoutMobileBtnTop?.addEventListener("click", () => {
             window.CCCommon.logout();
         });
 
