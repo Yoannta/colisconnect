@@ -297,7 +297,7 @@
 
                 // LIST CONVS with status and traveler profile info
                 const { data, error } = await window.ccSupabase.from('chat_threads')
-                    .select('*, reservations(status), offer_owner:profiles(*), user:profiles(*)')
+                    .select('*, reservations(status), offer_owner:profiles!chat_threads_offer_owner_id_fkey(*), user:profiles!chat_threads_user_id_fkey(*)')
                     .or(`user_id.eq.${state.user?.id},offer_owner_id.eq.${state.user?.id}`);
 
                 if (error) throw error;
@@ -378,6 +378,13 @@
             // 6. GENERAL ADMIN & NOTIFS
             if (p.includes("/admin/inbox") || p.includes("/notification-counts")) {
                 return { chatUnread: 0, adminUnread: 0, items: [] };
+            }
+
+            // [BRIDGE SAFETY] Catch-all for other admin routes to avoid 404 on GitHub Pages
+            if (p.includes("/admin/")) {
+                console.warn("Route admin non gérée par le bridge:", path);
+                if (p.includes("/stats") || p.includes("/overview")) return {};
+                return [];
             }
 
             // 7. PAYMENTS
