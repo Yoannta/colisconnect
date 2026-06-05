@@ -297,7 +297,7 @@
 
                 // LIST CONVS with status and traveler profile info
                 const { data, error } = await window.ccSupabase.from('chat_threads')
-                    .select('*, reservations(status), offer_owner:profiles!chat_threads_offer_owner_id_fkey(*), user:profiles!chat_threads_user_id_fkey(*)')
+                    .select('*, reservations(status), offer_owner:profiles(*), user:profiles(*)')
                     .or(`user_id.eq.${state.user?.id},offer_owner_id.eq.${state.user?.id}`);
 
                 if (error) throw error;
@@ -331,7 +331,7 @@
             }
 
             // 6. AI ASSISTANT (SECURE EDGE FUNCTION)
-            if (p.includes("/ai/chat")) {
+            if (p.includes("/ai/chat") || p.includes("/admin/bot/chat")) {
                 const { data, error } = await window.ccSupabase.functions.invoke('ai-assistant', {
                     body: options.body
                 });
@@ -422,7 +422,11 @@
             }
 
             if (!response.ok) {
-                const error = new Error(data?.error || data?.message || `HTTP ${response.status}`);
+                let msg = data?.error || data?.message || `HTTP ${response.status}`;
+                if (typeof msg === 'string' && msg.includes('<!DOCTYPE html>')) {
+                    msg = `Erreur Serveur (404/500). Le backend est peut-être hors ligne.`;
+                }
+                const error = new Error(msg);
                 error.status = response.status;
                 error.payload = data;
                 error.code = String(data?.code || data?.error || "");
