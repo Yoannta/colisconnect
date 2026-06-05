@@ -257,7 +257,8 @@
                         departureDate: 'departure_date',
                         baseCurrency: 'base_currency',
                         paymentMethod: 'payment_method',
-                        paymentQr: 'payment_qr'
+                        paymentQr: 'payment_qr',
+                        referralCode: 'referral_code'
                     };
                     const mappedBody = {};
                     for (const k in options.body) mappedBody[mapping[k] || k] = options.body[k];
