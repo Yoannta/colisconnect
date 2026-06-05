@@ -251,7 +251,14 @@
                     return { success: true };
                 }
                 if (options.method === "POST") {
-                    const mapping = { availableKg: 'available_kg', pricePerKg: 'price_per_kg', departureDate: 'departure_date' };
+                    const mapping = {
+                        availableKg: 'available_kg',
+                        pricePerKg: 'price_per_kg',
+                        departureDate: 'departure_date',
+                        baseCurrency: 'base_currency',
+                        paymentMethod: 'payment_method',
+                        paymentQr: 'payment_qr'
+                    };
                     const mappedBody = {};
                     for (const k in options.body) mappedBody[mapping[k] || k] = options.body[k];
                     const { data, error } = await window.ccSupabase.from('offers').insert([{ ...mappedBody, user_id: state.user?.id }]).select();
