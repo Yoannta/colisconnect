@@ -1,6 +1,6 @@
 ---
 title: Colisconnect
-emoji: ðŸš€
+emoji: 🚀
 colorFrom: blue
 colorTo: indigo
 sdk: docker
@@ -10,11 +10,11 @@ pinned: true
 ---
 # ColisConnect | Premium Parcel Stream
 
-## ðŸŒŒ Vision & Excellence
+## 🌌 Vision & Excellence
 
 ColisConnect est une plateforme de logistique peer-to-peer réinventée, connectant des expéditeurs avec des voyageurs certifiés pour un transport de colis fluide, sécurisé et ultra-rapide.
 
-## ðŸš€ Signatures Technologiques (Redesign Premium)
+## 🚀 Signatures Technologiques (Redesign Premium)
 
 Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil **Stitch** :
 
