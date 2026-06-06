@@ -357,11 +357,12 @@
                     const isOwner = t.offer_owner_id === state.user?.id;
                     const otherPerson = isOwner ? t.user : t.offer_owner;
 
+                    const resObj = Array.isArray(t.reservations) ? t.reservations[0] : t.reservations;
                     return {
                         ...t,
-                        reservation: t.reservations ? { id: t.reservations.id, status: t.reservations.status } : null,
-                        status: t.reservations?.status || "pending",
-                        reservation_id: t.reservation_id || t.reservations?.id,
+                        reservation: resObj ? { id: resObj.id, status: resObj.status } : null,
+                        status: resObj?.status || "pending",
+                        reservation_id: t.reservation_id || resObj?.id,
                         isOfferOwner: isOwner,
                         travelerName: otherPerson?.full_name || (isOwner ? "Client" : "Voyageur"),
                         travelerAlipayQr: otherPerson?.alipay_qr,

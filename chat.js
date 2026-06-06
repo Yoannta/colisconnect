@@ -646,8 +646,15 @@
         document.getElementById("payment-hub-close")?.addEventListener("click", () => hubModal.classList.add("hidden"));
 
         document.getElementById("method-local")?.addEventListener("click", async () => {
-            const resId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id;
-            if (!resId) return alert("Impossible de récupérer l'identifiant de la réservation.");
+            console.log("[Payment Debug] activeThreadData:", state.activeThreadData);
+            const resId = state.activeThreadData?.reservation?.id ||
+                state.activeThreadData?.reservation_id ||
+                state.activeThreadData?.reservationId;
+
+            if (!resId) {
+                console.error("[Payment Debug] resId is missing. thread data:", state.activeThreadData);
+                return alert("Impossible de récupérer l'identifiant de la réservation.");
+            }
 
             const btn = document.getElementById("method-local");
             const originalContent = btn.innerHTML;
@@ -660,11 +667,12 @@
                     body: { reservationId: resId }
                 });
 
-                if (result.paymentLink) {
-                    // Redirection vers le Hub de paiement (FedaPay, Paystack, etc.)
-                    window.location.href = result.paymentLink;
+                const payUrl = result.paymentUrl || result.paymentLink;
+                if (payUrl) {
+                    // Redirection vers le Hub de paiement
+                    window.location.href = payUrl;
                 } else {
-                    throw new Error("Lien de paiement introuvable.");
+                    throw new Error("Lien de paiement introuvable dans la réponse.");
                 }
             } catch (err) {
                 btn.innerHTML = originalContent;
