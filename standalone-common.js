@@ -845,71 +845,112 @@
 
         const holder = document.createElement("div");
         holder.innerHTML = `
-<div id="cc-auth-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cc-auth-title">
+<div id="cc-auth-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card" id="cc-auth-modal-card">
         <button id="cc-auth-close" class="close-modal" aria-label="Fermer">x</button>
 
-        <section id="cc-auth-gate-panel" class="modal-panel">
-            <h3 id="cc-auth-title">Connexion requise</h3>
-            <p>Pour continuer, connectez-vous ou creez votre compte.</p>
-            <div class="gate-actions">
-                <button id="cc-gate-login" class="btn primary">Se connecter</button>
-                <button id="cc-gate-register" class="btn secondary">Creer un compte</button>
-                <button id="cc-gate-later" class="btn ghost">Plus tard</button>
-            </div>
-        </section>
-
-        <section id="cc-auth-form-panel" class="modal-panel hidden">
-            <div class="auth-tab-row">
-                <button id="cc-login-tab" class="tab is-active" type="button">Connexion</button>
-                <button id="cc-register-tab" class="tab" type="button">Inscription</button>
+        <!-- STEP 1: AUTH HUB (PHONE FIRST) -->
+        <section id="cc-auth-hub-panel" class="modal-panel">
+            <div class="auth-hub-header">
+                <h2 id="cc-auth-title" style="text-align: left; font-size: 2.8rem; margin-bottom: 2rem;">Bienvenue à nouveau</h2>
             </div>
 
-            <form id="cc-login-form" class="auth-form">
-                <label>Email<input type="email" name="email" required></label>
-                <label>Mot de passe<input type="password" name="password" minlength="8" required></label>
-                <button type="submit" class="btn primary">Se connecter</button>
-            </form>
-
-            <form id="cc-register-form" class="auth-form hidden">
-                <!-- Step 1: Selection -->
-                <div id="cc-register-selection-panel">
-                    <p class="form-instruction">Souhaitez-vous vous inscrire en tant que :</p>
-                    <div class="auth-selection-grid">
-                        <div class="selection-card" data-role="user">
-                            <h4>Utilisateur</h4>
-                            <p>Vendez vos kilos ou recherchez des voyageurs.</p>
-                        </div>
-                        <div class="selection-card" data-role="partner">
-                            <h4>Partenaire</h4>
-                            <p>Entreprise de mise en relation de voyageurs.</p>
-                        </div>
+            <!-- PRIMARY ENTRY (PHONE BY DEFAULT) -->
+            <div id="cc-auth-primary-entry">
+                <div class="phone-input-group">
+                    <select id="cc-auth-country-code" class="cc-country-select auth-input">
+                        ${COUNTRY_OPTIONS.map(c => `<option value="${COUNTRY_CALLING_CODES[c] || '+33'}">${c} (${COUNTRY_CALLING_CODES[c] || '+33'})</option>`).join("")}
+                    </select>
+                    
+                    <div class="cc-phone-input-container">
+                        <label style="position: absolute; top: -10px; left: 20px; background: #1a1b1e; padding: 0 8px; font-size: 0.8rem; color: #4c82ff; font-weight: 600;">Numéro de téléphone</label>
+                        <span class="prefix" id="cc-phone-prefix-display">+33</span>
+                        <input type="tel" id="cc-auth-phone-input" class="cc-phone-raw-input" placeholder="0 00 00 00 00">
                     </div>
                 </div>
+            </div>
 
-                <!-- Step 2: Fields (hidden initially) -->
-                <div id="cc-register-fields-panel" class="hidden">
-                    <input type="hidden" name="userRole" id="cc-register-role" value="user">
-                    <label>Nom complet<input type="text" name="fullName" required></label>
-                    <label>Email<input type="email" name="email" required></label>
-                    <label>Mot de passe (8+)<input type="password" name="password" minlength="8" required></label>
-                    <label>Pays de résidence<input type="text" name="country" list="cc-country-datalist" placeholder="Ex: France" required></label>
-                    <datalist id="cc-country-datalist"></datalist>
-                    <button type="submit" class="btn secondary">Creer mon compte</button>
-                    <button type="button" id="cc-register-back-to-role" class="btn ghost" style="margin-top: 10px; width: 100%;">Retour au choix du profil</button>
+            <!-- ALTERNATIVE ENTRY (HIDDEN INITIALLY) -->
+            <div id="cc-auth-email-entry" class="hidden">
+                <div class="auth-email-group" style="margin-top: 10px;">
+                    <label style="font-size: 0.8rem; color: #4c82ff; font-weight: 600; margin-left: 5px;">Adresse e-mail</label>
+                    <input type="email" id="cc-auth-email-input" class="auth-input" placeholder="exemple@mail.com">
                 </div>
-            </form>
+            </div>
 
-            <p id="cc-auth-feedback" class="auth-feedback"></p>
-            <button id="cc-auth-back" type="button" class="btn ghost">Retour</button>
+            <button id="cc-auth-continue-main" class="btn primary" style="width:100%; padding: 16px; border-radius: 30px; background: black; color: white; margin-top: 2rem; font-size: 1.1rem; font-weight: 700;">Continuer</button>
+
+            <div class="auth-footer-links" style="margin-top: 1.5rem;">
+                <p id="cc-auth-switch-text" style="color: #333; font-weight: 500;">Vous n’avez pas encore de compte ?</p>
+                <a href="#" id="cc-auth-switch-btn" style="color: #4c82ff; font-weight: 600; font-size: 1rem;">Inscrivez-vous</a>
+            </div>
+
+            <div class="auth-divider">OU</div>
+
+            <div class="social-buttons-grid">
+                <button class="social-btn" data-provider="google" style="background: white; border: 1px solid #e0e0e0; padding: 14px; border-radius: 30px;">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 20px;">
+                    Continuer avec Google
+                </button>
+                
+                <button id="cc-auth-toggle-email" class="social-btn btn-email" style="padding: 14px; border-radius: 30px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    Continuer avec un e-mail
+                </button>
+            </div>
+            
+            <p id="cc-auth-hub-feedback" class="auth-feedback"></p>
+        </section>
+
+        <!-- STEP 2: PASSWORD/PROFILE -->
+        <section id="cc-auth-details-panel" class="modal-panel hidden">
+            <button id="cc-auth-details-back" class="btn ghost sm" style="margin-bottom: 1rem;"><- Retour</button>
+            <h3 id="cc-auth-details-title">Connectez-vous</h3>
+            
+            <form id="cc-auth-details-form" class="auth-form">
+                <div id="cc-register-only-fields" class="hidden">
+                    <div id="cc-role-selection" style="margin-bottom: 1rem;">
+                        <p style="font-size: 0.85rem; margin-bottom: 8px;">Je m'inscris en tant que :</p>
+                        <div class="auth-tab-row">
+                            <button type="button" class="tab is-active" data-role="user">Utilisateur</button>
+                            <button type="button" class="tab" data-role="partner">Partenaire</button>
+                        </div>
+                        <input type="hidden" name="userRole" id="cc-details-role" value="user">
+                    </div>
+                    <label>Nom complet<input type="text" name="fullName" class="auth-input" placeholder="Jean Dupont"></label>
+                </div>
+
+                <label>Mot de passe<input type="password" name="password" class="auth-input" minlength="8" required placeholder="••••••••"></label>
+                
+                <div id="cc-register-only-fields-2" class="hidden">
+                    <label>Pays de résidence<input type="text" name="country" list="cc-country-datalist" class="auth-input" placeholder="Ex: France"></label>
+                </div>
+
+                <button type="submit" id="cc-auth-submit-details" class="btn primary" style="width:100%; margin-top: 1rem; padding: 14px;">Confirmer</button>
+            </form>
+            
+            <p id="cc-auth-details-feedback" class="auth-feedback"></p>
+        </section>
+
+        <!-- STEP OTP -->
+        <section id="cc-auth-phone-panel" class="modal-panel hidden">
+            <button id="cc-auth-phone-back" class="btn ghost sm" style="margin-bottom: 1rem;"><- Retour</button>
+            <h3>Code de vérification</h3>
+            <p>Saisissez le code envoyé par SMS.</p>
+            <form id="cc-auth-phone-form" class="auth-form" style="margin-top: 1.5rem;">
+                <input type="text" id="cc-auth-otp-input" class="auth-input" placeholder="123 456" required>
+                <button type="submit" class="btn primary" style="width: 100%; padding: 14px;">Vérifier le code</button>
+            </form>
+            <p id="cc-auth-phone-feedback" class="auth-feedback"></p>
         </section>
     </div>
 </div>
-<div id="cc-profile-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cc-profile-title">
+
+<div id="cc-profile-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
         <button id="cc-profile-close" class="close-modal" aria-label="Fermer">x</button>
         <section class="modal-panel">
-            <h3 id="cc-profile-title">Profil incomplet</h3>
+            <h3>Profil incomplet</h3>
             <p id="cc-profile-message">Vous devez completer votre profil pour continuer.</p>
             <div class="gate-actions">
                 <button id="cc-profile-complete" class="btn primary">Completer maintenant</button>
@@ -919,89 +960,194 @@
     </div>
 </div>`;
 
-        while (holder.firstElementChild) {
-            document.body.appendChild(holder.firstElementChild);
-        }
+        while (holder.firstElementChild) document.body.appendChild(holder.firstElementChild);
 
         ui.modal = document.getElementById("cc-auth-modal");
-        ui.modalCard = document.getElementById("cc-auth-modal-card");
-        ui.gatePanel = document.getElementById("cc-auth-gate-panel");
-        ui.formPanel = document.getElementById("cc-auth-form-panel");
-        ui.feedback = document.getElementById("cc-auth-feedback");
-        ui.loginForm = document.getElementById("cc-login-form");
-        ui.registerForm = document.getElementById("cc-register-form");
-        ui.loginTab = document.getElementById("cc-login-tab");
-        ui.registerTab = document.getElementById("cc-register-tab");
+        ui.hubPanel = document.getElementById("cc-auth-hub-panel");
+        ui.detailsPanel = document.getElementById("cc-auth-details-panel");
+        ui.phonePanel = document.getElementById("cc-auth-phone-panel");
+        ui.emailInput = document.getElementById("cc-auth-email-input");
+        ui.phoneInput = document.getElementById("cc-auth-phone-input");
+        ui.detailsForm = document.getElementById("cc-auth-details-form");
+        ui.feedbackHub = document.getElementById("cc-auth-hub-feedback");
+        ui.feedbackDetails = document.getElementById("cc-auth-details-feedback");
         ui.profileModal = document.getElementById("cc-profile-modal");
-        ui.profileMessage = document.getElementById("cc-profile-message");
+
+        let currentMode = "login";
+        let currentMethod = "phone"; // "phone" or "email"
+
+        const updateHubMode = (mode) => {
+            currentMode = mode;
+            const title = document.getElementById("cc-auth-title");
+            const switchText = document.getElementById("cc-auth-switch-text");
+            const switchBtn = document.getElementById("cc-auth-switch-btn");
+            const detailsTitle = document.getElementById("cc-auth-details-title");
+
+            if (mode === "login") {
+                title.textContent = "Bienvenue à nouveau";
+                switchText.textContent = "Vous n’avez pas encore de compte ?";
+                switchBtn.textContent = "Inscrivez-vous";
+                detailsTitle.textContent = "Connectez-vous";
+                document.querySelectorAll("#cc-register-only-fields, #cc-register-only-fields-2").forEach(el => el.classList.add("hidden"));
+            } else {
+                title.textContent = "Créer un compte";
+                switchText.textContent = "Vous avez déjà un compte ?";
+                switchBtn.textContent = "Connexion";
+                detailsTitle.textContent = "Finalisez votre inscription";
+                document.querySelectorAll("#cc-register-only-fields, #cc-register-only-fields-2").forEach(el => el.classList.remove("hidden"));
+            }
+        };
+
+        const switchMethod = (method) => {
+            currentMethod = method;
+            const phoneEntry = document.getElementById("cc-auth-primary-entry");
+            const emailEntry = document.getElementById("cc-auth-email-entry");
+            const toggleBtn = document.getElementById("cc-auth-toggle-email");
+
+            if (method === "email") {
+                phoneEntry.classList.add("hidden");
+                emailEntry.classList.remove("hidden");
+                toggleBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 18.92z"></path></svg>
+                    Continuer avec un téléphone
+                `;
+            } else {
+                phoneEntry.classList.remove("hidden");
+                emailEntry.classList.add("hidden");
+                toggleBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    Continuer avec un e-mail
+                `;
+            }
+        };
 
         document.getElementById("cc-auth-close")?.addEventListener("click", () => closeAuthModal(true));
-        document.getElementById("cc-gate-later")?.addEventListener("click", () => closeAuthModal(true));
-        document.getElementById("cc-gate-login")?.addEventListener("click", () => openAuthForms("login"));
-        document.getElementById("cc-gate-register")?.addEventListener("click", () => openAuthForms("register"));
-        document.getElementById("cc-auth-back")?.addEventListener("click", () => openAuthGate(state.pendingNavigation || currentTarget()));
+        document.getElementById("cc-auth-switch-btn")?.addEventListener("click", (e) => {
+            e.preventDefault();
+            updateHubMode(currentMode === "login" ? "register" : "login");
+        });
 
-        // Role selection cards
-        ui.modal.querySelectorAll(".selection-card").forEach(card => {
-            card.addEventListener("click", () => {
-                const role = card.dataset.role;
-                const roleInput = document.getElementById("cc-register-role");
-                if (roleInput) roleInput.value = role;
+        document.getElementById("cc-auth-toggle-email")?.addEventListener("click", (e) => {
+            e.preventDefault();
+            switchMethod(currentMethod === "phone" ? "email" : "phone");
+        });
 
-                document.getElementById("cc-register-selection-panel")?.classList.add("hidden");
-                document.getElementById("cc-register-fields-panel")?.classList.remove("hidden");
+        document.getElementById("cc-auth-country-code")?.addEventListener("change", (e) => {
+            document.getElementById("cc-phone-prefix-display").textContent = e.target.value;
+        });
+
+        document.getElementById("cc-auth-continue-main")?.addEventListener("click", async () => {
+            if (currentMethod === "phone") {
+                const prefix = document.getElementById("cc-auth-country-code").value;
+                const number = ui.phoneInput.value.replace(/\s+/g, "");
+                if (number.length < 6) {
+                    ui.feedbackHub.textContent = "Numéro invalide.";
+                    return;
+                }
+                try {
+                    ui.feedbackHub.textContent = "Envoi du code...";
+                    const { error } = await window.ccSupabase.auth.signInWithOtp({ phone: prefix + number });
+                    if (error) throw error;
+                    ui.hubPanel.classList.add("hidden");
+                    ui.phonePanel.classList.remove("hidden");
+                } catch (err) {
+                    ui.feedbackHub.textContent = err.message;
+                }
+            } else {
+                const email = ui.emailInput.value.trim();
+                if (!email || !email.includes("@")) {
+                    ui.feedbackHub.textContent = "Email invalide.";
+                    return;
+                }
+                ui.hubPanel.classList.add("hidden");
+                ui.detailsPanel.classList.remove("hidden");
+            }
+        });
+
+        document.getElementById("cc-auth-details-back")?.addEventListener("click", () => {
+            ui.detailsPanel.classList.add("hidden");
+            ui.hubPanel.classList.remove("hidden");
+        });
+
+        document.getElementById("cc-auth-phone-back")?.addEventListener("click", () => {
+            ui.phonePanel.classList.add("hidden");
+            ui.hubPanel.classList.remove("hidden");
+        });
+
+        ui.detailsPanel.querySelectorAll(".tab").forEach(tab => {
+            tab.addEventListener("click", () => {
+                ui.detailsPanel.querySelectorAll(".tab").forEach(t => t.classList.remove("is-active"));
+                tab.classList.add("is-active");
+                document.getElementById("cc-details-role").value = tab.dataset.role;
             });
         });
 
-        document.getElementById("cc-register-back-to-role")?.addEventListener("click", () => {
-            document.getElementById("cc-register-selection-panel")?.classList.remove("hidden");
-            document.getElementById("cc-register-fields-panel")?.classList.add("hidden");
+        ui.hubPanel.querySelectorAll(".social-btn[data-provider]").forEach(btn => {
+            btn.addEventListener("click", async () => {
+                const provider = btn.dataset.provider;
+                try {
+                    const { error } = await window.ccSupabase.auth.signInWithOAuth({
+                        provider,
+                        options: { redirectTo: window.location.origin + "/dashboard.html" }
+                    });
+                    if (error) throw error;
+                } catch (err) {
+                    ui.feedbackHub.textContent = err.message;
+                }
+            });
         });
 
-        document.getElementById("cc-profile-close")?.addEventListener("click", () => closeProfileModal(true));
-        document.getElementById("cc-profile-later")?.addEventListener("click", () => closeProfileModal(true));
-        document.getElementById("cc-profile-complete")?.addEventListener("click", () => {
-            const target = state.pendingProfileNavigation || currentTarget();
-            state.pendingProfileNavigation = "";
-            if (isUserVerified()) {
-                closeProfileModal(true);
-                window.location.href = "dashboard.html";
-                return;
-            }
-            window.location.href = toVerificationPath(target);
-        });
-
-        ui.loginTab?.addEventListener("click", () => switchModalTab("login"));
-        ui.registerTab?.addEventListener("click", () => switchModalTab("register"));
-
-        ui.loginForm?.addEventListener("submit", (event) => {
-            submitModalLogin(event).catch((error) => setModalFeedback(error.message || "Connexion impossible."));
-        });
-        ui.registerForm?.addEventListener("submit", (event) => {
-            submitModalRegister(event).catch((error) => setModalFeedback(error.message || "Inscription impossible."));
-        });
-
-        ui.modal?.addEventListener("click", (event) => {
-            if (event.target === ui.modal) closeAuthModal(true);
-        });
-        ui.profileModal?.addEventListener("click", (event) => {
-            if (event.target === ui.profileModal) closeProfileModal(true);
-        });
-
-        document.addEventListener("keydown", (event) => {
-            if (event.key === "Escape") {
-                closeAuthModal(true);
-                closeProfileModal(true);
-            }
-        });
-
-        // Proactive population of known country datalists
-        ["cc-country-datalist", "country-datalist", "destination-list", "country-options-trip"].forEach(id => {
-            const el = document.getElementById(id);
-            if (el && COUNTRY_OPTIONS) {
-                el.innerHTML = COUNTRY_OPTIONS.map(c => `<option value="${c}">`).join("");
+        ui.detailsForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const email = ui.emailInput.value.trim();
+            const data = new FormData(ui.detailsForm);
+            const password = data.get("password");
+            try {
+                ui.feedbackDetails.textContent = "Traitement...";
+                let result;
+                if (currentMode === "login") {
+                    result = await api("/api/auth/login", {
+                        method: "POST",
+                        auth: false,
+                        body: { email, password }
+                    });
+                } else {
+                    result = await api("/api/auth/register", {
+                        method: "POST",
+                        auth: false,
+                        body: {
+                            email,
+                            password,
+                            fullName: data.get("fullName"),
+                            country: data.get("country"),
+                            role: data.get("userRole")
+                        }
+                    });
+                }
+                onModalAuthSuccess(result);
+            } catch (err) {
+                ui.feedbackDetails.textContent = err.message;
             }
         });
+
+        document.getElementById("cc-auth-phone-form")?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const prefix = document.getElementById("cc-auth-country-code").value;
+            const phone = prefix + ui.phoneInput.value.replace(/\s+/g, "");
+            const token = document.getElementById("cc-auth-otp-input").value;
+            try {
+                const { error, data } = await window.ccSupabase.auth.verifyOtp({ phone, token, type: "sms" });
+                if (error) throw error;
+                onModalAuthSuccess({ user: data.user, session: data.session });
+            } catch (err) {
+                document.getElementById("cc-auth-phone-feedback").textContent = err.message;
+            }
+        });
+
+        ui.profileModal.querySelector("#cc-profile-complete").addEventListener("click", () => {
+            window.location.href = "dashboard.html";
+        });
+        ui.profileModal.querySelector("#cc-profile-later").addEventListener("click", () => closeProfileModal(true));
 
         ui.initialized = true;
     }
@@ -1021,8 +1167,8 @@
         if (!authed) {
             headerAuth.innerHTML = `
                 ${calmToggle ? calmToggle.outerHTML : ""}
-                <a id="auth-open-btn" href="auth.html" class="btn primary">Login</a>
-            `;
+    <a id="auth-open-btn" href="auth.html" class="btn primary">Login</a>
+    `;
             const newAuthBtn = document.getElementById("auth-open-btn");
             if (newAuthBtn) {
                 newAuthBtn.addEventListener("click", (e) => {
@@ -1034,21 +1180,21 @@
         } else {
             headerAuth.innerHTML = `
                 ${calmToggle ? calmToggle.outerHTML : ""}
-                <div class="user-menu" id="cc-user-menu">
-                    <button class="user-trigger" id="cc-user-trigger">
-                        <span>${escapeHtml(userName)}</span>
-                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M6 9l6 6 6-6"/>
-                        </svg>
-                    </button>
-                    <div class="user-dropdown">
-                        ${isAdmin ? '<a href="admin.html">Admin Panel</a>' : ""}
-                        <a href="dashboard.html">Dashboard</a>
-                        <a href="post_trip.html">Publier un trajet</a>
-                        <button class="logout-item" id="cc-logout-btn">Quitter</button>
-                    </div>
-                </div>
-            `;
+    <div class="user-menu" id="cc-user-menu">
+        <button class="user-trigger" id="cc-user-trigger">
+            <span>${escapeHtml(userName)}</span>
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6" />
+            </svg>
+        </button>
+        <div class="user-dropdown">
+            ${isAdmin ? '<a href="admin.html">Admin Panel</a>' : ""}
+            <a href="dashboard.html">Dashboard</a>
+            <a href="post_trip.html">Publier un trajet</a>
+            <button class="logout-item" id="cc-logout-btn">Quitter</button>
+        </div>
+    </div>
+    `;
 
             // Dropdown Toggle Logic
             const menu = document.getElementById("cc-user-menu");
@@ -1124,10 +1270,10 @@
                 a.href = "admin.html";
                 a.className = "mob-nav-item";
                 a.innerHTML = `
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg>
-                    <span>Admin</span>`;
+        < svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" stroke - linecap="round" stroke - linejoin="round" >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg >
+        <span>Admin</span>`;
                 nav.appendChild(a);
                 adminLink = a;
             }
@@ -1148,11 +1294,11 @@
                 a.href = "partner.html";
                 a.className = "mob-nav-item";
                 a.innerHTML = `
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            < svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" stroke - linecap="round" stroke - linejoin="round" >
                         <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                    </svg>
-                    <span>Partenaire</span>`;
+                    </svg >
+        <span>Partenaire</span>`;
                 // Insert before dashboard/profile link (last child)
                 const lastChild = nav.lastElementChild;
                 if (lastChild) nav.insertBefore(a, lastChild);
