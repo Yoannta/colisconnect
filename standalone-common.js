@@ -852,7 +852,7 @@
         <!-- STEP 1: AUTH HUB (PHONE FIRST) -->
         <section id="cc-auth-hub-panel" class="modal-panel">
             <div class="auth-hub-header">
-                <h2 id="cc-auth-title" style="text-align: left; font-size: 2.8rem; margin-bottom: 2rem;">Bienvenue à nouveau</h2>
+                <h2 id="cc-auth-title" class="auth-hub-title">Bienvenue à nouveau</h2>
             </div>
 
             <!-- PRIMARY ENTRY (PHONE BY DEFAULT) -->

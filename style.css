@@ -1293,13 +1293,48 @@ label {
     margin-bottom: 2rem;
 }
 
-.auth-hub-header h2 {
-    font-size: 2.2rem;
+.auth-hub-title {
+    text-align: left;
+    font-size: 2.8rem;
+    margin-bottom: 2rem;
     font-weight: 800;
-    margin-bottom: 0.5rem;
     color: white;
     letter-spacing: -0.02em;
 }
+
+@media (max-width: 600px) {
+    .auth-hub-title {
+        font-size: 1.8rem;
+        margin-bottom: 1.2rem;
+    }
+
+    .modal-card {
+        padding: 1.2rem;
+        width: 100%;
+        margin: 0 10px;
+    }
+
+    .cc-phone-input-container,
+    .auth-input {
+        padding: 10px 14px;
+    }
+
+    .social-btn {
+        padding: 10px;
+        font-size: 0.9rem;
+    }
+
+    #cc-auth-continue-main {
+        padding: 12px;
+        font-size: 1rem;
+        margin-top: 1.2rem;
+    }
+
+    .auth-divider {
+        margin: 1rem 0;
+    }
+}
+
 
 .auth-email-group {
     display: flex;
