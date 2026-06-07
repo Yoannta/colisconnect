@@ -200,7 +200,17 @@
                 return { token: data.session.access_token, user: { ...data.user, ...data.user.user_metadata } };
             }
             if (p.includes("/auth/register")) {
-                const { data, error } = await window.ccSupabase.auth.signUp({ email: options.body.email, password: options.body.password, options: { data: { full_name: options.body.fullName } } });
+                const { data, error } = await window.ccSupabase.auth.signUp({
+                    email: options.body.email,
+                    password: options.body.password,
+                    options: {
+                        data: {
+                            full_name: options.body.fullName,
+                            role: options.body.role || "user",
+                            country: options.body.country || ""
+                        }
+                    }
+                });
                 if (error) throw error;
                 return { message: "Inscription réussie", user: data.user };
             }
