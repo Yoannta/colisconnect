@@ -1491,15 +1491,37 @@ label {
     box-shadow: 0 0 10px rgba(76, 130, 255, 0.3);
 }
 
-.cc-country-select option {
-    background: #1a1b1e;
-    color: white;
-    padding: 10px;
+.lang-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--emerald-bright);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 45px;
 }
 
-.cc-country-select option:hover {
-    background: #4c82ff !important;
+.lang-toggle:hover {
+    background: rgba(19, 236, 200, 0.1);
+    border-color: var(--emerald-bright);
+    box-shadow: 0 0 10px var(--emerald-glow);
 }
+
+@media (max-width: 600px) {
+    .lang-toggle {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        min-width: 40px;
+    }
+}
+
 
 
 

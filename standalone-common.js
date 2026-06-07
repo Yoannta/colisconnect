@@ -85,8 +85,208 @@
         token: localStorage.getItem("cc_auth_token") || "",
         user: null,
         pendingNavigation: "",
-        pendingProfileNavigation: ""
+        pendingProfileNavigation: "",
+        lang: localStorage.getItem("cc_lang") || "fr"
     };
+
+    const TRANSLATIONS = {
+        fr: {
+            "nav_home": "Accueil",
+            "nav_explore": "Explorer",
+            "nav_post": "Publier",
+            "nav_messages": "Messages",
+            "nav_partner": "Partenaire",
+            "brand_sub": "Transport de colis entre particuliers",
+            "auth_login": "Login",
+            "auth_logout": "Quitter",
+            "hero_kicker": "Plateforme de confiance",
+            "hero_title": "Trouvez des expéditeurs sûrs pour vos colis en moins de 10 secondes.",
+            "hero_p": "Connectez-vous avec des voyageurs certifiés pour un transport de colis fluide, sécurisé et ultra-rapide entre particuliers.",
+            "hero_btn_find": "Trouver un voyageur",
+            "hero_btn_post": "Proposer mes kilos",
+            "est_badge": "Tester mon trajet",
+            "est_title": "Faire une estimation rapide",
+            "est_origin": "Pays de départ",
+            "est_dest": "Pays d'arrivée",
+            "est_kg": "Poids (kg)",
+            "est_submit": "Estimer 🚀",
+            "panel_search_h2": "Rechercher un transporteur",
+            "panel_search_p": "Trouvez les voyageurs actifs par destination, prix et kilos disponibles.",
+            "panel_search_btn": "Aller à la recherche",
+            "panel_post_h2": "Proposer votre trajet",
+            "panel_post_p": "Publiez votre trajet avec vos kilos libres. Votre offre devient visible en recherche.",
+            "panel_post_btn": "Publier une offre",
+            "panel_chat_h2": "Discuter et confirmer",
+            "panel_chat_p": "La messagerie se débloque dès qu'une réservation est créée.",
+            "panel_chat_btn": "Ouvrir les messages",
+            "profile_title": "Profil",
+            "lang_toggle_target": "EN"
+        },
+        en: {
+            "nav_home": "Home",
+            "nav_explore": "Explore",
+            "nav_post": "Post",
+            "nav_messages": "Chat",
+            "nav_partner": "Partner",
+            "brand_sub": "Parcel transport between individuals",
+            "auth_login": "Sign In",
+            "auth_logout": "Log Out",
+            "hero_kicker": "Trusted Platform",
+            "hero_title": "Find reliable shippers for your parcels in under 10 seconds.",
+            "hero_p": "Connect with certified travelers for smooth, secure, and ultra-fast parcel transport between individuals.",
+            "hero_btn_find": "Find a traveler",
+            "hero_btn_post": "Propose my kilos",
+            "est_badge": "Test my route",
+            "est_title": "Quick Estimate",
+            "est_origin": "Departure country",
+            "est_dest": "Arrival country",
+            "est_kg": "Weight (kg)",
+            "est_submit": "Estimate 🚀",
+            "panel_search_h2": "Search for a carrier",
+            "panel_search_p": "Find active travelers by destination, price, and available weight.",
+            "panel_search_btn": "Go to search",
+            "panel_post_h2": "Offer your trip",
+            "panel_post_p": "Post your trip with your free kilos. Your offer becomes visible in search.",
+            "panel_post_btn": "Post an offer",
+            "panel_chat_h2": "Chat and confirm",
+            "panel_chat_p": "Messaging unlocks as soon as a reservation is created.",
+            "panel_chat_btn": "Open messages",
+            "profile_title": "Profile",
+            "lang_toggle_target": "FR"
+        }
+    };
+
+    function applyTranslations() {
+        const lang = state.lang;
+        const t = TRANSLATIONS[lang];
+
+        // Header & Nav
+        const navMap = {
+            "index.html": t.nav_home,
+            "results.html": t.nav_explore,
+            "post_trip.html": t.nav_post,
+            "chat.html": t.nav_messages,
+            "partner.html": t.nav_partner
+        };
+
+        document.querySelectorAll(".main-nav a, .mobile-bottom-nav a").forEach(link => {
+            const href = link.getAttribute("href") || "";
+            for (const key in navMap) {
+                if (href.includes(key)) {
+                    const span = link.querySelector("span");
+                    if (span) span.textContent = navMap[key];
+                    else if (link.textContent.length < 20) link.textContent = navMap[key];
+                }
+            }
+        });
+
+        const brandSub = document.querySelector(".brand-sub");
+        if (brandSub) brandSub.textContent = t.brand_sub;
+
+        const loginBtn = document.getElementById("auth-open-btn");
+        if (loginBtn) loginBtn.textContent = t.auth_login;
+
+        const logoutBtn = document.getElementById("logout-btn");
+        if (logoutBtn) logoutBtn.textContent = t.auth_logout;
+
+        const profSpan = document.querySelector(".mob-nav-item[href*='dashboard.html'] span");
+        if (profSpan) profSpan.textContent = t.profile_title;
+
+        // Homepage Specifics
+        const kicker = document.querySelector(".hero-copy .kicker");
+        if (kicker) kicker.textContent = t.hero_kicker;
+
+        const h1 = document.querySelector(".hero-copy h1");
+        if (h1) h1.textContent = t.hero_title;
+
+        const heroP = document.querySelector(".hero-copy p");
+        if (heroP) heroP.textContent = t.hero_p;
+
+        const findBtn = document.querySelector(".hero-actions .btn.primary");
+        if (findBtn) findBtn.textContent = t.hero_btn_find;
+
+        const proposeBtn = document.querySelector(".hero-actions .btn.secondary");
+        if (proposeBtn) proposeBtn.textContent = t.hero_btn_post;
+
+        // Estimator
+        const estBadge = document.querySelector(".ProactiveBadge");
+        if (estBadge) estBadge.textContent = t.est_badge;
+
+        const estTitle = document.querySelector(".estimator-title");
+        if (estTitle) estTitle.textContent = t.est_title;
+
+        const estOrigin = document.getElementById("est-origin");
+        if (estOrigin) estOrigin.placeholder = t.est_origin;
+
+        const estDest = document.getElementById("est-dest");
+        if (estDest) estDest.placeholder = t.est_dest;
+
+        const estKg = document.getElementById("est-kg");
+        if (estKg) estKg.placeholder = t.est_kg;
+
+        const estBtn = document.getElementById("est-submit-btn");
+        if (estBtn) estBtn.textContent = t.est_submit;
+
+        // Panels
+        const panels = document.querySelectorAll(".panel-card");
+        if (panels.length >= 3) {
+            // Panel 1: Search
+            panels[0].querySelector("h2").textContent = t.panel_search_h2;
+            panels[0].querySelector("p").textContent = t.panel_search_p;
+            panels[0].querySelector(".btn").textContent = t.panel_search_btn;
+
+            // Panel 2: Post
+            panels[1].querySelector("h2").textContent = t.panel_post_h2;
+            panels[1].querySelector("p").textContent = t.panel_post_p;
+            // Correction for TrustTag (contains SVG)
+            const tt2 = panels[1].querySelector(".TrustTag");
+            if (tt2) {
+                const nodes = Array.from(tt2.childNodes);
+                const textNode = nodes.find(n => n.nodeType === 3);
+                if (textNode) textNode.textContent = " " + (lang === "en" ? "Secure Payment Guaranteed" : "Paiement sécurisé Garanti");
+            }
+            panels[1].querySelector(".btn").textContent = t.panel_post_btn;
+
+            // Panel 3: Chat
+            panels[2].querySelector("h2").textContent = t.panel_chat_h2;
+            panels[2].querySelector("p").textContent = t.panel_chat_p;
+            const tt3 = panels[2].querySelector(".TrustTag");
+            if (tt3) {
+                const nodes = Array.from(tt3.childNodes);
+                const textNode = nodes.find(n => n.nodeType === 3);
+                if (textNode) textNode.textContent = " " + (lang === "en" ? "Average response time: 5 min" : "Temps de réponse moyen: 5 min");
+            }
+            panels[2].querySelector(".btn").textContent = t.panel_chat_btn;
+        }
+
+        // Update Toggle Text
+        const langToggle = document.getElementById("cc-lang-toggle");
+        if (langToggle) langToggle.textContent = t.lang_toggle_target;
+
+        document.documentElement.setAttribute("lang", lang);
+    }
+
+    function injectLanguageToggle() {
+        const headerAuth = document.querySelector(".header-auth");
+        if (!headerAuth) return;
+        if (document.getElementById("cc-lang-toggle")) return;
+
+        const btn = document.createElement("button");
+        btn.id = "cc-lang-toggle";
+        btn.className = "lang-toggle";
+        btn.textContent = state.lang === "fr" ? "EN" : "FR";
+
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            state.lang = state.lang === "fr" ? "en" : "fr";
+            localStorage.setItem("cc_lang", state.lang);
+            applyTranslations();
+        });
+
+        headerAuth.prepend(btn);
+    }
+
 
     const ui = {
         initialized: false,
@@ -1158,45 +1358,48 @@
 
         const authed = Boolean(state.user && state.token);
         const isAdmin = authed && String(state.user.role || "").toLowerCase() === "admin";
-        const isPartner = authed && String(state.user.role || "").toLowerCase() === "partner";
-        const userName = authed ? (state.user.fullName || state.user.email || "Connecte") : "";
+        const userName = authed ? (state.user.fullName || state.user.email || "Connecté") : "";
 
-        // Calm mode toggle should always be there if it exists in HTML
         const calmToggle = document.getElementById("calm-mode-toggle");
 
-        if (!authed) {
-            headerAuth.innerHTML = `
-                ${calmToggle ? calmToggle.outerHTML : ""}
-    <a id="auth-open-btn" href="auth.html" class="btn primary">Login</a>
-    `;
-            const newAuthBtn = document.getElementById("auth-open-btn");
-            if (newAuthBtn) {
-                newAuthBtn.addEventListener("click", (e) => {
-                    e.preventDefault();
-                    state.pendingNavigation = currentTarget();
-                    openAuthForms("login");
-                });
-            }
-        } else {
-            headerAuth.innerHTML = `
-                ${calmToggle ? calmToggle.outerHTML : ""}
-    <div class="user-menu" id="cc-user-menu">
-        <button class="user-trigger" id="cc-user-trigger">
-            <span>${escapeHtml(userName)}</span>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M6 9l6 6 6-6" />
-            </svg>
-        </button>
-        <div class="user-dropdown">
-            ${isAdmin ? '<a href="admin.html">Admin Panel</a>' : ""}
-            <a href="dashboard.html">Dashboard</a>
-            <a href="post_trip.html">Publier un trajet</a>
-            <button class="logout-item" id="cc-logout-btn">Quitter</button>
-        </div>
-    </div>
-    `;
+        headerAuth.innerHTML = calmToggle ? calmToggle.outerHTML : "";
 
-            // Dropdown Toggle Logic
+        injectLanguageToggle();
+
+        if (!authed) {
+            const btn = document.createElement("a");
+            btn.id = "auth-open-btn";
+            btn.href = "auth.html";
+            btn.className = "btn primary";
+            btn.textContent = state.lang === "en" ? "Sign In" : "Login";
+            headerAuth.appendChild(btn);
+
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                state.pendingNavigation = currentTarget();
+                openAuthGate(state.pendingNavigation);
+            });
+        } else {
+            const menuHtml = `
+                <div class="user-menu" id="cc-user-menu">
+                    <button class="user-trigger" id="cc-user-trigger">
+                        <span>${escapeHtml(userName)}</span>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+                    <div class="user-dropdown">
+                        ${isAdmin ? '<a href="admin.html">Admin Panel</a>' : ""}
+                        <a href="dashboard.html">Dashboard</a>
+                        <a href="post_trip.html">Publier un trajet</a>
+                        <button class="logout-item" id="cc-logout-btn">${state.lang === "en" ? "Sign Out" : "Quitter"}</button>
+                    </div>
+                </div>
+            `;
+            const temp = document.createElement("div");
+            temp.innerHTML = menuHtml;
+            headerAuth.appendChild(temp.firstElementChild);
+
             const menu = document.getElementById("cc-user-menu");
             const trigger = document.getElementById("cc-user-trigger");
             if (trigger && menu) {
@@ -1206,23 +1409,20 @@
                 });
             }
 
-            // Logout Logic
             const logoutBtn = document.getElementById("cc-logout-btn");
             if (logoutBtn) {
                 logoutBtn.addEventListener("click", async () => {
-                    await logout();
-                    updateHeaderUi();
-                    window.location.href = "index.html";
+                    await window.ccSupabase.auth.signOut();
+                    localStorage.removeItem("cc_auth_token");
+                    window.location.reload();
                 });
             }
 
-            // Close dropdown on click outside
             document.addEventListener("click", () => {
                 menu?.classList.remove("is-active");
             }, { once: false });
         }
 
-        // Re-bind calm mode if it was replaced
         const newCalmToggle = document.getElementById("calm-mode-toggle");
         if (newCalmToggle) {
             newCalmToggle.addEventListener("click", () => {
@@ -1232,7 +1432,6 @@
             });
         }
 
-        // --- Sync active classes for navigation links ---
         const file = currentFile();
         document.querySelectorAll(".main-nav .nav-link").forEach(link => {
             const href = link.getAttribute("href");
@@ -1241,8 +1440,10 @@
             link.classList.toggle("is-active", isActive);
         });
 
+        applyTranslations();
         syncHeaderMobileUi();
     }
+
 
     function syncHeaderMobileUi() {
         const authed = Boolean(state.user && state.token);
