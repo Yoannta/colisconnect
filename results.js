@@ -1,14 +1,12 @@
 ﻿(() => {
     const state = {
         offers: [],
-        userCurrency: 'EUR'  // [MULTI-CURRENCY] Sera mis Ã  jour dans bootstrap()
+        userCurrency: 'EUR'
     };
 
-    // [MULTI-CURRENCY] Utilisation des fonctions globales de CCCommon
     const convertCurrency = window.CCCommon.convertCurrency;
     const formatAmount = window.CCCommon.formatAmount;
     const COUNTRY_CURRENCIES = window.CCCommon.COUNTRY_CURRENCIES;
-
 
     const els = {
         offerFilterForm: document.getElementById("offer-filter-form"),
@@ -30,6 +28,9 @@
     }
 
     async function loadOffers() {
+        if (!els.offersList) return;
+        els.offersList.innerHTML = '<div class="loading-state">Actualisation des offres...</div>';
+
         const filters = queryOfferFilters();
         const params = new URLSearchParams({
             pageSize: "100",
@@ -44,7 +45,6 @@
 
     function renderOffers() {
         if (!els.offersList) return;
-
         if (!state.offers.length) {
             els.offersList.innerHTML = '<div class="empty-card">Aucune offre pour ce filtre.</div>';
             return;
@@ -55,25 +55,25 @@
                 const initials = getInitials(offer.ownerName);
                 const isVerified = Boolean(offer.ownerIsVerified);
                 const verificationBadge = isVerified ? `
-                    <span class="verification-badge mini" title="Profil certifiÃ©">
+                    <span class="verification-badge mini" title="Profil certifié">
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                         </svg>
                     </span>
                 ` : "";
+
                 const originCity = offer.origin || "Origine";
-                const destCity = offer.destination || "Arrivee";
+                const destCity = offer.destination || "Arrivée";
                 const originCode = originCity.substring(0, 3).toUpperCase();
                 const destCode = destCity.substring(0, 3).toUpperCase();
                 const departureDate = String(offer.departureDate || "-");
-                const escapedOriginCity = window.CCCommon.escapeHtml(originCity);
-                const escapedDestCity = window.CCCommon.escapeHtml(destCity);
-                const escapedOwnerName = window.CCCommon.escapeHtml(offer.ownerName || "Voyageur");
+
                 const pricePerKgRaw = Number(offer.pricePerKg || 0);
-                const baseCur = offer.baseCurrency || 'EUR';  // [MULTI-CURRENCY]
+                const baseCur = offer.baseCurrency || 'EUR';
                 const userCur = state.userCurrency;
                 const convertedPrice = convertCurrency(pricePerKgRaw, baseCur, userCur);
                 const availableKg = offer.availableKg || 0;
+
                 const priceDisplay = formatAmount(convertedPrice, userCur);
                 const originalDisplay = baseCur !== userCur ? `<span class="price-original">(${formatAmount(pricePerKgRaw, baseCur)})</span>` : '';
 
@@ -84,7 +84,7 @@
             <span class="compact-code">${originCode}</span>
             <span class="compact-arrow">-></span>
             <span class="compact-code">${destCode}</span>
-            <span class="compact-cityline">${escapedOriginCity} - ${escapedDestCity}</span>
+            <span class="compact-cityline">${window.CCCommon.escapeHtml(originCity)} - ${window.CCCommon.escapeHtml(destCity)}</span>
         </div>
         <div class="compact-price-box">
             <span class="compact-price">${priceDisplay}</span>
@@ -96,7 +96,7 @@
     <div class="compact-row compact-row-mid">
         <div class="compact-owner">
             <span class="compact-avatar">${initials}</span>
-            <span class="compact-owner-name">${escapedOwnerName}</span>
+            <span class="compact-owner-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
             ${verificationBadge}
         </div>
         <div class="compact-meta">
@@ -114,162 +114,136 @@
 
     async function startReservation(offerId) {
         const offer = state.offers.find((item) => Number(item.id) === Number(offerId));
-        if (!offer) {
-            alert("Offre introuvable.");
-            return;
-        }
+        if (!offer) return;
 
-        const offerIdParam = encodeURIComponent(String(offer.id));
-        const target = `chat.html?offerId=${offerIdParam}`;
+        const target = `chat.html?offerId=${encodeURIComponent(String(offer.id))}`;
         if (!window.CCCommon.requireCompletedProfile(target)) return;
         window.location.href = target;
     }
 
-
     function bindEvents() {
-        const form = document.getElementById("offer-filter-form");
-        if (form) {
-            form.addEventListener('submit', (e) => {
+        if (els.offerFilterForm) {
+            els.offerFilterForm.addEventListener('submit', (e) => {
                 e.preventDefault();
-                loadOffers().catch(err => alert(err.message));
+                loadOffers().catch(err => console.error(err));
             });
         }
 
-        // â”€â”€ SÃ©lecteur de monnaie (zone inline, hors grille) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        const btn = document.getElementById("cc-btn-change-currency");
-        const zone = document.getElementById("cc-currency-dropdown");
-        const input = document.getElementById("cc-inline-country");
-        const confirm = document.getElementById("cc-inline-confirm");
-        const errorSpan = document.getElementById("cc-inline-error");
+        // [CURRENCY] Premium Toggle & Selection logic
+        const btnChange = document.getElementById("cc-btn-change-currency");
+        const dropdown = document.getElementById("cc-currency-dropdown");
+        const countryInput = document.getElementById("cc-inline-country");
         const btnLabel = document.getElementById("cc-btn-label");
 
-        if (btn && zone) {
-            btn.addEventListener("click", () => {
-                const open = zone.style.display !== "none";
-                zone.style.display = open ? "none" : "block";
-                if (btnLabel) btnLabel.textContent = open
-                    ? "Mettre la monnaie de mon pays"
-                    : "Fermer";
-                if (!open && input) input.focus();
-            });
-        }
-
-        if (confirm && input) {
-            confirm.addEventListener("click", async () => {
-                const country = input.value.trim();
-                const options = window.CCCommon?.COUNTRY_OPTIONS || [];
-                if (errorSpan) errorSpan.style.display = "none";
-
-                if (!country || !options.includes(country)) {
-                    if (errorSpan) {
-                        errorSpan.textContent = "Pays invalide. Choisissez dans la liste.";
-                        errorSpan.style.display = "inline";
-                    }
-                    return;
+        if (btnChange && dropdown) {
+            btnChange.addEventListener("click", (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle("hidden");
+                if (!dropdown.classList.contains("hidden") && countryInput) {
+                    countryInput.value = "";
+                    countryInput.focus();
                 }
+            });
 
-                confirm.textContent = "...";
-                confirm.disabled = true;
-
-                try {
-                    // 1. Sauvegarder dans Supabase
-                    if (window.CCCommon?.state?.user?.id) {
-                        const { error } = await window.ccSupabase
-                            .from('profiles')
-                            .update({ country })
-                            .eq('id', window.CCCommon.state.user.id);
-                        if (error) throw error;
-                        window.CCCommon.state.user.country = country;
-                    }
-
-                    // 2. Mettre Ã  jour la monnaie
-                    state.userCurrency = COUNTRY_CURRENCIES[country] || 'EUR';
-                    if (btnLabel) btnLabel.textContent = "Monnaie : " + state.userCurrency;
-                    zone.style.display = "none";
-
-                    // 3. Recharger les offres avec les bons prix
-                    await loadOffers();
-
-                } catch (err) {
-                    if (errorSpan) {
-                        errorSpan.textContent = err.message || "Erreur.";
-                        errorSpan.style.display = "inline";
-                    }
-                } finally {
-                    confirm.textContent = "Confirmer";
-                    confirm.disabled = false;
+            // Close on click outside
+            document.addEventListener("click", (e) => {
+                if (!dropdown.contains(e.target) && e.target !== btnChange) {
+                    dropdown.classList.add("hidden");
                 }
             });
         }
-        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+        if (countryInput) {
+            countryInput.addEventListener("change", async () => {
+                const val = countryInput.value.trim();
+                const VALID_COUNTRIES = window.CCCommon.COUNTRY_OPTIONS;
+
+                if (val && VALID_COUNTRIES.includes(val)) {
+                    dropdown.classList.add("hidden");
+                    if (btnLabel) btnLabel.textContent = "...";
+
+                    try {
+                        // 1. Sync value to Supabase profile
+                        if (window.CCCommon.state?.user?.id) {
+                            await window.ccSupabase
+                                .from('profiles')
+                                .update({ country: val })
+                                .eq('id', window.CCCommon.state.user.id);
+
+                            window.CCCommon.state.user.country = val;
+                        }
+
+                        // 2. Update UI & Local State
+                        const newCur = COUNTRY_CURRENCIES[val] || 'EUR';
+                        state.userCurrency = newCur;
+                        if (btnLabel) btnLabel.textContent = newCur;
+
+                        // 3. Reload data with new exchange rates
+                        await loadOffers();
+                    } catch (err) {
+                        console.error("Currency swap error:", err);
+                        if (btnLabel) btnLabel.textContent = "Erreur";
+                    }
+                }
+            });
+        }
 
         // Quick city filters
         document.querySelectorAll('.city-badge').forEach(badge => {
             badge.addEventListener("click", (e) => {
                 const city = e.target.dataset.city || e.target.textContent.trim();
-                const destInput = document.getElementById('dest-input');
-                if (destInput && city) {
-                    destInput.value = city;
+                const destInp = document.getElementById('dest-input');
+                if (destInp && city) {
+                    destInp.value = city;
                     loadOffers().catch(err => console.warn(err));
                 }
             });
         });
 
-            // Quick city filters
-            document.querySelectorAll('.city-badge').forEach(badge => {
-                badge.addEventListener("click", (e) => {
-                    const city = e.target.dataset.city;
-                    const destInput = document.querySelector('input[name="destination"]');
-                    if (destInput) {
-                        destInput.value = city;
-                        loadOffers().catch((error) => alert(error.message || "Filtrage impossible."));
-                    }
-                });
-            });
-
-            els.offersList?.addEventListener("click", (event) => {
-                const target = event.target;
-                const button = target.closest("button[data-reserve-offer]");
+        if (els.offersList) {
+            els.offersList.addEventListener("click", (event) => {
+                const button = event.target.closest("button[data-reserve-offer]");
                 if (!button) return;
                 const offerId = Number(button.getAttribute("data-reserve-offer"));
                 startReservation(offerId).catch((error) => {
-                    if (error?.code === "PROFILE_COMPLETION_REQUIRED" || error?.status === 403) {
+                    if (error?.code === "PROFILE_COMPLETION_REQUIRED") {
                         window.CCCommon.openProfileCompletionGate("results.html");
-                        return;
+                    } else {
+                        alert(error.message || "Impossible de contacter ce voyageur.");
                     }
-                    alert(error.message || "Reservation impossible.");
                 });
             });
         }
+    }
 
     function initCountryDatalist() {
-                const datalist = document.getElementById("destination-list");
-                const options = window.CCCommon.COUNTRY_OPTIONS;
-                if (datalist && options) {
-                    datalist.innerHTML = options.map(c => `<option value="${window.CCCommon.escapeHtml(c)}">`).join("");
-                }
-            }
+        const datalist = document.getElementById("destination-list");
+        const options = window.CCCommon.COUNTRY_OPTIONS;
+        if (datalist && options) {
+            datalist.innerHTML = options.map(c => `<option value="${c}">`).join("");
+        }
+    }
 
     async function bootstrap() {
-                await window.CCCommon.init("results");
-                if (!window.CCCommon.requireAuth()) return;
+        await window.CCCommon.init("results");
+        if (!window.CCCommon.requireAuth()) return;
 
-                // [MULTI-CURRENCY] DÃ©tecter la monnaie de l'utilisateur depuis son profil
-                const user = window.CCCommon.state?.user;
-                if (user?.country || user?.location) {
-                    state.userCurrency = COUNTRY_CURRENCIES[user.country || user.location] || 'EUR';
-                    const currencyBtnText = document.querySelector("#cc-btn-change-currency .btn-text");
-                    if (currencyBtnText) {
-                        currencyBtnText.textContent = "Monnaie: " + state.userCurrency;
-                    }
-                }
-
-                initCountryDatalist();
-                bindEvents();
-                await loadOffers();
+        const user = window.CCCommon.state?.user;
+        const userCountry = user?.country || user?.location;
+        if (userCountry) {
+            state.userCurrency = COUNTRY_CURRENCIES[userCountry] || 'EUR';
+            const btnLabel = document.getElementById("cc-btn-label");
+            if (btnLabel) {
+                btnLabel.textContent = state.userCurrency;
             }
+        }
+
+        initCountryDatalist();
+        bindEvents();
+        await loadOffers();
+    }
 
     bootstrap().catch((error) => {
-                alert(error.message || "Initialisation impossible.");
-            });
-    }) ();
+        alert(error.message || "Initialisation impossible.");
+    });
+})();
