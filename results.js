@@ -127,67 +127,89 @@
 
 
     function bindEvents() {
-        const form = document.querySelector('.search-form');
+        const form = document.getElementById("offer-filter-form");
         if (form) {
-            form.addEventListener('submit', async (e) => {
+            form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                await loadOffers();
+                loadOffers().catch((err) => alert(err.message));
             });
         }
 
-        // [NEW] Gestion du bouton de monnaie
+        // Gestion du bouton monnaie -> ouvre un panneau flottant (hors du formulaire)
         const currencyBtn = document.getElementById("cc-btn-change-currency");
-        const picker = document.getElementById("cc-currency-picker");
-        const countryInput = document.getElementById("cc-country-choice");
+        const overlay = document.getElementById("cc-currency-overlay");
+        const floatingPicker = document.getElementById("cc-floating-picker");
+        const floatingInput = document.getElementById("cc-floating-country-input");
+        const floatingConfirm = document.getElementById("cc-floating-confirm");
+        const floatingError = document.getElementById("cc-floating-error");
 
-        if (currencyBtn && picker && countryInput) {
-            currencyBtn.addEventListener("click", () => {
-                picker.classList.toggle("active");
-                if (picker.classList.contains("active")) {
-                    countryInput.focus();
-                    currencyBtn.querySelector(".btn-text").textContent = "Annuler";
-                } else {
-                    currencyBtn.querySelector(".btn-text").textContent = "Mettre la monnaie de mon pays";
+        function openPicker() {
+            overlay.style.display = "block";
+            floatingPicker.style.display = "block";
+            floatingInput.value = "";
+            floatingInput.focus();
+            if (floatingError) floatingError.style.display = "none";
+        }
+
+        function closePicker() {
+            overlay.style.display = "none";
+            floatingPicker.style.display = "none";
+        }
+
+        if (currencyBtn) {
+            currencyBtn.addEventListener("click", openPicker);
+        }
+
+        if (floatingConfirm) {
+            floatingConfirm.addEventListener("click", async () => {
+                const country = floatingInput.value.trim();
+                const options = window.CCCommon?.COUNTRY_OPTIONS || [];
+
+                if (!country || !options.includes(country)) {
+                    floatingError.textContent = "Choisissez un pays valide dans la liste.";
+                    floatingError.style.display = "block";
+                    return;
                 }
-            });
 
-            countryInput.addEventListener("change", async () => {
-                const country = countryInput.value.trim();
-                const options = window.CCCommon.COUNTRY_OPTIONS;
+                floatingConfirm.textContent = "...";
+                floatingConfirm.disabled = true;
 
-                if (country && options.includes(country)) {
-                    picker.classList.remove("active");
-                    currencyBtn.querySelector(".btn-text").textContent = "...";
-
-                    try {
-                        // 1. Enregistrer dans le profil
+                try {
+                    // 1. Enregistrer dans Supabase
+                    if (window.CCCommon?.state?.user?.id) {
                         const { error } = await window.ccSupabase
                             .from('profiles')
-                            .update({ country: country })
+                            .update({ country })
                             .eq('id', window.CCCommon.state.user.id);
-
                         if (error) throw error;
 
                         // 2. Mettre à jour l'état local
                         window.CCCommon.state.user.country = country;
-                        window.CCCommon.setSession(window.CCCommon.state.token, window.CCCommon.state.user);
-
-                        // 3. Mettre à jour la monnaie locale
-                        state.userCurrency = window.CCCommon.COUNTRY_CURRENCIES[country] || 'EUR';
-
-                        // 4. Recharger les offres pour voir les nouveaux prix
-                        currencyBtn.querySelector(".btn-text").textContent = "Monnaie: " + state.userCurrency;
-                        await loadOffers();
-                    } catch (err) {
-                        console.error("Erreur mise à jour monnaie:", err);
-                        currencyBtn.querySelector(".btn-text").textContent = "Erreur";
-                        setTimeout(() => {
-                            currencyBtn.querySelector(".btn-text").textContent = "Mettre la monnaie de mon pays";
-                        }, 2000);
                     }
+
+                    // 3. Mettre à jour la monnaie affichée
+                    state.userCurrency = COUNTRY_CURRENCIES[country] || 'EUR';
+                    const btnText = document.querySelector("#cc-btn-change-currency .btn-text");
+                    if (btnText) btnText.textContent = "Monnaie : " + state.userCurrency;
+
+                    closePicker();
+
+                    // 4. Recharger les offres avec les nouveaux prix
+                    await loadOffers();
+                } catch (err) {
+                    floatingError.textContent = err.message || "Erreur lors de la mise à jour.";
+                    floatingError.style.display = "block";
+                } finally {
+                    floatingConfirm.textContent = "Confirmer";
+                    floatingConfirm.disabled = false;
                 }
             });
         }
+
+        // Fermer si on appuie sur Escape
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") closePicker();
+        });
 
         // Quick city filters
         document.querySelectorAll('.city-badge').forEach(badge => {
