@@ -1039,12 +1039,6 @@
         state.pendingNavigation = "";
 
         if (!isUserVerified(payload.user)) {
-            const completion = getProfileCompletion(payload.user);
-            // Si on va vers les résultats et que le pays manque, on bloque
-            if (!completion.hasCountry && target.includes("results.html")) {
-                openCountryGate(target);
-                return;
-            }
             if (requiresCompletedProfileTarget(target)) {
                 openProfileCompletionGate(target);
                 return;
@@ -1195,23 +1189,6 @@
     </div>
 </div>
 
-<div id="cc-country-modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card modal-sm">
-        <section class="modal-panel" style="text-align: center; padding: 30px 20px;">
-            <div class="verified-badge" style="width: 45px; height: 45px; margin: 0 auto 12px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; background: rgba(76, 130, 255, 0.1); color: #4c82ff; border-radius: 50%;">🌍</div>
-            <h3 style="font-size: 1.2rem; margin-bottom: 8px;">Votre pays</h3>
-            <p style="margin-bottom: 18px; font-size: 0.85rem; color: #666; line-height: 1.4;">Choisissez votre résidence pour ajuster les tarifs.</p>
-            
-            <div style="position: relative; margin-bottom: 20px;">
-                <input type="text" id="cc-country-gate-input" list="cc-country-datalist" class="auth-input" placeholder="Ex: France" style="text-align: center; border-radius: 12px; font-weight: 600; font-size: 1rem; padding: 12px;">
-            </div>
-
-            <button id="cc-country-save-btn" class="btn primary full-width" style="padding: 12px; border-radius: 30px; font-weight: 700;">Confirmer</button>
-            <p id="cc-country-error" class="error-text hidden" style="margin-top: 10px; font-size: 0.8rem;"></p>
-        </section>
-    </div>
-</div>
-
 <div id="cc-profile-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
         <button id="cc-profile-close" class="close-modal" aria-label="Fermer">x</button>
@@ -1238,11 +1215,6 @@
         ui.feedbackHub = document.getElementById("cc-auth-hub-feedback");
         ui.feedbackDetails = document.getElementById("cc-auth-details-feedback");
         ui.profileModal = document.getElementById("cc-profile-modal");
-
-        ui.countryModal = document.getElementById("cc-country-modal");
-        ui.countryInput = document.getElementById("cc-country-gate-input");
-        ui.countrySaveBtn = document.getElementById("cc-country-save-btn");
-        ui.countryError = document.getElementById("cc-country-error");
 
         let currentMode = "login";
         let currentMethod = "phone"; // "phone" or "email"
@@ -1422,54 +1394,7 @@
         });
         ui.profileModal.querySelector("#cc-profile-later").addEventListener("click", () => closeProfileModal(true));
 
-        ui.countrySaveBtn?.addEventListener("click", async () => {
-            const country = ui.countryInput.value.trim();
-            if (!country || !COUNTRY_OPTIONS.includes(country)) {
-                ui.countryError.textContent = "Veuillez choisir un pays valide dans la liste.";
-                ui.countryError.classList.remove("hidden");
-                return;
-            }
-
-            ui.countrySaveBtn.disabled = true;
-            ui.countrySaveBtn.textContent = "...";
-            try {
-                // Utilisation directe de Supabase pour une fiabilité maximale
-                const { error } = await window.ccSupabase
-                    .from('profiles')
-                    .update({ country: country })
-                    .eq('id', state.user.id);
-
-                if (error) throw error;
-
-                // Mettre à jour l'état local et la persistance
-                state.user.country = country;
-                setSession(state.token, state.user);
-
-                ui.countryModal.classList.add("hidden");
-
-                // On nettoie le hash de l'URL pour éviter les problèmes de parsing au rechargement
-                if (window.location.hash) {
-                    window.history.replaceState(null, null, window.location.pathname + window.location.search);
-                }
-
-                // Au lieu de rediriger, on peut juste rafraîchir pour que les offres se chargent avec le bon pays
-                window.location.reload();
-            } catch (err) {
-                ui.countryError.textContent = err.message;
-                ui.countryError.classList.remove("hidden");
-                ui.countrySaveBtn.disabled = false;
-                ui.countrySaveBtn.textContent = "Continuer";
-            }
-        });
-
         ui.initialized = true;
-    }
-
-    function openCountryGate(target = "") {
-        ensureAuthModal();
-        state.pendingNavigation = target || state.pendingNavigation || currentTarget();
-        ui.countryModal?.classList.remove("hidden");
-        ui.countryError?.classList.add("hidden");
     }
 
     function updateHeaderUi() {
@@ -1772,11 +1697,6 @@
 
         if (state.user && state.token) {
             startNotifPolling();
-            const completion = getProfileCompletion();
-            // On ne force le pays que sur la page des résultats (pour les devises)
-            if (!completion.hasCountry && window.location.pathname.includes("results.html")) {
-                openCountryGate();
-            }
         }
 
         if (!state.user && requiresAuthTarget(currentTarget())) {
