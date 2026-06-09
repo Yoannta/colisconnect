@@ -195,32 +195,31 @@
 
                 </div>
 
-                                <div class="xai-col" style="position:relative; overflow:visible;">
-                    <div class="currency-selector-custom" id="currency-selector-wrap" style="border: none; padding: 0;">
-                        <button type="button" id="cc-btn-change-currency" class="currency-toggle">
+                                                <div class="xai-col" style="position:relative; overflow:visible;">
+                    <div id="currency-selector-container" style="display: flex; align-items: center;">
+                        <!-- Bouton Principal -->
+                        <button type="button" id="cc-btn-change-currency" class="currency-toggle" style="display: flex;">
                             <span id="cc-btn-label">Mettre la monnaie de mon pays</span>
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 8px;">
                                 <path d="M6 9l6 6 6-6" />
                             </svg>
                         </button>
-                        <div id="cc-currency-dropdown" class="currency-popover hidden glass-panel" style="right: auto; left: 0; min-width: 200px;">
-                            <div style="padding: 10px;">
-                                <p style="font-size: 0.75rem; color: var(--muted); margin-bottom: 8px;">Choisir mon pays :</p>
-                                <input type="text" id="cc-inline-country" list="destination-list"
-                                    placeholder="Rechercher pays..."
-                                    autocomplete="off"
-                                    style="width:100%; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2);
-                                           color:white; padding:10px 12px; border-radius:10px; font-size:0.9rem;
-                                           outline:none; box-sizing:border-box;">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                        </div>
-                    </div>
-                </div>
 
-            </form>
+                        <!-- Champ de Recherche (Remplace le bouton lors du clic) -->
+                        <div id="cc-search-wrapper" style="display: none; align-items: center; gap: 8px;">
+                            <input type="text" id="cc-inline-country" list="destination-list"
+                                placeholder="Cliquer & choisir pays..."
+                                autocomplete="off"
+                                style="width: 200px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.3);
+                                       color: white; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem;
+                                       outline: none; box-shadow: 0 0 15px rgba(52, 211, 153, 0.1);">
+                            <button type="button" id="cc-cancel-search" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.5rem; line-height: 1;">&times;</button>
+                        </div>
+                    </div>
+                </div>
+                        </div>
+                    </div>
+                                </form>
 
             <datalist id="destination-list">
 

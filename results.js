@@ -129,41 +129,38 @@
             });
         }
 
-        // [CURRENCY] Premium Toggle & Selection logic
+        // [CURRENCY] Seamless Toggle logic
         const btnChange = document.getElementById("cc-btn-change-currency");
-        const dropdown = document.getElementById("cc-currency-dropdown");
+        const searchWrapper = document.getElementById("cc-search-wrapper");
         const countryInput = document.getElementById("cc-inline-country");
+        const btnCancel = document.getElementById("cc-cancel-search");
         const btnLabel = document.getElementById("cc-btn-label");
 
-        if (btnChange && dropdown) {
-            btnChange.addEventListener("click", (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle("hidden");
-                if (!dropdown.classList.contains("hidden") && countryInput) {
-                    countryInput.value = "";
-                    countryInput.focus();
-                }
+        if (btnChange && searchWrapper && countryInput) {
+            btnChange.addEventListener("click", () => {
+                btnChange.style.display = "none";
+                searchWrapper.style.display = "flex";
+                countryInput.value = "";
+                countryInput.focus();
             });
 
-            // Close on click outside
-            document.addEventListener("click", (e) => {
-                if (!dropdown.contains(e.target) && e.target !== btnChange) {
-                    dropdown.classList.add("hidden");
-                }
-            });
-        }
+            if (btnCancel) {
+                btnCancel.addEventListener("click", () => {
+                    searchWrapper.style.display = "none";
+                    btnChange.style.display = "flex";
+                });
+            }
 
-        if (countryInput) {
             countryInput.addEventListener("change", async () => {
                 const val = countryInput.value.trim();
                 const VALID_COUNTRIES = window.CCCommon.COUNTRY_OPTIONS;
 
                 if (val && VALID_COUNTRIES.includes(val)) {
-                    dropdown.classList.add("hidden");
+                    searchWrapper.style.display = "none";
+                    btnChange.style.display = "flex";
                     if (btnLabel) btnLabel.textContent = "...";
 
                     try {
-                        // 1. Sync value to Supabase profile
                         if (window.CCCommon.state?.user?.id) {
                             await window.ccSupabase
                                 .from('profiles')
@@ -173,12 +170,10 @@
                             window.CCCommon.state.user.country = val;
                         }
 
-                        // 2. Update UI & Local State
                         const newCur = COUNTRY_CURRENCIES[val] || 'EUR';
                         state.userCurrency = newCur;
                         if (btnLabel) btnLabel.textContent = newCur;
 
-                        // 3. Reload data with new exchange rates
                         await loadOffers();
                     } catch (err) {
                         console.error("Currency swap error:", err);
