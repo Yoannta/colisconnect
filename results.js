@@ -1,7 +1,7 @@
-(() => {
+﻿(() => {
     const state = {
         offers: [],
-        userCurrency: 'EUR'  // [MULTI-CURRENCY] Sera mis à jour dans bootstrap()
+        userCurrency: 'EUR'  // [MULTI-CURRENCY] Sera mis Ã  jour dans bootstrap()
     };
 
     // [MULTI-CURRENCY] Utilisation des fonctions globales de CCCommon
@@ -55,7 +55,7 @@
                 const initials = getInitials(offer.ownerName);
                 const isVerified = Boolean(offer.ownerIsVerified);
                 const verificationBadge = isVerified ? `
-                    <span class="verification-badge mini" title="Profil certifié">
+                    <span class="verification-badge mini" title="Profil certifiÃ©">
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
                         </svg>
@@ -135,9 +135,9 @@
             });
         }
 
-        // ── Sélecteur de monnaie (zone inline, hors grille) ──────────────────
+        // â”€â”€ SÃ©lecteur de monnaie (zone inline, hors grille) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         const btn = document.getElementById("cc-btn-change-currency");
-        const zone = document.getElementById("cc-currency-zone");
+        const zone = document.getElementById("cc-currency-dropdown");
         const input = document.getElementById("cc-inline-country");
         const confirm = document.getElementById("cc-inline-confirm");
         const errorSpan = document.getElementById("cc-inline-error");
@@ -182,7 +182,7 @@
                         window.CCCommon.state.user.country = country;
                     }
 
-                    // 2. Mettre à jour la monnaie
+                    // 2. Mettre Ã  jour la monnaie
                     state.userCurrency = COUNTRY_CURRENCIES[country] || 'EUR';
                     if (btnLabel) btnLabel.textContent = "Monnaie : " + state.userCurrency;
                     zone.style.display = "none";
@@ -201,7 +201,7 @@
                 }
             });
         }
-        // ─────────────────────────────────────────────────────────────────────
+        // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
         // Quick city filters
         document.querySelectorAll('.city-badge').forEach(badge => {
@@ -254,7 +254,7 @@
                 await window.CCCommon.init("results");
                 if (!window.CCCommon.requireAuth()) return;
 
-                // [MULTI-CURRENCY] Détecter la monnaie de l'utilisateur depuis son profil
+                // [MULTI-CURRENCY] DÃ©tecter la monnaie de l'utilisateur depuis son profil
                 const user = window.CCCommon.state?.user;
                 if (user?.country || user?.location) {
                     state.userCurrency = COUNTRY_CURRENCIES[user.country || user.location] || 'EUR';
