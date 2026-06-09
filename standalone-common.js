@@ -787,6 +787,7 @@
         // [FIX] On vérifie aussi le champ metadata au cas où
         const userCountry = user?.country || user?.user_metadata?.country || user?.location;
         const hasCountry = Boolean(userCountry);
+        const hasPaymentQrCode = Boolean(user?.hasPaymentQrCode || user?.alipay_qr || user?.wechat_qr);
 
         console.log("📍 Pays détecté:", userCountry, "-> hasCountry:", hasCountry);
         const missingFields = [];
