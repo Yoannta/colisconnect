@@ -668,12 +668,13 @@
                 });
 
                 const payUrl = result.paymentUrl || result.paymentLink;
-                if (payUrl) {
-                    // Redirection vers le Hub de paiement
-                    window.location.href = payUrl;
-                } else {
-                    throw new Error("Lien de paiement introuvable dans la réponse.");
-                }
+                if (!payUrl) throw new Error("Aucun lien de paiement reçu.");
+
+                console.log(`[Payment] Mode: ${result.mode || 'auto'} | Pays départ: ${result.country || 'N/A'}`);
+
+                // Redirection vers GeniusPay (Smart Routing actif côté backend)
+                window.location.href = payUrl;
+
             } catch (err) {
                 btn.innerHTML = originalContent;
                 btn.style.pointerEvents = "";
