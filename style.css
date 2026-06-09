@@ -599,6 +599,7 @@ body {
     align-items: start;
     padding: 24px;
     margin-bottom: 24px;
+    overflow: visible !important;
 }
 
 @media (max-width: 900px) {
@@ -640,6 +641,7 @@ body {
     align-self: center;
     padding-left: 10px;
     border-left: 1px solid var(--line);
+    overflow: visible !important;
 }
 
 .filter-grid label {
@@ -1441,16 +1443,17 @@ label {
 #cc-currency-picker {
     display: flex;
     align-items: center;
-    overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     max-width: 0;
     opacity: 0;
+    pointer-events: none;
 }
 
 #cc-currency-picker.active {
-    max-width: 250px;
+    max-width: 300px;
     opacity: 1;
     margin-left: 10px;
+    pointer-events: auto;
 }
 
 #cc-country-input {
