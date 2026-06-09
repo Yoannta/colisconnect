@@ -1015,7 +1015,8 @@
 
         if (!isUserVerified(payload.user)) {
             const completion = getProfileCompletion(payload.user);
-            if (!completion.hasCountry) {
+            // Si on va vers les résultats et que le pays manque, on bloque
+            if (!completion.hasCountry && target.includes("results.html")) {
                 openCountryGate(target);
                 return;
             }
@@ -1739,7 +1740,8 @@
         if (state.user && state.token) {
             startNotifPolling();
             const completion = getProfileCompletion();
-            if (!completion.hasCountry) {
+            // On ne force le pays que sur la page des résultats (pour les devises)
+            if (!completion.hasCountry && window.location.pathname.includes("results.html")) {
                 openCountryGate();
             }
         }
