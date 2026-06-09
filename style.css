@@ -1407,6 +1407,71 @@ label {
 .social-btn {
     display: flex;
     align-items: center;
+    width: 100%;
+}
+
+.currency-action-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cc-currency-btn {
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+    color: #34d399;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.cc-currency-btn:hover {
+    background: rgba(52, 211, 153, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+#cc-currency-picker {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 0;
+    opacity: 0;
+}
+
+#cc-currency-picker.active {
+    max-width: 250px;
+    opacity: 1;
+    margin-left: 10px;
+}
+
+#cc-country-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    width: 160px;
+    outline: none;
+}
+
+#cc-country-input:focus {
+    border-color: #34d399;
+    background: rgba(52, 211, 153, 0.05);
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
     justify-content: center;
     gap: 12px;
     width: 100%;

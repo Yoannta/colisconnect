@@ -127,9 +127,78 @@
 
 
     function bindEvents() {
-        els.offerFilterForm?.addEventListener("submit", (event) => {
-            event.preventDefault();
-            loadOffers().catch((error) => alert(error.message || "Filtrage impossible."));
+        const form = document.querySelector('.search-form');
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await loadOffers();
+            });
+        }
+
+        // [NEW] Gestion du bouton de monnaie
+        const currencyBtn = document.getElementById("cc-btn-change-currency");
+        const picker = document.getElementById("cc-currency-picker");
+        const countryInput = document.getElementById("cc-country-choice");
+
+        if (currencyBtn && picker && countryInput) {
+            currencyBtn.addEventListener("click", () => {
+                picker.classList.toggle("active");
+                if (picker.classList.contains("active")) {
+                    countryInput.focus();
+                    currencyBtn.querySelector(".btn-text").textContent = "Annuler";
+                } else {
+                    currencyBtn.querySelector(".btn-text").textContent = "Mettre la monnaie de mon pays";
+                }
+            });
+
+            countryInput.addEventListener("change", async () => {
+                const country = countryInput.value.trim();
+                const options = window.CCCommon.COUNTRY_OPTIONS;
+
+                if (country && options.includes(country)) {
+                    picker.classList.remove("active");
+                    currencyBtn.querySelector(".btn-text").textContent = "...";
+
+                    try {
+                        // 1. Enregistrer dans le profil
+                        const { error } = await window.ccSupabase
+                            .from('profiles')
+                            .update({ country: country })
+                            .eq('id', window.CCCommon.state.user.id);
+
+                        if (error) throw error;
+
+                        // 2. Mettre à jour l'état local
+                        window.CCCommon.state.user.country = country;
+                        window.CCCommon.setSession(window.CCCommon.state.token, window.CCCommon.state.user);
+
+                        // 3. Mettre à jour la monnaie locale
+                        state.userCurrency = window.CCCommon.COUNTRY_CURRENCIES[country] || 'EUR';
+
+                        // 4. Recharger les offres pour voir les nouveaux prix
+                        currencyBtn.querySelector(".btn-text").textContent = "Monnaie: " + state.userCurrency;
+                        await loadOffers();
+                    } catch (err) {
+                        console.error("Erreur mise à jour monnaie:", err);
+                        currencyBtn.querySelector(".btn-text").textContent = "Erreur";
+                        setTimeout(() => {
+                            currencyBtn.querySelector(".btn-text").textContent = "Mettre la monnaie de mon pays";
+                        }, 2000);
+                    }
+                }
+            });
+        }
+
+        // Quick city filters
+        document.querySelectorAll('.city-badge').forEach(badge => {
+            badge.addEventListener("click", (e) => {
+                const city = e.target.dataset.city;
+                const destInput = document.querySelector('input[name="destination"]');
+                if (destInput) {
+                    destInput.value = city;
+                    loadOffers().catch((error) => alert(error.message || "Filtrage impossible."));
+                }
+            });
         });
 
         els.offersList?.addEventListener("click", (event) => {
@@ -163,6 +232,10 @@
         const user = window.CCCommon.state?.user;
         if (user?.country || user?.location) {
             state.userCurrency = COUNTRY_CURRENCIES[user.country || user.location] || 'EUR';
+            const currencyBtnText = document.querySelector("#cc-btn-change-currency .btn-text");
+            if (currencyBtnText) {
+                currencyBtnText.textContent = "Monnaie: " + state.userCurrency;
+            }
         }
 
         initCountryDatalist();
