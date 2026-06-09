@@ -131,141 +131,145 @@
         if (form) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-                loadOffers().catch((err) => alert(err.message));
+                loadOffers().catch(err => alert(err.message));
             });
         }
 
-        // Gestion du bouton monnaie -> ouvre un panneau flottant (hors du formulaire)
-        const currencyBtn = document.getElementById("cc-btn-change-currency");
-        const overlay = document.getElementById("cc-currency-overlay");
-        const floatingPicker = document.getElementById("cc-floating-picker");
-        const floatingInput = document.getElementById("cc-floating-country-input");
-        const floatingConfirm = document.getElementById("cc-floating-confirm");
-        const floatingError = document.getElementById("cc-floating-error");
+        // ── Sélecteur de monnaie (zone inline, hors grille) ──────────────────
+        const btn = document.getElementById("cc-btn-change-currency");
+        const zone = document.getElementById("cc-currency-zone");
+        const input = document.getElementById("cc-inline-country");
+        const confirm = document.getElementById("cc-inline-confirm");
+        const errorSpan = document.getElementById("cc-inline-error");
+        const btnLabel = document.getElementById("cc-btn-label");
 
-        function openPicker() {
-            overlay.style.display = "block";
-            floatingPicker.style.display = "block";
-            floatingInput.value = "";
-            floatingInput.focus();
-            if (floatingError) floatingError.style.display = "none";
+        if (btn && zone) {
+            btn.addEventListener("click", () => {
+                const open = zone.style.display !== "none";
+                zone.style.display = open ? "none" : "block";
+                if (btnLabel) btnLabel.textContent = open
+                    ? "Mettre la monnaie de mon pays"
+                    : "Fermer";
+                if (!open && input) input.focus();
+            });
         }
 
-        function closePicker() {
-            overlay.style.display = "none";
-            floatingPicker.style.display = "none";
-        }
-
-        if (currencyBtn) {
-            currencyBtn.addEventListener("click", openPicker);
-        }
-
-        if (floatingConfirm) {
-            floatingConfirm.addEventListener("click", async () => {
-                const country = floatingInput.value.trim();
+        if (confirm && input) {
+            confirm.addEventListener("click", async () => {
+                const country = input.value.trim();
                 const options = window.CCCommon?.COUNTRY_OPTIONS || [];
+                if (errorSpan) errorSpan.style.display = "none";
 
                 if (!country || !options.includes(country)) {
-                    floatingError.textContent = "Choisissez un pays valide dans la liste.";
-                    floatingError.style.display = "block";
+                    if (errorSpan) {
+                        errorSpan.textContent = "Pays invalide. Choisissez dans la liste.";
+                        errorSpan.style.display = "inline";
+                    }
                     return;
                 }
 
-                floatingConfirm.textContent = "...";
-                floatingConfirm.disabled = true;
+                confirm.textContent = "...";
+                confirm.disabled = true;
 
                 try {
-                    // 1. Enregistrer dans Supabase
+                    // 1. Sauvegarder dans Supabase
                     if (window.CCCommon?.state?.user?.id) {
                         const { error } = await window.ccSupabase
                             .from('profiles')
                             .update({ country })
                             .eq('id', window.CCCommon.state.user.id);
                         if (error) throw error;
-
-                        // 2. Mettre à jour l'état local
                         window.CCCommon.state.user.country = country;
                     }
 
-                    // 3. Mettre à jour la monnaie affichée
+                    // 2. Mettre à jour la monnaie
                     state.userCurrency = COUNTRY_CURRENCIES[country] || 'EUR';
-                    const btnText = document.querySelector("#cc-btn-change-currency .btn-text");
-                    if (btnText) btnText.textContent = "Monnaie : " + state.userCurrency;
+                    if (btnLabel) btnLabel.textContent = "Monnaie : " + state.userCurrency;
+                    zone.style.display = "none";
 
-                    closePicker();
-
-                    // 4. Recharger les offres avec les nouveaux prix
+                    // 3. Recharger les offres avec les bons prix
                     await loadOffers();
+
                 } catch (err) {
-                    floatingError.textContent = err.message || "Erreur lors de la mise à jour.";
-                    floatingError.style.display = "block";
+                    if (errorSpan) {
+                        errorSpan.textContent = err.message || "Erreur.";
+                        errorSpan.style.display = "inline";
+                    }
                 } finally {
-                    floatingConfirm.textContent = "Confirmer";
-                    floatingConfirm.disabled = false;
+                    confirm.textContent = "Confirmer";
+                    confirm.disabled = false;
                 }
             });
         }
-
-        // Fermer si on appuie sur Escape
-        document.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") closePicker();
-        });
+        // ─────────────────────────────────────────────────────────────────────
 
         // Quick city filters
         document.querySelectorAll('.city-badge').forEach(badge => {
             badge.addEventListener("click", (e) => {
-                const city = e.target.dataset.city;
-                const destInput = document.querySelector('input[name="destination"]');
-                if (destInput) {
+                const city = e.target.dataset.city || e.target.textContent.trim();
+                const destInput = document.getElementById('dest-input');
+                if (destInput && city) {
                     destInput.value = city;
-                    loadOffers().catch((error) => alert(error.message || "Filtrage impossible."));
+                    loadOffers().catch(err => console.warn(err));
                 }
             });
         });
 
-        els.offersList?.addEventListener("click", (event) => {
-            const target = event.target;
-            const button = target.closest("button[data-reserve-offer]");
-            if (!button) return;
-            const offerId = Number(button.getAttribute("data-reserve-offer"));
-            startReservation(offerId).catch((error) => {
-                if (error?.code === "PROFILE_COMPLETION_REQUIRED" || error?.status === 403) {
-                    window.CCCommon.openProfileCompletionGate("results.html");
-                    return;
-                }
-                alert(error.message || "Reservation impossible.");
+            // Quick city filters
+            document.querySelectorAll('.city-badge').forEach(badge => {
+                badge.addEventListener("click", (e) => {
+                    const city = e.target.dataset.city;
+                    const destInput = document.querySelector('input[name="destination"]');
+                    if (destInput) {
+                        destInput.value = city;
+                        loadOffers().catch((error) => alert(error.message || "Filtrage impossible."));
+                    }
+                });
             });
-        });
-    }
+
+            els.offersList?.addEventListener("click", (event) => {
+                const target = event.target;
+                const button = target.closest("button[data-reserve-offer]");
+                if (!button) return;
+                const offerId = Number(button.getAttribute("data-reserve-offer"));
+                startReservation(offerId).catch((error) => {
+                    if (error?.code === "PROFILE_COMPLETION_REQUIRED" || error?.status === 403) {
+                        window.CCCommon.openProfileCompletionGate("results.html");
+                        return;
+                    }
+                    alert(error.message || "Reservation impossible.");
+                });
+            });
+        }
 
     function initCountryDatalist() {
-        const datalist = document.getElementById("destination-list");
-        const options = window.CCCommon.COUNTRY_OPTIONS;
-        if (datalist && options) {
-            datalist.innerHTML = options.map(c => `<option value="${window.CCCommon.escapeHtml(c)}">`).join("");
-        }
-    }
+                const datalist = document.getElementById("destination-list");
+                const options = window.CCCommon.COUNTRY_OPTIONS;
+                if (datalist && options) {
+                    datalist.innerHTML = options.map(c => `<option value="${window.CCCommon.escapeHtml(c)}">`).join("");
+                }
+            }
 
     async function bootstrap() {
-        await window.CCCommon.init("results");
-        if (!window.CCCommon.requireAuth()) return;
+                await window.CCCommon.init("results");
+                if (!window.CCCommon.requireAuth()) return;
 
-        // [MULTI-CURRENCY] Détecter la monnaie de l'utilisateur depuis son profil
-        const user = window.CCCommon.state?.user;
-        if (user?.country || user?.location) {
-            state.userCurrency = COUNTRY_CURRENCIES[user.country || user.location] || 'EUR';
-            const currencyBtnText = document.querySelector("#cc-btn-change-currency .btn-text");
-            if (currencyBtnText) {
-                currencyBtnText.textContent = "Monnaie: " + state.userCurrency;
+                // [MULTI-CURRENCY] Détecter la monnaie de l'utilisateur depuis son profil
+                const user = window.CCCommon.state?.user;
+                if (user?.country || user?.location) {
+                    state.userCurrency = COUNTRY_CURRENCIES[user.country || user.location] || 'EUR';
+                    const currencyBtnText = document.querySelector("#cc-btn-change-currency .btn-text");
+                    if (currencyBtnText) {
+                        currencyBtnText.textContent = "Monnaie: " + state.userCurrency;
+                    }
+                }
+
+                initCountryDatalist();
+                bindEvents();
+                await loadOffers();
             }
-        }
-
-        initCountryDatalist();
-        bindEvents();
-        await loadOffers();
-    }
 
     bootstrap().catch((error) => {
-        alert(error.message || "Initialisation impossible.");
-    });
-})();
+                alert(error.message || "Initialisation impossible.");
+            });
+    }) ();
