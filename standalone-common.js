@@ -762,6 +762,12 @@
     }
 
     function getProfileCompletion(user = state.user) {
+        if (!user) return { percent: 0, missingFields: ["email"] };
+
+        // Debug pour voir ce que le script voit réellement
+        console.log("🔍 Vérification profil pour:", user.email, "Pays actuel:", user.country);
+
+        const fields = ["email", "fullName", "phoneNumber", "identityDocument", "profilePhoto", "country"];
         const completion = user?.profileCompletion;
         if (completion && typeof completion.percent === "number") {
             return {
@@ -829,7 +835,22 @@
 
         try {
             const payload = await api("/api/auth/me");
-            setSession(state.token, payload?.user || null);
+            let userData = payload?.user || null;
+
+            // [FIX CRITIQUE] Si on a un utilisateur, on va chercher son profil complet chez Supabase
+            if (userData && userData.id && window.ccSupabase) {
+                const { data: profile } = await window.ccSupabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', userData.id)
+                    .single();
+
+                if (profile) {
+                    userData = { ...userData, ...profile };
+                }
+            }
+
+            setSession(state.token, userData);
             return state.user;
         } catch {
             setSession("", null);
