@@ -541,6 +541,18 @@ body {
     transform: translateY(-4px);
 }
 
+.modal-card.modal-sm {
+    max-width: 380px;
+}
+
+@media (max-width: 480px) {
+    .modal-card.modal-sm {
+        max-width: 90%;
+        margin: 10px;
+    }
+}
+
+
 .panel-card h2 {
     margin: 0 0 12px;
     font-size: 1.25rem;

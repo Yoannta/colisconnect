@@ -1121,6 +1121,10 @@
             <p id="cc-auth-hub-feedback" class="auth-feedback"></p>
         </section>
 
+        <datalist id="cc-country-datalist">
+            ${COUNTRY_OPTIONS.map(c => `<option value="${c}">`).join("")}
+        </datalist>
+
         <!-- STEP 2: PASSWORD/PROFILE -->
         <section id="cc-auth-details-panel" class="modal-panel hidden">
             <button id="cc-auth-details-back" class="btn ghost sm" style="margin-bottom: 1rem;"><- Retour</button>
@@ -1166,18 +1170,18 @@
 </div>
 
 <div id="cc-country-modal" class="modal hidden" role="dialog" aria-modal="true">
-    <div class="modal-card">
-        <section class="modal-panel" style="text-align: center;">
-            <div class="verified-badge" style="width: 50px; height: 50px; margin: 0 auto 15px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; background: #4c82ff15; color: #4c82ff; border-radius: 50%;">🌍</div>
-            <h3 id="cc-country-title">Où vous situez-vous ?</h3>
-            <p style="margin-bottom: 20px; font-size: 0.9rem; color: #666;">Choisissez votre pays de résidence pour ajuster les devises et les tarifs.</p>
+    <div class="modal-card modal-sm">
+        <section class="modal-panel" style="text-align: center; padding: 30px 20px;">
+            <div class="verified-badge" style="width: 45px; height: 45px; margin: 0 auto 12px; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; background: rgba(76, 130, 255, 0.1); color: #4c82ff; border-radius: 50%;">🌍</div>
+            <h3 style="font-size: 1.2rem; margin-bottom: 8px;">Votre pays</h3>
+            <p style="margin-bottom: 18px; font-size: 0.85rem; color: #666; line-height: 1.4;">Choisissez votre résidence pour ajuster les tarifs.</p>
             
             <div style="position: relative; margin-bottom: 20px;">
-                <input type="text" id="cc-country-gate-input" list="cc-country-datalist" class="auth-input" placeholder="Chercher un pays..." style="text-align: center; border-radius: 12px; font-weight: 600;">
+                <input type="text" id="cc-country-gate-input" list="cc-country-datalist" class="auth-input" placeholder="Ex: France" style="text-align: center; border-radius: 12px; font-weight: 600; font-size: 1rem; padding: 12px;">
             </div>
 
-            <button id="cc-country-save-btn" class="btn primary full-width" style="padding: 14px; border-radius: 30px;">Continuer</button>
-            <p id="cc-country-error" class="error-text hidden" style="margin-top: 10px;"></p>
+            <button id="cc-country-save-btn" class="btn primary full-width" style="padding: 12px; border-radius: 30px; font-weight: 700;">Confirmer</button>
+            <p id="cc-country-error" class="error-text hidden" style="margin-top: 10px; font-size: 0.8rem;"></p>
         </section>
     </div>
 </div>
