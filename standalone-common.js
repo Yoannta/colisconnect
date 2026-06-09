@@ -781,11 +781,14 @@
             };
         }
 
-        const hasPhone = String(user?.phoneNumber || "").trim().length >= 8;
-        const hasIdentityDocument = Boolean(user?.hasIdentityDocument);
-        const hasProfilePhoto = Boolean(user?.hasProfilePhoto);
-        const hasCountry = Boolean(user?.country || user?.location);
-        const hasPaymentQrCode = Boolean(user?.hasPaymentQrCode);
+        const hasPhone = String(user?.phoneNumber || user?.phone || "").trim().length >= 8;
+        const hasIdentityDocument = Boolean(user?.hasIdentityDocument || user?.identity_document);
+        const hasProfilePhoto = Boolean(user?.hasProfilePhoto || user?.profile_photo);
+        // [FIX] On vérifie aussi le champ metadata au cas où
+        const userCountry = user?.country || user?.user_metadata?.country || user?.location;
+        const hasCountry = Boolean(userCountry);
+
+        console.log("📍 Pays détecté:", userCountry, "-> hasCountry:", hasCountry);
         const missingFields = [];
         if (!hasPhone) missingFields.push("phoneNumber");
         if (!hasIdentityDocument) missingFields.push("identityDocument");
