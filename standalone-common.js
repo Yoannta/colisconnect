@@ -32,50 +32,50 @@
 
     const COUNTRY_CURRENCIES = {
         // Afrique de l'Ouest (XOF)
-        "BÃ©nin": "XOF", "Burkina Faso": "XOF", "CÃ´te d'Ivoire": "XOF", "GuinÃ©e-Bissau": "XOF", "Mali": "XOF", "Niger": "XOF", "SÃ©nÃ©gal": "XOF", "Togo": "XOF",
+        "Bénin": "XOF", "Burkina Faso": "XOF", "Côte d'Ivoire": "XOF", "Guinée-Bissau": "XOF", "Mali": "XOF", "Niger": "XOF", "Sénégal": "XOF", "Togo": "XOF",
         // Afrique Centrale (XAF)
-        "Cameroun": "XAF", "RÃ©publique centrafricaine": "XAF", "RÃ©publique du Congo": "XAF", "Gabon": "XAF", "GuinÃ©e Ã©quatoriale": "XAF", "Tchad": "XAF",
+        "Cameroun": "XAF", "République centrafricaine": "XAF", "République du Congo": "XAF", "Gabon": "XAF", "Guinée équatoriale": "XAF", "Tchad": "XAF",
         // Afrique du Nord
-        "AlgÃ©rie": "DZD", "Ã‰gypte": "EGP", "Libye": "LYD", "Maroc": "MAD", "Tunisie": "TND", "Sahara occidental": "MAD",
+        "Algérie": "DZD", "Égypte": "EGP", "Libye": "LYD", "Maroc": "MAD", "Tunisie": "TND", "Sahara occidental": "MAD",
         // Reste de l'Afrique
-        "Afrique du Sud": "ZAR", "Angola": "AOA", "Botswana": "BWP", "Burundi": "BIF", "Cap-Vert": "CVE", "Comores": "KMF", "Djibouti": "DJF", "Ã‰rythrÃ©e": "ERN", "Ã‰thiopie": "ETB", "Gambie": "GMD", "Ghana": "GHS", "GuinÃ©e": "GNF", "Kenya": "KES", "Lesotho": "LSL", "Liberia": "LRD", "Madagascar": "MGA", "Malawi": "MWK", "Maurice": "MUR", "Mauritanie": "MRU", "Mozambique": "MZN", "Namibie": "NAD", "Nigeria": "NGN", "Ouganda": "UGX", "Rwanda": "RWF", "Sao TomÃ©-et-Principe": "STN", "Seychelles": "SCR", "Sierra Leone": "SLL", "Somalie": "SOS", "Soudan": "SDG", "Soudan du Sud": "SSP", "Eswatini": "SZL", "Tanzanie": "TZS", "Zambie": "ZMW", "Zimbabwe": "ZWL", "RÃ©publique dÃ©mocratique du Congo": "CDF",
+        "Afrique du Sud": "ZAR", "Angola": "AOA", "Botswana": "BWP", "Burundi": "BIF", "Cap-Vert": "CVE", "Comores": "KMF", "Djibouti": "DJF", "Érythrée": "ERN", "Éthiopie": "ETB", "Gambie": "GMD", "Ghana": "GHS", "Guinée": "GNF", "Kenya": "KES", "Lesotho": "LSL", "Liberia": "LRD", "Madagascar": "MGA", "Malawi": "MWK", "Maurice": "MUR", "Mauritanie": "MRU", "Mozambique": "MZN", "Namibie": "NAD", "Nigeria": "NGN", "Ouganda": "UGX", "Rwanda": "RWF", "Sao Tomé-et-Principe": "STN", "Seychelles": "SCR", "Sierra Leone": "SLL", "Somalie": "SOS", "Soudan": "SDG", "Soudan du Sud": "SSP", "Eswatini": "SZL", "Tanzanie": "TZS", "Zambie": "ZMW", "Zimbabwe": "ZWL", "République démocratique du Congo": "CDF",
         // Europe (Euro)
-        "Allemagne": "EUR", "Andorre": "EUR", "Autriche": "EUR", "Belgique": "EUR", "Chypre": "EUR", "Croatie": "EUR", "Espagne": "EUR", "Estonie": "EUR", "Finlande": "EUR", "France": "EUR", "GrÃ¨ce": "EUR", "Irlande": "EUR", "Italie": "EUR", "Lettonie": "EUR", "Lituanie": "EUR", "Luxembourg": "EUR", "Malte": "EUR", "Monaco": "EUR", "MontÃ©nÃ©gro": "EUR", "Pays-Bas": "EUR", "Portugal": "EUR", "Saint-Marin": "EUR", "Slovaquie": "EUR", "SlovÃ©nie": "EUR", "Vatican": "EUR",
+        "Allemagne": "EUR", "Andorre": "EUR", "Autriche": "EUR", "Belgique": "EUR", "Chypre": "EUR", "Croatie": "EUR", "Espagne": "EUR", "Estonie": "EUR", "Finlande": "EUR", "France": "EUR", "Grèce": "EUR", "Irlande": "EUR", "Italie": "EUR", "Lettonie": "EUR", "Lituanie": "EUR", "Luxembourg": "EUR", "Malte": "EUR", "Monaco": "EUR", "Monténégro": "EUR", "Pays-Bas": "EUR", "Portugal": "EUR", "Saint-Marin": "EUR", "Slovaquie": "EUR", "Slovénie": "EUR", "Vatican": "EUR",
         // Reste de l'Europe
-        "Albanie": "ALL", "ArmÃ©nie": "AMD", "AzerbaÃ¯djan": "AZN", "BiÃ©lorussie": "BYN", "Bosnie-HerzÃ©govine": "BAM", "Bulgarie": "BGN", "Danemark": "DKK", "GÃ©orgie": "GEL", "Hongrie": "HUF", "Islande": "ISK", "Kazakhstan": "KZT", "Liechtenstein": "CHF", "MacÃ©doine du Nord": "MKD", "Moldavie": "MDL", "NorvÃ¨ge": "NOK", "Pologne": "PLN", "Roumanie": "RON", "Royaume-Uni": "GBP", "Russie": "RUB", "Serbie": "RSD", "SuÃ¨de": "SEK", "Suisse": "CHF", "RÃ©publique tchÃ¨que": "CZK", "Turquie": "TRY", "Ukraine": "UAH",
+        "Albanie": "ALL", "Arménie": "AMD", "Azerbaà¯djan": "AZN", "Biélorussie": "BYN", "Bosnie-Herzégovine": "BAM", "Bulgarie": "BGN", "Danemark": "DKK", "Géorgie": "GEL", "Hongrie": "HUF", "Islande": "ISK", "Kazakhstan": "KZT", "Liechtenstein": "CHF", "Macédoine du Nord": "MKD", "Moldavie": "MDL", "Norvà¨ge": "NOK", "Pologne": "PLN", "Roumanie": "RON", "Royaume-Uni": "GBP", "Russie": "RUB", "Serbie": "RSD", "Suà¨de": "SEK", "Suisse": "CHF", "République tchà¨que": "CZK", "Turquie": "TRY", "Ukraine": "UAH",
         // Moyen-Orient
-        "Arabie Saoudite": "SAR", "BahreÃ¯n": "BHD", "Ã‰mirats Arabes Unis": "AED", "Irak": "IQD", "Iran": "IRR", "IsraÃ«l": "ILS", "Jordanie": "JOD", "KoweÃ¯t": "KWD", "Liban": "LBP", "Oman": "OMR", "Palestine": "ILS", "Qatar": "QAR", "Syrie": "SYP", "YÃ©men": "YER",
+        "Arabie Saoudite": "SAR", "Bahreà¯n": "BHD", "à‰mirats Arabes Unis": "AED", "Irak": "IQD", "Iran": "IRR", "Israà«l": "ILS", "Jordanie": "JOD", "Koweà¯t": "KWD", "Liban": "LBP", "Oman": "OMR", "Palestine": "ILS", "Qatar": "QAR", "Syrie": "SYP", "Yémen": "YER",
         // Asie
-        "Afghanistan": "AFN", "Bangladesh": "BDT", "Bhoutan": "BTN", "Birmanie": "MMK", "Brunei": "BND", "Cambodge": "KHR", "Chine": "CNY", "CorÃ©e du Nord": "KPW", "CorÃ©e du Sud": "KRW", "Hong Kong": "HKD", "Inde": "INR", "IndonÃ©sie": "IDR", "Japon": "JPY", "Kirghizistan": "KGS", "Laos": "LAK", "Macao": "MOP", "Malaisie": "MYR", "Maldives": "MVR", "Mongolie": "MNT", "NÃ©pal": "NPR", "OuzbÃ©kistan": "UZS", "Pakistan": "PKR", "Philippines": "PHP", "Singapour": "SGD", "Sri Lanka": "LKR", "Tadjikistan": "TJS", "TaÃ¯wan": "TWD", "ThaÃ¯lande": "THB", "Timor oriental": "USD", "TurkmÃ©nistan": "TMT", "Vietnam": "VND",
-        // AmÃ©riques (Nord & Central)
-        "Bahamas": "BSD", "Barbade": "BBD", "Belize": "BZD", "Canada": "CAD", "Costa Rica": "CRC", "Cuba": "CUP", "Dominique": "XCD", "Ã‰tats-Unis": "USD", "Grenade": "XCD", "Guatemala": "GTQ", "HaÃ¯ti": "HTG", "Honduras": "HNL", "JamaÃ¯que": "JMD", "Mexique": "MXN", "Nicaragua": "NIO", "Panama": "USD", "RÃ©publique dominicaine": "DOP", "Saint-Kitts-et-Nevis": "XCD", "Sainte-Lucie": "XCD", "Saint-Vincent-et-les Grenadines": "XCD", "Salvador": "USD", "TrinitÃ©-et-Tobago": "TTD",
-        // AmÃ©rique du Sud
-        "Argentine": "ARS", "Bolivie": "BOB", "BrÃ©sil": "BRL", "Chili": "CLP", "Colombie": "COP", "Ã‰quateur": "USD", "Guyana": "GYD", "Paraguay": "PYG", "PÃ©rou": "PEN", "Suriname": "SRD", "Uruguay": "UYU", "Venezuela": "VES",
-        // OcÃ©anie
-        "Australie": "AUD", "Fidji": "FJD", "Kiribati": "AUD", "Nauru": "AUD", "Nouvelle-ZÃ©lande": "NZD", "Palaos": "USD", "Papouasie-Nouvelle-GuinÃ©e": "PGK", "Salomon": "SBD", "Samoa": "WST", "Tonga": "TOP", "Tuvalu": "AUD", "Vanuatu": "VUV"
+        "Afghanistan": "AFN", "Bangladesh": "BDT", "Bhoutan": "BTN", "Birmanie": "MMK", "Brunei": "BND", "Cambodge": "KHR", "Chine": "CNY", "Corée du Nord": "KPW", "Corée du Sud": "KRW", "Hong Kong": "HKD", "Inde": "INR", "Indonésie": "IDR", "Japon": "JPY", "Kirghizistan": "KGS", "Laos": "LAK", "Macao": "MOP", "Malaisie": "MYR", "Maldives": "MVR", "Mongolie": "MNT", "Népal": "NPR", "Ouzbékistan": "UZS", "Pakistan": "PKR", "Philippines": "PHP", "Singapour": "SGD", "Sri Lanka": "LKR", "Tadjikistan": "TJS", "Taïwan": "TWD", "Thaïlande": "THB", "Timor oriental": "USD", "Turkménistan": "TMT", "Vietnam": "VND",
+        // Amériques (Nord & Central)
+        "Bahamas": "BSD", "Barbade": "BBD", "Belize": "BZD", "Canada": "CAD", "Costa Rica": "CRC", "Cuba": "CUP", "Dominique": "XCD", "États-Unis": "USD", "Grenade": "XCD", "Guatemala": "GTQ", "Haïti": "HTG", "Honduras": "HNL", "Jamaà¯que": "JMD", "Mexique": "MXN", "Nicaragua": "NIO", "Panama": "USD", "République dominicaine": "DOP", "Saint-Kitts-et-Nevis": "XCD", "Sainte-Lucie": "XCD", "Saint-Vincent-et-les Grenadines": "XCD", "Salvador": "USD", "Trinité-et-Tobago": "TTD",
+        // Amérique du Sud
+        "Argentine": "ARS", "Bolivie": "BOB", "Brésil": "BRL", "Chili": "CLP", "Colombie": "COP", "Équateur": "USD", "Guyana": "GYD", "Paraguay": "PYG", "Pérou": "PEN", "Suriname": "SRD", "Uruguay": "UYU", "Venezuela": "VES",
+        // Océanie
+        "Australie": "AUD", "Fidji": "FJD", "Kiribati": "AUD", "Nauru": "AUD", "Nouvelle-Zélande": "NZD", "Palaos": "USD", "Papouasie-Nouvelle-Guinée": "PGK", "Salomon": "SBD", "Samoa": "WST", "Tonga": "TOP", "Tuvalu": "AUD", "Vanuatu": "VUV"
     };
 
     const COUNTRY_CALLING_CODES = {
         // Afrique de l'Ouest
-        "BÃ©nin": "+229", "Burkina Faso": "+226", "CÃ´te d'Ivoire": "+225", "GuinÃ©e-Bissau": "+245", "Mali": "+223", "Niger": "+227", "SÃ©nÃ©gal": "+221", "Togo": "+228",
+        "Bénin": "+229", "Burkina Faso": "+226", "Côte d'Ivoire": "+225", "Guinée-Bissau": "+245", "Mali": "+223", "Niger": "+227", "Sénégal": "+221", "Togo": "+228",
         // Afrique Centrale
-        "Cameroun": "+237", "RÃ©publique centrafricaine": "+236", "RÃ©publique du Congo": "+242", "Gabon": "+241", "GuinÃ©e Ã©quatoriale": "+240", "Tchad": "+235",
+        "Cameroun": "+237", "République centrafricaine": "+236", "République du Congo": "+242", "Gabon": "+241", "Guinée équatoriale": "+240", "Tchad": "+235",
         // Afrique du Nord
-        "AlgÃ©rie": "+213", "Ã‰gypte": "+20", "Libye": "+218", "Maroc": "+212", "Tunisie": "+216", "Sahara occidental": "+212",
+        "Algérie": "+213", "Égypte": "+20", "Libye": "+218", "Maroc": "+212", "Tunisie": "+216", "Sahara occidental": "+212",
         // Reste de l'Afrique
-        "Afrique du Sud": "+27", "Angola": "+244", "Botswana": "+267", "Burundi": "+257", "Cap-Vert": "+238", "Comores": "+269", "Djibouti": "+253", "Ã‰rythrÃ©e": "+291", "Ã‰thiopie": "+251", "Gambie": "+220", "Ghana": "+233", "GuinÃ©e": "+224", "Kenya": "+254", "Lesotho": "+266", "Liberia": "+231", "Madagascar": "+261", "Malawi": "+265", "Maurice": "+230", "Mauritanie": "+222", "Mozambique": "+258", "Namibie": "+264", "Nigeria": "+234", "Ouganda": "+256", "Rwanda": "+250", "Sao TomÃ©-et-Principe": "+239", "Seychelles": "+248", "Sierra Leone": "+232", "Somalie": "+252", "Soudan": "+249", "Soudan du Sud": "+211", "Eswatini": "+268", "Tanzanie": "+255", "Zambie": "+260", "Zimbabwe": "+263", "RÃ©publique dÃ©mocratique du Congo": "+243",
+        "Afrique du Sud": "+27", "Angola": "+244", "Botswana": "+267", "Burundi": "+257", "Cap-Vert": "+238", "Comores": "+269", "Djibouti": "+253", "Érythrée": "+291", "Éthiopie": "+251", "Gambie": "+220", "Ghana": "+233", "Guinée": "+224", "Kenya": "+254", "Lesotho": "+266", "Liberia": "+231", "Madagascar": "+261", "Malawi": "+265", "Maurice": "+230", "Mauritanie": "+222", "Mozambique": "+258", "Namibie": "+264", "Nigeria": "+234", "Ouganda": "+256", "Rwanda": "+250", "Sao Tomé-et-Principe": "+239", "Seychelles": "+248", "Sierra Leone": "+232", "Somalie": "+252", "Soudan": "+249", "Soudan du Sud": "+211", "Eswatini": "+268", "Tanzanie": "+255", "Zambie": "+260", "Zimbabwe": "+263", "République démocratique du Congo": "+243",
         // Europe
-        "Allemagne": "+49", "Andorre": "+376", "Autriche": "+43", "Belgique": "+32", "Chypre": "+357", "Croatie": "+385", "Espagne": "+34", "Estonie": "+372", "Finlande": "+358", "France": "+33", "GrÃ¨ce": "+30", "Irlande": "+353", "Italie": "+39", "Lettonie": "+371", "Lituanie": "+370", "Luxembourg": "+352", "Malte": "+356", "Monaco": "+377", "MontÃ©nÃ©gro": "+382", "Pays-Bas": "+31", "Portugal": "+351", "Saint-Marin": "+378", "Slovaquie": "+421", "SlovÃ©nie": "+386", "Vatican": "+379",
-        "Albanie": "+355", "ArmÃ©nie": "+374", "AzerbaÃ¯djan": "+994", "BiÃ©lorussie": "+375", "Bosnie-HerzÃ©govine": "+387", "Bulgarie": "+359", "Danemark": "+45", "GÃ©orgie": "+995", "Hongrie": "+36", "Islande": "+354", "Kazakhstan": "+7", "Liechtenstein": "+423", "MacÃ©doine du Nord": "+389", "Moldavie": "+373", "NorvÃ¨ge": "+47", "Pologne": "+48", "Roumanie": "+40", "Royaume-Uni": "+44", "Russie": "+7", "Serbie": "+381", "SuÃ¨de": "+46", "Suisse": "+41", "RÃ©publique tchÃ¨que": "+420", "Turquie": "+90", "Ukraine": "+380",
+        "Allemagne": "+49", "Andorre": "+376", "Autriche": "+43", "Belgique": "+32", "Chypre": "+357", "Croatie": "+385", "Espagne": "+34", "Estonie": "+372", "Finlande": "+358", "France": "+33", "Grèce": "+30", "Irlande": "+353", "Italie": "+39", "Lettonie": "+371", "Lituanie": "+370", "Luxembourg": "+352", "Malte": "+356", "Monaco": "+377", "Monténégro": "+382", "Pays-Bas": "+31", "Portugal": "+351", "Saint-Marin": "+378", "Slovaquie": "+421", "Slovénie": "+386", "Vatican": "+379",
+        "Albanie": "+355", "Arménie": "+374", "Azerbaà¯djan": "+994", "Biélorussie": "+375", "Bosnie-Herzégovine": "+387", "Bulgarie": "+359", "Danemark": "+45", "Géorgie": "+995", "Hongrie": "+36", "Islande": "+354", "Kazakhstan": "+7", "Liechtenstein": "+423", "Macédoine du Nord": "+389", "Moldavie": "+373", "Norvà¨ge": "+47", "Pologne": "+48", "Roumanie": "+40", "Royaume-Uni": "+44", "Russie": "+7", "Serbie": "+381", "Suà¨de": "+46", "Suisse": "+41", "République tchà¨que": "+420", "Turquie": "+90", "Ukraine": "+380",
         // Moyen-Orient
-        "Arabie Saoudite": "+966", "BahreÃ¯n": "+973", "Ã‰mirats Arabes Unis": "+971", "Irak": "+964", "Iran": "+98", "IsraÃ«l": "+972", "Jordanie": "+962", "KoweÃ¯t": "+965", "Liban": "+961", "Oman": "+968", "Palestine": "+970", "Qatar": "+974", "Syrie": "+963", "YÃ©men": "+967",
+        "Arabie Saoudite": "+966", "Bahreà¯n": "+973", "à‰mirats Arabes Unis": "+971", "Irak": "+964", "Iran": "+98", "Israà«l": "+972", "Jordanie": "+962", "Koweà¯t": "+965", "Liban": "+961", "Oman": "+968", "Palestine": "+970", "Qatar": "+974", "Syrie": "+963", "Yémen": "+967",
         // Asie
-        "Afghanistan": "+93", "Bangladesh": "+880", "Bhoutan": "+975", "Birmanie": "+95", "Brunei": "+673", "Cambodge": "+855", "Chine": "+86", "CorÃ©e du Nord": "+850", "CorÃ©e du Sud": "+82", "Hong Kong": "+852", "Inde": "+91", "IndonÃ©sie": "+62", "Japon": "+81", "Kirghizistan": "+996", "Laos": "+856", "Macao": "+853", "Malaisie": "+60", "Maldives": "+960", "Mongolie": "+976", "NÃ©pal": "+977", "OuzbÃ©kistan": "+998", "Pakistan": "+92", "Philippines": "+63", "Singapour": "+65", "Sri Lanka": "+94", "Tadjikistan": "+992", "TaÃ¯wan": "+886", "ThaÃ¯lande": "+66", "Timor oriental": "+670", "TurkmÃ©nistan": "+993", "Vietnam": "+84",
-        // AmÃ©riques
-        "Bahamas": "+1-242", "Barbade": "+1-246", "Belize": "+501", "Canada": "+1", "Costa Rica": "+506", "Cuba": "+53", "Dominique": "+1-767", "Ã‰tats-Unis": "+1", "Grenade": "+1-473", "Guatemala": "+502", "HaÃ¯ti": "+509", "Honduras": "+504", "JamaÃ¯que": "+1-876", "Mexique": "+52", "Nicaragua": "+505", "Panama": "+507", "RÃ©publique dominicaine": "+1-809", "Saint-Kitts-et-Nevis": "+1-869", "Sainte-Lucie": "+1-758", "Saint-Vincent-et-les Grenadines": "+1-784", "Salvador": "+503", "TrinitÃ©-et-Tobago": "+1-868",
-        "Argentine": "+54", "Bolivie": "+591", "BrÃ©sil": "+55", "Chili": "+56", "Colombie": "+57", "Ã‰quateur": "+593", "Guyana": "+592", "Paraguay": "+595", "PÃ©rou": "+51", "Suriname": "+597", "Uruguay": "+598", "Venezuela": "+58",
-        // OcÃ©anie
-        "Australie": "+61", "Fidji": "+679", "Kiribati": "+686", "Nauru": "+674", "Nouvelle-ZÃ©lande": "+64", "Palaos": "+680", "Papouasie-Nouvelle-GuinÃ©e": "+675", "Salomon": "+677", "Samoa": "+685", "Tonga": "+676", "Tuvalu": "+688", "Vanuatu": "+678"
+        "Afghanistan": "+93", "Bangladesh": "+880", "Bhoutan": "+975", "Birmanie": "+95", "Brunei": "+673", "Cambodge": "+855", "Chine": "+86", "Corée du Nord": "+850", "Corée du Sud": "+82", "Hong Kong": "+852", "Inde": "+91", "Indonésie": "+62", "Japon": "+81", "Kirghizistan": "+996", "Laos": "+856", "Macao": "+853", "Malaisie": "+60", "Maldives": "+960", "Mongolie": "+976", "Népal": "+977", "Ouzbékistan": "+998", "Pakistan": "+92", "Philippines": "+63", "Singapour": "+65", "Sri Lanka": "+94", "Tadjikistan": "+992", "Taïwan": "+886", "Thaïlande": "+66", "Timor oriental": "+670", "Turkménistan": "+993", "Vietnam": "+84",
+        // Amériques
+        "Bahamas": "+1-242", "Barbade": "+1-246", "Belize": "+501", "Canada": "+1", "Costa Rica": "+506", "Cuba": "+53", "Dominique": "+1-767", "États-Unis": "+1", "Grenade": "+1-473", "Guatemala": "+502", "Haïti": "+509", "Honduras": "+504", "Jamaà¯que": "+1-876", "Mexique": "+52", "Nicaragua": "+505", "Panama": "+507", "République dominicaine": "+1-809", "Saint-Kitts-et-Nevis": "+1-869", "Sainte-Lucie": "+1-758", "Saint-Vincent-et-les Grenadines": "+1-784", "Salvador": "+503", "Trinité-et-Tobago": "+1-868",
+        "Argentine": "+54", "Bolivie": "+591", "Brésil": "+55", "Chili": "+56", "Colombie": "+57", "Équateur": "+593", "Guyana": "+592", "Paraguay": "+595", "Pérou": "+51", "Suriname": "+597", "Uruguay": "+598", "Venezuela": "+58",
+        // Océanie
+        "Australie": "+61", "Fidji": "+679", "Kiribati": "+686", "Nauru": "+674", "Nouvelle-Zélande": "+64", "Palaos": "+680", "Papouasie-Nouvelle-Guinée": "+675", "Salomon": "+677", "Samoa": "+685", "Tonga": "+676", "Tuvalu": "+688", "Vanuatu": "+678"
     };
 
     const COUNTRY_OPTIONS = Object.keys(COUNTRY_CURRENCIES).sort((a, b) => a.localeCompare(b, "fr"));
@@ -100,24 +100,24 @@
             "auth_login": "Login",
             "auth_logout": "Quitter",
             "hero_kicker": "Plateforme de confiance",
-            "hero_title": "Trouvez des expÃ©diteurs sÃ»rs pour vos colis en moins de 10 secondes.",
-            "hero_p": "Connectez-vous avec des voyageurs certifiÃ©s pour un transport de colis fluide, sÃ©curisÃ© et ultra-rapide entre particuliers.",
+            "hero_title": "Trouvez des expéditeurs sà»rs pour vos colis en moins de 10 secondes.",
+            "hero_p": "Connectez-vous avec des voyageurs certifiés pour un transport de colis fluide, sécurisé et ultra-rapide entre particuliers.",
             "hero_btn_find": "Trouver un voyageur",
             "hero_btn_post": "Proposer mes kilos",
             "est_badge": "Tester mon trajet",
             "est_title": "Faire une estimation rapide",
-            "est_origin": "Pays de dÃ©part",
-            "est_dest": "Pays d'arrivÃ©e",
+            "est_origin": "Pays de départ",
+            "est_dest": "Pays d'arrivée",
             "est_kg": "Poids (kg)",
             "est_submit": "Estimer ðŸš€",
             "panel_search_h2": "Rechercher un transporteur",
             "panel_search_p": "Trouvez les voyageurs actifs par destination, prix et kilos disponibles.",
-            "panel_search_btn": "Aller Ã  la recherche",
+            "panel_search_btn": "Aller à  la recherche",
             "panel_post_h2": "Proposer votre trajet",
             "panel_post_p": "Publiez votre trajet avec vos kilos libres. Votre offre devient visible en recherche.",
             "panel_post_btn": "Publier une offre",
             "panel_chat_h2": "Discuter et confirmer",
-            "panel_chat_p": "La messagerie se dÃ©bloque dÃ¨s qu'une rÃ©servation est crÃ©Ã©e.",
+            "panel_chat_p": "La messagerie se débloque dà¨s qu'une réservation est créée.",
             "panel_chat_btn": "Ouvrir les messages",
             "profile_title": "Profil",
             "lang_toggle_target": "EN"
@@ -243,7 +243,7 @@
             if (tt2) {
                 const nodes = Array.from(tt2.childNodes);
                 const textNode = nodes.find(n => n.nodeType === 3);
-                if (textNode) textNode.textContent = " " + (lang === "en" ? "Secure Payment Guaranteed" : "Paiement sÃ©curisÃ© Garanti");
+                if (textNode) textNode.textContent = " " + (lang === "en" ? "Secure Payment Guaranteed" : "Paiement sécurisé Garanti");
             }
             panels[1].querySelector(".btn").textContent = t.panel_post_btn;
 
@@ -254,7 +254,7 @@
             if (tt3) {
                 const nodes = Array.from(tt3.childNodes);
                 const textNode = nodes.find(n => n.nodeType === 3);
-                if (textNode) textNode.textContent = " " + (lang === "en" ? "Average response time: 5 min" : "Temps de rÃ©ponse moyen: 5 min");
+                if (textNode) textNode.textContent = " " + (lang === "en" ? "Average response time: 5 min" : "Temps de réponse moyen: 5 min");
             }
             panels[2].querySelector(".btn").textContent = t.panel_chat_btn;
         }
@@ -322,19 +322,19 @@
 
     function getSmartRoundedAmount(amount, currency) {
         currency = String(currency || "").toUpperCase();
-        // Groupe 1 : Centaine supÃ©rieure (ex: Afrique de l'Ouest/Centrale)
+        // Groupe 1 : Centaine supérieure (ex: Afrique de l'Ouest/Centrale)
         if (["XOF", "XAF", "GNF", "NGN", "RWF", "CDF", "MGA"].includes(currency)) {
             return Math.ceil(amount / 100) * 100;
         }
-        // Groupe 2 : UnitÃ© supÃ©rieure (ex: Chine, Ghana, Maroc)
+        // Groupe 2 : Unité supérieure (ex: Chine, Ghana, Maroc)
         if (["CNY", "GHS", "MAD", "ZAR", "DZD", "KES", "INR", "MUR"].includes(currency)) {
             return Math.ceil(amount);
         }
-        // Groupe 3 : PrÃ©cision 0.10 (ex: EUR, USD)
+        // Groupe 3 : Précision 0.10 (ex: EUR, USD)
         if (["EUR", "USD", "GBP", "CHF", "CAD", "AUD"].includes(currency)) {
             return Math.ceil(amount * 10) / 10;
         }
-        // DÃ©faut : Entier supÃ©rieur
+        // Défaut : Entier supérieur
         return Math.ceil(amount);
     }
 
@@ -412,7 +412,7 @@
                     }
                 });
                 if (error) throw error;
-                return { message: "Inscription rÃ©ussie", user: data.user };
+                return { message: "Inscription réussie", user: data.user };
             }
             if (p.includes("/auth/me")) {
                 const { data: { user }, error: authErr } = await window.ccSupabase.auth.getUser();
@@ -508,11 +508,11 @@
                     const { data: offer } = await window.ccSupabase.from('offers').select('user_id').eq('id', offerId).single();
                     if (!offer) throw new Error("Offre introuvable");
 
-                    // VÃ©rifier si un thread existe dÃ©jÃ 
+                    // Vérifier si un thread existe déjà 
                     let { data: thread } = await window.ccSupabase.from('chat_threads').select('*').eq('offer_id', offerId).eq('user_id', state.user?.id).maybeSingle();
 
                     if (!thread) {
-                        // CrÃ©ation d'une rÃ©servation automatique
+                        // Création d'une réservation automatique
                         const { data: res, error: resErr } = await window.ccSupabase.from('reservations').insert({
                             user_id: state.user?.id,
                             offer_id: offerId,
@@ -520,7 +520,7 @@
                         }).select().single();
                         if (resErr) throw resErr;
 
-                        // CrÃ©ation du thread liÃ©
+                        // Création du thread lié
                         const { data: created, error } = await window.ccSupabase.from('chat_threads').insert([{
                             offer_id: offerId,
                             user_id: state.user?.id,
@@ -530,7 +530,7 @@
                         if (error) throw error;
                         thread = created;
                     } else if (!thread.reservation_id) {
-                        // RÃ©paration : crÃ©er une rÃ©servation si le thread existait sans (cas de migration)
+                        // Réparation : créer une réservation si le thread existait sans (cas de migration)
                         const { data: res } = await window.ccSupabase.from('reservations').insert({
                             user_id: state.user?.id,
                             offer_id: offerId,
@@ -640,7 +640,7 @@
                 }
                 const idSessionsMatch = path.match(/\/admin\/users\/([^\/\?]+)\/sessions/);
                 if (idSessionsMatch && options.method === "DELETE") {
-                    // SimulÃ©: on ne peut pas forcer le logout d'un autre utilisateur sans service key
+                    // Simulé: on ne peut pas forcer le logout d'un autre utilisateur sans service key
                     return { success: true };
                 }
                 const idDeleteMatch = path.match(/\/admin\/users\/([^\/\?]+)$/);
@@ -658,7 +658,7 @@
                     isActive: u.is_active,
                     isVerified: u.is_verified,
                     phoneNumber: u.phone_number,
-                    email: u.email || "Utilisateur Supabase", // L'email n'est pas dans public.profiles par dÃ©faut
+                    email: u.email || "Utilisateur Supabase", // L'email n'est pas dans public.profiles par défaut
                     profileCompletionPercent: 50, // Fallback simple car le calcul est complexe
                     profileCompletionMissing: ""
                 }));
@@ -677,7 +677,7 @@
 
             // [BRIDGE SAFETY] Catch-all for other admin routes to avoid 404 on GitHub Pages
             if (p.includes("/admin/")) {
-                console.warn("Route admin non gÃ©rÃ©e par le bridge:", path);
+                console.warn("Route admin non gérée par le bridge:", path);
                 if (p.includes("/stats") || p.includes("/overview")) return {};
                 return [];
             }
@@ -726,7 +726,7 @@
             if (!response.ok) {
                 let msg = data?.error || data?.message || `HTTP ${response.status}`;
                 if (typeof msg === 'string' && msg.includes('<!DOCTYPE html>')) {
-                    msg = `Erreur Serveur (404/500). Le backend est peut-Ãªtre hors ligne.`;
+                    msg = `Erreur Serveur (404/500). Le backend est peut-àªtre hors ligne.`;
                 }
                 const error = new Error(msg);
                 error.status = response.status;
@@ -764,8 +764,8 @@
     function getProfileCompletion(user = state.user) {
         if (!user) return { percent: 0, missingFields: ["email"] };
 
-        // Debug pour voir ce que le script voit rÃ©ellement
-        console.log("ðŸ” VÃ©rification profil pour:", user.email, "Pays actuel:", user.country);
+        // Debug pour voir ce que le script voit réellement
+        console.log("ðŸ” Vérification profil pour:", user.email, "Pays actuel:", user.country);
 
         const fields = ["email", "fullName", "phoneNumber", "identityDocument", "profilePhoto", "country"];
         const completion = user?.profileCompletion;
@@ -784,12 +784,12 @@
         const hasPhone = String(user?.phoneNumber || user?.phone || "").trim().length >= 8;
         const hasIdentityDocument = Boolean(user?.hasIdentityDocument || user?.identity_document);
         const hasProfilePhoto = Boolean(user?.hasProfilePhoto || user?.profile_photo);
-        // [FIX] On vÃ©rifie aussi le champ metadata au cas oÃ¹
+        // [FIX] On vérifie aussi le champ metadata au cas oà¹
         const userCountry = user?.country || user?.user_metadata?.country || user?.location;
         const hasCountry = Boolean(userCountry);
         const hasPaymentQrCode = Boolean(user?.hasPaymentQrCode || user?.alipay_qr || user?.wechat_qr);
 
-        console.log("ðŸ“ Pays dÃ©tectÃ©:", userCountry, "-> hasCountry:", hasCountry);
+        console.log("ðŸ“ Pays détecté:", userCountry, "-> hasCountry:", hasCountry);
         const missingFields = [];
         if (!hasPhone) missingFields.push("phoneNumber");
         if (!hasIdentityDocument) missingFields.push("identityDocument");
@@ -825,7 +825,7 @@
             const { data: { session } } = await window.ccSupabase.auth.getSession();
             if (session) {
                 setSession(session.access_token, { ...session.user, ...session.user.user_metadata });
-                // Nettoyer l'URL du hash access_token pour Ã©viter les affichages bizarres
+                // Nettoyer l'URL du hash access_token pour éviter les affichages bizarres
                 if (window.location.hash.includes("access_token")) {
                     window.history.replaceState(null, null, window.location.pathname + window.location.search);
                 }
@@ -990,7 +990,7 @@
             return;
         }
         if (completion.percent >= 75) {
-            ui.profileMessage.textContent = "Votre dossier est en attente d'analyse (5-10 min). VÃ©rifiez vos messages pour la validation. Vous pouvez aussi mettre Ã  jour vos piÃ¨ces.";
+            ui.profileMessage.textContent = "Votre dossier est en attente d'analyse (5-10 min). Vérifiez vos messages pour la validation. Vous pouvez aussi mettre à  jour vos pià¨ces.";
             return;
         }
         ui.profileMessage.textContent = `Profil a ${completion.percent}%. Pour ${actionLabel}, ajoutez: ${missingText}.`;
@@ -1091,7 +1091,7 @@
         <!-- STEP 1: AUTH HUB (PHONE FIRST) -->
         <section id="cc-auth-hub-panel" class="modal-panel">
             <div class="auth-hub-header">
-                <h2 id="cc-auth-title" class="auth-hub-title">Bienvenue Ã  nouveau</h2>
+                <h2 id="cc-auth-title" class="auth-hub-title">Bienvenue à  nouveau</h2>
             </div>
 
             <!-- PRIMARY ENTRY (PHONE BY DEFAULT) -->
@@ -1102,7 +1102,7 @@
                     </select>
                     
                     <div class="cc-phone-input-container">
-                        <label style="position: absolute; top: -10px; left: 20px; background: #1a1b1e; padding: 0 8px; font-size: 0.8rem; color: #4c82ff; font-weight: 600;">NumÃ©ro de tÃ©lÃ©phone</label>
+                        <label style="position: absolute; top: -10px; left: 20px; background: #1a1b1e; padding: 0 8px; font-size: 0.8rem; color: #4c82ff; font-weight: 600;">Numéro de téléphone</label>
                         <span class="prefix" id="cc-phone-prefix-display">+33</span>
                         <input type="tel" id="cc-auth-phone-input" class="cc-phone-raw-input" placeholder="0 00 00 00 00">
                     </div>
@@ -1166,7 +1166,7 @@
                 <label>Mot de passe<input type="password" name="password" class="auth-input" minlength="8" required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"></label>
                 
                 <div id="cc-register-only-fields-2" class="hidden">
-                    <label>Pays de rÃ©sidence<input type="text" name="country" list="cc-country-datalist" class="auth-input" placeholder="Ex: France"></label>
+                    <label>Pays de résidence<input type="text" name="country" list="cc-country-datalist" class="auth-input" placeholder="Ex: France"></label>
                 </div>
 
                 <button type="submit" id="cc-auth-submit-details" class="btn primary" style="width:100%; margin-top: 1rem; padding: 14px;">Confirmer</button>
@@ -1178,11 +1178,11 @@
         <!-- STEP OTP -->
         <section id="cc-auth-phone-panel" class="modal-panel hidden">
             <button id="cc-auth-phone-back" class="btn ghost sm" style="margin-bottom: 1rem;"><- Retour</button>
-            <h3>Code de vÃ©rification</h3>
-            <p>Saisissez le code envoyÃ© par SMS.</p>
+            <h3>Code de vérification</h3>
+            <p>Saisissez le code envoyé par SMS.</p>
             <form id="cc-auth-phone-form" class="auth-form" style="margin-top: 1.5rem;">
                 <input type="text" id="cc-auth-otp-input" class="auth-input" placeholder="123 456" required>
-                <button type="submit" class="btn primary" style="width: 100%; padding: 14px;">VÃ©rifier le code</button>
+                <button type="submit" class="btn primary" style="width: 100%; padding: 14px;">Vérifier le code</button>
             </form>
             <p id="cc-auth-phone-feedback" class="auth-feedback"></p>
         </section>
@@ -1227,14 +1227,14 @@
             const detailsTitle = document.getElementById("cc-auth-details-title");
 
             if (mode === "login") {
-                title.textContent = "Bienvenue Ã  nouveau";
+                title.textContent = "Bienvenue à  nouveau";
                 switchText.textContent = "Vous nâ€™avez pas encore de compte ?";
                 switchBtn.textContent = "Inscrivez-vous";
                 detailsTitle.textContent = "Connectez-vous";
                 document.querySelectorAll("#cc-register-only-fields, #cc-register-only-fields-2").forEach(el => el.classList.add("hidden"));
             } else {
-                title.textContent = "CrÃ©er un compte";
-                switchText.textContent = "Vous avez dÃ©jÃ  un compte ?";
+                title.textContent = "Créer un compte";
+                switchText.textContent = "Vous avez déjà  un compte ?";
                 switchBtn.textContent = "Connexion";
                 detailsTitle.textContent = "Finalisez votre inscription";
                 document.querySelectorAll("#cc-register-only-fields, #cc-register-only-fields-2").forEach(el => el.classList.remove("hidden"));
@@ -1252,7 +1252,7 @@
                 emailEntry.classList.remove("hidden");
                 toggleBtn.innerHTML = `
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 18.92z"></path></svg>
-                    Continuer avec un tÃ©lÃ©phone
+                    Continuer avec un téléphone
                 `;
             } else {
                 phoneEntry.classList.remove("hidden");
@@ -1284,7 +1284,7 @@
                 const prefix = document.getElementById("cc-auth-country-code").value;
                 const number = ui.phoneInput.value.replace(/\s+/g, "");
                 if (number.length < 6) {
-                    ui.feedbackHub.textContent = "NumÃ©ro invalide.";
+                    ui.feedbackHub.textContent = "Numéro invalide.";
                     return;
                 }
                 try {
@@ -1403,7 +1403,7 @@
 
         const authed = Boolean(state.user && state.token);
         const isAdmin = authed && String(state.user.role || "").toLowerCase() === "admin";
-        const userName = authed ? (state.user.fullName || state.user.email || "ConnectÃ©") : "";
+        const userName = authed ? (state.user.fullName || state.user.email || "Connecté") : "";
 
         const calmToggle = document.getElementById("calm-mode-toggle");
 
