@@ -1013,9 +1013,16 @@
         const target = state.pendingNavigation || nextPath("dashboard.html");
         state.pendingNavigation = "";
 
-        if (requiresCompletedProfileTarget(target) && !isUserVerified(payload.user)) {
-            openProfileCompletionGate(target);
-            return;
+        if (!isUserVerified(payload.user)) {
+            const completion = getProfileCompletion(payload.user);
+            if (!completion.hasCountry) {
+                openCountryGate(target);
+                return;
+            }
+            if (requiresCompletedProfileTarget(target)) {
+                openProfileCompletionGate(target);
+                return;
+            }
         }
 
         window.location.href = target;
@@ -1158,6 +1165,23 @@
     </div>
 </div>
 
+<div id="cc-country-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+        <section class="modal-panel" style="text-align: center;">
+            <div class="verified-badge" style="width: 50px; height: 50px; margin: 0 auto 15px; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; background: #4c82ff15; color: #4c82ff; border-radius: 50%;">🌍</div>
+            <h3 id="cc-country-title">Où vous situez-vous ?</h3>
+            <p style="margin-bottom: 20px; font-size: 0.9rem; color: #666;">Choisissez votre pays de résidence pour ajuster les devises et les tarifs.</p>
+            
+            <div style="position: relative; margin-bottom: 20px;">
+                <input type="text" id="cc-country-gate-input" list="cc-country-datalist" class="auth-input" placeholder="Chercher un pays..." style="text-align: center; border-radius: 12px; font-weight: 600;">
+            </div>
+
+            <button id="cc-country-save-btn" class="btn primary full-width" style="padding: 14px; border-radius: 30px;">Continuer</button>
+            <p id="cc-country-error" class="error-text hidden" style="margin-top: 10px;"></p>
+        </section>
+    </div>
+</div>
+
 <div id="cc-profile-modal" class="modal hidden" role="dialog" aria-modal="true">
     <div class="modal-card">
         <button id="cc-profile-close" class="close-modal" aria-label="Fermer">x</button>
@@ -1184,6 +1208,11 @@
         ui.feedbackHub = document.getElementById("cc-auth-hub-feedback");
         ui.feedbackDetails = document.getElementById("cc-auth-details-feedback");
         ui.profileModal = document.getElementById("cc-profile-modal");
+
+        ui.countryModal = document.getElementById("cc-country-modal");
+        ui.countryInput = document.getElementById("cc-country-gate-input");
+        ui.countrySaveBtn = document.getElementById("cc-country-save-btn");
+        ui.countryError = document.getElementById("cc-country-error");
 
         let currentMode = "login";
         let currentMethod = "phone"; // "phone" or "email"
@@ -1363,7 +1392,45 @@
         });
         ui.profileModal.querySelector("#cc-profile-later").addEventListener("click", () => closeProfileModal(true));
 
+        ui.countrySaveBtn?.addEventListener("click", async () => {
+            const country = ui.countryInput.value.trim();
+            if (!country || !COUNTRY_OPTIONS.includes(country)) {
+                ui.countryError.textContent = "Veuillez choisir un pays valide dans la liste.";
+                ui.countryError.classList.remove("hidden");
+                return;
+            }
+
+            ui.countrySaveBtn.disabled = true;
+            ui.countrySaveBtn.textContent = "...";
+            try {
+                await window.CCCommon.api("/users/me/profile", {
+                    method: "PATCH",
+                    body: { country }
+                });
+
+                // Mettre à jour l'état local
+                state.user.country = country;
+
+                ui.countryModal.classList.add("hidden");
+                const target = state.pendingNavigation || "dashboard.html";
+                state.pendingNavigation = "";
+                window.location.href = target;
+            } catch (err) {
+                ui.countryError.textContent = err.message;
+                ui.countryError.classList.remove("hidden");
+                ui.countrySaveBtn.disabled = false;
+                ui.countrySaveBtn.textContent = "Continuer";
+            }
+        });
+
         ui.initialized = true;
+    }
+
+    function openCountryGate(target = "") {
+        ensureAuthModal();
+        state.pendingNavigation = target || state.pendingNavigation || currentTarget();
+        ui.countryModal?.classList.remove("hidden");
+        ui.countryError?.classList.add("hidden");
     }
 
     function updateHeaderUi() {
@@ -1666,6 +1733,10 @@
 
         if (state.user && state.token) {
             startNotifPolling();
+            const completion = getProfileCompletion();
+            if (!completion.hasCountry) {
+                openCountryGate();
+            }
         }
 
         if (!state.user && requiresAuthTarget(currentTarget())) {
