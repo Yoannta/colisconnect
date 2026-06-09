@@ -1412,8 +1412,9 @@
                     body: { country }
                 });
 
-                // Mettre à jour l'état local
+                // Mettre à jour l'état local et la persistance
                 state.user.country = country;
+                setSession(state.token, state.user);
 
                 ui.countryModal.classList.add("hidden");
                 const target = state.pendingNavigation || "dashboard.html";
