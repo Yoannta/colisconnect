@@ -810,6 +810,18 @@
     }
 
     async function restoreSession() {
+        // [OAuth Fix] Si Supabase a un jeton dans l'URL, il va l'extraire ici
+        if (window.ccSupabase) {
+            const { data: { session } } = await window.ccSupabase.auth.getSession();
+            if (session) {
+                setSession(session.access_token, { ...session.user, ...session.user.user_metadata });
+                // Nettoyer l'URL du hash access_token pour éviter les affichages bizarres
+                if (window.location.hash.includes("access_token")) {
+                    window.history.replaceState(null, null, window.location.pathname + window.location.search);
+                }
+            }
+        }
+
         if (!state.token) {
             state.user = null;
             return null;
