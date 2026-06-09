@@ -1286,9 +1286,11 @@
             btn.addEventListener("click", async () => {
                 const provider = btn.dataset.provider;
                 try {
+                    const pathPrefix = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+                    const redirectUrl = window.location.origin + pathPrefix + "dashboard.html";
                     const { error } = await window.ccSupabase.auth.signInWithOAuth({
                         provider,
-                        options: { redirectTo: window.location.origin + "/dashboard.html" }
+                        options: { redirectTo: redirectUrl }
                     });
                     if (error) throw error;
                 } catch (err) {
