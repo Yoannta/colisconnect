@@ -1299,7 +1299,7 @@
                 const provider = btn.dataset.provider;
                 try {
                     const pathPrefix = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
-                    const redirectUrl = window.location.origin + pathPrefix + "dashboard.html";
+                    const redirectUrl = window.location.origin + pathPrefix + "results.html";
                     const { error } = await window.ccSupabase.auth.signInWithOAuth({
                         provider,
                         options: { redirectTo: redirectUrl }
