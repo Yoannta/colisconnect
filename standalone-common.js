@@ -1408,19 +1408,27 @@
             ui.countrySaveBtn.disabled = true;
             ui.countrySaveBtn.textContent = "...";
             try {
-                await window.CCCommon.api("/users/me/profile", {
-                    method: "PATCH",
-                    body: { country }
-                });
+                // Utilisation directe de Supabase pour une fiabilité maximale
+                const { error } = await window.ccSupabase
+                    .from('profiles')
+                    .update({ country: country })
+                    .eq('id', state.user.id);
+
+                if (error) throw error;
 
                 // Mettre à jour l'état local et la persistance
                 state.user.country = country;
                 setSession(state.token, state.user);
 
                 ui.countryModal.classList.add("hidden");
-                const target = state.pendingNavigation || "dashboard.html";
-                state.pendingNavigation = "";
-                window.location.href = target;
+
+                // On nettoie le hash de l'URL pour éviter les problèmes de parsing au rechargement
+                if (window.location.hash) {
+                    window.history.replaceState(null, null, window.location.pathname + window.location.search);
+                }
+
+                // Au lieu de rediriger, on peut juste rafraîchir pour que les offres se chargent avec le bon pays
+                window.location.reload();
             } catch (err) {
                 ui.countryError.textContent = err.message;
                 ui.countryError.classList.remove("hidden");
