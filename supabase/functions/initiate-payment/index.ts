@@ -13,64 +13,54 @@ interface PaymentConfig {
     mmo_provider?: string;
 }
 
-function getPaymentConfig(departureCountry: string): PaymentConfig {
-    const c = String(departureCountry || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim();
+interface PaymentConfig {
+    payment_method: string;
+    currency: string;
+    customer_country: string;
+    mmo_provider?: string;
+}
 
-    // Afrique de l'Ouest
-    if (c.includes("cote d'ivoire") || c.includes("cote d ivoire") || c.includes("ivory coast") || c.includes("abidjan")) {
-        return { payment_method: "orange_money", currency: "XOF", customer_country: "CI", mmo_provider: "ORANGE_CIV" };
-    }
-    if (c.includes("senegal") || c.includes("dakar")) {
-        return { payment_method: "wave", currency: "XOF", customer_country: "SN" };
-    }
-    if (c.includes("benin") || c.includes("cotonou")) {
-        return { payment_method: "mtn_money", currency: "XOF", customer_country: "BJ" };
-    }
-    if (c.includes("mali") || c.includes("bamako")) {
-        return { payment_method: "orange_money", currency: "XOF", customer_country: "ML" };
-    }
-    if (c.includes("togo") || c.includes("lome")) {
-        return { payment_method: "moov_money", currency: "XOF", customer_country: "TG" };
-    }
-    if (c.includes("burkina") || c.includes("ouagadougou")) {
-        return { payment_method: "orange_money", currency: "XOF", customer_country: "BF" };
-    }
-    if (c.includes("niger") || c.includes("niamey")) {
-        return { payment_method: "airtel_money", currency: "XOF", customer_country: "NE" };
-    }
-    if (c.includes("guinee") || c.includes("conakry")) {
-        return { payment_method: "orange_money", currency: "GNF", customer_country: "GN" };
-    }
-    if (c.includes("cameroun") || c.includes("douala") || c.includes("yaounde")) {
-        return { payment_method: "mtn_money", currency: "XAF", customer_country: "CM" };
-    }
-    if (c.includes("gabon") || c.includes("libreville")) {
-        return { payment_method: "airtel_money", currency: "XAF", customer_country: "GA" };
-    }
-    if (c.includes("congo")) {
-        return { payment_method: "airtel_money", currency: "XAF", customer_country: "CG" };
+const COUNTRY_DATA: Record<string, any> = {
+    "+225": { cc: "CI", cur: "XOF", method: "pawapay" },
+    "+221": { cc: "SN", cur: "XOF", method: "pawapay" },
+    "+229": { cc: "BJ", cur: "XOF", method: "pawapay" },
+    "+237": { cc: "CM", cur: "XAF", method: "pawapay" },
+    "+243": { cc: "CD", cur: "USD", method: "pawapay" },
+    "+242": { cc: "CG", cur: "XAF", method: "pawapay" },
+    "+241": { cc: "GA", cur: "XAF", method: "pawapay" },
+    "+254": { cc: "KE", cur: "KES", method: "pawapay" },
+    "+256": { cc: "UG", cur: "UGX", method: "pawapay" },
+    "+250": { cc: "RW", cur: "RWF", method: "pawapay" },
+    "+260": { cc: "ZM", cur: "ZMW", method: "pawapay" },
+    "+232": { cc: "SL", cur: "SLE", method: "pawapay" },
+};
+
+function getPaymentConfig(departureCountry: string, phone?: string): PaymentConfig {
+    // Priority 1: Detection by Phone Prefix
+    if (phone) {
+        const prefix = Object.keys(COUNTRY_DATA).find(p => phone.startsWith(p));
+        if (prefix) {
+            const data = COUNTRY_DATA[prefix];
+            return { payment_method: data.method, currency: data.cur, customer_country: data.cc };
+        }
     }
 
-    const ISO2_MAP: Record<string, string> = {
-        "france": "FR", "belgique": "BE", "suisse": "CH", "espagne": "ES",
-        "italie": "IT", "portugal": "PT", "allemagne": "DE", "irlande": "IE",
-        "chine": "CN", "canada": "CA", "etats-unis": "US", "bresil": "BR",
-        "emirats arabes unis": "AE", "egypte": "EG", "chili": "CL"
-    };
-    const iso2 = Object.entries(ISO2_MAP).find(([name]) => c.includes(name))?.[1] || "FR";
+    // Priority 2: Detection by Country Name (Origin of Offer)
+    const c = String(departureCountry || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
-    return { payment_method: "card", currency: "EUR", customer_country: iso2 };
+    if (c.includes("cote d'ivoire") || c.includes("cote d ivoire") || c.includes("abidjan")) return { payment_method: "pawapay", currency: "XOF", customer_country: "CI" };
+    if (c.includes("senegal")) return { payment_method: "pawapay", currency: "XOF", customer_country: "SN" };
+    if (c.includes("benin")) return { payment_method: "pawapay", currency: "XOF", customer_country: "BJ" };
+    if (c.includes("cameroun")) return { payment_method: "pawapay", currency: "XAF", customer_country: "CM" };
+    if (c.includes("congo")) return { payment_method: "pawapay", currency: "XAF", customer_country: "CG" };
+    if (c.includes("gabon")) return { payment_method: "pawapay", currency: "XAF", customer_country: "GA" };
+
+    // Default Fallback: Card
+    return { payment_method: "card", currency: "EUR", customer_country: "FR" };
 }
 
 serve(async (req) => {
-    // Handle CORS
-    if (req.method === "OPTIONS") {
-        return new Response("ok", { headers: CORS_HEADERS });
-    }
+    if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
     try {
         const supabase = createClient(
@@ -78,44 +68,34 @@ serve(async (req) => {
             Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
         );
 
-        // 1. Authentification
         const authHeader = req.headers.get("Authorization");
         if (!authHeader) throw new Error("Missing Authorization header");
 
         const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
         if (authError || !user) throw new Error("Unauthorized");
 
-        // 2. Body parsing
-        let body;
-        try {
-            body = await req.json();
-        } catch (e) {
-            throw new Error("Invalid JSON body");
-        }
-
-        const { reservationId, phoneNumber, amountEUR } = body;
+        const body = await req.json().catch(() => ({}));
+        const { reservationId, phoneNumber, preferredMode, mmoProvider, amountEUR } = body;
         if (!reservationId) throw new Error("reservationId is required");
 
-        console.log(`[Payment] Initialisation pour Reservation ID: ${reservationId}`);
-
-        // 3. Récupérer le pays d'origine de l'offre
-        const { data: reservation, error: dbError } = await supabase
+        const { data: reservation } = await supabase
             .from("reservations")
-            .select("id, offer_id, offers(origin)")
+            .select("id, offers(origin)")
             .eq("id", reservationId)
             .maybeSingle();
 
-        if (dbError) {
-            console.error("[Payment] Database error:", dbError);
+        const departureCountry = (reservation as any)?.offers?.origin || "France";
+
+        // DETECTION INTELLIGENTE : Basee sur le numero si present
+        const config = getPaymentConfig(departureCountry, phoneNumber);
+
+        let finalMode = preferredMode || config.payment_method;
+        if (phoneNumber && finalMode !== "card") {
+            // Si on a un numero de la whitelist, on force PawaPay pour la stabilite
+            const isWhitelisted = Object.keys(COUNTRY_DATA).some(p => phoneNumber.startsWith(p));
+            if (isWhitelisted) finalMode = "pawapay";
         }
 
-        // Logic safe fallback
-        const departureCountry = (reservation as any)?.offers?.origin || "France";
-        console.log(`[Payment] Pays de départ détecté: ${departureCountry}`);
-
-        const config = getPaymentConfig(departureCountry);
-
-        // 4. Config GeniusPay
         const geniusPubKey = Deno.env.get("GENIUS_PUBLIC_KEY");
         const geniusPrivKey = Deno.env.get("GENIUS_PRIVATE_KEY");
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
@@ -125,8 +105,8 @@ serve(async (req) => {
         const geniusPayload = {
             amount: finalAmount,
             currency: config.currency,
-            payment_method: config.payment_method,
-            description: `Paiement Reservation ${reservationId}`,
+            payment_method: finalMode,
+            description: `Commission CC Res#${reservationId}`,
             customer: {
                 name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Client",
                 email: user.email,
@@ -135,17 +115,14 @@ serve(async (req) => {
             },
             success_url: `https://yoannta.github.io/colisconnect/chat.html?payment=success&id=${reservationId}`,
             error_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
-            metadata: {
-                reservationId,
-                country: departureCountry
-            }
+            metadata: { reservationId, country: departureCountry }
         };
 
-        if (config.mmo_provider) {
-            (geniusPayload as any).mmo_provider = config.mmo_provider;
+        if (mmoProvider || config.mmo_provider) {
+            (geniusPayload as any).mmo_provider = mmoProvider || config.mmo_provider;
         }
 
-        console.log(`[Payment] Sending to GeniusPay:`, JSON.stringify(geniusPayload));
+        console.log(`[Payment] GeniusPay Payload:`, JSON.stringify(geniusPayload));
 
         const geniusResponse = await fetch("https://pay.genius.ci/api/v1/merchant/payments", {
             method: "POST",
