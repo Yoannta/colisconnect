@@ -548,8 +548,11 @@
         modal.classList.remove("hidden");
 
         // Event listeners for CM specific buttons
-        document.getElementById("btn-mtn-cmr")?.onclick = () => handleHubPayment('momo', 'MTN_MOMO_CMR');
-        document.getElementById("btn-orange-cmr")?.onclick = () => handleHubPayment('momo', 'ORANGE_CMR');
+        const btnMtn = document.getElementById("btn-mtn-cmr");
+        if (btnMtn) btnMtn.onclick = () => handleHubPayment('momo', 'MTN_MOMO_CMR');
+
+        const btnOrange = document.getElementById("btn-orange-cmr");
+        if (btnOrange) btnOrange.onclick = () => handleHubPayment('momo', 'ORANGE_CMR');
     }
 
     async function submitSplitPayment() {
