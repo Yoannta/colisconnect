@@ -647,48 +647,42 @@
         const hubModal = document.getElementById("payment-hub-modal");
         document.getElementById("payment-hub-close")?.addEventListener("click", () => hubModal.classList.add("hidden"));
 
-        document.getElementById("method-local")?.addEventListener("click", async () => {
-            console.log("[Payment Debug] activeThreadData:", state.activeThreadData);
+        async function handleHubPayment(preferredMethod) {
             const resId = state.activeThreadData?.reservation?.id ||
                 state.activeThreadData?.reservation_id ||
                 state.activeThreadData?.reservationId;
 
-            if (!resId) {
-                console.error("[Payment Debug] resId is missing. thread data:", state.activeThreadData);
-                return alert("Impossible de récupérer l'identifiant de la réservation.");
-            }
+            if (!resId) return alert("Identifiant réservation manquant.");
 
-            const btn = document.getElementById("method-local");
+            const btnId = preferredMethod === 'card' ? 'method-global' : 'method-local';
+            const btn = document.getElementById(btnId);
             const originalContent = btn.innerHTML;
-            btn.innerHTML = `<div class="method-icons"><span class="spinner"></span></div><div class="method-info"><span class="method-name">Connexion en cours...</span></div>`;
+            btn.innerHTML = `<div class="method-icons"><span class="spinner"></span></div><div class="method-info"><span class="method-name">Connexion...</span></div>`;
             btn.style.pointerEvents = "none";
 
             try {
                 const result = await window.CCCommon.api("/api/payments/initiate", {
                     method: "POST",
-                    body: { reservationId: resId }
+                    body: {
+                        reservationId: resId,
+                        preferredMode: preferredMethod
+                    }
                 });
 
-                const payUrl = result.paymentUrl || result.paymentLink;
-                if (!payUrl) throw new Error("Aucun lien de paiement reçu.");
-
-                console.log(`[Payment] Mode: ${result.mode || 'auto'} | Pays départ: ${result.country || 'N/A'}`);
-
-                // Redirection vers GeniusPay (Smart Routing actif côté backend)
-                window.location.href = payUrl;
-
+                if (result.paymentUrl) {
+                    window.location.href = result.paymentUrl;
+                } else {
+                    throw new Error("Lien de paiement non généré.");
+                }
             } catch (err) {
                 btn.innerHTML = originalContent;
                 btn.style.pointerEvents = "";
-                alert(`Erreur : ${err.message || "Impossible d'accéder au service de paiement."}`);
-                console.error("[Payment] Erreur initiation:", err);
+                alert("Erreur: " + (err.message || "Service momentanément indisponible."));
             }
-        });
+        }
 
-        document.getElementById("method-global")?.addEventListener("click", () => {
-            // Stripe Checkout — à implémenter ultérieurement
-            alert("Paiement par carte arrive bientôt !");
-        });
+        document.getElementById("method-local")?.addEventListener("click", () => handleHubPayment('momo'));
+        document.getElementById("method-global")?.addEventListener("click", () => handleHubPayment('card'));
 
         // Banner Tutorial Click
         els.comprisBtn?.addEventListener("click", () => {
