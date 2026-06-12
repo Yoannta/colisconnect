@@ -616,7 +616,7 @@
         const fullPhone = prefix + local;
         const errorZone = document.getElementById("hub-error-zone");
 
-        // Whitelist des indicatifs supportés pour le Mobile Money
+        // Whitelist des indicatifs supportés
         const momoPrefixes = ["+225", "+221", "+229", "+237", "+243", "+242", "+241", "+254", "+256", "+250", "+260", "+232"];
 
         if (!prefix.startsWith("+") || prefix.length < 3) {
@@ -643,35 +643,63 @@
             return;
         }
 
-        // Si le pays est le Cameroun, on demande l'opérateur
-        if (prefix === "+237") {
-            showCameroonOperatorStep(fullPhone);
+        // Si le pays est dans notre liste de choix d'opérateurs, on affiche l'étape
+        const operatorCountries = ["+237", "+225", "+221", "+229"];
+        if (operatorCountries.includes(prefix)) {
+            showOperatorStep(prefix, fullPhone);
         } else {
             handleHubPayment("momo", null, fullPhone);
         }
     }
 
-    function showCameroonOperatorStep(phone) {
+    function showOperatorStep(prefix, phone) {
         const methodsGrid = document.getElementById("payment-hub-methods");
+        let operators = [];
+
+        if (prefix === "+237") { // Cameroun
+            operators = [
+                { id: "MTN_MOMO_CMR", name: "MTN", img: "https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" },
+                { id: "ORANGE_CMR", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" }
+            ];
+        } else if (prefix === "+225") { // Côte d'Ivoire
+            operators = [
+                { id: "ORANGE_CIV", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" },
+                { id: "MTN_CIV", name: "MTN", img: "https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" },
+                { id: "MOOV_CIV", name: "Moov", img: "https://www.vectorlogo.zone/logos/moov/moov-icon.svg" },
+                { id: "WAVE_CIV", name: "Wave", img: "https://www.vectorlogo.zone/logos/wave/wave-icon.svg" }
+            ];
+        } else if (prefix === "+221") { // Sénégal
+            operators = [
+                { id: "ORANGE_SEN", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" },
+                { id: "FREE_SEN", name: "Free", img: "https://www.vectorlogo.zone/logos/free/free-icon.svg" },
+                { id: "WAVE_SEN", name: "Wave", img: "https://www.vectorlogo.zone/logos/wave/wave-icon.svg" }
+            ];
+        } else if (prefix === "+229") { // Bénin
+            operators = [
+                { id: "MTN_BEN", name: "MTN", img: "https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" },
+                { id: "MOOV_BEN", name: "Moov", img: "https://www.vectorlogo.zone/logos/moov/moov-icon.svg" }
+            ];
+        }
+
         methodsGrid.innerHTML = `
             <div style="width: 100%; animation: fadeIn 0.3s;">
-                <p style="margin-bottom: 12px; font-size: 0.9rem; color: white;">Choisissez votre opérateur :</p>
-                <div style="display: flex; gap: 10px;">
-                    <button class="method-btn-premium" id="btn-mtn-cmr" style="flex: 1; flex-direction: column; text-align: center; justify-content: center; padding: 20px 10px;">
-                        <img src="https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" style="height:32px; margin-bottom: 8px;">
-                        <span class="title">MTN</span>
-                    </button>
-                    <button class="method-btn-premium" id="btn-orange-cmr" style="flex: 1; flex-direction: column; text-align: center; justify-content: center; padding: 20px 10px;">
-                        <img src="https://www.vectorlogo.zone/logos/orange/orange-icon.svg" style="height:32px; margin-bottom: 8px;">
-                        <span class="title">Orange</span>
-                    </button>
+                <p style="margin-bottom: 12px; font-size: 0.9rem; color: white;">Choisissez votre réseau :</p>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    ${operators.map(op => `
+                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.id}" style="flex-direction: column; text-align: center; justify-content: center; padding: 15px 5px; margin-bottom: 0;">
+                            <img src="${op.img}" style="height:28px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1041/1041888.png'">
+                            <span class="title" style="font-size: 0.85rem;">${op.name}</span>
+                        </button>
+                    `).join('')}
                 </div>
                 <button class="btn ghost sm" id="btn-op-back" style="width: 100%; margin-top: 15px;">Retour</button>
             </div>
         `;
+
         document.getElementById("btn-op-back").onclick = () => showMomoPhoneStep();
-        document.getElementById("btn-mtn-cmr").onclick = () => handleHubPayment("momo", "MTN_MOMO_CMR", phone);
-        document.getElementById("btn-orange-cmr").onclick = () => handleHubPayment("momo", "ORANGE_CMR", phone);
+        document.querySelectorAll(".op-choice-btn").forEach(btn => {
+            btn.onclick = () => handleHubPayment("momo", btn.getAttribute("data-op-id"), phone);
+        });
     }
 
     async function submitSplitPayment() {
