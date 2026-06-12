@@ -5992,3 +5992,663 @@ label {
     margin-top: 4px;
     font-style: italic;
 }
+
+/* ========================================================================
+   RESULTS MOBILE REFRESH
+   Only affects the results page when the app is in mobile mode.
+   Desktop stays untouched.
+   ======================================================================== */
+
+html.mobile-mode body.results-page {
+    --bg-charcoal: #eef5f1;
+    --bg-obsidian: #f6fbf8;
+    --emerald-deep: #e2f2ea;
+    --emerald-bright: #1a9a69;
+    --emerald-glow: rgba(26, 154, 105, 0.14);
+    --surface: rgba(255, 255, 255, 0.96);
+    --surface-strong: rgba(255, 255, 255, 0.98);
+    --line: rgba(27, 90, 68, 0.12);
+    --line-glow: rgba(26, 154, 105, 0.22);
+    --text: #123028;
+    --muted: #6d8079;
+    background:
+        radial-gradient(circle at top left, rgba(26, 154, 105, 0.08), transparent 34%),
+        linear-gradient(180deg, #f5fbf8 0%, #edf5f0 42%, #e7efe9 100%);
+    color: var(--text);
+}
+
+html.mobile-mode body.results-page .noise-layer,
+html.mobile-mode body.results-page .ambient {
+    display: none;
+}
+
+html.mobile-mode body.results-page .site-header {
+    display: none;
+}
+
+html.mobile-mode body.results-page .app-shell {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px 12px 108px;
+}
+
+html.mobile-mode body.results-page .view-head {
+    display: none;
+}
+
+html.mobile-mode body.results-page .filter-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+        "dest-label weight-label"
+        "dest-input weight-input"
+        "transport transport"
+        "action action";
+    gap: 10px 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(26, 154, 105, 0.12);
+    border-radius: 24px;
+    box-shadow: 0 12px 30px rgba(14, 55, 41, 0.08);
+    backdrop-filter: blur(18px);
+}
+
+html.mobile-mode body.results-page .dest-label,
+html.mobile-mode body.results-page .weight-label {
+    margin-bottom: -4px;
+}
+
+html.mobile-mode body.results-page .filter-grid label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #567068;
+}
+
+html.mobile-mode body.results-page .dest-input-wrap input,
+html.mobile-mode body.results-page .weight-input-wrap input {
+    height: 48px;
+    border-radius: 16px;
+    border: 1px solid rgba(26, 154, 105, 0.16);
+    background: #f8fcfa;
+    color: #16342d;
+    padding-inline: 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+html.mobile-mode body.results-page .dest-shortcuts,
+html.mobile-mode body.results-page .xai-col {
+    display: none !important;
+}
+
+html.mobile-mode body.results-page .mobile-transport-block {
+    display: block !important;
+    grid-area: transport;
+    padding: 10px 12px 12px;
+    border-radius: 18px;
+    background: #f4faf7;
+    border: 1px solid rgba(26, 154, 105, 0.1);
+}
+
+html.mobile-mode body.results-page .mobile-transport-block > label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #567068;
+}
+
+html.mobile-mode body.results-page .transport-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+html.mobile-mode body.results-page .transport-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    flex: 1 1 0;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 154, 105, 0.14);
+    background: #fff;
+    color: #35554c;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(10, 35, 27, 0.04);
+}
+
+html.mobile-mode body.results-page .transport-pill.is-active {
+    background: linear-gradient(135deg, #1da76f, #17875d);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 18px rgba(26, 154, 105, 0.24);
+}
+
+html.mobile-mode body.results-page .action-col {
+    grid-area: action;
+    margin-top: 2px;
+}
+
+html.mobile-mode body.results-page .action-col .btn.primary {
+    width: 100%;
+    height: 48px;
+    border-radius: 16px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    background: linear-gradient(135deg, #1ba56d, #157d57);
+    box-shadow: 0 10px 24px rgba(26, 154, 105, 0.18);
+}
+
+html.mobile-mode body.results-page .offers-stream {
+    gap: 12px;
+}
+
+html.mobile-mode body.results-page .offers-stream > .offer-compact-card {
+    padding: 14px;
+    border-radius: 22px;
+    border: 1px solid rgba(26, 154, 105, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 253, 251, 0.98));
+    box-shadow: 0 12px 28px rgba(13, 54, 39, 0.08);
+    gap: 10px;
+}
+
+html.mobile-mode body.results-page .compact-row {
+    gap: 8px;
+}
+
+html.mobile-mode body.results-page .compact-row-top {
+    align-items: flex-start;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(23, 72, 54, 0.08);
+}
+
+html.mobile-mode body.results-page .compact-route {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    min-width: 0;
+}
+
+html.mobile-mode body.results-page .compact-code {
+    font-size: 0.95rem;
+    line-height: 1.15;
+    color: #17342c;
+}
+
+html.mobile-mode body.results-page .compact-arrow {
+    width: 18px;
+    height: 18px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(26, 154, 105, 0.1);
+    color: #168059;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+html.mobile-mode body.results-page .compact-cityline {
+    order: 4;
+    flex-basis: 100%;
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 0.95rem;
+    color: #234239;
+}
+
+html.mobile-mode body.results-page .compact-price-box {
+    text-align: right;
+    min-width: 70px;
+}
+
+html.mobile-mode body.results-page .compact-price {
+    font-size: 1.08rem;
+    color: #157252;
+}
+
+html.mobile-mode body.results-page .compact-price-unit {
+    font-size: 0.62rem;
+    color: #7a8f88;
+}
+
+html.mobile-mode body.results-page .compact-owner {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+html.mobile-mode body.results-page .compact-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 16px rgba(13, 54, 39, 0.14);
+}
+
+html.mobile-mode body.results-page .compact-owner-name {
+    font-size: 1rem;
+    color: #16352d;
+}
+
+html.mobile-mode body.results-page .compact-badge {
+    padding: 3px 8px;
+    font-size: 0.58rem;
+}
+
+html.mobile-mode body.results-page .compact-meta {
+    width: 100%;
+    margin-left: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+html.mobile-mode body.results-page .compact-meta-chip {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border-color: rgba(26, 154, 105, 0.1);
+    background: #f3faf6;
+    color: #38574f;
+    font-size: 0.74rem;
+}
+
+html.mobile-mode body.results-page .compact-contact-btn {
+    align-self: flex-end;
+    margin-left: auto;
+    min-width: 108px;
+    height: 38px !important;
+    padding: 0 14px !important;
+    border-radius: 14px !important;
+    font-size: 0.82rem !important;
+    background: linear-gradient(135deg, #1b9d68, #147f58);
+    box-shadow: 0 10px 18px rgba(26, 154, 105, 0.18);
+}
+
+html.mobile-mode body.results-page .loading-state,
+html.mobile-mode body.results-page .empty-card {
+    background: rgba(255, 255, 255, 0.96);
+    color: #19322b;
+    border: 1px solid rgba(26, 154, 105, 0.12);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 10px 22px rgba(13, 54, 39, 0.06);
+}
+
+html.mobile-mode body.results-page .price-original {
+    color: rgba(22, 55, 45, 0.56);
+}
+
+@media (max-width: 520px) {
+    html.mobile-mode body.results-page .app-shell {
+        padding-inline: 10px;
+    }
+
+    html.mobile-mode body.results-page .filter-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "dest-label"
+            "dest-input"
+            "weight-label"
+            "weight-input"
+            "transport"
+            "action";
+        gap: 10px;
+        border-radius: 22px;
+    }
+
+    html.mobile-mode body.results-page .transport-pills {
+        gap: 6px;
+    }
+
+    html.mobile-mode body.results-page .transport-pill {
+        font-size: 0.76rem;
+    }
+
+    html.mobile-mode body.results-page .compact-row-top {
+        gap: 10px;
+    }
+
+    html.mobile-mode body.results-page .compact-contact-btn {
+        width: auto;
+    }
+}
+
+/* ========================================================================
+   RESULTS MOBILE REFRESH
+   Only affects the results page when the app is in mobile mode.
+   Desktop stays untouched.
+   ======================================================================== */
+
+html.mobile-mode body.results-page {
+    --bg-charcoal: #eef5f1;
+    --bg-obsidian: #f6fbf8;
+    --emerald-deep: #e2f2ea;
+    --emerald-bright: #1a9a69;
+    --emerald-glow: rgba(26, 154, 105, 0.14);
+    --surface: rgba(255, 255, 255, 0.96);
+    --surface-strong: rgba(255, 255, 255, 0.98);
+    --line: rgba(27, 90, 68, 0.12);
+    --line-glow: rgba(26, 154, 105, 0.22);
+    --text: #123028;
+    --muted: #6d8079;
+    background:
+        radial-gradient(circle at top left, rgba(26, 154, 105, 0.08), transparent 34%),
+        linear-gradient(180deg, #f5fbf8 0%, #edf5f0 42%, #e7efe9 100%);
+    color: var(--text);
+}
+
+html.mobile-mode body.results-page .noise-layer,
+html.mobile-mode body.results-page .ambient {
+    display: none;
+}
+
+html.mobile-mode body.results-page .site-header {
+    display: none;
+}
+
+html.mobile-mode body.results-page .app-shell {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 12px 12px 108px;
+}
+
+html.mobile-mode body.results-page .view-head {
+    display: none;
+}
+
+html.mobile-mode body.results-page .filter-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+        "dest-label weight-label"
+        "dest-input weight-input"
+        "transport transport"
+        "action action";
+    gap: 10px 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid rgba(26, 154, 105, 0.12);
+    border-radius: 24px;
+    box-shadow: 0 12px 30px rgba(14, 55, 41, 0.08);
+    backdrop-filter: blur(18px);
+}
+
+html.mobile-mode body.results-page .dest-label,
+html.mobile-mode body.results-page .weight-label {
+    margin-bottom: -4px;
+}
+
+html.mobile-mode body.results-page .filter-grid label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    color: #567068;
+}
+
+html.mobile-mode body.results-page .dest-input-wrap input,
+html.mobile-mode body.results-page .weight-input-wrap input {
+    height: 48px;
+    border-radius: 16px;
+    border: 1px solid rgba(26, 154, 105, 0.16);
+    background: #f8fcfa;
+    color: #16342d;
+    padding-inline: 14px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+html.mobile-mode body.results-page .dest-shortcuts,
+html.mobile-mode body.results-page .xai-col {
+    display: none !important;
+}
+
+html.mobile-mode body.results-page .mobile-transport-block {
+    display: block !important;
+    grid-area: transport;
+    padding: 10px 12px 12px;
+    border-radius: 18px;
+    background: #f4faf7;
+    border: 1px solid rgba(26, 154, 105, 0.1);
+}
+
+html.mobile-mode body.results-page .mobile-transport-block > label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #567068;
+}
+
+html.mobile-mode body.results-page .transport-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+html.mobile-mode body.results-page .transport-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    flex: 1 1 0;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(26, 154, 105, 0.14);
+    background: #fff;
+    color: #35554c;
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 2px 6px rgba(10, 35, 27, 0.04);
+}
+
+html.mobile-mode body.results-page .transport-pill.is-active {
+    background: linear-gradient(135deg, #1da76f, #17875d);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 18px rgba(26, 154, 105, 0.24);
+}
+
+html.mobile-mode body.results-page .action-col {
+    grid-area: action;
+    margin-top: 2px;
+}
+
+html.mobile-mode body.results-page .action-col .btn.primary {
+    width: 100%;
+    height: 48px;
+    border-radius: 16px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    background: linear-gradient(135deg, #1ba56d, #157d57);
+    box-shadow: 0 10px 24px rgba(26, 154, 105, 0.18);
+}
+
+html.mobile-mode body.results-page .offers-stream {
+    gap: 12px;
+}
+
+html.mobile-mode body.results-page .offers-stream > .offer-compact-card {
+    padding: 14px;
+    border-radius: 22px;
+    border: 1px solid rgba(26, 154, 105, 0.14);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 253, 251, 0.98));
+    box-shadow: 0 12px 28px rgba(13, 54, 39, 0.08);
+    gap: 10px;
+}
+
+html.mobile-mode body.results-page .compact-row {
+    gap: 8px;
+}
+
+html.mobile-mode body.results-page .compact-row-top {
+    align-items: flex-start;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(23, 72, 54, 0.08);
+}
+
+html.mobile-mode body.results-page .compact-route {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    min-width: 0;
+}
+
+html.mobile-mode body.results-page .compact-code {
+    font-size: 0.95rem;
+    line-height: 1.15;
+    color: #17342c;
+}
+
+html.mobile-mode body.results-page .compact-arrow {
+    width: 18px;
+    height: 18px;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 999px;
+    background: rgba(26, 154, 105, 0.1);
+    color: #168059;
+    font-size: 0.65rem;
+    font-weight: 700;
+}
+
+html.mobile-mode body.results-page .compact-cityline {
+    order: 4;
+    flex-basis: 100%;
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    font-size: 0.95rem;
+    color: #234239;
+}
+
+html.mobile-mode body.results-page .compact-price-box {
+    text-align: right;
+    min-width: 70px;
+}
+
+html.mobile-mode body.results-page .compact-price {
+    font-size: 1.08rem;
+    color: #157252;
+}
+
+html.mobile-mode body.results-page .compact-price-unit {
+    font-size: 0.62rem;
+    color: #7a8f88;
+}
+
+html.mobile-mode body.results-page .compact-owner {
+    width: 100%;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+html.mobile-mode body.results-page .compact-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 0.9rem;
+    box-shadow: 0 8px 16px rgba(13, 54, 39, 0.14);
+}
+
+html.mobile-mode body.results-page .compact-owner-name {
+    font-size: 1rem;
+    color: #16352d;
+}
+
+html.mobile-mode body.results-page .compact-badge {
+    padding: 3px 8px;
+    font-size: 0.58rem;
+}
+
+html.mobile-mode body.results-page .compact-meta {
+    width: 100%;
+    margin-left: 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+html.mobile-mode body.results-page .compact-meta-chip {
+    padding: 6px 10px;
+    border-radius: 999px;
+    border-color: rgba(26, 154, 105, 0.1);
+    background: #f3faf6;
+    color: #38574f;
+    font-size: 0.74rem;
+}
+
+html.mobile-mode body.results-page .compact-contact-btn {
+    align-self: flex-end;
+    margin-left: auto;
+    min-width: 108px;
+    height: 38px !important;
+    padding: 0 14px !important;
+    border-radius: 14px !important;
+    font-size: 0.82rem !important;
+    background: linear-gradient(135deg, #1b9d68, #147f58);
+    box-shadow: 0 10px 18px rgba(26, 154, 105, 0.18);
+}
+
+html.mobile-mode body.results-page .loading-state,
+html.mobile-mode body.results-page .empty-card {
+    background: rgba(255, 255, 255, 0.96);
+    color: #19322b;
+    border: 1px solid rgba(26, 154, 105, 0.12);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 10px 22px rgba(13, 54, 39, 0.06);
+}
+
+html.mobile-mode body.results-page .price-original {
+    color: rgba(22, 55, 45, 0.56);
+}
+
+@media (max-width: 520px) {
+    html.mobile-mode body.results-page .app-shell {
+        padding-inline: 10px;
+    }
+
+    html.mobile-mode body.results-page .filter-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "dest-label"
+            "dest-input"
+            "weight-label"
+            "weight-input"
+            "transport"
+            "action";
+        gap: 10px;
+        border-radius: 22px;
+    }
+
+    html.mobile-mode body.results-page .transport-pills {
+        gap: 6px;
+    }
+
+    html.mobile-mode body.results-page .transport-pill {
+        font-size: 0.76rem;
+    }
+
+    html.mobile-mode body.results-page .compact-row-top {
+        gap: 10px;
+    }
+
+    html.mobile-mode body.results-page .compact-contact-btn {
+        width: auto;
+    }
+}
