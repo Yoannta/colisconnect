@@ -629,6 +629,46 @@
         }
     }
 
+    async function handleHubPayment(preferredMethod, provider = null) {
+        const resId = state.activeThreadData?.reservation?.id ||
+            state.activeThreadData?.reservation_id ||
+            state.activeThreadData?.reservationId;
+
+        if (!resId) return alert("Identifiant réservation manquant.");
+
+        // Capture du numéro de téléphone
+        const phone = document.getElementById("payment-hub-phone")?.value || "";
+
+        const btnId = provider ? (provider.includes('MTN') ? 'btn-mtn-cmr' : 'btn-orange-cmr') :
+            (preferredMethod === 'card' ? 'method-global' : 'method-local');
+        const btn = document.getElementById(btnId);
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = `<span class="spinner"></span>`;
+        btn.style.pointerEvents = "none";
+
+        try {
+            const result = await window.CCCommon.api("/api/payments/initiate", {
+                method: "POST",
+                body: {
+                    reservationId: resId,
+                    preferredMode: preferredMethod,
+                    mmoProvider: provider,
+                    phoneNumber: phone
+                }
+            });
+
+            if (result.paymentUrl) {
+                window.location.href = result.paymentUrl;
+            } else {
+                throw new Error("Lien de paiement non généré.");
+            }
+        } catch (err) {
+            btn.innerHTML = originalContent;
+            btn.style.pointerEvents = "";
+            alert("Erreur: " + (err.message || "Service momentanément indisponible."));
+        }
+    }
+
     // ---- Events ----
     function bindEvents() {
         // Refresh
@@ -676,46 +716,6 @@
             document.getElementById("split-payment-modal").classList.add("hidden");
         });
         document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
-
-        async function handleHubPayment(preferredMethod, provider = null) {
-            const resId = state.activeThreadData?.reservation?.id ||
-                state.activeThreadData?.reservation_id ||
-                state.activeThreadData?.reservationId;
-
-            if (!resId) return alert("Identifiant réservation manquant.");
-
-            // Capture du numéro de téléphone
-            const phone = document.getElementById("payment-hub-phone")?.value || "";
-
-            const btnId = provider ? (provider.includes('MTN') ? 'btn-mtn-cmr' : 'btn-orange-cmr') :
-                (preferredMethod === 'card' ? 'method-global' : 'method-local');
-            const btn = document.getElementById(btnId);
-            const originalContent = btn.innerHTML;
-            btn.innerHTML = `<span class="spinner"></span>`;
-            btn.style.pointerEvents = "none";
-
-            try {
-                const result = await window.CCCommon.api("/api/payments/initiate", {
-                    method: "POST",
-                    body: {
-                        reservationId: resId,
-                        preferredMode: preferredMethod,
-                        mmoProvider: provider,
-                        phoneNumber: phone
-                    }
-                });
-
-                if (result.paymentUrl) {
-                    window.location.href = result.paymentUrl;
-                } else {
-                    throw new Error("Lien de paiement non généré.");
-                }
-            } catch (err) {
-                btn.innerHTML = originalContent;
-                btn.style.pointerEvents = "";
-                alert("Erreur: " + (err.message || "Service momentanément indisponible."));
-            }
-        }
 
         document.getElementById("method-local")?.addEventListener("click", () => handleHubPayment('momo'));
         document.getElementById("method-global")?.addEventListener("click", () => handleHubPayment('card'));
