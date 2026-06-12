@@ -1516,10 +1516,10 @@
                 a.href = "admin.html";
                 a.className = "mob-nav-item";
                 a.innerHTML = `
-        < svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" stroke - linecap="round" stroke - linejoin="round" >
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                    </svg >
-        <span>Admin</span>`;
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                    </svg>
+                    <span>Admin</span>`;
                 nav.appendChild(a);
                 adminLink = a;
             }
@@ -1540,11 +1540,11 @@
                 a.href = "partner.html";
                 a.className = "mob-nav-item";
                 a.innerHTML = `
-            < svg viewBox = "0 0 24 24" fill = "none" stroke = "currentColor" stroke - width="2" stroke - linecap="round" stroke - linejoin="round" >
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                         <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                    </svg >
-        <span>Partenaire</span>`;
+                    </svg>
+                    <span>Partenaire</span>`;
                 // Insert before dashboard/profile link (last child)
                 const lastChild = nav.lastElementChild;
                 if (lastChild) nav.insertBefore(a, lastChild);
