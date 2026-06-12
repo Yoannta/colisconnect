@@ -9,8 +9,76 @@
         // payment modal state
         receiptBase64: null,
         paymentType: "regular",
-        isTutorialAccepted: false, // Forcing users to click "Compris"
+        isTutorialAccepted: false,
     };
+
+    // Styling Premium pour le Hub de Paiement
+    const hubStyle = document.createElement('style');
+    hubStyle.textContent = `
+        .phone-split-wrap {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px solid rgba(19, 236, 200, 0.4);
+            margin-top: 10px;
+            padding-bottom: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .phone-indicatif {
+            width: 55px;
+            background: transparent;
+            border: none;
+            color: var(--emerald-bright);
+            font-family: monospace;
+            font-size: 1.2rem;
+            font-weight: 800;
+            outline: none;
+        }
+        .phone-local-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            padding: 0 10px;
+        }
+        .payment-error-box {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.2);
+            color: #ff7675;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin: 15px 0;
+            line-height: 1.4;
+        }
+        .method-btn-premium {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            margin-bottom: 10px;
+        }
+        .method-btn-premium:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--emerald-bright);
+            transform: translateY(-2px);
+        }
+        .method-btn-premium .icon { font-size: 24px; color: var(--emerald-bright); }
+        .method-btn-premium .text-wrap { display: flex; flex-direction: column; }
+        .method-btn-premium .title { font-weight: 700; color: white; font-size: 1rem; }
+        .method-btn-premium .subtitle { font-size: 0.75rem; opacity: 0.6; }
+    `;
+    document.head.appendChild(hubStyle);
 
     const els = {
         refreshBtn: document.getElementById("refresh-conversations-btn"),
@@ -482,77 +550,128 @@
         // ÉTAPE 1/2 : Paiement de la commission (Hub ColisConnect)
         const modal = document.getElementById("payment-hub-modal");
         const amountDisplay = document.getElementById("payment-hub-amount-banner");
-        const localIcons = document.getElementById("local-payment-icons");
-        const localName = document.getElementById("local-payment-name");
+        const methodsGrid = document.getElementById("payment-hub-methods");
 
-        // On utilise le pays d'origine du trajet pour déterminer les méthodes de paiement locales
+        // Calcul du montant (20 RMB fixe pour le hub)
         const offerOrigin = thread.offers?.origin || thread.offer?.origin || "France";
-        const userCountry = offerOrigin;
-        const userCur = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
-
-        // Calcul du montant de prestation fixe (20 RMB)
-        const fixedCNY = 20;
-        const localAmount = window.CCCommon.convertCurrency(fixedCNY, "CNY", userCur);
-
+        const userCur = window.CCCommon.COUNTRY_CURRENCIES[offerOrigin] || "EUR";
+        const localAmount = window.CCCommon.convertCurrency(20, "CNY", userCur);
         amountDisplay.textContent = window.CCCommon.formatAmount(localAmount, userCur);
 
-        // Config dynamique selon le pays d'origine du trajet
-        localIcons.innerHTML = "";
-
-        // On ajoute un champ numéro de téléphone s'il n'est pas dans le profil
-        const userPhone = window.CCCommon.state.user?.phone || "";
-        const phoneInputHtml = `
-            <div id="payment-phone-container" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
-                <label style="display:block; font-size: 11px; color: #666; margin-bottom: 5px;">Numéro de téléphone (Format International +237...)</label>
-                <input type="text" id="payment-hub-phone" value="${userPhone}" 
-                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" 
-                    placeholder="+237XXXXXXXXX">
+        // Affichage initial : Choix du type de paiement
+        methodsGrid.innerHTML = `
+            <div style="width: 100%;">
+                <button class="method-btn-premium" id="btn-choice-momo">
+                    <span class="icon">📱</span>
+                    <div class="text-wrap">
+                        <span class="title">Mobile Money</span>
+                        <span class="subtitle">Orange, MTN, Wave, Airtel...</span>
+                    </div>
+                </button>
+                <button class="method-btn-premium" id="btn-choice-card">
+                    <span class="icon">💳</span>
+                    <div class="text-wrap">
+                        <span class="title">Carte / Visa / Mastercard</span>
+                        <span class="subtitle">Paiement international par Stripe</span>
+                    </div>
+                </button>
             </div>
         `;
 
-        if (userCountry === "Cameroun") {
-            localName.textContent = "Choisir l'opérateur local";
-            localIcons.innerHTML = `
-                <div class="momo-selector" style="display: flex; gap: 10px; margin-top: 10px; width: 100%;">
-                    <button id="btn-mtn-cmr" class="method-btn-alt" style="flex:1; border: 1.5px solid #ffcc00; background: #fffdf0;">
-                        <img src="https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" style="height:24px;">
-                        <span>MTN</span>
-                    </button>
-                    <button id="btn-orange-cmr" class="method-btn-alt" style="flex:1; border: 1.5px solid #ff6600; background: #fff9f5;">
-                        <img src="https://www.vectorlogo.zone/logos/orange/orange-icon.svg" style="height:24px;">
-                        <span>Orange</span>
-                    </button>
-                </div>
-            `;
-            // Hide the default generic button to show our selector
-            document.getElementById("method-local").classList.add("hidden");
-        } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso", "Togo", "Gabon", "Congo", "Guinée"].some(c => userCountry.includes(c))) {
-            localName.textContent = "Mobile Money (Afrique)";
-            localIcons.innerHTML = `
-                <img src="https://www.vectorlogo.zone/logos/orange/orange-icon.svg" style="height:18px; margin: 2px">
-                <img src="https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" style="height:18px; margin: 2px">
-            `;
-            document.getElementById("method-local").classList.remove("hidden");
-        } else {
-            localName.textContent = "Méthodes Locales";
-            localIcons.innerHTML = "🌍";
-            document.getElementById("method-local").classList.remove("hidden");
-        }
-
-        // Add phone input before the buttons
-        const banner = document.getElementById("payment-hub-amount-banner");
-        if (!document.getElementById("payment-hub-phone")) {
-            banner.parentElement.insertAdjacentHTML("afterend", phoneInputHtml);
-        }
-
         modal.classList.remove("hidden");
 
-        // Event listeners for CM specific buttons
-        const btnMtn = document.getElementById("btn-mtn-cmr");
-        if (btnMtn) btnMtn.onclick = () => handleHubPayment('momo', 'MTN_MOMO_CMR');
+        // Événements
+        document.getElementById("btn-choice-card").onclick = () => handleHubPayment("card");
+        document.getElementById("btn-choice-momo").onclick = () => showMomoPhoneStep();
+    }
 
-        const btnOrange = document.getElementById("btn-orange-cmr");
-        if (btnOrange) btnOrange.onclick = () => handleHubPayment('momo', 'ORANGE_CMR');
+    async function showMomoPhoneStep() {
+        const methodsGrid = document.getElementById("payment-hub-methods");
+
+        methodsGrid.innerHTML = `
+            <div style="width: 100%; animation: fadeIn 0.3s;">
+                <p style="margin-bottom: 12px; font-size: 0.9rem; color: white; opacity: 0.9;">Entrez votre numéro de paiement :</p>
+                
+                <div class="phone-split-wrap">
+                    <input type="text" id="hub-phone-prefix" value="+" maxlength="5" class="phone-indicatif">
+                    <input type="text" id="hub-phone-local" placeholder="Numéro local" class="phone-local-input">
+                </div>
+                
+                <div id="hub-error-zone"></div>
+
+                <button class="btn primary" id="btn-hub-momo-next" style="width: 100%; margin-top: 20px; padding: 12px;">
+                    Valider le numéro
+                </button>
+                <button class="btn ghost sm" id="btn-hub-back" style="width: 100%; margin-top: 10px;">Retour</button>
+            </div>
+        `;
+
+        document.getElementById("btn-hub-back").onclick = () => openSplitPaymentModal();
+        document.getElementById("btn-hub-momo-next").onclick = () => validateMomoPhoneNumber();
+    }
+
+    function validateMomoPhoneNumber() {
+        const prefix = document.getElementById("hub-phone-prefix").value.trim();
+        const local = document.getElementById("hub-phone-local").value.trim();
+        const fullPhone = prefix + local;
+        const errorZone = document.getElementById("hub-error-zone");
+
+        // Whitelist des indicatifs supportés pour le Mobile Money
+        const momoPrefixes = ["+225", "+221", "+229", "+237", "+243", "+242", "+241", "+254", "+256", "+250", "+260", "+232"];
+
+        if (!prefix.startsWith("+") || prefix.length < 3) {
+            errorZone.innerHTML = `<div class="payment-error-box">Veuillez entrer un indicatif pays valide (ex: +237).</div>`;
+            return;
+        }
+
+        if (!momoPrefixes.includes(prefix)) {
+            errorZone.innerHTML = `
+                <div class="payment-error-box" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #ccc;">
+                    ⚠️ Nous ne supportons pas encore le Mobile Money dans ce pays. <br>
+                    <strong>Veuillez payer par carte bancaire.</strong>
+                </div>
+                <button class="method-btn-premium" id="btn-fallback-card" style="border-color: var(--emerald-bright); margin-top: 10px;">
+                     <span class="icon">💳</span>
+                     <div class="text-wrap">
+                        <span class="title">Payer par Carte</span>
+                        <span class="subtitle">Stripe Checkout</span>
+                    </div>
+                </button>
+            `;
+            document.getElementById("btn-fallback-card").onclick = () => handleHubPayment("card");
+            document.getElementById("btn-hub-momo-next").style.display = "none";
+            return;
+        }
+
+        // Si le pays est le Cameroun, on demande l'opérateur
+        if (prefix === "+237") {
+            showCameroonOperatorStep(fullPhone);
+        } else {
+            handleHubPayment("momo", null, fullPhone);
+        }
+    }
+
+    function showCameroonOperatorStep(phone) {
+        const methodsGrid = document.getElementById("payment-hub-methods");
+        methodsGrid.innerHTML = `
+            <div style="width: 100%; animation: fadeIn 0.3s;">
+                <p style="margin-bottom: 12px; font-size: 0.9rem; color: white;">Choisissez votre opérateur :</p>
+                <div style="display: flex; gap: 10px;">
+                    <button class="method-btn-premium" id="btn-mtn-cmr" style="flex: 1; flex-direction: column; text-align: center; justify-content: center; padding: 20px 10px;">
+                        <img src="https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" style="height:32px; margin-bottom: 8px;">
+                        <span class="title">MTN</span>
+                    </button>
+                    <button class="method-btn-premium" id="btn-orange-cmr" style="flex: 1; flex-direction: column; text-align: center; justify-content: center; padding: 20px 10px;">
+                        <img src="https://www.vectorlogo.zone/logos/orange/orange-icon.svg" style="height:32px; margin-bottom: 8px;">
+                        <span class="title">Orange</span>
+                    </button>
+                </div>
+                <button class="btn ghost sm" id="btn-op-back" style="width: 100%; margin-top: 15px;">Retour</button>
+            </div>
+        `;
+        document.getElementById("btn-op-back").onclick = () => showMomoPhoneStep();
+        document.getElementById("btn-mtn-cmr").onclick = () => handleHubPayment("momo", "MTN_MOMO_CMR", phone);
+        document.getElementById("btn-orange-cmr").onclick = () => handleHubPayment("momo", "ORANGE_CMR", phone);
     }
 
     async function submitSplitPayment() {
@@ -632,22 +751,24 @@
         }
     }
 
-    async function handleHubPayment(preferredMethod, provider = null) {
+    async function handleHubPayment(preferredMethod, provider = null, phoneNum = null) {
         const resId = state.activeThreadData?.reservation?.id ||
             state.activeThreadData?.reservation_id ||
             state.activeThreadData?.reservationId;
 
         if (!resId) return alert("Identifiant réservation manquant.");
 
-        // Capture du numéro de téléphone
-        const phone = document.getElementById("payment-hub-phone")?.value || "";
+        // On cherche un bouton actif pour afficher le spinner
+        const btnMomo = document.getElementById("btn-hub-momo-next");
+        const btnCard = document.getElementById("btn-choice-card");
+        const btnCmr = document.getElementById("btn-mtn-cmr") || document.getElementById("btn-orange-cmr");
 
-        const btnId = provider ? (provider.includes('MTN') ? 'btn-mtn-cmr' : 'btn-orange-cmr') :
-            (preferredMethod === 'card' ? 'method-global' : 'method-local');
-        const btn = document.getElementById(btnId);
-        const originalContent = btn.innerHTML;
-        btn.innerHTML = `<span class="spinner"></span>`;
-        btn.style.pointerEvents = "none";
+        const btn = btnMomo || btnCard || btnCmr;
+        const originalContent = btn ? btn.innerHTML : "";
+        if (btn) {
+            btn.innerHTML = `<span class="spinner"></span> Connexion...`;
+            btn.style.pointerEvents = "none";
+        }
 
         try {
             const result = await window.CCCommon.api("/api/payments/initiate", {
@@ -656,7 +777,7 @@
                     reservationId: resId,
                     preferredMode: preferredMethod,
                     mmoProvider: provider,
-                    phoneNumber: phone
+                    phoneNumber: phoneNum
                 }
             });
 
@@ -666,8 +787,10 @@
                 throw new Error("Lien de paiement non généré.");
             }
         } catch (err) {
-            btn.innerHTML = originalContent;
-            btn.style.pointerEvents = "";
+            if (btn) {
+                btn.innerHTML = originalContent;
+                btn.style.pointerEvents = "";
+            }
             alert("Erreur: " + (err.message || "Service momentanément indisponible."));
         }
     }
@@ -718,10 +841,10 @@
         document.getElementById("split-payment-close")?.addEventListener("click", () => {
             document.getElementById("split-payment-modal").classList.add("hidden");
         });
+        document.getElementById("payment-hub-close")?.addEventListener("click", () => {
+            document.getElementById("payment-hub-modal").classList.add("hidden");
+        });
         document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
-
-        document.getElementById("method-local")?.addEventListener("click", () => handleHubPayment('momo'));
-        document.getElementById("method-global")?.addEventListener("click", () => handleHubPayment('card'));
 
         // Banner Tutorial Click
         els.comprisBtn?.addEventListener("click", () => {
