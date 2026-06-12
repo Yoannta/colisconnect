@@ -650,7 +650,10 @@
         if (loader) loader.classList.remove("hidden");
 
         try {
-            const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`);
+            // Appel de l'endpoint de découverte (On FORCE le GET)
+            const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`, {
+                method: "GET"
+            });
             if (loader) loader.classList.add("hidden");
 
             if (result.success && Array.isArray(result.data)) {
