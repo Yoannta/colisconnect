@@ -665,14 +665,12 @@
             operators = [
                 { id: "ORANGE_CIV", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" },
                 { id: "MTN_CIV", name: "MTN", img: "https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" },
-                { id: "MOOV_CIV", name: "Moov", img: "https://www.vectorlogo.zone/logos/moov/moov-icon.svg" },
-                { id: "WAVE_CIV", name: "Wave", img: "https://www.vectorlogo.zone/logos/wave/wave-icon.svg" }
+                { id: "MOOV_CIV", name: "Moov", img: "https://www.vectorlogo.zone/logos/moov/moov-icon.svg" }
             ];
         } else if (prefix === "+221") { // Sénégal
             operators = [
                 { id: "ORANGE_SEN", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" },
-                { id: "FREE_SEN", name: "Free", img: "https://www.vectorlogo.zone/logos/free/free-icon.svg" },
-                { id: "WAVE_SEN", name: "Wave", img: "https://www.vectorlogo.zone/logos/wave/wave-icon.svg" }
+                { id: "FREE_SEN", name: "Free", img: "https://www.vectorlogo.zone/logos/free/free-icon.svg" }
             ];
         } else if (prefix === "+229") { // Bénin
             operators = [
