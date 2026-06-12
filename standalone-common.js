@@ -342,7 +342,7 @@
         const rounded = getSmartRoundedAmount(amount, currency);
         const isLowValue = ["XOF", "XAF", "GNF", "NGN", "RWF", "CDF", "MGA"].includes(currency);
 
-        const symbols = { EUR: 'â‚¬', USD: '$', GBP: 'Â£', CNY: 'Â¥', JPY: 'Â¥', XOF: ' FCFA', XAF: ' FCFA', NGN: 'â‚¦' };
+        const symbols = { EUR: '€', USD: '$', GBP: '£', CNY: '¥', JPY: '¥', XOF: ' FCFA', XAF: ' FCFA', NGN: 'â‚¦' };
         const sym = symbols[currency] || ` ${currency}`;
 
         const formatted = new Intl.NumberFormat('fr-FR', {
@@ -351,7 +351,7 @@
         }).format(rounded);
 
         if (['EUR', 'USD', 'GBP', 'CNY', 'JPY'].includes(currency)) {
-            const internationalSymbols = { EUR: 'â‚¬', USD: '$', GBP: 'Â£', CNY: 'Â¥', JPY: 'Â¥' };
+            const internationalSymbols = { EUR: '€', USD: '$', GBP: '£', CNY: '¥', JPY: '¥' };
             return `${internationalSymbols[currency]}${formatted}`;
         }
         return `${formatted}${sym}`;

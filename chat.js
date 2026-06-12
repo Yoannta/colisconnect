@@ -485,7 +485,9 @@
         const localIcons = document.getElementById("local-payment-icons");
         const localName = document.getElementById("local-payment-name");
 
-        const userCountry = window.CCCommon.state.user?.country || "France";
+        // On utilise le pays d'origine du trajet pour déterminer les méthodes de paiement locales
+        const offerOrigin = thread.offers?.origin || thread.offer?.origin || "France";
+        const userCountry = offerOrigin;
         const userCur = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
 
         // Calcul du montant de prestation fixe (20 RMB)
@@ -494,7 +496,7 @@
 
         amountDisplay.textContent = window.CCCommon.formatAmount(localAmount, userCur);
 
-        // Config dynamique selon le pays
+        // Config dynamique selon le pays d'origine du trajet
         localIcons.innerHTML = "";
         if (userCountry === "Chine") {
             localName.textContent = "Alipay / WeChat Pay";
@@ -502,7 +504,7 @@
                 <img src="https://upload.wikimedia.org/wikipedia/commons/4/4b/Alipay_logo.svg" style="height:14px; margin: 2px">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/WeChat_Pay_logo.svg" style="height:14px; margin: 2px">
             `;
-        } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso"].includes(userCountry)) {
+        } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso", "Cameroun", "Togo", "Gabon", "Congo", "Guinée"].some(c => userCountry.includes(c))) {
             localName.textContent = "Mobile Money (Afrique)";
             localIcons.innerHTML = `
                 <img src="https://upload.wikimedia.org/wikipedia/en/3/31/Orange_Money_logo.png" style="height:14px; margin: 2px">
