@@ -498,24 +498,58 @@
 
         // Config dynamique selon le pays d'origine du trajet
         localIcons.innerHTML = "";
-        if (userCountry === "Chine") {
-            localName.textContent = "Alipay / WeChat Pay";
+
+        // On ajoute un champ numéro de téléphone s'il n'est pas dans le profil
+        const userPhone = window.CCCommon.state.user?.phone || "";
+        const phoneInputHtml = `
+            <div id="payment-phone-container" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
+                <label style="display:block; font-size: 11px; color: #666; margin-bottom: 5px;">Numéro de téléphone (Format International +237...)</label>
+                <input type="text" id="payment-hub-phone" value="${userPhone}" 
+                    style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px;" 
+                    placeholder="+237XXXXXXXXX">
+            </div>
+        `;
+
+        if (userCountry === "Cameroun") {
+            localName.textContent = "Choisir l'opérateur local";
             localIcons.innerHTML = `
-                <img src="https://www.vectorlogo.zone/logos/alipay/alipay-icon.svg" style="height:18px; margin: 2px">
-                <img src="https://www.vectorlogo.zone/logos/wechat/wechat-icon.svg" style="height:18px; margin: 2px">
+                <div class="momo-selector" style="display: flex; gap: 10px; margin-top: 10px; width: 100%;">
+                    <button id="btn-mtn-cmr" class="method-btn-alt" style="flex:1; border: 1.5px solid #ffcc00; background: #fffdf0;">
+                        <img src="https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" style="height:24px;">
+                        <span>MTN</span>
+                    </button>
+                    <button id="btn-orange-cmr" class="method-btn-alt" style="flex:1; border: 1.5px solid #ff6600; background: #fff9f5;">
+                        <img src="https://www.vectorlogo.zone/logos/orange/orange-icon.svg" style="height:24px;">
+                        <span>Orange</span>
+                    </button>
+                </div>
             `;
-        } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso", "Cameroun", "Togo", "Gabon", "Congo", "Guinée"].some(c => userCountry.includes(c))) {
+            // Hide the default generic button to show our selector
+            document.getElementById("method-local").classList.add("hidden");
+        } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso", "Togo", "Gabon", "Congo", "Guinée"].some(c => userCountry.includes(c))) {
             localName.textContent = "Mobile Money (Afrique)";
             localIcons.innerHTML = `
                 <img src="https://www.vectorlogo.zone/logos/orange/orange-icon.svg" style="height:18px; margin: 2px">
                 <img src="https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" style="height:18px; margin: 2px">
             `;
+            document.getElementById("method-local").classList.remove("hidden");
         } else {
             localName.textContent = "Méthodes Locales";
             localIcons.innerHTML = "🌍";
+            document.getElementById("method-local").classList.remove("hidden");
+        }
+
+        // Add phone input before the buttons
+        const banner = document.getElementById("payment-hub-amount-banner");
+        if (!document.getElementById("payment-hub-phone")) {
+            banner.parentElement.insertAdjacentHTML("afterend", phoneInputHtml);
         }
 
         modal.classList.remove("hidden");
+
+        // Event listeners for CM specific buttons
+        document.getElementById("btn-mtn-cmr")?.onclick = () => handleHubPayment('momo', 'MTN_MOMO_CMR');
+        document.getElementById("btn-orange-cmr")?.onclick = () => handleHubPayment('momo', 'ORANGE_CMR');
     }
 
     async function submitSplitPayment() {
@@ -643,21 +677,21 @@
         });
         document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
 
-        // [PROTOTYPE] Hub Events
-        const hubModal = document.getElementById("payment-hub-modal");
-        document.getElementById("payment-hub-close")?.addEventListener("click", () => hubModal.classList.add("hidden"));
-
-        async function handleHubPayment(preferredMethod) {
+        async function handleHubPayment(preferredMethod, provider = null) {
             const resId = state.activeThreadData?.reservation?.id ||
                 state.activeThreadData?.reservation_id ||
                 state.activeThreadData?.reservationId;
 
             if (!resId) return alert("Identifiant réservation manquant.");
 
-            const btnId = preferredMethod === 'card' ? 'method-global' : 'method-local';
+            // Capture du numéro de téléphone
+            const phone = document.getElementById("payment-hub-phone")?.value || "";
+
+            const btnId = provider ? (provider.includes('MTN') ? 'btn-mtn-cmr' : 'btn-orange-cmr') :
+                (preferredMethod === 'card' ? 'method-global' : 'method-local');
             const btn = document.getElementById(btnId);
             const originalContent = btn.innerHTML;
-            btn.innerHTML = `<div class="method-icons"><span class="spinner"></span></div><div class="method-info"><span class="method-name">Connexion...</span></div>`;
+            btn.innerHTML = `<span class="spinner"></span>`;
             btn.style.pointerEvents = "none";
 
             try {
@@ -665,7 +699,9 @@
                     method: "POST",
                     body: {
                         reservationId: resId,
-                        preferredMode: preferredMethod
+                        preferredMode: preferredMethod,
+                        mmoProvider: provider,
+                        phoneNumber: phone
                     }
                 });
 
