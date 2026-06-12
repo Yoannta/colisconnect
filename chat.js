@@ -501,14 +501,14 @@
         if (userCountry === "Chine") {
             localName.textContent = "Alipay / WeChat Pay";
             localIcons.innerHTML = `
-                <img src="https://upload.wikimedia.org/wikipedia/commons/4/4b/Alipay_logo.svg" style="height:14px; margin: 2px">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/73/WeChat_Pay_logo.svg" style="height:14px; margin: 2px">
+                <img src="https://www.vectorlogo.zone/logos/alipay/alipay-icon.svg" style="height:18px; margin: 2px">
+                <img src="https://www.vectorlogo.zone/logos/wechat/wechat-icon.svg" style="height:18px; margin: 2px">
             `;
         } else if (["Côte d'Ivoire", "Bénin", "Sénégal", "Mali", "Burkina Faso", "Cameroun", "Togo", "Gabon", "Congo", "Guinée"].some(c => userCountry.includes(c))) {
             localName.textContent = "Mobile Money (Afrique)";
             localIcons.innerHTML = `
-                <img src="https://upload.wikimedia.org/wikipedia/en/3/31/Orange_Money_logo.png" style="height:14px; margin: 2px">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c8/MTN_Logo.svg" style="height:14px; margin: 2px">
+                <img src="https://www.vectorlogo.zone/logos/orange/orange-icon.svg" style="height:18px; margin: 2px">
+                <img src="https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" style="height:18px; margin: 2px">
             `;
         } else {
             localName.textContent = "Méthodes Locales";
