@@ -597,107 +597,94 @@
                     <input type="text" id="hub-phone-local" placeholder="Numéro local" class="phone-local-input">
                 </div>
                 
+                <div id="hub-discovery-loader" class="hidden" style="margin-top: 10px; text-align: center;">
+                    <span class="spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: var(--emerald-bright);"></span>
+                    <span style="font-size: 0.75rem; color: #ccc; margin-left: 8px;">Recherche des réseaux...</span>
+                </div>
+
+                <div id="hub-operator-grid" style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                </div>
+                
                 <div id="hub-error-zone"></div>
 
-                <button class="btn primary" id="btn-hub-momo-next" style="width: 100%; margin-top: 20px; padding: 12px;">
-                    Valider le numéro
-                </button>
-                <button class="btn ghost sm" id="btn-hub-back" style="width: 100%; margin-top: 10px;">Retour</button>
+                <button class="btn ghost sm" id="btn-hub-back" style="width: 100%; margin-top: 15px;">Retour</button>
             </div>
         `;
+
+        const prefixInput = document.getElementById("hub-phone-prefix");
+        const localInput = document.getElementById("hub-phone-local");
+
+        const checkDiscovery = () => {
+            const prefix = prefixInput.value.trim();
+            if (prefix.length >= 4) {
+                autoDiscoverOperators(prefix);
+            }
+        };
+
+        prefixInput.oninput = checkDiscovery;
+        localInput.oninput = checkDiscovery;
 
         document.getElementById("btn-hub-back").onclick = () => openSplitPaymentModal();
-        document.getElementById("btn-hub-momo-next").onclick = () => validateMomoPhoneNumber();
     }
 
-    function validateMomoPhoneNumber() {
-        const prefix = document.getElementById("hub-phone-prefix").value.trim();
-        const local = document.getElementById("hub-phone-local").value.trim();
-        const fullPhone = prefix + local;
+    let lastDiscoveredPrefix = "";
+    async function autoDiscoverOperators(prefix) {
+        if (prefix === lastDiscoveredPrefix) return;
+
+        const prefixMap = {
+            "+225": "CI", "+221": "SN", "+229": "BJ", "+237": "CM",
+            "+243": "CD", "+242": "CG", "+241": "GA", "+254": "KE",
+            "+256": "UG", "+250": "RW", "+260": "ZM", "+232": "SL"
+        };
+
+        const iso2 = prefixMap[prefix];
+        if (!iso2) return;
+
+        lastDiscoveredPrefix = prefix;
+        const grid = document.getElementById("hub-operator-grid");
+        const loader = document.getElementById("hub-discovery-loader");
         const errorZone = document.getElementById("hub-error-zone");
 
-        // Whitelist des indicatifs supportés
-        const momoPrefixes = ["+225", "+221", "+229", "+237", "+243", "+242", "+241", "+254", "+256", "+250", "+260", "+232"];
+        if (grid) grid.innerHTML = "";
+        if (errorZone) errorZone.innerHTML = "";
+        if (loader) loader.classList.remove("hidden");
 
-        if (!prefix.startsWith("+") || prefix.length < 3) {
-            errorZone.innerHTML = `<div class="payment-error-box">Veuillez entrer un indicatif pays valide (ex: +237).</div>`;
-            return;
-        }
+        try {
+            const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`);
+            if (loader) loader.classList.add("hidden");
 
-        if (!momoPrefixes.includes(prefix)) {
-            errorZone.innerHTML = `
-                <div class="payment-error-box" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #ccc;">
-                    ⚠️ Nous ne supportons pas encore le Mobile Money dans ce pays. <br>
-                    <strong>Veuillez payer par carte bancaire.</strong>
-                </div>
-                <button class="method-btn-premium" id="btn-fallback-card" style="border-color: var(--emerald-bright); margin-top: 10px;">
-                     <span class="icon">💳</span>
-                     <div class="text-wrap">
-                        <span class="title">Payer par Carte</span>
-                        <span class="subtitle">Stripe Checkout</span>
-                    </div>
-                </button>
-            `;
-            document.getElementById("btn-fallback-card").onclick = () => handleHubPayment("card");
-            document.getElementById("btn-hub-momo-next").style.display = "none";
-            return;
-        }
+            if (result.success && Array.isArray(result.data)) {
+                if (result.data.length === 0) {
+                    if (errorZone) errorZone.innerHTML = `<div class="payment-error-box">Aucun réseau Mobile Money actif détecté actuellement pour ce pays.</div>`;
+                    return;
+                }
 
-        // Si le pays est dans notre liste de choix d'opérateurs, on affiche l'étape
-        const operatorCountries = ["+237", "+225", "+221", "+229"];
-        if (operatorCountries.includes(prefix)) {
-            showOperatorStep(prefix, fullPhone);
-        } else {
-            handleHubPayment("momo", null, fullPhone);
-        }
-    }
-
-    function showOperatorStep(prefix, phone) {
-        const methodsGrid = document.getElementById("payment-hub-methods");
-        let operators = [];
-
-        if (prefix === "+237") { // Cameroun
-            operators = [
-                { id: "MTN_MOMO_CMR", name: "MTN", img: "https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" },
-                { id: "ORANGE_CMR", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" }
-            ];
-        } else if (prefix === "+225") { // Côte d'Ivoire
-            operators = [
-                { id: "ORANGE_CIV", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" },
-                { id: "MTN_CIV", name: "MTN", img: "https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" },
-                { id: "MOOV_CIV", name: "Moov", img: "https://www.vectorlogo.zone/logos/moov/moov-icon.svg" }
-            ];
-        } else if (prefix === "+221") { // Sénégal
-            operators = [
-                { id: "ORANGE_SEN", name: "Orange", img: "https://www.vectorlogo.zone/logos/orange/orange-icon.svg" },
-                { id: "FREE_SEN", name: "Free", img: "https://www.vectorlogo.zone/logos/free/free-icon.svg" }
-            ];
-        } else if (prefix === "+229") { // Bénin
-            operators = [
-                { id: "MTN_BEN", name: "MTN", img: "https://www.vectorlogo.zone/logos/mtn/mtn-icon.svg" },
-                { id: "MOOV_BEN", name: "Moov", img: "https://www.vectorlogo.zone/logos/moov/moov-icon.svg" }
-            ];
-        }
-
-        methodsGrid.innerHTML = `
-            <div style="width: 100%; animation: fadeIn 0.3s;">
-                <p style="margin-bottom: 12px; font-size: 0.9rem; color: white;">Choisissez votre réseau :</p>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                    ${operators.map(op => `
-                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.id}" style="flex-direction: column; text-align: center; justify-content: center; padding: 15px 5px; margin-bottom: 0;">
-                            <img src="${op.img}" style="height:28px; margin-bottom: 5px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1041/1041888.png'">
+                if (grid) {
+                    grid.innerHTML = result.data.map(op => `
+                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.mmo_provider}" style="flex-direction: column; text-align: center; justify-content: center; padding: 15px 5px; margin-bottom: 0;">
+                            <img src="https://pay.genius.ci/storage/mmo/${op.mmo_provider.toLowerCase().split('_')[0]}.png" 
+                                 style="height:28px; margin-bottom: 5px; border-radius: 4px;" 
+                                 onerror="this.src='https://cdn-icons-png.flaticon.com/512/1041/1041888.png'">
                             <span class="title" style="font-size: 0.85rem;">${op.name}</span>
                         </button>
-                    `).join('')}
-                </div>
-                <button class="btn ghost sm" id="btn-op-back" style="width: 100%; margin-top: 15px;">Retour</button>
-            </div>
-        `;
+                    `).join("");
 
-        document.getElementById("btn-op-back").onclick = () => showMomoPhoneStep();
-        document.querySelectorAll(".op-choice-btn").forEach(btn => {
-            btn.onclick = () => handleHubPayment("momo", btn.getAttribute("data-op-id"), phone);
-        });
+                    document.querySelectorAll(".op-choice-btn").forEach(btn => {
+                        btn.onclick = () => {
+                            const localVal = document.getElementById("hub-phone-local").value.trim();
+                            if (!localVal) return alert("Veuillez saisir votre numéro de téléphone.");
+                            handleHubPayment("momo", btn.getAttribute("data-op-id"), prefix + localVal);
+                        };
+                    });
+                }
+            } else {
+                throw new Error("Impossible de récupérer les opérateurs.");
+            }
+        } catch (err) {
+            if (loader) loader.classList.add("hidden");
+            if (errorZone) errorZone.innerHTML = `<div class="payment-error-box">⚠️ Ce pays n'est pas supporté pour le Mobile Money actuellement.</div>`;
+            lastDiscoveredPrefix = "";
+        }
     }
 
     async function submitSplitPayment() {

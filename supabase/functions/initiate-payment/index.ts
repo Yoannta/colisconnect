@@ -59,9 +59,30 @@ function getPaymentConfig(departureCountry: string, phone?: string): PaymentConf
     return { payment_method: "card", currency: "EUR", customer_country: "FR" };
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
     if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
+    const geniusPubKey = Deno.env.get("GENIUS_PUBLIC_KEY");
+    const geniusPrivKey = Deno.env.get("GENIUS_PRIVATE_KEY");
+
+    // ROUTE 1 : DÉCOUVERTE DYNAMIQUE DES OPÉRATEURS (Suggestion Expert #1)
+    const url = new URL(req.url);
+    if (req.method === "GET" && url.searchParams.has("country")) {
+        const country = url.searchParams.get("country")?.toUpperCase();
+        try {
+            const response = await fetch(`https://pay.genius.ci/api/v1/merchant/pawapay/providers?country=${country}`, {
+                headers: { "X-API-Key": geniusPubKey!, "X-API-Secret": geniusPrivKey! }
+            });
+            const data = await response.json();
+            return new Response(JSON.stringify(data), {
+                headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+            });
+        } catch (err) {
+            return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS_HEADERS });
+        }
+    }
+
+    // ROUTE 2 : INITIATION DE PAIEMENT
     try {
         const supabase = createClient(
             Deno.env.get("SUPABASE_URL") ?? "",
@@ -85,19 +106,14 @@ serve(async (req) => {
             .maybeSingle();
 
         const departureCountry = (reservation as any)?.offers?.origin || "France";
-
-        // DETECTION INTELLIGENTE : Basee sur le numero si present
         const config = getPaymentConfig(departureCountry, phoneNumber);
 
         let finalMode = preferredMode || config.payment_method;
         if (phoneNumber && finalMode !== "card") {
-            // Si on a un numero de la whitelist, on force PawaPay pour la stabilite
             const isWhitelisted = Object.keys(COUNTRY_DATA).some(p => phoneNumber.startsWith(p));
             if (isWhitelisted) finalMode = "pawapay";
         }
 
-        const geniusPubKey = Deno.env.get("GENIUS_PUBLIC_KEY");
-        const geniusPrivKey = Deno.env.get("GENIUS_PRIVATE_KEY");
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
 
         const finalAmount = amountEUR ? Math.round(amountEUR * 100) : 400;
@@ -118,8 +134,11 @@ serve(async (req) => {
             metadata: { reservationId, country: departureCountry }
         };
 
-        if (mmoProvider || config.mmo_provider) {
-            (geniusPayload as any).mmo_provider = mmoProvider || config.mmo_provider;
+        // On utilise la sélection MANUELLE de l'utilisateur si elle existe
+        if (mmoProvider) {
+            (geniusPayload as any).mmo_provider = mmoProvider;
+        } else if (config.mmo_provider) {
+            (geniusPayload as any).mmo_provider = config.mmo_provider;
         }
 
         console.log(`[Payment] GeniusPay Payload:`, JSON.stringify(geniusPayload));
@@ -147,14 +166,14 @@ serve(async (req) => {
         return new Response(JSON.stringify({
             success: true,
             paymentUrl: checkoutUrl,
-            mode: config.payment_method,
+            mode: finalMode,
             country: departureCountry,
             currency: config.currency
         }), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("[Payment] Global error:", error.message);
         return new Response(JSON.stringify({
             error: error.message,
