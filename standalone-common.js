@@ -685,13 +685,12 @@
             // 7. PAYMENTS
             if (p.includes("/payments") || p.includes("/initiate-payment")) {
                 const urlObj = new URL(path, window.location.origin);
-                const queryParams = Object.fromEntries(urlObj.searchParams);
+                const funcName = 'initiate-payment' + urlObj.search; // On ajoute ?country=XX directement à l'URL
 
-                const { data, error } = await window.ccSupabase.functions.invoke('initiate-payment', {
+                const { data, error } = await window.ccSupabase.functions.invoke(funcName, {
                     method: options.method || "POST",
                     body: options.body,
-                    headers: options.headers || {},
-                    query: queryParams // Supabase Edge Functions can access this via URL params
+                    headers: options.headers || {}
                 });
                 if (error) throw error;
                 return data;
