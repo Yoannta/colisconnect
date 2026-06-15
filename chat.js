@@ -657,10 +657,10 @@
             const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`, { method: "GET" });
             if (loader) loader.classList.add("hidden");
 
-            // Le chemin réel découvert en testant l'API : result.data.data.providers
-            const providers = result.data?.data?.providers;
+            // On essaie de trouver la liste des providers peu importe l'imbrication
+            const providers = (result.data?.data?.providers) || (result.data?.providers) || (Array.isArray(result.data) ? result.data : null);
 
-            if (result.success && Array.isArray(providers) && providers.length > 0) {
+            if (result.success && providers && providers.length > 0) {
                 if (grid) {
                     grid.innerHTML = `<p style="grid-column: 1/-1; font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Réseaux disponibles :</p>` +
                         providers.map(op => `
