@@ -628,104 +628,73 @@
     }
 
     let lastDiscoveredPrefix = "";
-    function autoDiscoverOperators(prefix) {
+    async function autoDiscoverOperators(prefix) {
         if (prefix === lastDiscoveredPrefix) return;
 
-        // Liste LOCALE des opérateurs par indicatif — pas d'appel réseau, instantané
-        const OPERATORS = {
-            "+225": [ // Côte d'Ivoire
-                { id: "ORANGE_CIV", name: "Orange Money", emoji: "🟠" },
-                { id: "MTN_CIV", name: "MTN MoMo", emoji: "🟡" },
-                { id: "MOOV_CIV", name: "Moov Money", emoji: "🔵" }
-            ],
-            "+237": [ // Cameroun
-                { id: "MTN_MOMO_CMR", name: "MTN MoMo", emoji: "🟡" },
-                { id: "ORANGE_CMR", name: "Orange Money", emoji: "🟠" }
-            ],
-            "+221": [ // Sénégal
-                { id: "ORANGE_SEN", name: "Orange Money", emoji: "🟠" },
-                { id: "FREE_SEN", name: "Free Money", emoji: "🔴" }
-            ],
-            "+229": [ // Bénin
-                { id: "MTN_BEN", name: "MTN MoMo", emoji: "🟡" },
-                { id: "MOOV_BEN", name: "Moov Money", emoji: "🔵" }
-            ],
-            "+243": [ // RDC
-                { id: "VODACOM_COD", name: "M-Pesa", emoji: "🔴" },
-                { id: "AIRTEL_COD", name: "Airtel Money", emoji: "🔴" }
-            ],
-            "+242": [ // Congo
-                { id: "AIRTEL_COG", name: "Airtel Money", emoji: "🔴" },
-                { id: "MTN_COG", name: "MTN MoMo", emoji: "🟡" }
-            ],
-            "+241": [ // Gabon
-                { id: "AIRTEL_GAB", name: "Airtel Money", emoji: "🔴" }
-            ],
-            "+254": [ // Kenya
-                { id: "MPESA_KEN", name: "M-Pesa", emoji: "🟢" }
-            ],
-            "+256": [ // Ouganda
-                { id: "MTN_UGA", name: "MTN MoMo", emoji: "🟡" },
-                { id: "AIRTEL_UGA", name: "Airtel Money", emoji: "🔴" }
-            ],
-            "+250": [ // Rwanda
-                { id: "MTN_RWA", name: "MTN MoMo", emoji: "🟡" }
-            ],
-            "+260": [ // Zambie
-                { id: "MTN_ZMB", name: "MTN MoMo", emoji: "🟡" },
-                { id: "AIRTEL_ZMB", name: "Airtel Money", emoji: "🔴" }
-            ],
-            "+232": [ // Sierra Leone
-                { id: "ORANGE_SLE", name: "Orange Money", emoji: "🟠" }
-            ]
+        const prefixMap = {
+            "+225": "CI", "+221": "SN", "+229": "BJ", "+237": "CM",
+            "+243": "CD", "+242": "CG", "+241": "GA", "+254": "KE",
+            "+256": "UG", "+250": "RW", "+260": "ZM", "+232": "SL"
         };
 
-        const operators = OPERATORS[prefix];
+        const iso2 = prefixMap[prefix];
         const grid = document.getElementById("hub-operator-grid");
         const loader = document.getElementById("hub-discovery-loader");
         const errorZone = document.getElementById("hub-error-zone");
 
-        if (loader) loader.classList.add("hidden");
-
-        if (!operators) {
-            // Pays non supporté → fallback carte
-            if (errorZone) errorZone.innerHTML = `
-                <div class="payment-error-box" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); color: #ccc;">
-                    ⚠️ Mobile Money non disponible pour ce pays.<br>
-                    <strong>Payez par carte bancaire.</strong>
-                </div>
-                <button class="method-btn-premium" id="btn-fallback-card" style="border-color: var(--emerald-bright); margin-top: 10px;">
-                    <span class="icon">💳</span>
-                    <div class="text-wrap">
-                        <span class="title">Payer par Carte</span>
-                        <span class="subtitle">Visa / Mastercard / Stripe</span>
-                    </div>
-                </button>
-            `;
-            document.getElementById("btn-fallback-card").onclick = () => handleHubPayment("card");
-            if (grid) grid.innerHTML = "";
+        if (!iso2) {
+            if (loader) loader.classList.add("hidden");
+            if (errorZone) errorZone.innerHTML = `<div class="payment-error-box">Ce pays n'est pas encore ouvert au Mobile Money.</div>`;
             return;
         }
 
         lastDiscoveredPrefix = prefix;
+        if (grid) grid.innerHTML = "";
         if (errorZone) errorZone.innerHTML = "";
+        if (loader) loader.classList.remove("hidden");
 
-        if (grid) {
-            grid.innerHTML = `<p style="grid-column: 1/-1; font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Choisissez votre réseau :</p>` +
-                operators.map(op => `
-                <button class="method-btn-premium op-choice-btn" data-op-id="${op.id}" style="flex-direction: column; text-align: center; justify-content: center; padding: 15px 8px; margin-bottom: 0;">
-                    <span style="font-size: 1.4rem; margin-bottom: 4px;">${op.emoji}</span>
-                    <span class="title" style="font-size: 0.82rem;">${op.name}</span>
+        try {
+            const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`, { method: "GET" });
+            if (loader) loader.classList.add("hidden");
+
+            // Le chemin réel découvert en testant l'API : result.data.data.providers
+            const providers = result.data?.data?.providers;
+
+            if (result.success && Array.isArray(providers) && providers.length > 0) {
+                if (grid) {
+                    grid.innerHTML = `<p style="grid-column: 1/-1; font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Réseaux disponibles :</p>` +
+                        providers.map(op => `
+                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.code}" style="flex-direction: column; text-align: center; justify-content: center; padding: 15px 8px; margin-bottom: 0;">
+                            <span style="font-size: 1.4rem; margin-bottom: 4px;">📱</span>
+                            <span class="title" style="font-size: 0.82rem;">${op.name}</span>
+                        </button>
+                    `).join("");
+
+                    document.querySelectorAll(".op-choice-btn").forEach(btn => {
+                        btn.onclick = () => {
+                            const localVal = document.getElementById("hub-phone-local").value.trim();
+                            if (!localVal) return alert("Veuillez saisir votre numéro de téléphone.");
+                            handleHubPayment("momo", btn.getAttribute("data-op-id"), prefix + localVal);
+                        };
+                    });
+                }
+            } else {
+                throw new Error("Aucun opérateur actif.");
+            }
+        } catch (err) {
+            if (loader) loader.classList.add("hidden");
+            if (errorZone) errorZone.innerHTML = `
+                <div class="payment-error-box" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); color: #ccc;">
+                    ⚠️ Mobile Money temporairement indisponible pour ce pays.<br>
+                    <strong>Veuillez payer par carte bancaire.</strong>
+                </div>
+                <button class="method-btn-premium" id="btn-fallback-card" style="border-color: var(--emerald-bright); margin-top: 10px;">
+                    <span class="icon">💳</span>
+                    <div class="text-wrap"><span class="title">Payer par Carte</span><span class="subtitle">Visa / Mastercard</span></div>
                 </button>
-            `).join("");
-
-            document.querySelectorAll(".op-choice-btn").forEach(btn => {
-                btn.onclick = () => {
-                    const localVal = document.getElementById("hub-phone-local").value.trim();
-                    if (!localVal) return alert("Veuillez saisir votre numéro de téléphone.");
-                    handleHubPayment("momo", btn.getAttribute("data-op-id"), prefix + localVal);
-                };
-            });
+            `;
+            document.getElementById("btn-fallback-card").onclick = () => handleHubPayment("card");
+            lastDiscoveredPrefix = "";
         }
     }
 
