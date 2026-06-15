@@ -650,41 +650,26 @@
 
         lastDiscoveredPrefix = prefix;
         if (grid) grid.innerHTML = "";
-        if (errorZone) errorZone.innerHTML = "";
+        if (errorZone) errorZone.innerHTML = `<p style="font-size: 0.85rem; color: #fff; margin-bottom: 8px;">Veuillez choisir votre réseau :</p>`;
 
-        // --- BOUTON PRINCIPAL (AUTO-ROUTAGE) ---
-        if (errorZone) {
-            errorZone.innerHTML = `
-                <button class="method-btn-premium" id="btn-auto-pay" style="border-color: var(--emerald-bright); background: rgba(16, 185, 129, 0.1); margin-top: 10px; width: 100%;">
-                    <span class="icon">🚀</span>
-                    <div class="text-wrap">
-                        <span class="title">Valider et Payer</span>
-                        <span class="subtitle">Détection automatique du réseau</span>
-                    </div>
-                </button>
-            `;
-            document.getElementById("btn-auto-pay").onclick = () => {
-                const localVal = document.getElementById("hub-phone-local").value.trim();
-                if (!localVal) return alert("Veuillez saisir votre numéro.");
-                handleHubPayment("momo", null, prefix + localVal); // Omettre mmo_provider = Auto-Routing
-            };
+        if (loader) {
+            loader.classList.remove("hidden");
+            loader.innerHTML = `<span>⏳ Chargement des réseaux disponibles...</span>`;
         }
-
-        if (loader) loader.classList.remove("hidden");
 
         try {
             const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`, { method: "GET" });
             if (loader) loader.classList.add("hidden");
 
-            const providers = (result.data?.data?.providers) || (result.data?.providers);
+            // Format V24 : result.data.data.providers
+            const providers = (result.data?.data?.providers) || (result.data?.providers) || [];
 
-            if (result.success && providers && providers.length > 0) {
+            if (result.success && providers.length > 0) {
                 if (grid) {
-                    grid.innerHTML = `<p style="grid-column: 1/-1; font-size: 0.82rem; color: rgba(255,255,255,0.5); margin: 10px 0 5px 0;">Ou choisissez manuellement :</p>` +
-                        providers.map(op => `
-                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.code}" style="flex-direction: column; text-align: center; justify-content: center; padding: 12px 5px; margin-bottom: 0; min-height: 70px; border-color: rgba(255,255,255,0.1);">
-                            <span style="font-size: 1.2rem; margin-bottom: 4px;">📱</span>
-                            <span class="title" style="font-size: 0.78rem; line-height: 1.1;">${op.name}</span>
+                    grid.innerHTML = providers.map(op => `
+                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.code}" style="flex-direction: column; text-align: center; justify-content: center; padding: 12px 5px; min-height: 75px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15);">
+                            <span style="font-size: 1.4rem; margin-bottom: 4px;">📱</span>
+                            <span class="title" style="font-size: 0.8rem; line-height: 1.1; font-weight: 600;">${op.name}</span>
                         </button>
                     `).join("");
 
@@ -692,14 +677,18 @@
                         btn.onclick = () => {
                             const localVal = document.getElementById("hub-phone-local").value.trim();
                             if (!localVal) return alert("Veuillez saisir votre numéro.");
+                            const btnContent = btn.innerHTML;
+                            btn.innerHTML = "<span>⏳ Connexion...</span>";
                             handleHubPayment("momo", btn.getAttribute("data-op-id"), prefix + localVal);
                         };
                     });
                 }
+            } else {
+                throw new Error("Aucun réseau.");
             }
         } catch (err) {
             if (loader) loader.classList.add("hidden");
-            // Pas d'erreur fatale, on garde le bouton "Auto-Pay"
+            if (errorZone) errorZone.innerHTML = `<div class="payment-error-box">⚠️ Impossible de charger les réseaux. Réessayez ou utilisez une carte.</div>`;
         }
     }
 
