@@ -651,50 +651,55 @@
         lastDiscoveredPrefix = prefix;
         if (grid) grid.innerHTML = "";
         if (errorZone) errorZone.innerHTML = "";
+
+        // --- BOUTON PRINCIPAL (AUTO-ROUTAGE) ---
+        if (errorZone) {
+            errorZone.innerHTML = `
+                <button class="method-btn-premium" id="btn-auto-pay" style="border-color: var(--emerald-bright); background: rgba(16, 185, 129, 0.1); margin-top: 10px; width: 100%;">
+                    <span class="icon">🚀</span>
+                    <div class="text-wrap">
+                        <span class="title">Valider et Payer</span>
+                        <span class="subtitle">Détection automatique du réseau</span>
+                    </div>
+                </button>
+            `;
+            document.getElementById("btn-auto-pay").onclick = () => {
+                const localVal = document.getElementById("hub-phone-local").value.trim();
+                if (!localVal) return alert("Veuillez saisir votre numéro.");
+                handleHubPayment("momo", null, prefix + localVal); // Omettre mmo_provider = Auto-Routing
+            };
+        }
+
         if (loader) loader.classList.remove("hidden");
 
         try {
             const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`, { method: "GET" });
             if (loader) loader.classList.add("hidden");
 
-            // On essaie de trouver la liste des providers peu importe l'imbrication
-            const providers = (result.data?.data?.providers) || (result.data?.providers) || (Array.isArray(result.data) ? result.data : null);
+            const providers = (result.data?.data?.providers) || (result.data?.providers);
 
             if (result.success && providers && providers.length > 0) {
                 if (grid) {
-                    grid.innerHTML = `<p style="grid-column: 1/-1; font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Réseaux disponibles :</p>` +
+                    grid.innerHTML = `<p style="grid-column: 1/-1; font-size: 0.82rem; color: rgba(255,255,255,0.5); margin: 10px 0 5px 0;">Ou choisissez manuellement :</p>` +
                         providers.map(op => `
-                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.code}" style="flex-direction: column; text-align: center; justify-content: center; padding: 15px 8px; margin-bottom: 0;">
-                            <span style="font-size: 1.4rem; margin-bottom: 4px;">📱</span>
-                            <span class="title" style="font-size: 0.82rem;">${op.name}</span>
+                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.code}" style="flex-direction: column; text-align: center; justify-content: center; padding: 12px 5px; margin-bottom: 0; min-height: 70px; border-color: rgba(255,255,255,0.1);">
+                            <span style="font-size: 1.2rem; margin-bottom: 4px;">📱</span>
+                            <span class="title" style="font-size: 0.78rem; line-height: 1.1;">${op.name}</span>
                         </button>
                     `).join("");
 
                     document.querySelectorAll(".op-choice-btn").forEach(btn => {
                         btn.onclick = () => {
                             const localVal = document.getElementById("hub-phone-local").value.trim();
-                            if (!localVal) return alert("Veuillez saisir votre numéro de téléphone.");
+                            if (!localVal) return alert("Veuillez saisir votre numéro.");
                             handleHubPayment("momo", btn.getAttribute("data-op-id"), prefix + localVal);
                         };
                     });
                 }
-            } else {
-                throw new Error("Aucun opérateur actif.");
             }
         } catch (err) {
             if (loader) loader.classList.add("hidden");
-            if (errorZone) errorZone.innerHTML = `
-                <div class="payment-error-box" style="background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); color: #ccc;">
-                    ⚠️ Mobile Money temporairement indisponible pour ce pays.<br>
-                    <strong>Veuillez payer par carte bancaire.</strong>
-                </div>
-                <button class="method-btn-premium" id="btn-fallback-card" style="border-color: var(--emerald-bright); margin-top: 10px;">
-                    <span class="icon">💳</span>
-                    <div class="text-wrap"><span class="title">Payer par Carte</span><span class="subtitle">Visa / Mastercard</span></div>
-                </button>
-            `;
-            document.getElementById("btn-fallback-card").onclick = () => handleHubPayment("card");
-            lastDiscoveredPrefix = "";
+            // Pas d'erreur fatale, on garde le bouton "Auto-Pay"
         }
     }
 
