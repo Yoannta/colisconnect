@@ -524,9 +524,12 @@
         });
     }
 
-    async function openSplitPaymentModal() {
-        if (!state.activeThreadId || !state.activeThreadData) return alert("Sélectionnez une conversation d'abord.");
+    async function openSplitPaymentModal(type = "commission", totalAmount = null) {
+        if (totalAmount) PAYMENT_STATE.totalAmount = totalAmount;
+        PAYMENT_STATE.step = type;
+
         const thread = state.activeThreadData;
+        if (!thread) return alert("Données de réservation introuvables.");
 
         // ÉTAPE 2/2 : Si la plateforme est déjà payée (Commission ColisConnect validée)
         if (thread.status === "commission_payee") {
@@ -534,186 +537,109 @@
             if (!qr) return alert("Le voyageur n'a pas encore configuré ses moyens de paiement. Veuillez lui demander dans le chat.");
 
             PAYMENT_STATE.step = "traveler";
+            PAYMENT_STATE.amount = Math.round(PAYMENT_STATE.totalAmount * 0.9);
+
             const modal = document.getElementById("split-payment-modal");
             document.getElementById("split-payment-title").textContent = "Payer le Voyageur";
             document.getElementById("split-payment-step-desc").textContent = "Scannez le QR Code du voyageur ci-dessous.";
             document.getElementById("split-payment-qr-img").src = qr;
-
-            // Calcul du montant restant (88%) ou prix convenu
-            // Note: Pour simplifier, on affiche le message de rappel
-            document.getElementById("split-payment-amount").textContent = "Montant convenu";
-
+            document.getElementById("split-payment-amount").textContent = "À payer directement";
             modal.classList.remove("hidden");
             return;
         }
 
-        // ÉTAPE 1/2 : Paiement de la commission (Hub ColisConnect)
-        const modal = document.getElementById("payment-hub-modal");
-        const amountDisplay = document.getElementById("payment-hub-amount-banner");
-        const methodsGrid = document.getElementById("payment-hub-methods");
-
-        // Calcul du montant (20 RMB fixe pour le hub)
-        const offerOrigin = thread.offers?.origin || thread.offer?.origin || "France";
-        const userCur = window.CCCommon.COUNTRY_CURRENCIES[offerOrigin] || "EUR";
-        const localAmount = window.CCCommon.convertCurrency(20, "CNY", userCur);
-        amountDisplay.textContent = window.CCCommon.formatAmount(localAmount, userCur);
-
-        // Affichage initial : Choix du type de paiement
-        methodsGrid.innerHTML = `
-            <div style="width: 100%;">
-                <button class="method-btn-premium" id="btn-choice-momo">
-                    <span class="icon">📱</span>
-                    <div class="text-wrap">
-                        <span class="title">Mobile Money</span>
-                        <span class="subtitle">Orange, MTN, Wave, Airtel...</span>
-                    </div>
-                </button>
-                <button class="method-btn-premium" id="btn-choice-card">
-                    <span class="icon">💳</span>
-                    <div class="text-wrap">
-                        <span class="title">Carte / Visa / Mastercard</span>
-                        <span class="subtitle">Paiement international par Stripe</span>
-                    </div>
-                </button>
-            </div>
-        `;
-
+        // ÉTAPE 1/2 : Paiement de la commission (HUB)
+        PAYMENT_STATE.amount = Math.round(PAYMENT_STATE.totalAmount * 0.1);
+        const modal = document.getElementById("split-payment-modal");
+        const container = document.getElementById("payment-modal-container");
         modal.classList.remove("hidden");
 
-        // Événements
-        document.getElementById("btn-choice-card").onclick = () => handleHubPayment("card");
-        document.getElementById("btn-choice-momo").onclick = () => showMomoPhoneStep();
-    }
-
-    async function showMomoPhoneStep() {
-        const methodsGrid = document.getElementById("payment-hub-methods");
-
-        methodsGrid.innerHTML = `
-            <div style="width: 100%; animation: fadeIn 0.3s;">
-                <p style="margin-bottom: 12px; font-size: 0.9rem; color: white; opacity: 0.9;">Entrez votre numéro de paiement :</p>
-                
-                <div class="phone-split-wrap">
-                    <input type="text" id="hub-phone-prefix" value="+" maxlength="5" class="phone-indicatif">
-                    <input type="text" id="hub-phone-local" placeholder="Numéro local" class="phone-local-input">
+        container.innerHTML = `
+            <div class="payment-selection">
+                <h3 style="margin-bottom: 20px; font-weight: 600;">Comment souhaitez-vous payer ?</h3>
+                <div class="payment-methods-grid">
+                    <button class="method-btn-premium" id="pay-card">
+                        <span class="icon">💳</span>
+                        <div class="text-wrap">
+                            <span class="title">Carte Bancaire</span>
+                            <span class="subtitle">Visa / Mastercard / Stripe</span>
+                        </div>
+                    </button>
+                    <button class="method-btn-premium" id="pay-momo">
+                        <span class="icon">📱</span>
+                        <div class="text-wrap">
+                            <span class="title">Mobile Money</span>
+                            <span class="subtitle">Orange, MTN, Wave, Moov...</span>
+                        </div>
+                    </button>
                 </div>
-                
-                <div id="hub-discovery-loader" class="hidden" style="margin-top: 10px; text-align: center;">
-                    <span class="spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: var(--emerald-bright);"></span>
-                    <span style="font-size: 0.75rem; color: #ccc; margin-left: 8px;">Recherche des réseaux...</span>
-                </div>
-
-                <div id="hub-operator-grid" style="margin-top: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                </div>
-                
-                <div id="hub-error-zone"></div>
-
-                <button class="btn ghost sm" id="btn-hub-back" style="width: 100%; margin-top: 15px;">Retour</button>
+                <button id="btn-close-pay" style="margin-top: 20px; opacity: 0.6; font-size: 0.9rem;">Annuler</button>
             </div>
         `;
 
-        const prefixInput = document.getElementById("hub-phone-prefix");
-        const localInput = document.getElementById("hub-phone-local");
+        document.getElementById("btn-close-pay").onclick = () => modal.classList.add("hidden");
 
-        const checkDiscovery = () => {
-            const prefix = prefixInput.value.trim();
-            if (prefix.length >= 4) {
-                autoDiscoverOperators(prefix);
-            }
-        };
+        // --- ACTION CARTE ---
+        document.getElementById("pay-card").onclick = () => handleHubPayment("card");
 
-        prefixInput.oninput = checkDiscovery;
-        localInput.oninput = checkDiscovery;
-
-        document.getElementById("btn-hub-back").onclick = () => openSplitPaymentModal();
-    }
-
-    let lastDiscoveredPrefix = "";
-    async function autoDiscoverOperators(prefix) {
-        if (prefix === lastDiscoveredPrefix) return;
-
-        const prefixMap = {
-            "+225": "CI", "+221": "SN", "+229": "BJ", "+237": "CM",
-            "+243": "CD", "+242": "CG", "+241": "GA", "+254": "KE",
-            "+256": "UG", "+250": "RW", "+260": "ZM", "+232": "SL",
-            "+226": "BF", "+223": "ML", "+228": "TG", "+227": "NE",
-            "+245": "GW", "+224": "GN", "+233": "GH", "+234": "NG",
-            "+255": "TZ", "+265": "MW", "+258": "MZ"
-        };
-
-        const iso2 = prefixMap[prefix];
-        const grid = document.getElementById("hub-operator-grid");
-        const loader = document.getElementById("hub-discovery-loader");
-        const errorZone = document.getElementById("hub-error-zone");
-
-        if (!iso2) {
-            if (loader) loader.classList.add("hidden");
-            if (errorZone) errorZone.innerHTML = `<div class="payment-error-box">Ce pays n'est pas encore ouvert au Mobile Money.</div>`;
-            return;
-        }
-
-        lastDiscoveredPrefix = prefix;
-        if (grid) grid.innerHTML = "";
-
-        // --- BOUTON PRINCIPAL ( SMART CHECKOUT - 100% GARANTI ) ---
-        if (errorZone) {
-            errorZone.innerHTML = `
-                <button class="method-btn-premium" id="btn-smart-checkout" style="border-color: var(--emerald-bright); background: rgba(16, 185, 129, 0.1); margin-bottom: 12px; width: 100%;">
-                    <span class="icon">✨</span>
-                    <div class="text-wrap">
-                        <span class="title">Continuer vers le paiement</span>
-                        <span class="subtitle">Wave, Orange, Moov, Carte, etc.</span>
+        // --- ACTION MOMO ---
+        document.getElementById("pay-momo").onclick = () => {
+            container.innerHTML = `
+                <div class="payment-momo-flow">
+                    <button id="btn-back-choice" style="margin-bottom: 15px; opacity: 0.7; font-size: 0.9rem;">← Retour</button>
+                    <h3 style="margin-bottom: 10px;">Paiement Mobile Money</h3>
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">Entrez votre numéro au format international (ex: +225...)</p>
+                    
+                    <div class="phone-input-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                        <input type="text" id="momo-phone" placeholder="+225XXXXXXXXXX" style="width: 100%; font-size: 1.1rem; background: transparent; border: none; color: white; outline: none;">
                     </div>
-                </button>
+                    
+                    <div id="momo-validation-msg"></div>
+                    
+                    <button class="method-btn-premium" id="btn-momo-validate" style="width: 100%; border-color: var(--emerald-bright); display: none;">
+                        <span class="icon">✅</span>
+                        <span class="title">Valider le paiement</span>
+                    </button>
+                </div>
             `;
-            document.getElementById("btn-smart-checkout").onclick = () => {
-                const localVal = document.getElementById("hub-phone-local").value.trim();
-                if (!localVal) return alert("Veuillez saisir votre numéro.");
-                handleHubPayment("momo", null, prefix + localVal); // Omettre mmo_provider = Smart Checkout
-            };
-        }
 
-        if (loader) {
-            loader.classList.remove("hidden");
-            loader.innerHTML = `<span>⏳ Recherche de raccourcis réseaux...</span>`;
-        }
+            const phoneInput = document.getElementById("momo-phone");
+            const validateBtn = document.getElementById("btn-momo-validate");
+            const msgZone = document.getElementById("momo-validation-msg");
 
-        try {
-            const result = await window.CCCommon.api(`/api/payments/initiate?country=${iso2}`, { method: "GET" });
-            if (loader) loader.classList.add("hidden");
+            const supportedPrefixes = ["+225", "+221", "+229", "+237", "+243", "+242", "+241", "+254", "+256", "+250", "+260", "+232"];
 
-            const providers = (result.data?.data?.providers) || (result.data?.providers) || [];
+            document.getElementById("btn-back-choice").onclick = () => openSplitPaymentModal(type, totalAmount);
 
-            if (result.success && providers.length > 0) {
-                if (grid) {
-                    grid.innerHTML = `<p style="grid-column: 1/-1; font-size: 0.78rem; color: rgba(255,255,255,0.4); margin: 5px 0;">OU PAIEMENT RAPIDE :</p>` +
-                        providers.map(op => `
-                        <button class="method-btn-premium op-choice-btn" data-op-id="${op.code}" style="flex-direction: column; text-align: center; justify-content: center; padding: 10px 5px; min-height: 70px; background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.1);">
-                            <span style="font-size: 1.2rem; margin-bottom: 2px;">📱</span>
-                            <span class="title" style="font-size: 0.75rem; line-height: 1.1; font-weight: 600;">${op.name}</span>
-                        </button>
-                    `).join("");
+            phoneInput.oninput = () => {
+                const val = phoneInput.value.trim();
+                const matched = supportedPrefixes.find(p => val.startsWith(p));
 
-                    document.querySelectorAll(".op-choice-btn").forEach(btn => {
-                        btn.onclick = () => {
-                            const localVal = document.getElementById("hub-phone-local").value.trim();
-                            if (!localVal) return alert("Veuillez saisir votre numéro.");
-                            handleHubPayment("momo", btn.getAttribute("data-op-id"), prefix + localVal);
-                        };
-                    });
+                if (val.length >= 4) {
+                    if (matched) {
+                        msgZone.innerHTML = "";
+                        validateBtn.style.display = "flex";
+                    } else if (val.startsWith("+") && val.length > 5) {
+                        msgZone.innerHTML = `<div style="background: rgba(239, 68, 68, 0.1); color: #f87171; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem;">
+                            ⚠️ Ce numéro n'est pas encore pris en charge pour le Mobile Money. 
+                            <br>Veuillez payer par <strong>Carte Visa/Mastercard</strong>.
+                        </div>`;
+                        validateBtn.style.display = "none";
+                    }
+                } else {
+                    validateBtn.style.display = "none";
+                    msgZone.innerHTML = "";
                 }
-            }
-        } catch (err) {
-            if (loader) loader.classList.add("hidden");
-            // Pas d'erreur bloquante, on a le bouton principal
-        }
+            };
+
+            validateBtn.onclick = () => handleHubPayment("momo", null, phoneInput.value.trim());
+        };
     }
 
     async function submitSplitPayment() {
-        console.log("[Payment Debug] Début de la soumission...");
         const receiptInput = document.getElementById("split-payment-receipt");
         const file = receiptInput?.files?.[0];
         if (!file) return alert("Veuillez uploader la capture d'écran du paiement.");
-
 
         const submitBtn = document.getElementById("split-payment-submit");
         submitBtn.disabled = true;
@@ -723,36 +649,23 @@
             const base64 = await fileToDataUrl(file);
             const isCommission = PAYMENT_STATE.step === "commission";
             const reservationId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id;
-            console.log("[Payment Debug] ID de réservation trouvé :", reservationId);
 
-            if (!reservationId) {
-                console.error("[Payment Debug] Erreur: ID manquant dans state.activeThreadData :", state.activeThreadData);
-                throw new Error("Erreur système : ID de réservation introuvable.");
-            }
-            alert(`[DEBUG] Envoi paiement pour réservation #${reservationId}`);
-
+            if (!reservationId) throw new Error("Erreur système : ID de réservation introuvable.");
 
             const endpoint = isCommission
                 ? `/api/reservations/${reservationId}/pay-commission`
                 : `/api/reservations/${reservationId}/pay-traveler`;
-
-            console.log(`[Payment] Envoi vers ${endpoint} (Montant: ${PAYMENT_STATE.amount})`);
 
             await window.CCCommon.api(endpoint, {
                 method: "POST",
                 body: { receiptData: base64, amount: PAYMENT_STATE.amount }
             });
 
-
             document.getElementById("split-payment-modal").classList.add("hidden");
 
             if (isCommission) {
-                // Automatically transition to step 2 (Traveler payment)
                 alert("Paiement plateforme reçu ! Vous pouvez maintenant payer le voyageur directement.");
-                // We need to re-fetch the thread data to ensure we have the updated status
                 await loadConversations();
-
-                // Use the saved totalAmount
                 if (PAYMENT_STATE.totalAmount > 0) {
                     await openSplitPaymentModal("traveler", PAYMENT_STATE.totalAmount);
                 }
@@ -761,46 +674,24 @@
                 await openThread(state.activeThreadId);
             }
         } catch (err) {
-            const feedback = document.getElementById("split-payment-feedback");
-            if (err.payload?.code === "RECEIPT_INVALID") {
-                if (feedback) {
-                    feedback.innerHTML = `<div class="payment-error-box">⚠️ <strong>Reçu non reconnu</strong><br>${err.payload.detail || "Veuillez uploader un vrai reçu de paiement Mobile Money."}</div>`;
-                }
-            } else if (err.payload?.code === "AMOUNT_MISMATCH") {
-                if (feedback) {
-                    feedback.innerHTML = `<div class="payment-error-box">⚠️ <strong>Montant incorrect</strong><br>${err.payload.detail}</div>`;
-                }
-            } else if (err.payload?.code === "PRICE_FRAUD") {
-                if (feedback) {
-                    feedback.innerHTML = `<div class="payment-error-box" style="border-color: #ff4d4d; color: #ff4d4d;">🛑 <strong>Tentative de fraude detected</strong><br>${err.payload.detail}</div>`;
-                }
-            } else {
-
-                alert(err.message || "Erreur lors de l'envoi.");
-            }
+            alert(err.message || "Erreur lors de l'envoi.");
         } finally {
-
             submitBtn.disabled = false;
             submitBtn.innerHTML = "Confirmer le paiement";
         }
     }
 
-    async function handleHubPayment(preferredMethod, provider = null, phoneNum = null) {
+    async function handleHubPayment(type, provider = null, phoneNum = null) {
         const resId = state.activeThreadData?.reservation?.id ||
             state.activeThreadData?.reservation_id ||
             state.activeThreadData?.reservationId;
 
         if (!resId) return alert("Identifiant réservation manquant.");
 
-        // On cherche un bouton actif pour afficher le spinner
-        const btnMomo = document.getElementById("btn-hub-momo-next");
-        const btnCard = document.getElementById("btn-choice-card");
-        const btnCmr = document.getElementById("btn-mtn-cmr") || document.getElementById("btn-orange-cmr");
-
-        const btn = btnMomo || btnCard || btnCmr;
+        const btn = document.getElementById(type === "card" ? "pay-card" : "btn-momo-validate");
         const originalContent = btn ? btn.innerHTML : "";
         if (btn) {
-            btn.innerHTML = `<span class="spinner"></span> Connexion...`;
+            btn.innerHTML = `<span class="spinner" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></span> Connexion...`;
             btn.style.pointerEvents = "none";
         }
 
@@ -809,9 +700,9 @@
                 method: "POST",
                 body: {
                     reservationId: resId,
-                    preferredMode: preferredMethod,
-                    mmoProvider: provider,
-                    phoneNumber: phoneNum
+                    type: type,
+                    phoneNumber: phoneNum,
+                    amountEUR: PAYMENT_STATE.amount
                 }
             });
 
@@ -831,12 +722,10 @@
 
     // ---- Events ----
     function bindEvents() {
-        // Refresh
         els.refreshBtn?.addEventListener("click", () => {
             loadConversations().catch((error) => alert(error.message || "Rafraîchissement impossible."));
         });
 
-        // Conversations click
         els.conversationsList?.addEventListener("click", (event) => {
             const button = event.target.closest("[data-thread-id]");
             if (!button) return;
@@ -844,34 +733,23 @@
             if (threadId) openThread(threadId).catch((error) => alert(error.message || "Ouverture impossible."));
         });
 
-        // Mobile back button
-        els.chatBackBtn?.addEventListener("click", () => {
-            showListView();
-        });
+        els.chatBackBtn?.addEventListener("click", () => showListView());
 
-        // Search filter
         els.convSearchInput?.addEventListener("input", () => {
             renderConversations(els.convSearchInput.value);
         });
 
-        // Message form
         els.messageForm?.addEventListener("submit", (event) => {
             submitMessage(event).catch((error) => alert(error.message || "Envoi impossible."));
         });
 
         els.messageInput?.addEventListener("input", () => {
             const text = els.messageInput.value;
-            if (detectLeakClient(text)) {
-                showLeakWarning(true);
-            } else {
-                showLeakWarning(false);
-            }
+            showLeakWarning(detectLeakClient(text));
         });
 
-        // Split Payment Setup
         els.chatPayBtn?.addEventListener("click", () => openSplitPaymentModal());
 
-        // Split Payment Modal Events
         document.getElementById("split-payment-close")?.addEventListener("click", () => {
             document.getElementById("split-payment-modal").classList.add("hidden");
         });
@@ -880,20 +758,15 @@
         });
         document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
 
-        // Banner Tutorial Click
         els.comprisBtn?.addEventListener("click", () => {
             state.isTutorialAccepted = true;
-            if (state.activeThreadId) {
-                markThreadTutorialAccepted(state.activeThreadId);
-            }
+            if (state.activeThreadId) markThreadTutorialAccepted(state.activeThreadId);
             els.tutorialOverlay?.classList.add("hidden");
             els.chatInfoBanner?.classList.remove("tutorial-focus");
             els.comprisBtn?.classList.remove("highlight-mode");
-            // On cache seulement le bouton, la bannière reste en rappel
             els.comprisBtn?.classList.add("hidden");
         });
 
-        // Bloquer le clic sur l'input si pas compris
         els.messageInput?.addEventListener("mousedown", (e) => {
             if (!state.isTutorialAccepted && !els.chatInfoBanner.classList.contains("hidden")) {
                 e.preventDefault();
@@ -919,7 +792,6 @@
             await loadConversations();
         }
 
-        // Refresh notification badges after entering chat (messages are being read)
         setTimeout(() => {
             window.CCCommon?.syncNotificationBadges?.();
         }, 1500);
