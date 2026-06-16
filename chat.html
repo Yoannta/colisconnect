@@ -189,7 +189,12 @@
     <div id="split-payment-modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-card" style="width: min(380px, calc(100vw - 32px)); max-height: 95vh; overflow-y: auto;">
             <button id="split-payment-close" class="close-modal" aria-label="Fermer">x</button>
-            <section class="modal-panel" style="padding: 5px;">
+
+            <!-- Nouveau conteneur pour le Hub (Stripe / Momo) -->
+            <div id="payment-modal-container"></div>
+
+            <!-- Ancien panel (Masqué par défaut pour le Hub, utilisé pour l'étape 2 Traveler) -->
+            <section id="manual-payment-panel" class="modal-panel" style="padding: 5px; display: none;">
                 <h3 id="split-payment-title"
                     style="color: var(--emerald-bright); margin-bottom: 0.15rem; font-size: 1.15rem;">Paiement Sécurisé
                 </h3>

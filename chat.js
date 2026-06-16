@@ -531,6 +531,13 @@
         const thread = state.activeThreadData;
         if (!thread) return alert("Données de réservation introuvables.");
 
+        const hubContainer = document.getElementById("payment-modal-container");
+        const manualPanel = document.getElementById("manual-payment-panel");
+
+        // --- RESET UI FOR COMMISSION (HUB OR CARD) ---
+        if (manualPanel) manualPanel.style.display = "none";
+        if (hubContainer) hubContainer.style.display = "block";
+
         // ÉTAPE 2/2 : Si la plateforme est déjà payée (Commission ColisConnect validée)
         if (thread.status === "commission_payee") {
             const qr = thread.travelerAlipayQr || thread.travelerWechatQr;
@@ -539,19 +546,21 @@
             PAYMENT_STATE.step = "traveler";
             PAYMENT_STATE.amount = Math.round(PAYMENT_STATE.totalAmount * 0.9);
 
-            const modal = document.getElementById("split-payment-modal");
             document.getElementById("split-payment-title").textContent = "Payer le Voyageur";
             document.getElementById("split-payment-step-desc").textContent = "Scannez le QR Code du voyageur ci-dessous.";
             document.getElementById("split-payment-qr-img").src = qr;
             document.getElementById("split-payment-amount").textContent = "À payer directement";
+
+            // Switch to manual mode for the traveler step
+            if (manualPanel) manualPanel.style.display = "block";
+            if (hubContainer) hubContainer.style.display = "none";
+
             modal.classList.remove("hidden");
             return;
         }
 
         // ÉTAPE 1/2 : Paiement de la commission (HUB)
         PAYMENT_STATE.amount = Math.round(PAYMENT_STATE.totalAmount * 0.1);
-        const modal = document.getElementById("split-payment-modal");
-        const container = document.getElementById("payment-modal-container");
         modal.classList.remove("hidden");
 
         container.innerHTML = `
@@ -748,7 +757,16 @@
             showLeakWarning(detectLeakClient(text));
         });
 
-        els.chatPayBtn?.addEventListener("click", () => openSplitPaymentModal());
+        // Split Payment Setup
+        els.chatPayBtn?.addEventListener("click", () => {
+            const thread = state.activeThreadData;
+            // On récupère le prix total de l'offre
+            const price = thread?.offerPrice || thread?.offer?.price || 0;
+            if (!price || price <= 0) {
+                return alert("Le prix de la réservation n'est pas encore défini.");
+            }
+            openSplitPaymentModal("commission", price);
+        });
 
         document.getElementById("split-payment-close")?.addEventListener("click", () => {
             document.getElementById("split-payment-modal").classList.add("hidden");
