@@ -760,11 +760,7 @@
         // Split Payment Setup
         els.chatPayBtn?.addEventListener("click", () => {
             const thread = state.activeThreadData;
-            // On récupère le prix total de l'offre
             const price = thread?.offerPrice || thread?.offer?.price || 0;
-            if (!price || price <= 0) {
-                return alert("Le prix de la réservation n'est pas encore défini.");
-            }
             openSplitPaymentModal("commission", price);
         });
 
