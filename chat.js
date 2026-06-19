@@ -356,7 +356,59 @@
         els.chatEmptyState?.classList.add("hidden");
         if (els.chatAvatarInitials) els.chatAvatarInitials.textContent = getInitials(thread.travelerName || "Contact");
         if (els.chatMeta) els.chatMeta.textContent = thread.travelerName || "Contact";
-        if (els.chatOfferInfo) els.chatOfferInfo.textContent = thread.offerTitle || "";
+        if (els.chatOfferInfo) els.chatOfferInfo.textContent = thread.offerTitle || "Détails de l'offre";
+
+        // --- AFFICHAGE DES INFOS DE CONTACT (Si payé) ---
+        const paidStatuses = ["paid", "voyageur_paye", "colisconnect_paye"];
+        const isPaid = paidStatuses.includes(String(thread.status || ""));
+
+        let contactBox = document.getElementById("chat-contact-revealed");
+        if (!contactBox) {
+            contactBox = document.createElement("div");
+            contactBox.id = "chat-contact-revealed";
+            els.chatPanelHeader?.after(contactBox);
+        }
+
+        if (isPaid && !thread.isOfferOwner) {
+            // On récupère le profil du voyageur pour avoir son numéro
+            const travelerId = thread.offerOwnerId || thread.offer_owner_id;
+            fetchTravelerContact(travelerId).then(profile => {
+                if (!profile) return;
+                contactBox.innerHTML = `
+                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); border: 1px solid var(--emerald-bright); padding: 15px; border-radius: 12px; margin: 10px 20px; animation: slideDown 0.4s ease;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <div style="color: var(--emerald-bright); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">✅ Réservation Confirmée</div>
+                                <div style="font-weight: 700; font-size: 1.1rem; color: white;">${window.CCCommon.escapeHtml(profile.full_name || thread.travelerName)}</div>
+                                <div style="color: #aaa; font-size: 0.9rem; margin-top: 2px;">Tél: ${window.CCCommon.escapeHtml(profile.phone_number || "Non renseigné")}</div>
+                            </div>
+                            <a href="https://wa.me/${(profile.phone_number || "").replace(/\+/g, '').replace(/\s/g, '')}" target="_blank" 
+                               style="background: #25D366; color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style="width: 18px; filter: brightness(0) invert(1);"> WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                `;
+            });
+        } else {
+            contactBox.innerHTML = "";
+        }
+    }
+
+    async function fetchTravelerContact(userId) {
+        if (!userId) return null;
+        try {
+            const { data, error } = await window.supabase
+                .from('profiles')
+                .select('full_name, phone_number')
+                .eq('id', userId)
+                .maybeSingle();
+            if (error) throw error;
+            return data;
+        } catch (e) {
+            console.error("Error fetching traveler contact:", e);
+            return null;
+        }
     }
 
     async function openThread(threadId) {
