@@ -531,8 +531,11 @@
         const thread = state.activeThreadData;
         if (!thread) return alert("Données de réservation introuvables.");
 
+        const modal = document.getElementById("split-payment-modal");
         const hubContainer = document.getElementById("payment-modal-container");
         const manualPanel = document.getElementById("manual-payment-panel");
+
+        if (!modal || !hubContainer) return console.error("Modal elements missing");
 
         // --- RESET UI FOR COMMISSION (HUB OR CARD) ---
         if (manualPanel) manualPanel.style.display = "none";
@@ -563,7 +566,7 @@
         PAYMENT_STATE.amount = Math.round(PAYMENT_STATE.totalAmount * 0.1);
         modal.classList.remove("hidden");
 
-        container.innerHTML = `
+        hubContainer.innerHTML = `
             <div class="payment-selection">
                 <h3 style="margin-bottom: 20px; font-weight: 600;">Comment souhaitez-vous payer ?</h3>
                 <div class="payment-methods-grid">
@@ -593,7 +596,7 @@
 
         // --- ACTION MOMO ---
         document.getElementById("pay-momo").onclick = () => {
-            container.innerHTML = `
+            hubContainer.innerHTML = `
                 <div class="payment-momo-flow">
                     <button id="btn-back-choice" style="margin-bottom: 15px; opacity: 0.7; font-size: 0.9rem;">← Retour</button>
                     <h3 style="margin-bottom: 10px;">Paiement Mobile Money</h3>
