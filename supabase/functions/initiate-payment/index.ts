@@ -111,46 +111,33 @@ serve(async (req: Request) => {
         const config = getPaymentConfig(departureCountry, phoneNumber);
 
         // RÉGLAGE DU MODE DE PAIEMENT
-        let finalMode = type || config.payment_method;
-
-        // Si c'est du Mobile Money, on utilise "mmo" pour avoir tous les réseaux (Wave, Orange, etc.)
-        if (finalMode === "momo" || finalMode === "pawapay") {
-            finalMode = "mmo";
-        }
+        // Pour avoir la page de choix universelle (Selection Page), il faut OMETTRE payment_method.
+        let finalMode = type === "momo" ? null : (type || config.payment_method);
 
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
 
         const finalAmount = amountEUR ? Math.round(amountEUR * 100) : 400;
-
-        // On utilise la détection du code pays envoyée par le client (+225 -> CI)
         const countryCode = bodyCountry || config.customer_country;
 
         const geniusPayload: any = {
             amount: finalAmount,
             currency: config.currency,
-            payment_method: finalMode,
             description: `Commission CC Res#${reservationId}`,
             customer: {
                 name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Client",
                 email: user.email,
                 country: countryCode,
-                // ON NE NETPAS LE TÉLÉPHONE pour forcer l'affichage du choix des réseaux (Gateway Selection)
-                // Sauf si c'est une carte, là on peut le mettre
-                ...(finalMode === "card" && phoneNumber ? { phone: phoneNumber } : {}),
+                // On ne met le téléphone que si on a forcé un mode (ex: Carte)
+                ...(finalMode && phoneNumber ? { phone: phoneNumber } : {}),
             },
             success_url: `https://yoannta.github.io/colisconnect/chat.html?payment=success&id=${reservationId}`,
             error_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
             metadata: { reservationId, country: departureCountry, detected_country: countryCode }
         };
 
-        // On utilise la sélection MANUELLE de l'utilisateur si elle existe
-        if (mmoProvider) {
-            (geniusPayload as any).mmo_provider = mmoProvider;
-        } else if (config.mmo_provider) {
-            (geniusPayload as any).mmo_provider = config.mmo_provider;
+        if (finalMode) {
+            geniusPayload.payment_method = finalMode;
         }
-
-        console.log(`[Payment] GeniusPay Payload:`, JSON.stringify(geniusPayload));
 
         const geniusResponse = await fetch("https://pay.genius.ci/api/v1/merchant/payments", {
             method: "POST",
@@ -163,6 +150,12 @@ serve(async (req: Request) => {
         });
 
         const result = await geniusResponse.json();
+
+        if (!geniusResponse.ok) {
+            console.error("[Payment] GeniusPay Error Payload:", JSON.stringify(geniusPayload));
+            console.error("[Payment] GeniusPay Error Response:", JSON.stringify(result));
+            throw new Error(result.message || "Erreur GeniusPay");
+        }
 
         if (!geniusResponse.ok) {
             console.error("[Payment] GeniusPay Error API:", result);
