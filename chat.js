@@ -594,8 +594,80 @@
         // --- ACTION CARTE ---
         document.getElementById("pay-card").onclick = () => handleHubPayment("card");
 
-        // --- ACTION MOMO (Direct Redirect) ---
-        document.getElementById("pay-momo").onclick = () => handleHubPayment("momo");
+        // --- ACTION MOMO (Smart Routing Léger) ---
+        document.getElementById("pay-momo").onclick = () => {
+            hubContainer.innerHTML = `
+                <div class="payment-momo-flow" style="animation: fadeIn 0.3s ease;">
+                    <button id="btn-back-choice" style="background: transparent; border: none; color: #aaa; margin-bottom: 20px; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                        <span>←</span> Retour aux choix
+                    </button>
+                    
+                    <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Indicatif pays</h3>
+                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 20px;">Utilisé pour afficher les moyens de paiement de votre région.</p>
+                    
+                    <div class="phone-input-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
+                        <input type="text" id="momo-prefix" placeholder="Ex: +225" style="width: 100%; font-size: 1.1rem; background: transparent; border: none; color: white; outline: none;">
+                    </div>
+                    
+                    <div id="momo-routing-zone"></div>
+                </div>
+            `;
+
+            const prefixInput = document.getElementById("momo-prefix");
+            const routingZone = document.getElementById("momo-routing-zone");
+
+            const countryCodes = {
+                "+225": { name: "Côte d'Ivoire 🇨🇮", iso: "CI" },
+                "+221": { name: "Sénégal 🇸🇳", iso: "SN" },
+                "+229": { name: "Bénin 🇧🇯", iso: "BJ" },
+                "+237": { name: "Cameroun 🇨🇲", iso: "CM" },
+                "+243": { name: "RD Congo 🇨🇩", iso: "CD" },
+                "+242": { name: "Congo 🇨🇬", iso: "CG" },
+                "+241": { name: "Gabon 🇬🇦", iso: "GA" },
+                "+254": { name: "Kenya 🇰🇪", iso: "KE" },
+                "+256": { name: "Ouganda 🇺🇬", iso: "UG" },
+                "+250": { name: "Rwanda 🇷🇼", iso: "RW" },
+                "+260": { name: "Zambie 🇿🇲", iso: "ZM" },
+                "+232": { name: "Sierra Leone 🇸🇱", iso: "SL" }
+            };
+
+            document.getElementById("btn-back-choice").onclick = () => openSplitPaymentModal(type, totalAmount);
+
+            prefixInput.oninput = () => {
+                const val = prefixInput.value.trim();
+                const matched = Object.keys(countryCodes).find(p => val === p || (val.length > 3 && val.startsWith(p)));
+
+                if (matched) {
+                    const c = countryCodes[matched];
+                    routingZone.innerHTML = `
+                        <button class="method-btn-premium" id="btn-momo-go" style="width: 100%; border-color: var(--emerald-bright); margin-top: 10px;">
+                            <span class="icon">🚀</span>
+                            <div class="info">
+                                <span class="title">Continuer en ${c.name}</span>
+                                <span class="desc">Accéder aux passerelles de paiement locales</span>
+                            </div>
+                        </button>
+                    `;
+                    document.getElementById("btn-momo-go").onclick = () => handleHubPayment("momo", null, null, c.iso);
+                } else if (val.length >= 4) {
+                    routingZone.innerHTML = `
+                        <div style="background: rgba(239, 68, 68, 0.1); color: #f87171; padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 0.9rem; line-height: 1.4;">
+                            Le Mobile Money n'est pas encore disponible pour ce pays.
+                        </div>
+                        <button class="method-btn-premium" id="btn-fallback-card" style="width: 100%; border-color: var(--emerald-bright);">
+                            <span class="icon">💳</span>
+                            <div class="info">
+                                <span class="title">Payer par Carte Visa / Mastercard</span>
+                                <span class="desc">Sécurisé par Stripe via GeniusPay</span>
+                            </div>
+                        </button>
+                    `;
+                    document.getElementById("btn-fallback-card").onclick = () => handleHubPayment("card");
+                } else {
+                    routingZone.innerHTML = "";
+                }
+            };
+        };
     }
 
     async function submitSplitPayment() {

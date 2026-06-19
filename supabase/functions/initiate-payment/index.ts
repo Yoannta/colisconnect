@@ -10,14 +10,6 @@ interface PaymentConfig {
     payment_method: string;
     currency: string;
     customer_country: string;
-    mmo_provider?: string;
-}
-
-interface PaymentConfig {
-    payment_method: string;
-    currency: string;
-    customer_country: string;
-    mmo_provider?: string;
 }
 
 const COUNTRY_DATA: Record<string, any> = {
@@ -36,7 +28,6 @@ const COUNTRY_DATA: Record<string, any> = {
 };
 
 function getPaymentConfig(departureCountry: string, phone?: string): PaymentConfig {
-    // Priority 1: Detection by Phone Prefix
     if (phone) {
         const prefix = Object.keys(COUNTRY_DATA).find(p => phone.startsWith(p));
         if (prefix) {
@@ -44,18 +35,13 @@ function getPaymentConfig(departureCountry: string, phone?: string): PaymentConf
             return { payment_method: data.method, currency: data.cur, customer_country: data.cc };
         }
     }
-
-    // Priority 2: Detection by Country Name (Origin of Offer)
     const c = String(departureCountry || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
     if (c.includes("cote d'ivoire") || c.includes("cote d ivoire") || c.includes("abidjan")) return { payment_method: "pawapay", currency: "XOF", customer_country: "CI" };
     if (c.includes("senegal")) return { payment_method: "pawapay", currency: "XOF", customer_country: "SN" };
     if (c.includes("benin")) return { payment_method: "pawapay", currency: "XOF", customer_country: "BJ" };
     if (c.includes("cameroun")) return { payment_method: "pawapay", currency: "XAF", customer_country: "CM" };
     if (c.includes("congo")) return { payment_method: "pawapay", currency: "XAF", customer_country: "CG" };
     if (c.includes("gabon")) return { payment_method: "pawapay", currency: "XAF", customer_country: "GA" };
-
-    // Default Fallback: Card
     return { payment_method: "card", currency: "EUR", customer_country: "FR" };
 }
 
@@ -65,7 +51,6 @@ serve(async (req: Request) => {
     const geniusPubKey = Deno.env.get("GENIUS_PUBLIC_KEY");
     const geniusPrivKey = Deno.env.get("GENIUS_PRIVATE_KEY");
 
-    // ROUTE 1 : DÉCOUVERTE DYNAMIQUE DES OPÉRATEURS (Suggestion Expert #1)
     const url = new URL(req.url);
     if (req.method === "GET" && url.searchParams.has("country")) {
         const country = url.searchParams.get("country")?.toUpperCase();
@@ -77,12 +62,11 @@ serve(async (req: Request) => {
             return new Response(JSON.stringify(data), {
                 headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
             });
-        } catch (err) {
+        } catch (err: any) {
             return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: CORS_HEADERS });
         }
     }
 
-    // ROUTE 2 : INITIATION DE PAIEMENT
     try {
         const supabase = createClient(
             Deno.env.get("SUPABASE_URL") ?? "",
@@ -96,7 +80,7 @@ serve(async (req: Request) => {
         if (authError || !user) throw new Error("Unauthorized");
 
         const body = await req.json().catch(() => ({}));
-        const { reservationId, phoneNumber, type, amountEUR, country: bodyCountry } = body;
+        const { reservationId, phoneNumber, type, amountEUR } = body;
         if (!reservationId) throw new Error("reservationId is required");
 
         const { data: reservation } = await supabase
@@ -106,32 +90,34 @@ serve(async (req: Request) => {
             .maybeSingle();
 
         const departureCountry = (reservation as any)?.offers?.origin || "France";
-
-        // On récupère la config basée sur le numéro OU le pays d'origine
         const config = getPaymentConfig(departureCountry, phoneNumber);
 
-        // RÉGLAGE DU MODE DE PAIEMENT SIMPLIFIÉ (ZÉRO ERREUR)
-        // Pour avoir la page de choix universelle, on OMET payment_method si c'est MOMO.
+        // RÉGLAGE DU MODE DE PAIEMENT V33 (Smart Routing Léger)
         let finalMode = type === "momo" ? null : (type || config.payment_method);
 
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
 
-        // On utilise EUR par défaut pour le Hub Universel (momo) pour une compatibilité totale
-        const finalCurrency = (finalMode === null) ? "EUR" : config.currency;
+        const countryCode = body.country || config.customer_country;
+
+        // GESTION RÉGIONALE DES DEVISES
+        // Zone XOF (Afrique de l'Ouest) : On utilise XOF (100% compatible)
+        // Autres zones : On utilise EUR pour garantir que le Hub GeniusPay s'ouvre sans erreur 400
+        const xofCountries = ["CI", "SN", "BJ", "TG", "ML", "NE", "BF", "GW"];
+        const finalCurrency = (finalMode === null && !xofCountries.includes(countryCode)) ? "EUR" : config.currency;
 
         const geniusPayload: any = {
-            amount: (finalCurrency === "EUR") ? (amountEUR ? Math.round(amountEUR * 100) : 400) : (amountEUR ? Math.round(amountEUR * 100) : 400),
+            amount: (amountEUR ? Math.round(amountEUR * 100) : 400),
             currency: finalCurrency,
             description: `Commission CC Res#${reservationId}`,
             customer: {
                 name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Client",
                 email: user.email,
-                // On laisse l'utilisateur choisir son pays sur GeniusPay pour éviter les erreurs d'indicatif
+                country: countryCode, // Pré-sélection du pays sur GeniusPay
                 ...(finalMode && phoneNumber ? { phone: phoneNumber } : {}),
             },
             success_url: `https://yoannta.github.io/colisconnect/chat.html?payment=success&id=${reservationId}`,
             error_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
-            metadata: { reservationId }
+            metadata: { reservationId, detected_country: countryCode }
         };
 
         if (finalMode) {
@@ -149,37 +135,27 @@ serve(async (req: Request) => {
         });
 
         const result = await geniusResponse.json();
-
         if (!geniusResponse.ok) {
             console.error("[Payment] GeniusPay Error Payload:", JSON.stringify(geniusPayload));
             console.error("[Payment] GeniusPay Error Response:", JSON.stringify(result));
             throw new Error(result.message || "Erreur GeniusPay");
         }
 
-        if (!geniusResponse.ok) {
-            console.error("[Payment] GeniusPay Error API:", result);
-            throw new Error(result.message || "Erreur de l'agrégateur GeniusPay");
-        }
-
         const checkoutUrl = result.data?.checkout_url || result.data?.payment_url || result.checkout_url;
-        if (!checkoutUrl) throw new Error("Payment URL not found in aggregator response");
+        if (!checkoutUrl) throw new Error("Payment URL not found");
 
         return new Response(JSON.stringify({
             success: true,
             paymentUrl: checkoutUrl,
             mode: finalMode,
             country: departureCountry,
-            currency: config.currency
+            currency: finalCurrency
         }), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
 
     } catch (error: any) {
-        console.error("[Payment] Global error:", error.message);
-        return new Response(JSON.stringify({
-            error: error.message,
-            success: false
-        }), {
+        return new Response(JSON.stringify({ error: error.message, success: false }), {
             status: 400,
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });
