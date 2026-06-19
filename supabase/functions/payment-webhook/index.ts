@@ -18,10 +18,11 @@ serve(async (req: Request) => {
         const payload = await req.json();
         console.log("[Webhook] Received payload:", JSON.stringify(payload));
 
-        // GeniusPay envoie les infos dans data.metadata ou data
         const metadata = payload.data?.metadata || payload.metadata || {};
         const reservationId = metadata.reservationId;
         const status = payload.status || payload.data?.status;
+
+        console.log(`[Webhook] Processing Reservation ID: ${reservationId}, Status: ${status}`);
 
         if (!reservationId) {
             console.error("[Webhook] Missing reservationId in metadata");

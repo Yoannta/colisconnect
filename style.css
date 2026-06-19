@@ -1,4 +1,38 @@
-﻿:root {
+﻿/* Toast Notifications */
+.cc-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 25px;
+    background: rgba(13, 17, 23, 0.95);
+    color: white;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    transform: translateY(-100px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+}
+
+.cc-toast.visible {
+    transform: translateY(0);
+}
+
+.cc-toast.success {
+    border-color: var(--emerald-bright);
+    color: var(--emerald-bright);
+}
+
+.cc-toast.error {
+    border-color: #ff7675;
+    color: #ff7675;
+}
+
+:root {
     /* Emerald-Obsidian Palette */
     --bg-charcoal: #050709;
     --bg-obsidian: #080c10;

@@ -112,7 +112,7 @@
         cpmConfirmBtn: document.getElementById("cpm-confirm-btn"),
     };
 
-    // ---- Mobile Nav Helpers ----
+    // ---- Helpers ----
     function isMobileView() {
         return window.innerWidth <= 800 || document.documentElement.classList.contains('mobile-mode');
     }
@@ -127,6 +127,18 @@
         if (!isMobileView()) return;
         els.chatSidebar?.classList.remove('mobile-hidden');
         els.chatPanel?.classList.remove('mobile-active');
+    }
+
+    function showNotification(message, type = "info") {
+        const toast = document.createElement("div");
+        toast.className = `cc-toast ${type}`;
+        toast.innerHTML = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add("visible"), 100);
+        setTimeout(() => {
+            toast.classList.remove("visible");
+            setTimeout(() => toast.remove(), 500);
+        }, 5000);
     }
 
     // ---- Conversations ----
@@ -911,6 +923,28 @@
             els.comprisBtn?.classList.add("hidden");
         });
 
+        document.getElementById("chat-verify-payment-btn")?.addEventListener("click", async () => {
+            const ref = prompt("Entrez votre référence de paiement (ex: GeniusPay ID) :");
+            if (!ref) return;
+
+            showNotification("🔍 Vérification en cours...", "info");
+            try {
+                // On appelle le webhook manuellement avec la référence
+                await window.CCCommon.api("/api/payment-webhook", {
+                    method: "POST",
+                    body: {
+                        status: "success",
+                        transaction_id: ref,
+                        metadata: { reservationId: state.activeThreadData?.reservation?.id || state.activeThreadData?.id }
+                    }
+                });
+                showNotification("✅ Paiement confirmé ! Rafraîchissement...", "success");
+                setTimeout(() => openThread(state.activeThreadId), 1500);
+            } catch (err) {
+                alert("Erreur de vérification : " + err.message);
+            }
+        });
+
         els.messageInput?.addEventListener("mousedown", (e) => {
             if (!state.isTutorialAccepted && !els.chatInfoBanner.classList.contains("hidden")) {
                 e.preventDefault();
@@ -922,6 +956,21 @@
     // ---- Bootstrap ----
     async function bootstrap() {
         await window.CCCommon.init("chat");
+        bindEvents();
+
+        // Gérer le retour de paiement réussi
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('status') === 'success') {
+            const ref = urlParams.get('reference');
+            try {
+                showNotification(`✅ Paiement validé (${ref}) ! Vos informations de contact sont en cours de déblocage.`, "success");
+            } catch (e) { console.error(e); }
+
+            if (window.CCCommon.state.user) {
+                setTimeout(() => loadConversations(), 1000);
+            }
+        }
+
         if (!window.CCCommon.requireAuth("chat.html")) return;
         state.userId = window.CCCommon.state.user?.id;
 

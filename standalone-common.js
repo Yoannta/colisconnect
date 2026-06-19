@@ -683,9 +683,12 @@
             }
 
             // 7. PAYMENTS
-            if (p.includes("/payments") || p.includes("/initiate-payment")) {
+            if (p.includes("/payments") || p.includes("/initiate-payment") || p.includes("/payment-webhook")) {
                 const urlObj = new URL(path, window.location.origin);
-                const funcName = 'initiate-payment' + urlObj.search; // On ajoute ?country=XX directement à l'URL
+                let funcName = '';
+                if (p.includes("/initiate-payment")) funcName = 'initiate-payment' + urlObj.search;
+                else if (p.includes("/payment-webhook")) funcName = 'payment-webhook';
+                else funcName = 'initiate-payment';
 
                 const { data, error } = await window.ccSupabase.functions.invoke(funcName, {
                     method: options.method || "POST",
