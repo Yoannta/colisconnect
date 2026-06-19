@@ -849,6 +849,77 @@ body {
     gap: 10px;
 }
 
+/* Chat Messages & Bubbles */
+.chat-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 10px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.chat-message {
+    max-width: 80%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.chat-message.msg-me {
+    align-self: flex-end;
+}
+
+.chat-message.msg-me .chat-message-content {
+    background: var(--emerald-bright);
+    color: #000;
+    border-radius: 18px 18px 2px 18px;
+    font-weight: 500;
+}
+
+.chat-message.msg-other {
+    align-self: flex-start;
+}
+
+.chat-message.msg-other .chat-message-content {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px 18px 18px 2px;
+}
+
+.chat-message.msg-system {
+    align-self: center;
+    max-width: 90%;
+    margin: 8px 0;
+}
+
+.chat-message.msg-system .chat-message-content {
+    background: rgba(19, 236, 200, 0.05);
+    color: var(--emerald-bright);
+    border: 1px dashed var(--emerald-bright);
+    text-align: center;
+    border-radius: 10px;
+    padding: 8px 14px;
+}
+
+.chat-message-content {
+    padding: 10px 16px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.chat-message-time {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin: 0 4px;
+}
+
+.chat-message.msg-me .chat-message-time {
+    align-self: flex-end;
+}
+
 .chat-info-banner {
     background: rgba(19, 236, 200, 0.08);
     border: 1px solid rgba(19, 236, 200, 0.2);
@@ -2553,24 +2624,6 @@ label {
 
 .mobile-mode .messages-layout aside,
 .mobile-mode .messages-layout section {
-    background: rgba(4, 9, 18, 0.95);
-    border-radius: 16px;
-    padding: 16px;
-}
-
-/* --- Dashboard V2 - Ultra Premium --- */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: 350px 1fr;
-    grid-template-rows: auto 1fr;
-    gap: 24px;
-    margin-top: 24px;
-}
-
-.dashboard-card {
-    background: var(--surface);
-    backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--line);
     border-radius: var(--radius);
     padding: 24px;
     transition: all 0.3s ease;
