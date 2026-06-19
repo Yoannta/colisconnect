@@ -235,6 +235,25 @@
         catch { return ""; }
     }
 
+    function normalizeId(value) {
+        return value === undefined || value === null ? "" : String(value);
+    }
+
+    function getMessageSenderSide(msg) {
+        const senderType = String(msg.senderType || msg.sender_type || msg.sender || "").toLowerCase();
+        if (senderType === "system") return "system";
+
+        const currentUserId = normalizeId(state.userId || window.CCCommon.state?.user?.id);
+        const senderUserId = normalizeId(msg.senderUserId || msg.sender_user_id || msg.userId || msg.user_id || msg.senderId || msg.sender_id);
+
+        if (currentUserId && senderUserId) {
+            return senderUserId === currentUserId ? "user" : "traveler";
+        }
+
+        if (senderType === "user" || senderType === "me") return "user";
+        return "traveler";
+    }
+
     function renderMessages(messages) {
         if (!els.messagesList) return;
         const rows = Array.isArray(messages) ? messages : [];
@@ -249,7 +268,7 @@
     }
 
     function renderSingleMessage(msg) {
-        const sender = String(msg.sender || "system");
+        const sender = getMessageSenderSide(msg);
         const msgType = String(msg.messageType || msg.message_type || "text");
         const timeStr = formatMsgTime(msg.createdAt || msg.created_at);
 
