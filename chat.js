@@ -599,12 +599,12 @@
             if (!qr) return alert("Le voyageur n'a pas encore configuré ses moyens de paiement. Veuillez lui demander dans le chat.");
 
             PAYMENT_STATE.step = "traveler";
-            PAYMENT_STATE.amount = Math.round(PAYMENT_STATE.totalAmount * 0.9);
+            PAYMENT_STATE.amount = 200; // FORCE 200 XOF POUR TEST
 
-            document.getElementById("split-payment-title").textContent = "Payer le Voyageur";
+            document.getElementById("split-payment-title").textContent = "Payer le Voyageur (Mode Test)";
             document.getElementById("split-payment-step-desc").textContent = "Scannez le QR Code du voyageur ci-dessous.";
             document.getElementById("split-payment-qr-img").src = qr;
-            document.getElementById("split-payment-amount").textContent = "À payer directement";
+            document.getElementById("split-payment-amount").textContent = "À payer (Test)";
 
             // Switch to manual mode for the traveler step
             if (manualPanel) manualPanel.style.display = "block";
