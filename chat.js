@@ -955,29 +955,30 @@
 
     // ---- Bootstrap ----
     async function bootstrap() {
-        await window.CCCommon.init("chat");
+        try {
+            await window.CCCommon.init("chat");
+            console.log("Chat initialized");
+        } catch (e) { console.error("CCCommon init error:", e); }
+
         bindEvents();
 
-        // Gérer le retour de paiement réussi
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('status') === 'success') {
-            const ref = urlParams.get('reference');
-            try {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('status') === 'success') {
+                const ref = urlParams.get('reference');
                 showNotification(`✅ Paiement validé (${ref}) ! Vos informations de contact sont en cours de déblocage.`, "success");
-            } catch (e) { console.error(e); }
 
-            if (window.CCCommon.state.user) {
-                setTimeout(() => loadConversations(), 1000);
+                if (window.CCCommon.state.user) {
+                    setTimeout(() => loadConversations(), 1000);
+                }
             }
-        }
+        } catch (e) { console.error("Payment return handling error:", e); }
 
         if (!window.CCCommon.requireAuth("chat.html")) return;
         state.userId = window.CCCommon.state.user?.id;
 
         const params = new URLSearchParams(window.location.search || "");
         const offerId = params.get("offerId");
-
-        bindEvents();
 
         if (offerId) {
             await ensureConversationForOffer(offerId);
