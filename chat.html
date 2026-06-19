@@ -16,72 +16,16 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=4.5">
+    <link rel="stylesheet" href="style.css">
+
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
 
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
-    <script defer src="standalone-common.js?v=5.0"></script>
-    <script defer src="admin-banner.js?v=5.0"></script>
-    <script defer src="chat.js?v=5.0"></script>
-    <style>
-        /* Force chat message alignment */
-        .chat-messages-zone {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 15px !important;
-            padding: 20px !important;
-            background: transparent !important;
-        }
-
-        .chat-msg-row {
-            display: flex !important;
-            width: 100% !important;
-            background: transparent !important;
-            border: none !important;
-        }
-
-        .chat-msg-right {
-            justify-content: flex-end !important;
-        }
-
-        .chat-msg-left {
-            justify-content: flex-start !important;
-        }
-
-        .chat-msg-system {
-            justify-content: center !important;
-        }
-
-        .chat-bubble-user {
-            background: #13ecc8 !important;
-            /* Emerald Bright */
-            color: #000 !important;
-            padding: 10px 16px !important;
-            border-radius: 18px 18px 2px 18px !important;
-            max-width: 80% !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
-        }
-
-        .chat-bubble-traveler {
-            background: rgba(255, 255, 255, 0.1) !important;
-            color: #fff !important;
-            padding: 10px 16px !important;
-            border-radius: 18px 18px 18px 2px !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            max-width: 80% !important;
-        }
-
-        .chat-bubble-system {
-            background: rgba(19, 236, 200, 0.1) !important;
-            color: #13ecc8 !important;
-            padding: 8px 14px !important;
-            border-radius: 10px !important;
-            font-size: 0.85rem !important;
-            border: 1px dashed #13ecc8 !important;
-        }
-    </style>
+    <script defer src="standalone-common.js"></script>
+    <script defer src="admin-banner.js"></script>
+    <script defer src="chat.js"></script>
 </head>
 
 <body class="chat-page">
@@ -89,7 +33,6 @@
     <div class="ambient ambient-a" aria-hidden="true"></div>
     <div class="ambient ambient-b" aria-hidden="true"></div>
 
-    <!-- Desktop header (hidden on mobile) -->
     <header class="site-header desktop-only-header">
         <div class="brand">
             <div class="brand-logo">
@@ -106,7 +49,6 @@
                 <p class="brand-sub">Transport de colis entre particuliers</p>
             </div>
         </div>
-
         <nav class="main-nav" aria-label="Navigation principale">
             <a href="index.html" class="nav-link">Accueil</a>
             <a href="results.html" class="nav-link">Explorer</a>
@@ -114,7 +56,6 @@
             <a href="chat.html" class="nav-link is-active">Messages</a>
             <a href="partner.html" id="nav-partner-link" class="nav-link hidden">Partenaire</a>
         </nav>
-
         <div class="header-auth">
             <p id="user-chip" class="user-chip hidden"></p>
             <a id="admin-link" href="admin.html" class="btn secondary hidden">Admin</a>
@@ -123,10 +64,7 @@
         </div>
     </header>
 
-    <!-- ===== MESSENGER LAYOUT ===== -->
     <div class="chat-app-wrapper">
-
-        <!-- ===== SIDEBAR (Conversations List) ===== -->
         <aside class="chat-sidebar" id="chat-sidebar">
             <div class="chat-sidebar-header">
                 <div class="chat-sidebar-title-row">
@@ -150,7 +88,6 @@
                 </div>
             </div>
 
-            <!-- Admin Inbox (collapsed by default if empty) -->
             <div class="chat-section-label" id="admin-inbox-section">
                 <svg viewBox="0 0 24 24" fill="none" width="14" height="14" stroke="currentColor" stroke-width="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -168,10 +105,7 @@
             <div id="conversations-list" class="chat-conv-list"></div>
         </aside>
 
-        <!-- ===== CHAT PANEL ===== -->
         <section class="chat-panel" id="chat-panel">
-
-            <!-- Empty state (when no conversation selected) -->
             <div class="chat-empty-state" id="chat-empty-state">
                 <div class="chat-empty-icon">
                     <svg viewBox="0 0 24 24" fill="none" width="64" height="64" stroke="currentColor" stroke-width="1">
@@ -182,7 +116,6 @@
                 <p>Sélectionnez une conversation pour commencer à discuter.</p>
             </div>
 
-            <!-- Chat header (shown when conversation is active) -->
             <div class="chat-panel-header hidden" id="chat-panel-header">
                 <button class="chat-back-btn" id="chat-back-btn" aria-label="Retour">
                     <svg viewBox="0 0 24 24" fill="none" width="22" height="22" stroke="currentColor" stroke-width="2">
@@ -197,19 +130,14 @@
                     <div class="chat-panel-contact-sub" id="chat-offer-info"></div>
                 </div>
                 <div class="chat-panel-actions">
-                    <button id="chat-verify-payment-btn" class="btn secondary sm" style="margin-right: 8px;">
-                        🔍 Vérifier paiement
-                    </button>
-                    <button id="chat-pay-btn" class="btn cta-pay-btn hidden">
-                        Valider ma réservation
-                    </button>
+                    <button id="chat-verify-payment-btn" class="btn secondary sm" style="margin-right: 8px;">🔍 Vérifier
+                        paiement</button>
+                    <button id="chat-pay-btn" class="btn cta-pay-btn hidden">Valider ma réservation</button>
                 </div>
             </div>
 
-            <!-- Overlay Tutoriel -->
             <div id="chat-tutorial-overlay" class="tutorial-overlay hidden"></div>
 
-            <!-- Bannière d'info UX (Tutoriel Forcé) -->
             <div id="chat-info-banner" class="chat-info-banner hidden">
                 <div class="banner-icon">💡</div>
                 <div class="banner-text">
@@ -217,15 +145,12 @@
                     Si vous tombez d'accord avec le voyageur, vous devez cliquer sur
                     <strong>"Valider ma réservation"</strong> pour obtenir ses coordonnées.
                 </div>
-                <button type="button" id="banner-compris-btn" class="btn primary sm banner-action-btn">
-                    J'ai compris
-                </button>
+                <button type="button" id="banner-compris-btn" class="btn primary sm banner-action-btn">J'ai
+                    compris</button>
             </div>
 
-            <!-- Messages Zone -->
             <div id="messages-list" class="chat-messages-zone"></div>
 
-            <!-- Message Input Form -->
             <form id="message-form" class="chat-input-bar">
                 <input id="message-input" type="text" placeholder="Écrire un message..." maxlength="1000"
                     autocomplete="off">
@@ -239,58 +164,13 @@
         </section>
     </div>
 
-
-
-    <!-- ===== MODALE PAIEMENT (SPLIT P2P) ===== -->
-
     <div id="split-payment-modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-card" style="width: min(380px, calc(100vw - 32px)); max-height: 95vh; overflow-y: auto;">
             <button id="split-payment-close" class="close-modal" aria-label="Fermer">x</button>
-
-            <!-- Nouveau conteneur pour le Hub (Stripe / Momo) -->
             <div id="payment-modal-container"></div>
-
-            <!-- Ancien panel (Masqué par défaut pour le Hub, utilisé pour l'étape 2 Traveler) -->
-            <section id="manual-payment-panel" class="modal-panel" style="padding: 5px; display: none;">
-                <h3 id="split-payment-title"
-                    style="color: var(--emerald-bright); margin-bottom: 0.15rem; font-size: 1.15rem;">Paiement Sécurisé
-                </h3>
-                <p id="split-payment-step-desc"
-                    style="opacity: 0.75; margin-bottom: 0.75rem; font-size: 0.82rem; line-height: 1.3;">
-                    Scannez, payez, et envoyez la capture.
-                </p>
-
-                <!-- Zone d'affichage du QR Code -->
-                <div
-                    style="background: white; padding: 0.5rem; border-radius: 10px; margin-bottom: 0.75rem; text-align: center; display: flex; justify-content: center; align-items: center; min-height: 140px;">
-                    <img id="split-payment-qr-img" src="" alt="QR"
-                        style="max-width: 100%; max-height: 180px; height: auto; width: auto; object-fit: contain; border: 1px solid #f0f0f0;">
-                </div>
-
-                <!-- Détails du paiement -->
-                <div
-                    style="background: rgba(255,255,255,0.03); padding: 0.5rem 0.75rem; border-radius: 8px; margin-bottom: 0.75rem; display:flex; justify-content: space-between; align-items: center; border: 1px solid var(--line);">
-                    <span style="font-size: 0.85rem; opacity: 0.85;">À payer :</span>
-                    <strong id="split-payment-amount"
-                        style="color: var(--emerald-bright); font-size: 1.15rem;">0.00</strong>
-                </div>
-
-                <!-- Zone d'upload de la preuve -->
-                <label
-                    style="display: block; text-align: left; margin-bottom: 0.3rem; font-weight: 500; font-size: 0.8rem; opacity: 0.9;">Preuve
-                    de paiement (Screenshot)</label>
-                <input type="file" id="split-payment-receipt" accept="image/*"
-                    style="margin-bottom: 0.85rem; width: 100%; font-size: 0.75rem;">
-
-                <button id="split-payment-submit" class="btn primary"
-                    style="width: 100%; padding: 10px; font-size: 0.9rem;">Confirmer le paiement</button>
-                <div id="split-payment-feedback" class="auth-feedback"
-                    style="margin-top: 0.5rem; text-align: center; font-size: 0.75rem;"></div>
-            </section>
         </div>
     </div>
 
-    <!-- ===== NOUVEAU HUB DE PAIEMENT (STRIPE & FLUTTERWAVE) ===== -->
     <div id="payment-hub-modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-card"
             style="width: min(420px, 95vw); border: 1px solid rgba(0, 242, 255, 0.2); background: #0d1117;">
@@ -310,9 +190,7 @@
                         €</p>
                     <p style="font-size: 0.8rem; opacity: 0.6;">Transaction protégée par ColisConnect</p>
                 </div>
-
                 <div id="payment-hub-methods" class="payment-methods-grid">
-                    <!-- Section Mobile Money (Dynamique) -->
                     <div id="method-local" class="payment-method-card">
                         <div class="method-icons" id="local-payment-icons"></div>
                         <div class="method-info">
@@ -320,8 +198,6 @@
                         </div>
                         <div class="method-arrow">→</div>
                     </div>
-
-                    <!-- Section Carte / Apple Pay (Stripe) -->
                     <div id="method-global" class="payment-method-card">
                         <div class="method-icons">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa"
@@ -335,7 +211,6 @@
                         <div class="method-arrow">→</div>
                     </div>
                 </div>
-
                 <div style="margin-top: 1.5rem; text-align: center;">
                     <p style="font-size: 0.7rem; opacity: 0.5; line-height: 1.4;">
                         En payant, vous acceptez nos conditions générales. <br>
@@ -346,7 +221,6 @@
         </div>
     </div>
 
-    <!-- Navigation Mobile Basse -->
     <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
         <a href="index.html" class="mob-nav-item">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -374,14 +248,6 @@
                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             <span>Messages</span>
-        </a>
-        <a href="partner.html" id="mobile-partner-link" class="mob-nav-item hidden">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
-            <span>Partenaire</span>
         </a>
         <a href="dashboard.html" class="mob-nav-item">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
