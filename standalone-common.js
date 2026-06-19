@@ -544,7 +544,21 @@
                     return thread;
                 }
                 const threadMatch = path.match(/\/api\/conversations\/([^\/\?]+)\/messages/);
-                if (threadMatch) { // GET MESSAGES
+                if (threadMatch && options.method === "POST") {
+                    // SEND MESSAGE
+                    const threadId = threadMatch[1];
+                    const senderType = state.user?.id ? "user" : "system";
+                    const { data, error } = await window.ccSupabase.from('chat_messages').insert({
+                        thread_id: threadId,
+                        sender_id: state.user?.id,
+                        sender_type: senderType,
+                        text: options.body.text
+                    }).select().single();
+                    if (error) throw error;
+                    return data;
+                }
+                if (threadMatch) {
+                    // GET MESSAGES
                     const { data, error } = await window.ccSupabase.from('chat_messages').select('*').eq('thread_id', threadMatch[1]).order('created_at', { ascending: true });
                     if (error) throw error;
                     return data || [];
