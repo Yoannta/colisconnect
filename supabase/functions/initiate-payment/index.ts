@@ -98,21 +98,22 @@ serve(async (req: Request) => {
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
 
         const countryCode = bodyCountry || config.customer_country || "CI";
-
-        // GESTION RÉGIONALE DES DEVISES
-        // Zone XOF (Afrique de l'Ouest) : On utilise XOF (100% compatible)
-        // Autres zones : On utilise EUR pour garantir que le Hub GeniusPay s'ouvre sans erreur 400
         const xofCountries = ["CI", "SN", "BJ", "TG", "ML", "NE", "BF", "GW"];
-        const finalCurrency = (finalMode === null && !xofCountries.includes(countryCode)) ? "EUR" : config.currency;
+        const isXofZone = xofCountries.includes(countryCode);
+
+        // MODE TEST: 200 XOF ou 0.31 EUR (~200 XOF)
+        const finalCurrency = (finalMode === null && !isXofZone) ? "EUR" : (isXofZone ? "XOF" : "EUR");
+        let finalAmount = 200;
+        if (finalCurrency === "EUR") finalAmount = 31; // 0.31€
 
         const geniusPayload: any = {
-            amount: (amountEUR ? Math.round(amountEUR * 100) : 400),
+            amount: finalAmount,
             currency: finalCurrency,
-            description: `Commission CC Res#${reservationId}`,
+            description: `TEST 200 XOF - Commission CC Res#${reservationId}`,
             customer: {
                 name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Client",
                 email: user.email,
-                country: countryCode, // Pré-sélection du pays sur GeniusPay
+                country: countryCode,
                 ...(finalMode && phoneNumber ? { phone: phoneNumber } : {}),
             },
             success_url: `https://yoannta.github.io/colisconnect/chat.html?payment=success&id=${reservationId}`,
@@ -149,7 +150,8 @@ serve(async (req: Request) => {
             paymentUrl: checkoutUrl,
             mode: finalMode,
             country: departureCountry,
-            currency: finalCurrency
+            currency: finalCurrency,
+            test_amount: finalAmount
         }), {
             headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
         });

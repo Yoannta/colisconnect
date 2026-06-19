@@ -615,7 +615,7 @@
         }
 
         // ÉTAPE 1/2 : Paiement de la commission (HUB)
-        PAYMENT_STATE.amount = Math.round(PAYMENT_STATE.totalAmount * 0.1);
+        PAYMENT_STATE.amount = 200; // FORCE 200 XOF POUR TEST
         modal.classList.remove("hidden");
 
         hubContainer.innerHTML = `
