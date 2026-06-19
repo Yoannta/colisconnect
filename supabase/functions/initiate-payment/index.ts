@@ -110,33 +110,28 @@ serve(async (req: Request) => {
         // On récupère la config basée sur le numéro OU le pays d'origine
         const config = getPaymentConfig(departureCountry, phoneNumber);
 
-        // RÉGLAGE DU MODE DE PAIEMENT
+        // RÉGLAGE DU MODE DE PAIEMENT SIMPLIFIÉ (ZÉRO ERREUR)
+        // Pour avoir la page de choix universelle, on OMET payment_method si c'est MOMO.
         let finalMode = type === "momo" ? null : (type || config.payment_method);
 
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
 
-        const finalAmount = amountEUR ? Math.round(amountEUR * 100) : 400;
-        const countryCode = bodyCountry || config.customer_country;
-
-        // GESTION INTELLIGENTE DE LA DEVISE
-        // Pour le hub universel (finalMode == null), GeniusPay préfère souvent EUR ou XOF.
-        // Si le pays n'est pas en zone XOF (SN, BJ, CI), on force EUR pour éviter les erreurs 400 d'incompatibilité.
-        const xofCountries = ["CI", "SN", "BJ"];
-        const finalCurrency = (finalMode === null && !xofCountries.includes(countryCode)) ? "EUR" : config.currency;
+        // On utilise EUR par défaut pour le Hub Universel (momo) pour une compatibilité totale
+        const finalCurrency = (finalMode === null) ? "EUR" : config.currency;
 
         const geniusPayload: any = {
-            amount: (finalCurrency === "EUR") ? (amountEUR ? Math.round(amountEUR * 100) : 400) : finalAmount,
+            amount: (finalCurrency === "EUR") ? (amountEUR ? Math.round(amountEUR * 100) : 400) : (amountEUR ? Math.round(amountEUR * 100) : 400),
             currency: finalCurrency,
             description: `Commission CC Res#${reservationId}`,
             customer: {
                 name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Client",
                 email: user.email,
-                country: countryCode,
+                // On laisse l'utilisateur choisir son pays sur GeniusPay pour éviter les erreurs d'indicatif
                 ...(finalMode && phoneNumber ? { phone: phoneNumber } : {}),
             },
             success_url: `https://yoannta.github.io/colisconnect/chat.html?payment=success&id=${reservationId}`,
             error_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
-            metadata: { reservationId, country: departureCountry, detected_country: countryCode }
+            metadata: { reservationId }
         };
 
         if (finalMode) {

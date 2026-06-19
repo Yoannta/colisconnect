@@ -594,68 +594,8 @@
         // --- ACTION CARTE ---
         document.getElementById("pay-card").onclick = () => handleHubPayment("card");
 
-        // --- ACTION MOMO ---
-        document.getElementById("pay-momo").onclick = () => {
-            hubContainer.innerHTML = `
-                <div class="payment-momo-flow">
-                    <button id="btn-back-choice" style="margin-bottom: 15px; opacity: 0.7; font-size: 0.9rem;">← Retour</button>
-                    <h3 style="margin-bottom: 10px;">Paiement Mobile Money</h3>
-                    <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">Entrez votre numéro au format international (ex: +225...)</p>
-                    
-                    <div class="phone-input-group" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                        <input type="text" id="momo-phone" placeholder="+225XXXXXXXXXX" style="width: 100%; font-size: 1.1rem; background: transparent; border: none; color: white; outline: none;">
-                    </div>
-                    
-                    <div id="momo-validation-msg"></div>
-                    
-                    <button class="method-btn-premium" id="btn-momo-validate" style="width: 100%; border-color: var(--emerald-bright); display: none;">
-                        <span class="icon">✅</span>
-                        <span class="title">Valider le paiement</span>
-                    </button>
-                </div>
-            `;
-
-            const phoneInput = document.getElementById("momo-phone");
-            const validateBtn = document.getElementById("btn-momo-validate");
-            const msgZone = document.getElementById("momo-validation-msg");
-
-            const prefixMap = {
-                "+225": "CI", "+221": "SN", "+229": "BJ", "+237": "CM",
-                "+243": "CD", "+242": "CG", "+241": "GA", "+254": "KE",
-                "+256": "UG", "+250": "RW", "+260": "ZM", "+232": "SL"
-            };
-            const supportedPrefixes = Object.keys(prefixMap);
-
-            document.getElementById("btn-back-choice").onclick = () => openSplitPaymentModal(type, totalAmount);
-
-            phoneInput.oninput = () => {
-                const val = phoneInput.value.trim();
-                const matched = supportedPrefixes.find(p => val.startsWith(p));
-
-                if (val.length >= 4) {
-                    if (matched) {
-                        msgZone.innerHTML = "";
-                        validateBtn.style.display = "flex";
-                        // Store detected country globally in the closure or dataset
-                        validateBtn.dataset.country = prefixMap[matched];
-                    } else if (val.startsWith("+") && val.length > 5) {
-                        msgZone.innerHTML = `<div style="background: rgba(239, 68, 68, 0.1); color: #f87171; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem;">
-                            ⚠️ Ce numéro n'est pas encore pris en charge pour le Mobile Money. 
-                            <br>Veuillez payer par <strong>Carte Visa/Mastercard</strong>.
-                        </div>`;
-                        validateBtn.style.display = "none";
-                    }
-                } else {
-                    validateBtn.style.display = "none";
-                    msgZone.innerHTML = "";
-                }
-            };
-
-            validateBtn.onclick = () => {
-                const country = validateBtn.dataset.country || "CI";
-                handleHubPayment("momo", null, phoneInput.value.trim(), country);
-            };
-        };
+        // --- ACTION MOMO (Direct Redirect) ---
+        document.getElementById("pay-momo").onclick = () => handleHubPayment("momo");
     }
 
     async function submitSplitPayment() {
