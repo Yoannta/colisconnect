@@ -550,7 +550,7 @@
                     const senderType = state.user?.id ? "user" : "system";
                     const { data, error } = await window.ccSupabase.from('chat_messages').insert({
                         thread_id: threadId,
-                        sender_id: state.user?.id,
+                        sender_user_id: state.user?.id,
                         sender_type: senderType,
                         text: options.body.text
                     }).select().single();
