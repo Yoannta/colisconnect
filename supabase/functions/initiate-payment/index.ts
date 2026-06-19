@@ -96,7 +96,7 @@ serve(async (req: Request) => {
         if (authError || !user) throw new Error("Unauthorized");
 
         const body = await req.json().catch(() => ({}));
-        const { reservationId, phoneNumber, preferredMode, mmoProvider, amountEUR } = body;
+        const { reservationId, phoneNumber, type, amountEUR, country: bodyCountry } = body;
         if (!reservationId) throw new Error("reservationId is required");
 
         const { data: reservation } = await supabase
@@ -106,19 +106,26 @@ serve(async (req: Request) => {
             .maybeSingle();
 
         const departureCountry = (reservation as any)?.offers?.origin || "France";
+
+        // On récupère la config basée sur le numéro OU le pays d'origine
         const config = getPaymentConfig(departureCountry, phoneNumber);
 
-        let finalMode = preferredMode || config.payment_method;
-        if (phoneNumber && finalMode !== "card") {
-            const isWhitelisted = Object.keys(COUNTRY_DATA).some(p => phoneNumber.startsWith(p));
-            if (isWhitelisted) finalMode = "pawapay";
+        // RÉGLAGE DU MODE DE PAIEMENT
+        let finalMode = type || config.payment_method;
+
+        // Si c'est du Mobile Money, on utilise "mmo" pour avoir tous les réseaux (Wave, Orange, etc.)
+        if (finalMode === "momo" || finalMode === "pawapay") {
+            finalMode = "mmo";
         }
 
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
 
         const finalAmount = amountEUR ? Math.round(amountEUR * 100) : 400;
 
-        const geniusPayload = {
+        // On utilise la détection du code pays envoyée par le client (+225 -> CI)
+        const countryCode = bodyCountry || config.customer_country;
+
+        const geniusPayload: any = {
             amount: finalAmount,
             currency: config.currency,
             payment_method: finalMode,
@@ -126,12 +133,14 @@ serve(async (req: Request) => {
             customer: {
                 name: user.user_metadata?.full_name || user.email?.split("@")[0] || "Client",
                 email: user.email,
-                country: config.customer_country,
-                ...(phoneNumber ? { phone: phoneNumber } : {}),
+                country: countryCode,
+                // ON NE NETPAS LE TÉLÉPHONE pour forcer l'affichage du choix des réseaux (Gateway Selection)
+                // Sauf si c'est une carte, là on peut le mettre
+                ...(finalMode === "card" && phoneNumber ? { phone: phoneNumber } : {}),
             },
             success_url: `https://yoannta.github.io/colisconnect/chat.html?payment=success&id=${reservationId}`,
             error_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
-            metadata: { reservationId, country: departureCountry }
+            metadata: { reservationId, country: departureCountry, detected_country: countryCode }
         };
 
         // On utilise la sélection MANUELLE de l'utilisateur si elle existe

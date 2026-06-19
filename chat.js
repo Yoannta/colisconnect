@@ -619,7 +619,12 @@
             const validateBtn = document.getElementById("btn-momo-validate");
             const msgZone = document.getElementById("momo-validation-msg");
 
-            const supportedPrefixes = ["+225", "+221", "+229", "+237", "+243", "+242", "+241", "+254", "+256", "+250", "+260", "+232"];
+            const prefixMap = {
+                "+225": "CI", "+221": "SN", "+229": "BJ", "+237": "CM",
+                "+243": "CD", "+242": "CG", "+241": "GA", "+254": "KE",
+                "+256": "UG", "+250": "RW", "+260": "ZM", "+232": "SL"
+            };
+            const supportedPrefixes = Object.keys(prefixMap);
 
             document.getElementById("btn-back-choice").onclick = () => openSplitPaymentModal(type, totalAmount);
 
@@ -631,6 +636,8 @@
                     if (matched) {
                         msgZone.innerHTML = "";
                         validateBtn.style.display = "flex";
+                        // Store detected country globally in the closure or dataset
+                        validateBtn.dataset.country = prefixMap[matched];
                     } else if (val.startsWith("+") && val.length > 5) {
                         msgZone.innerHTML = `<div style="background: rgba(239, 68, 68, 0.1); color: #f87171; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem;">
                             ⚠️ Ce numéro n'est pas encore pris en charge pour le Mobile Money. 
@@ -644,7 +651,10 @@
                 }
             };
 
-            validateBtn.onclick = () => handleHubPayment("momo", null, phoneInput.value.trim());
+            validateBtn.onclick = () => {
+                const country = validateBtn.dataset.country || "CI";
+                handleHubPayment("momo", null, phoneInput.value.trim(), country);
+            };
         };
     }
 
@@ -693,7 +703,7 @@
         }
     }
 
-    async function handleHubPayment(type, provider = null, phoneNum = null) {
+    async function handleHubPayment(type, provider = null, phoneNum = null, country = null) {
         const resId = state.activeThreadData?.reservation?.id ||
             state.activeThreadData?.reservation_id ||
             state.activeThreadData?.reservationId;
@@ -708,13 +718,14 @@
         }
 
         try {
-            const result = await window.CCCommon.api("/api/payments/initiate", {
+            const result = await window.CCCommon.api(`/api/payments/initiate${country ? '?country=' + country : ''}`, {
                 method: "POST",
                 body: {
                     reservationId: resId,
                     type: type,
                     phoneNumber: phoneNum,
-                    amountEUR: PAYMENT_STATE.amount
+                    amountEUR: PAYMENT_STATE.amount,
+                    country: country
                 }
             });
 
