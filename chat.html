@@ -25,6 +25,63 @@
     <script defer src="standalone-common.js?v=5.0"></script>
     <script defer src="admin-banner.js?v=5.0"></script>
     <script defer src="chat.js?v=5.0"></script>
+    <style>
+        /* Force chat message alignment */
+        .chat-messages {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 15px !important;
+            padding: 20px !important;
+            background: transparent !important;
+        }
+
+        .chat-msg-row {
+            display: flex !important;
+            width: 100% !important;
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .chat-msg-right {
+            justify-content: flex-end !important;
+        }
+
+        .chat-msg-left {
+            justify-content: flex-start !important;
+        }
+
+        .chat-msg-system {
+            justify-content: center !important;
+        }
+
+        .chat-bubble-user {
+            background: #13ecc8 !important;
+            /* Emerald Bright */
+            color: #000 !important;
+            padding: 10px 16px !important;
+            border-radius: 18px 18px 2px 18px !important;
+            max-width: 80% !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .chat-bubble-traveler {
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #fff !important;
+            padding: 10px 16px !important;
+            border-radius: 18px 18px 18px 2px !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            max-width: 80% !important;
+        }
+
+        .chat-bubble-system {
+            background: rgba(19, 236, 200, 0.1) !important;
+            color: #13ecc8 !important;
+            padding: 8px 14px !important;
+            border-radius: 10px !important;
+            font-size: 0.85rem !important;
+            border: 1px dashed #13ecc8 !important;
+        }
+    </style>
 </head>
 
 <body class="chat-page">
