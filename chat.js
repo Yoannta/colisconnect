@@ -339,6 +339,7 @@
         if (document.fonts?.ready) {
             try { await document.fonts.ready; } catch { }
         }
+        await new Promise((resolve) => setTimeout(resolve, 500));
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }
 
