@@ -382,16 +382,68 @@
                                 <div style="font-weight: 700; font-size: 1.1rem; color: white;">${window.CCCommon.escapeHtml(profile.full_name || thread.travelerName)}</div>
                                 <div style="color: #aaa; font-size: 0.9rem; margin-top: 2px;">Tél: ${window.CCCommon.escapeHtml(profile.phone_number || "Non renseigné")}</div>
                             </div>
-                            <a href="https://wa.me/${(profile.phone_number || "").replace(/\+/g, '').replace(/\s/g, '')}" target="_blank" 
-                               style="background: #25D366; color: white; padding: 10px 15px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style="width: 18px; filter: brightness(0) invert(1);"> WhatsApp
-                            </a>
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <a href="https://wa.me/${(profile.phone_number || "").replace(/\+/g, '').replace(/\s/g, '')}" target="_blank" 
+                                   style="background: #25D366; color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style="width: 16px; filter: brightness(0) invert(1);"> WhatsApp
+                                </a>
+                                <button id="btn-show-receipt" 
+                                   style="background: rgba(255,255,255,0.1); color: white; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); font-weight: 600; font-size: 0.8rem; cursor: pointer;">
+                                    🧾 Voir le reçu
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
+                document.getElementById("btn-show-receipt").onclick = () => showPaymentReceipt(thread, profile);
             });
         } else {
             contactBox.innerHTML = "";
+        }
+    }
+
+    function showPaymentReceipt(thread, profile) {
+        const res = thread.reservation || thread;
+        const txId = res.payment_tx_id || res.paymentTxId || "N/A";
+        const date = res.updated_at ? new Date(res.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : "N/A";
+
+        // On crée une modale simple ou on utilise une existante
+        const receiptHtml = `
+            <div style="padding: 20px; text-align: center; color: white; font-family: 'Inter', sans-serif;">
+                <div style="font-size: 3rem; margin-bottom: 10px;">🧾</div>
+                <h2 style="margin-bottom: 20px; color: var(--emerald-bright);">Reçu de Paiement</h2>
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; text-align: left; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                        <span style="color: #aaa;">Référence :</span>
+                        <span style="font-family: monospace; font-weight: 700;">${txId}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: #aaa;">Date :</span>
+                        <span>${date}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: #aaa;">Bénéficiaire :</span>
+                        <span>ColisConnect (Commission)</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span style="color: #aaa;">Client :</span>
+                        <span>${window.CCCommon.state.user?.email}</span>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 15px; border-top: 2px dashed rgba(255,255,255,0.2); display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 700; font-size: 1.1rem;">Montant payé :</span>
+                        <span style="font-weight: 800; font-size: 1.4rem; color: var(--emerald-bright);">200 XOF</span>
+                    </div>
+                </div>
+                <p style="font-size: 0.8rem; color: #777; margin-top: 20px;">Ceci est un document de confirmation automatique généré par ColisConnect.</p>
+                <button onclick="document.getElementById('payment-hub-modal').classList.add('hidden')" style="margin-top: 25px; background: white; color: black; border: none; padding: 12px 30px; border-radius: 10px; font-weight: 700; cursor: pointer;">Fermer</button>
+            </div>
+        `;
+
+        const modal = document.getElementById("payment-hub-modal");
+        const container = document.getElementById("payment-modal-container");
+        if (modal && container) {
+            container.innerHTML = receiptHtml;
+            modal.classList.remove("hidden");
         }
     }
 

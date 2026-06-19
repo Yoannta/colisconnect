@@ -29,20 +29,42 @@ serve(async (req: Request) => {
         }
 
         // On ne traite que les paiements réussis
-        // Note: GeniusPay renvoie souvent 'success' ou 'COMPLETED'
         if (status === "success" || status === "COMPLETED" || payload.event === "payment.success") {
-            const { error } = await supabase
+            const txId = payload.data?.transaction_id || payload.transaction_id || "GENIUS_" + Date.now();
+
+            // 1. Mise à jour de la réservation
+            const { error: updateError } = await supabase
                 .from("reservations")
                 .update({
                     status: "paid",
-                    payment_tx_id: payload.data?.transaction_id || payload.transaction_id || "GENIUS_" + Date.now()
+                    payment_tx_id: txId
                 })
                 .eq("id", reservationId);
 
-            if (error) throw error;
+            if (updateError) throw updateError;
             console.log(`[Webhook] Reservation ${reservationId} marked as PAID`);
 
-            return new Response(JSON.stringify({ success: true, message: "Reservation updated" }), {
+            // 2. Notification dans le Chat
+            try {
+                const { data: thread } = await supabase
+                    .from("chat_threads")
+                    .select("id")
+                    .eq("reservation_id", reservationId)
+                    .maybeSingle();
+
+                if (thread) {
+                    await supabase.from("chat_messages").insert({
+                        thread_id: thread.id,
+                        text: `✅ PAIEMENT VALIDÉ !\nRéférence : ${txId}\n\nLe paiement de la commission ColisConnect a été reçu avec succès. Les informations de contact sont désormais débloquées.`,
+                        sender_type: "system",
+                        message_type: "text"
+                    });
+                }
+            } catch (notifyError) {
+                console.error("[Webhook] Failed to send chat notification:", notifyError);
+            }
+
+            return new Response(JSON.stringify({ success: true, message: "Reservation and Chat updated" }), {
                 headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
                 status: 200,
             });
