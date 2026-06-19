@@ -80,7 +80,7 @@ serve(async (req: Request) => {
         if (authError || !user) throw new Error("Unauthorized");
 
         const body = await req.json().catch(() => ({}));
-        const { reservationId, phoneNumber, type, amountEUR } = body;
+        const { reservationId, phoneNumber, type, amountEUR, country: bodyCountry } = body;
         if (!reservationId) throw new Error("reservationId is required");
 
         const { data: reservation } = await supabase
@@ -92,12 +92,12 @@ serve(async (req: Request) => {
         const departureCountry = (reservation as any)?.offers?.origin || "France";
         const config = getPaymentConfig(departureCountry, phoneNumber);
 
-        // RÉGLAGE DU MODE DE PAIEMENT V33 (Smart Routing Léger)
+        // RÉGLAGE DU MODE DE PAIEMENT
         let finalMode = type === "momo" ? null : (type || config.payment_method);
 
         if (!geniusPubKey || !geniusPrivKey) throw new Error("GeniusPay credentials not configured");
 
-        const countryCode = body.country || config.customer_country;
+        const countryCode = bodyCountry || config.customer_country || "CI";
 
         // GESTION RÉGIONALE DES DEVISES
         // Zone XOF (Afrique de l'Ouest) : On utilise XOF (100% compatible)
