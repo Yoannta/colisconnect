@@ -274,7 +274,7 @@
         const tpl = document.getElementById("receipt-pdf-template");
         if (!tpl) { alert("Template PDF introuvable, rechargez la page."); return; }
 
-        // Remplissage des données dans le template original
+        // 1. Remplir les données
         document.getElementById("pdf-receipt-id").textContent = "REF: " + (txId || "N/A");
         document.getElementById("pdf-date").textContent = dateStr;
         document.getElementById("pdf-hour").textContent = hourStr;
@@ -288,40 +288,37 @@
         document.getElementById("pdf-trip-from").textContent = (parts[0] || "France").trim();
         document.getElementById("pdf-trip-to").textContent = (parts[1] || "Destination").trim();
 
-        // CLONAGE : html2canvas ne peut pas rendre un élément hors-écran (-9999px)
-        // On crée un clone temporaire visible dans le DOM
-        const clone = tpl.cloneNode(true);
-        clone.style.cssText = [
-            "position: fixed",
-            "top: 0",
-            "left: 0",
-            "width: 800px",
-            "padding: 40px",
-            "background: white",
-            "color: #1a1a1a",
-            "z-index: -9999",       // derrière tout, invisible pour l'utilisateur
-            "opacity: 0.01",        // quasi-invisible mais renderable
-            "pointer-events: none",
-        ].join(";");
-        clone.removeAttribute("id"); // éviter les doublons d'IDs
-        document.body.appendChild(clone);
+        // 2. Forcer l'affichage (Requis pour html2canvas sur certains navigateurs)
+        tpl.style.display = "block";
+        tpl.style.opacity = "1";
 
         const opt = {
             margin: 10,
             filename: `Recu_ColisConnect_${txId}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
+            html2canvas: {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                letterRendering: true
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         try {
-            if (typeof html2pdf === "undefined") { alert("Bibliothèque PDF non chargée, rechargez la page."); return; }
-            await html2pdf().set(opt).from(clone).save();
+            if (typeof html2pdf === "undefined") {
+                alert("Bibliothèque PDF non chargée, rechargez la page.");
+                return;
+            }
+            // Petit délai pour laisser le navigateur dessiner l'élément
+            await new Promise(r => setTimeout(r, 100));
+            await html2pdf().set(opt).from(tpl).save();
         } catch (err) {
             console.error("Erreur PDF:", err);
             alert("Erreur lors de la génération du PDF.");
         } finally {
-            document.body.removeChild(clone); // nettoyage
+            // 3. Recacher immédiatement
+            tpl.style.display = "none";
         }
     };
 

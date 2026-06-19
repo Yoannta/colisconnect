@@ -26,7 +26,7 @@
     <script defer src="standalone-common.js"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script defer src="chat.js?v=54"></script>
+    <script defer src="chat.js?v=55"></script>
 </head>
 
 <body class="chat-page">
@@ -182,7 +182,7 @@
 
     <!-- MODÈLE CACHÉ POUR LE PDF (DESIGN PREMIUM) -->
     <div id="receipt-pdf-template"
-        style="position: absolute; left: -9999px; width: 800px; padding: 40px; background: white; color: #1a1a1a; font-family: 'Inter', sans-serif;">
+        style="display: none; position: fixed; top: 0; left: 0; width: 800px; padding: 40px; background: white; color: #1a1a1a; font-family: 'Inter', sans-serif; z-index: 100000;">
         <div
             style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
             <div>
