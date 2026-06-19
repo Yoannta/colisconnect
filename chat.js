@@ -263,8 +263,170 @@
 </div>`;
     }
 
+    function setReceiptText(root, id, value) {
+        const node = root.querySelector(`#${id}`);
+        if (node) node.textContent = value;
+    }
+
+    function getReceiptTripParts(thread) {
+        const rawTitle = String(thread?.offerTitle || thread?.title || "France -> Destination");
+        const parts = rawTitle.split(/\s*(?:→|â†’|->| - | to )\s*/i);
+        return {
+            from: (parts[0] || "France").trim(),
+            to: (parts[1] || "Destination").trim()
+        };
+    }
+
+    function fillReceiptTemplate(root, txId) {
+        const thread = state.activeThreadData;
+        const user = window.CCCommon.state.user;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+        const hourStr = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+        const travelerId = thread?.offerOwnerId || thread?.offer_owner_id || thread?.travelerId || "N/A";
+        const trip = getReceiptTripParts(thread);
+
+        setReceiptText(root, "pdf-receipt-id", "REF: " + (txId || "N/A"));
+        setReceiptText(root, "pdf-date", dateStr);
+        setReceiptText(root, "pdf-hour", hourStr);
+        setReceiptText(root, "pdf-sender-name", user?.fullName || user?.user_metadata?.full_name || user?.email || "Expéditeur");
+        setReceiptText(root, "pdf-sender-id", "ID: " + (user?.id ? String(user.id).substring(0, 8) : "N/A"));
+        setReceiptText(root, "pdf-traveler-name", thread?.travelerName || "Voyageur");
+        setReceiptText(root, "pdf-traveler-id", "ID: " + String(travelerId).substring(0, 8));
+        setReceiptText(root, "pdf-trip-from", trip.from);
+        setReceiptText(root, "pdf-trip-to", trip.to);
+    }
+
+    function createReceiptCaptureNode(template, txId) {
+        const host = document.createElement("div");
+        host.id = "receipt-pdf-capture-root";
+        host.style.cssText = [
+            "position: fixed",
+            "left: 0",
+            "top: 0",
+            "width: 794px",
+            "min-height: 1123px",
+            "background: #ffffff",
+            "z-index: 2147483647",
+            "pointer-events: none",
+            "overflow: visible"
+        ].join(";");
+
+        const clone = template.cloneNode(true);
+        clone.removeAttribute("id");
+        clone.style.cssText = [
+            "display: block",
+            "position: static",
+            "width: 794px",
+            "min-height: 1123px",
+            "box-sizing: border-box",
+            "padding: 40px",
+            "background: #ffffff",
+            "color: #1a1a1a",
+            "font-family: 'Inter', Arial, sans-serif",
+            "opacity: 1",
+            "visibility: visible",
+            "transform: none"
+        ].join(";");
+
+        fillReceiptTemplate(clone, txId);
+        host.appendChild(clone);
+        document.body.appendChild(host);
+        return { host, clone };
+    }
+
+    async function waitForReceiptPaint() {
+        if (document.fonts?.ready) {
+            try { await document.fonts.ready; } catch { }
+        }
+        await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+
+    async function generateReceiptPdfFromClone(txId) {
+        const template = document.getElementById("receipt-pdf-template");
+        if (!template) { alert("Template PDF introuvable, rechargez la page."); return; }
+
+        const safeTxId = String(txId || `TX_${Date.now()}`).replace(/[^\w-]/g, "_");
+        let capture = null;
+
+        try {
+            capture = createReceiptCaptureNode(template, safeTxId);
+            await waitForReceiptPaint();
+
+            const JsPDF = window.jspdf?.jsPDF || window.jsPDF;
+            if (typeof window.html2canvas !== "function" || typeof JsPDF !== "function") {
+                if (typeof window.html2pdf !== "function") {
+                    alert("Bibliothèque PDF non chargée, rechargez la page.");
+                    return;
+                }
+
+                await window.html2pdf()
+                    .set({
+                        margin: 10,
+                        filename: `Recu_ColisConnect_${safeTxId}.pdf`,
+                        image: { type: "jpeg", quality: 0.98 },
+                        html2canvas: {
+                            backgroundColor: "#ffffff",
+                            scale: Math.min(2, window.devicePixelRatio || 1.5),
+                            useCORS: true,
+                            allowTaint: true,
+                            logging: false,
+                            scrollX: 0,
+                            scrollY: 0,
+                            windowWidth: 794,
+                            windowHeight: Math.max(1123, capture.clone.scrollHeight)
+                        },
+                        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+                    })
+                    .from(capture.clone)
+                    .save();
+                return;
+            }
+
+            const canvas = await window.html2canvas(capture.clone, {
+                backgroundColor: "#ffffff",
+                scale: Math.min(2, window.devicePixelRatio || 1.5),
+                useCORS: true,
+                allowTaint: true,
+                logging: false,
+                scrollX: 0,
+                scrollY: 0,
+                windowWidth: 794,
+                windowHeight: Math.max(1123, capture.clone.scrollHeight)
+            });
+
+            if (!canvas.width || !canvas.height) {
+                throw new Error("Capture PDF vide.");
+            }
+
+            const imgData = canvas.toDataURL("image/jpeg", 0.98);
+            const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 10;
+            const maxWidth = pageWidth - (margin * 2);
+            const maxHeight = pageHeight - (margin * 2);
+            const ratio = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
+            const imgWidth = canvas.width * ratio;
+            const imgHeight = canvas.height * ratio;
+            const x = (pageWidth - imgWidth) / 2;
+            const y = margin;
+
+            pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
+            pdf.save(`Recu_ColisConnect_${safeTxId}.pdf`);
+        } catch (err) {
+            console.error("Erreur PDF:", err);
+            alert("Erreur lors de la génération du PDF.");
+        } finally {
+            capture?.host?.remove();
+        }
+    }
+
     // ---- PDF Receipt Generator ----
     window.generateReceiptPDF = async function (txId) {
+        await generateReceiptPdfFromClone(txId);
+        return;
+
         const thread = state.activeThreadData;
         const user = window.CCCommon.state.user;
         const now = new Date();
