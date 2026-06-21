@@ -579,27 +579,35 @@ ${agreementBtn}
             return;
         }
 
-        const highRiskCount = items.filter(l => l.risk_level === 'high' && !l.is_dismissed).length;
+        const highRiskCount = items.filter(l => String(l.risk_level || "").toLowerCase() === 'high' && !l.is_dismissed).length;
         if (els.aiBadge) {
             els.aiBadge.textContent = highRiskCount;
             els.aiBadge.classList.toggle("hidden", highRiskCount === 0);
         }
 
         els.aiLogsBody.innerHTML = items.map(log => {
-            const riskClass = log.risk_level === 'high' ? 'danger' : (log.risk_level === 'medium' ? 'warn' : 'ok');
-            const flags = JSON.parse(log.flags || "[]");
+            const riskLevel = String(log.risk_level || "medium").toLowerCase();
+            const riskClass = riskLevel === 'high' ? 'danger' : (riskLevel === 'medium' ? 'warn' : 'ok');
+            let flags = [];
+            try {
+                flags = Array.isArray(log.flags) ? log.flags : JSON.parse(log.flags || "[]");
+            } catch {
+                flags = [];
+            }
+            const threadLabel = log.thread_id ? `#${String(log.thread_id).slice(0, 8)}` : "-";
+            const chatHref = log.reservation_id ? `chat.html?reservationId=${encodeURIComponent(log.reservation_id)}` : "chat.html";
 
             return `
                 <tr style="${log.is_dismissed ? 'opacity: 0.6;' : ''}">
                     <td>${fmtDate(log.created_at)}</td>
                     <td>
-                        <a href="chat.html?reservationId=${log.reservation_id}" class="btn ghost sm">#${log.thread_id.slice(0, 8)}</a>
+                        <a href="${chatHref}" class="btn ghost sm">${escapeHtml(threadLabel)}</a>
                     </td>
-                    <td><span class="status-badge ${riskClass}">${log.risk_level.toUpperCase()}</span></td>
-                    <td style="max-width: 300px; white-space: normal;">${escapeHtml(log.summary)}</td>
+                    <td><span class="status-badge ${riskClass}">${escapeHtml(riskLevel.toUpperCase())}</span></td>
+                    <td style="max-width: 300px; white-space: normal;">${escapeHtml(log.summary || "Alerte anti-contact")}</td>
                     <td>${flags.map(f => `<span class="user-chip" style="font-size:0.65rem; margin-right:4px;">${escapeHtml(f)}</span>`).join("")}</td>
                     <td>
-                        <button class="btn ${log.is_dismissed ? 'ghost' : 'secondary'} sm" onclick="window.adminDismissAiLog(${log.id}, ${!log.is_dismissed})">
+                        <button class="btn ${log.is_dismissed ? 'ghost' : 'secondary'} sm" onclick='window.adminDismissAiLog(${JSON.stringify(String(log.id || ""))}, ${!log.is_dismissed})'>
                             ${log.is_dismissed ? 'Restaurer' : 'Ignorer'}
                         </button>
                     </td>
@@ -701,13 +709,18 @@ ${agreementBtn}
             if (e.key === "Enter") sendAiMessage();
         });
 
+        let usersSearchTimeout;
+        els.usersQ?.addEventListener("input", () => {
+            clearTimeout(usersSearchTimeout);
+            usersSearchTimeout = setTimeout(() => {
+                state.usersQuery = String(els.usersQ?.value || "").trim();
+                loadAll().catch((e) => showToast(e.message || "Erreur recherche users."));
+            }, 300);
+        });
+
         els.usersSearchBtn?.addEventListener("click", () => {
             state.usersQuery = String(els.usersQ?.value || "").trim();
             loadAll().catch((e) => showToast(e.message || "Erreur recherche users."));
-        });
-
-        els.usersQ?.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") els.usersSearchBtn?.click();
         });
 
         els.offersSearchBtn?.addEventListener("click", () => {
