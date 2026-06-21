@@ -668,8 +668,9 @@
                 let query = window.ccSupabase.from('profiles').select('*');
 
                 if (q) {
-                    // Recherche flexible sur ID (exact), Nom (contient) ou Email (contient)
-                    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,id.ilike.%${q}%`);
+                    // Recherche flexible sur Nom (contient) ou Email (contient)
+                    // Note: 'id' est un UUID, on ne peut pas utiliser 'ilike' dessus directement sans cast
+                    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%`);
                 }
 
                 const { data, error } = await query.order('created_at', { ascending: false });
