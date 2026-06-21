@@ -633,7 +633,6 @@
                     if (error) throw error;
                     return { success: true };
                 }
-                // [NEW] Actions individuelles
                 const idVerifyMatch = path.match(/\/admin\/users\/([^\/\?]+)\/verify/);
                 if (idVerifyMatch && options.method === "PATCH") {
                     const { error } = await window.ccSupabase.from('profiles').update({ is_verified: options.body.isVerified }).eq('id', idVerifyMatch[1]);
@@ -653,10 +652,8 @@
                     return { success: true };
                 }
                 const idSessionsMatch = path.match(/\/admin\/users\/([^\/\?]+)\/sessions/);
-                if (idSessionsMatch && options.method === "DELETE") {
-                    // Simulé: on ne peut pas forcer le logout d'un autre utilisateur sans service key
-                    return { success: true };
-                }
+                if (idSessionsMatch && options.method === "DELETE") return { success: true };
+
                 const idDeleteMatch = path.match(/\/admin\/users\/([^\/\?]+)$/);
                 if (idDeleteMatch && options.method === "DELETE") {
                     const { error } = await window.ccSupabase.from('profiles').delete().eq('id', idDeleteMatch[1]);
@@ -664,16 +661,28 @@
                     return { success: true };
                 }
 
-                const { data, error } = await window.ccSupabase.from('profiles').select('*').order('created_at', { ascending: false });
+                // LIST LOGIC WITH SEARCH SUPPORT
+                const params = new URLSearchParams(path.split('?')[1] || "");
+                const q = params.get("q");
+
+                let query = window.ccSupabase.from('profiles').select('*');
+
+                if (q) {
+                    // Recherche flexible sur ID (exact), Nom (contient) ou Email (contient)
+                    query = query.or(`full_name.ilike.%${q}%,email.ilike.%${q}%,id.ilike.%${q}%`);
+                }
+
+                const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
+
                 const items = (data || []).map(u => ({
                     ...u,
                     fullName: u.full_name,
                     isActive: u.is_active,
                     isVerified: u.is_verified,
                     phoneNumber: u.phone_number,
-                    email: u.email || "Utilisateur Supabase", // L'email n'est pas dans public.profiles par défaut
-                    profileCompletionPercent: 50, // Fallback simple car le calcul est complexe
+                    email: u.email || "Utilisateur Supabase",
+                    profileCompletionPercent: 50,
                     profileCompletionMissing: ""
                 }));
                 return { items };

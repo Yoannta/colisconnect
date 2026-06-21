@@ -706,6 +706,10 @@ ${agreementBtn}
             loadAll().catch((e) => showToast(e.message || "Erreur recherche users."));
         });
 
+        els.usersQ?.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") els.usersSearchBtn?.click();
+        });
+
         els.offersSearchBtn?.addEventListener("click", () => {
             state.offersPendingOnly = false;
             state.offersQuery = String(els.offersQ?.value || "").trim();
