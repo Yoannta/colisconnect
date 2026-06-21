@@ -247,7 +247,7 @@
             if (isValidation) {
                 const txIdMatch = (msg.text || "").match(/TX_[\w\d]+/);
                 const txId = txIdMatch ? txIdMatch[0] : ("TX_" + Date.now());
-                html += `<br><button style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.generateReceiptPDF('${txId}')">🧾 Télécharger mon reçu (PDF)</button>`;
+                html += `<br><button style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.viewReceipt('${txId}')">🧾 Voir mon Bon de Mise en Relation</button>`;
             }
             html += `</span></div>`;
             return html;
@@ -343,208 +343,143 @@
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     }
 
-    async function generateReceiptPdfFromClone(txId) {
-        const template = document.getElementById("receipt-pdf-template");
-        if (!template) { alert("Template PDF introuvable, rechargez la page."); return; }
-
-        const safeTxId = String(txId || `TX_${Date.now()}`).replace(/[^\w-]/g, "_");
-        let capture = null;
-
-        try {
-            capture = createReceiptCaptureNode(template, safeTxId);
-            await waitForReceiptPaint();
-
-            const JsPDF = window.jspdf?.jsPDF || window.jsPDF;
-            if (typeof window.html2canvas !== "function" || typeof JsPDF !== "function") {
-                if (typeof window.html2pdf !== "function") {
-                    alert("Bibliothèque PDF non chargée, rechargez la page.");
-                    return;
-                }
-
-                await window.html2pdf()
-                    .set({
-                        margin: 10,
-                        filename: `Recu_ColisConnect_${safeTxId}.pdf`,
-                        image: { type: "jpeg", quality: 0.98 },
-                        html2canvas: {
-                            backgroundColor: "#ffffff",
-                            scale: Math.min(2, window.devicePixelRatio || 1.5),
-                            useCORS: true,
-                            allowTaint: true,
-                            logging: false,
-                            scrollX: 0,
-                            scrollY: 0,
-                            windowWidth: 794,
-                            windowHeight: Math.max(1123, capture.clone.scrollHeight)
-                        },
-                        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-                    })
-                    .from(capture.clone)
-                    .save();
-                return;
-            }
-
-            const canvas = await window.html2canvas(capture.clone, {
-                backgroundColor: "#ffffff",
-                scale: Math.min(2, window.devicePixelRatio || 1.5),
-                useCORS: true,
-                allowTaint: true,
-                logging: false,
-                scrollX: 0,
-                scrollY: 0,
-                windowWidth: 794,
-                windowHeight: Math.max(1123, capture.clone.scrollHeight)
-            });
-
-            if (!canvas.width || !canvas.height) {
-                throw new Error("Capture PDF vide.");
-            }
-
-            const imgData = canvas.toDataURL("image/jpeg", 0.98);
-            const pdf = new JsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const margin = 10;
-            const maxWidth = pageWidth - (margin * 2);
-            const maxHeight = pageHeight - (margin * 2);
-            const ratio = Math.min(maxWidth / canvas.width, maxHeight / canvas.height);
-            const imgWidth = canvas.width * ratio;
-            const imgHeight = canvas.height * ratio;
-            const x = (pageWidth - imgWidth) / 2;
-            const y = margin;
-
-            pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
-            pdf.save(`Recu_ColisConnect_${safeTxId}.pdf`);
-        } catch (err) {
-            console.error("Erreur PDF:", err);
-            alert("Erreur lors de la génération du PDF.");
-        } finally {
-            capture?.host?.remove();
-        }
-    }
-
-    // ---- PDF Receipt Generator ----
-    window.generateReceiptPDF = async function (txId) {
-        await generateReceiptPdfFromClone(txId);
-        return;
-
-        const thread = state.activeThreadData;
-        const user = window.CCCommon.state.user;
-        const now = new Date();
-        const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-        const hourStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-
-        const tpl = document.getElementById("receipt-pdf-template");
-        if (!tpl) { alert("Template PDF introuvable, rechargez la page."); return; }
-
-        // 1. Remplir les données
-        document.getElementById("pdf-receipt-id").textContent = "REF: " + (txId || "N/A");
-        document.getElementById("pdf-date").textContent = dateStr;
-        document.getElementById("pdf-hour").textContent = hourStr;
-        document.getElementById("pdf-sender-name").textContent = user?.user_metadata?.full_name || user?.email || "Expéditeur";
-        document.getElementById("pdf-sender-id").textContent = "ID: " + (user?.id?.substring(0, 8) || "N/A");
-        document.getElementById("pdf-traveler-name").textContent = thread?.travelerName || "Voyageur";
-        const travelerId = thread?.offerOwnerId || thread?.offer_owner_id || "N/A";
-        document.getElementById("pdf-traveler-id").textContent = "ID: " + String(travelerId).substring(0, 8);
-        const rawTitle = thread?.offerTitle || "France → Destination";
-        const parts = rawTitle.split("→");
-        document.getElementById("pdf-trip-from").textContent = (parts[0] || "France").trim();
-        document.getElementById("pdf-trip-to").textContent = (parts[1] || "Destination").trim();
-
-        // 2. Forcer l'affichage (Requis pour html2canvas sur certains navigateurs)
-        tpl.style.display = "block";
-        tpl.style.opacity = "1";
-
-        const opt = {
-            margin: 10,
-            filename: `Recu_ColisConnect_${txId}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                letterRendering: true
-            },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        try {
-            if (typeof html2pdf === "undefined") {
-                alert("Bibliothèque PDF non chargée, rechargez la page.");
-                return;
-            }
-            // Petit délai pour laisser le navigateur dessiner l'élément
-            await new Promise(r => setTimeout(r, 100));
-            await html2pdf().set(opt).from(tpl).save();
-        } catch (err) {
-            console.error("Erreur PDF:", err);
-            alert("Erreur lors de la génération du PDF.");
-        } finally {
-            // 3. Recacher immédiatement
-            tpl.style.display = "none";
-        }
-    };
-
-    // ---- Payment UI ----
-    function currentThread() {
-        return state.conversations.find((item) => item.id === state.activeThreadId);
-    }
-
-    function updatePaymentButtonVisibility() {
-        const thread = currentThread();
-        if (!thread || !window.CCCommon.state?.user) {
-            els.chatPayBtn?.classList.add("hidden");
-            els.chatInfoBanner?.classList.add("hidden");
+    // ---- Receipt Viewer Logic ----
+    window.viewReceipt = function (txId) {
+        const modal = document.getElementById("receipt-view-modal");
+        if (!modal) {
+            console.error("Modale de reçu introuvable");
             return;
         }
-        const payableStatuses = ["pending", "commission_payee", "agreed"];
-        const isClientSide = !thread.isOfferOwner && payableStatuses.includes(String(thread.status || ""));
-        if (els.chatPayBtn) {
-            els.chatPayBtn.classList.toggle("hidden", !isClientSide);
-            if (isClientSide) els.chatPayBtn.innerHTML = "✅ Valider ma réservation";
+
+        // Remplissage des données
+        fillReceiptTemplate(modal, txId);
+
+        // Affichage
+        modal.classList.remove("hidden");
+    };
+
+    // ---- Legacy Wrapper ----
+    window.generateReceiptPDF = async function (txId) {
+        window.viewReceipt(txId);
+    };
+
+    const thread = state.activeThreadData;
+    const user = window.CCCommon.state.user;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const hourStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+    const tpl = document.getElementById("receipt-pdf-template");
+    if (!tpl) { alert("Template PDF introuvable, rechargez la page."); return; }
+
+    // 1. Remplir les données
+    document.getElementById("pdf-receipt-id").textContent = "REF: " + (txId || "N/A");
+    document.getElementById("pdf-date").textContent = dateStr;
+    document.getElementById("pdf-hour").textContent = hourStr;
+    document.getElementById("pdf-sender-name").textContent = user?.user_metadata?.full_name || user?.email || "Expéditeur";
+    document.getElementById("pdf-sender-id").textContent = "ID: " + (user?.id?.substring(0, 8) || "N/A");
+    document.getElementById("pdf-traveler-name").textContent = thread?.travelerName || "Voyageur";
+    const travelerId = thread?.offerOwnerId || thread?.offer_owner_id || "N/A";
+    document.getElementById("pdf-traveler-id").textContent = "ID: " + String(travelerId).substring(0, 8);
+    const rawTitle = thread?.offerTitle || "France → Destination";
+    const parts = rawTitle.split("→");
+    document.getElementById("pdf-trip-from").textContent = (parts[0] || "France").trim();
+    document.getElementById("pdf-trip-to").textContent = (parts[1] || "Destination").trim();
+
+    // 2. Forcer l'affichage (Requis pour html2canvas sur certains navigateurs)
+    tpl.style.display = "block";
+    tpl.style.opacity = "1";
+
+    const opt = {
+        margin: 10,
+        filename: `Recu_ColisConnect_${txId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            letterRendering: true
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+        if (typeof html2pdf === "undefined") {
+            alert("Bibliothèque PDF non chargée, rechargez la page.");
+            return;
         }
-        if (els.chatInfoBanner) {
-            const shouldShowBanner = isClientSide && (thread.status === "pending" || thread.status === "agreed");
-            els.chatInfoBanner.classList.toggle("hidden", !shouldShowBanner);
-            if (!shouldShowBanner) state.isTutorialAccepted = true;
-            if (els.comprisBtn) els.comprisBtn.classList.toggle("hidden", state.isTutorialAccepted);
-        }
+        // Petit délai pour laisser le navigateur dessiner l'élément
+        await new Promise(r => setTimeout(r, 100));
+        await html2pdf().set(opt).from(tpl).save();
+    } catch (err) {
+        console.error("Erreur PDF:", err);
+        alert("Erreur lors de la génération du PDF.");
+    } finally {
+        // 3. Recacher immédiatement
+        tpl.style.display = "none";
+    }
+};
+
+// ---- Payment UI ----
+function currentThread() {
+    return state.conversations.find((item) => item.id === state.activeThreadId);
+}
+
+function updatePaymentButtonVisibility() {
+    const thread = currentThread();
+    if (!thread || !window.CCCommon.state?.user) {
+        els.chatPayBtn?.classList.add("hidden");
+        els.chatInfoBanner?.classList.add("hidden");
+        return;
+    }
+    const payableStatuses = ["pending", "commission_payee", "agreed"];
+    const isClientSide = !thread.isOfferOwner && payableStatuses.includes(String(thread.status || ""));
+    if (els.chatPayBtn) {
+        els.chatPayBtn.classList.toggle("hidden", !isClientSide);
+        if (isClientSide) els.chatPayBtn.innerHTML = "✅ Valider ma réservation";
+    }
+    if (els.chatInfoBanner) {
+        const shouldShowBanner = isClientSide && (thread.status === "pending" || thread.status === "agreed");
+        els.chatInfoBanner.classList.toggle("hidden", !shouldShowBanner);
+        if (!shouldShowBanner) state.isTutorialAccepted = true;
+        if (els.comprisBtn) els.comprisBtn.classList.toggle("hidden", state.isTutorialAccepted);
+    }
+}
+
+function triggerTutorialFocus() {
+    if (state.isTutorialAccepted) return;
+    if (els.chatInfoBanner && els.chatInfoBanner.classList.contains("hidden")) {
+        state.isTutorialAccepted = true; return;
+    }
+    if (els.tutorialOverlay) els.tutorialOverlay.classList.remove("hidden");
+    if (els.chatInfoBanner) els.chatInfoBanner.classList.add("tutorial-focus");
+    if (els.comprisBtn) els.comprisBtn.classList.add("highlight-mode");
+    if (navigator.vibrate) navigator.vibrate(50);
+}
+
+function renderConversationMeta(thread) {
+    if (!thread) return;
+    els.chatPanelHeader?.classList.remove("hidden");
+    els.chatEmptyState?.classList.add("hidden");
+    if (els.chatAvatarInitials) els.chatAvatarInitials.textContent = getInitials(thread.travelerName || "Contact");
+    if (els.chatMeta) els.chatMeta.textContent = thread.travelerName || "Contact";
+    if (els.chatOfferInfo) els.chatOfferInfo.textContent = thread.offerTitle || "Détails de l'offre";
+
+    const paidStatuses = ["paid", "voyageur_paye", "colisconnect_paye"];
+    const isPaid = paidStatuses.includes(String(thread.status || ""));
+
+    let contactBox = document.getElementById("chat-contact-revealed");
+    if (!contactBox) {
+        contactBox = document.createElement("div");
+        contactBox.id = "chat-contact-revealed";
+        els.chatPanelHeader?.after(contactBox);
     }
 
-    function triggerTutorialFocus() {
-        if (state.isTutorialAccepted) return;
-        if (els.chatInfoBanner && els.chatInfoBanner.classList.contains("hidden")) {
-            state.isTutorialAccepted = true; return;
-        }
-        if (els.tutorialOverlay) els.tutorialOverlay.classList.remove("hidden");
-        if (els.chatInfoBanner) els.chatInfoBanner.classList.add("tutorial-focus");
-        if (els.comprisBtn) els.comprisBtn.classList.add("highlight-mode");
-        if (navigator.vibrate) navigator.vibrate(50);
-    }
-
-    function renderConversationMeta(thread) {
-        if (!thread) return;
-        els.chatPanelHeader?.classList.remove("hidden");
-        els.chatEmptyState?.classList.add("hidden");
-        if (els.chatAvatarInitials) els.chatAvatarInitials.textContent = getInitials(thread.travelerName || "Contact");
-        if (els.chatMeta) els.chatMeta.textContent = thread.travelerName || "Contact";
-        if (els.chatOfferInfo) els.chatOfferInfo.textContent = thread.offerTitle || "Détails de l'offre";
-
-        const paidStatuses = ["paid", "voyageur_paye", "colisconnect_paye"];
-        const isPaid = paidStatuses.includes(String(thread.status || ""));
-
-        let contactBox = document.getElementById("chat-contact-revealed");
-        if (!contactBox) {
-            contactBox = document.createElement("div");
-            contactBox.id = "chat-contact-revealed";
-            els.chatPanelHeader?.after(contactBox);
-        }
-
-        if (isPaid && !thread.isOfferOwner) {
-            const travelerId = thread.offerOwnerId || thread.offer_owner_id;
-            fetchTravelerContact(travelerId).then(profile => {
-                if (!profile) return;
-                contactBox.innerHTML = `
+    if (isPaid && !thread.isOfferOwner) {
+        const travelerId = thread.offerOwnerId || thread.offer_owner_id;
+        fetchTravelerContact(travelerId).then(profile => {
+            if (!profile) return;
+            contactBox.innerHTML = `
                     <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); border: 1px solid var(--emerald-bright); padding: 15px; border-radius: 12px; margin: 10px 20px; animation: slideDown 0.4s ease;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <div>
@@ -565,18 +500,18 @@
                         </div>
                     </div>
                 `;
-                document.getElementById("btn-show-receipt").onclick = () => showPaymentReceipt(thread, profile);
-            });
-        } else {
-            contactBox.innerHTML = "";
-        }
+            document.getElementById("btn-show-receipt").onclick = () => showPaymentReceipt(thread, profile);
+        });
+    } else {
+        contactBox.innerHTML = "";
     }
+}
 
-    function showPaymentReceipt(thread, profile) {
-        const res = thread.reservation || thread;
-        const txId = res.payment_tx_id || res.paymentTxId || "N/A";
-        const date = res.updated_at ? new Date(res.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "N/A";
-        const receiptHtml = `
+function showPaymentReceipt(thread, profile) {
+    const res = thread.reservation || thread;
+    const txId = res.payment_tx_id || res.paymentTxId || "N/A";
+    const date = res.updated_at ? new Date(res.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "N/A";
+    const receiptHtml = `
             <div style="padding: 20px; text-align: center; color: white; font-family: 'Inter', sans-serif;">
                 <div style="font-size: 3rem; margin-bottom: 10px;">🧾</div>
                 <h2 style="margin-bottom: 20px; color: var(--emerald-bright);">Reçu de Paiement</h2>
@@ -598,164 +533,164 @@
                 <button onclick="window.generateReceiptPDF('${txId}')" style="margin-top: 20px; width: 100%; background: var(--emerald-bright); color: black; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer;">📩 Télécharger le Bon (PDF)</button>
             </div>
         `;
-        const modal = document.getElementById("payment-hub-modal");
-        const container = document.getElementById("payment-modal-container-hub");
-        if (modal && container) { container.innerHTML = receiptHtml; modal.classList.remove("hidden"); }
-    }
+    const modal = document.getElementById("payment-hub-modal");
+    const container = document.getElementById("payment-modal-container-hub");
+    if (modal && container) { container.innerHTML = receiptHtml; modal.classList.remove("hidden"); }
+}
 
-    async function fetchTravelerContact(userId) {
-        if (!userId) return null;
-        try {
-            const { data, error } = await window.supabase.from('profiles').select('full_name, phone_number').eq('id', userId).maybeSingle();
-            if (error) throw error;
-            return data;
-        } catch (e) { return null; }
-    }
+async function fetchTravelerContact(userId) {
+    if (!userId) return null;
+    try {
+        const { data, error } = await window.supabase.from('profiles').select('full_name, phone_number').eq('id', userId).maybeSingle();
+        if (error) throw error;
+        return data;
+    } catch (e) { return null; }
+}
 
-    async function openThread(threadId) {
-        if (!threadId) return;
-        const selected = state.conversations.find((item) => item.id === threadId);
-        state.activeThreadId = threadId;
-        state.activeThreadData = selected || null;
-        renderConversations();
-        showChatView();
-        const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
-        renderMessages(messages);
-        renderConversationMeta(selected);
-        state.isTutorialAccepted = isThreadTutorialAccepted(threadId);
-        updatePaymentButtonVisibility();
-    }
+async function openThread(threadId) {
+    if (!threadId) return;
+    const selected = state.conversations.find((item) => item.id === threadId);
+    state.activeThreadId = threadId;
+    state.activeThreadData = selected || null;
+    renderConversations();
+    showChatView();
+    const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
+    renderMessages(messages);
+    renderConversationMeta(selected);
+    state.isTutorialAccepted = isThreadTutorialAccepted(threadId);
+    updatePaymentButtonVisibility();
+}
 
-    function isThreadTutorialAccepted(threadId) {
-        try {
-            const accepted = JSON.parse(localStorage.getItem("cc_accepted_threads") || "[]");
-            return Array.isArray(accepted) && accepted.includes(threadId);
-        } catch (e) { return false; }
-    }
+function isThreadTutorialAccepted(threadId) {
+    try {
+        const accepted = JSON.parse(localStorage.getItem("cc_accepted_threads") || "[]");
+        return Array.isArray(accepted) && accepted.includes(threadId);
+    } catch (e) { return false; }
+}
 
-    function markThreadTutorialAccepted(threadId) {
-        if (!threadId) return;
-        try {
-            const accepted = JSON.parse(localStorage.getItem("cc_accepted_threads") || "[]");
-            if (!accepted.includes(threadId)) { accepted.push(threadId); localStorage.setItem("cc_accepted_threads", JSON.stringify(accepted)); }
-        } catch (e) { }
-    }
+function markThreadTutorialAccepted(threadId) {
+    if (!threadId) return;
+    try {
+        const accepted = JSON.parse(localStorage.getItem("cc_accepted_threads") || "[]");
+        if (!accepted.includes(threadId)) { accepted.push(threadId); localStorage.setItem("cc_accepted_threads", JSON.stringify(accepted)); }
+    } catch (e) { }
+}
 
-    async function loadConversations() {
-        const [rows, inboxPayload] = await Promise.all([
-            window.CCCommon.api("/api/conversations"),
-            window.CCCommon.api("/api/admin/inbox")
-        ]);
-        state.conversations = Array.isArray(rows) ? rows : [];
-        state.adminInbox = Array.isArray(inboxPayload?.items) ? inboxPayload.items : [];
-        renderAdminInbox();
-        renderConversations();
-        if (!state.activeThreadId && state.conversations.length) state.activeThreadId = state.conversations[0].id;
-        if (state.activeThreadId) await openThread(state.activeThreadId);
-        else { renderMessages([]); if (els.chatMeta) els.chatMeta.textContent = "Aucune conversation pour le moment."; }
-    }
+async function loadConversations() {
+    const [rows, inboxPayload] = await Promise.all([
+        window.CCCommon.api("/api/conversations"),
+        window.CCCommon.api("/api/admin/inbox")
+    ]);
+    state.conversations = Array.isArray(rows) ? rows : [];
+    state.adminInbox = Array.isArray(inboxPayload?.items) ? inboxPayload.items : [];
+    renderAdminInbox();
+    renderConversations();
+    if (!state.activeThreadId && state.conversations.length) state.activeThreadId = state.conversations[0].id;
+    if (state.activeThreadId) await openThread(state.activeThreadId);
+    else { renderMessages([]); if (els.chatMeta) els.chatMeta.textContent = "Aucune conversation pour le moment."; }
+}
 
-    async function ensureConversationForOffer(offerId) {
-        if (!offerId) return;
-        const numericId = Number(offerId);
-        if (!Number.isFinite(numericId) || numericId <= 0) return;
-        const thread = await window.CCCommon.api("/api/conversations/by-offer", { method: "POST", body: { offerId: numericId } });
-        await loadConversations();
-        if (thread?.id) { state.activeThreadId = thread.id; await openThread(thread.id); }
-    }
+async function ensureConversationForOffer(offerId) {
+    if (!offerId) return;
+    const numericId = Number(offerId);
+    if (!Number.isFinite(numericId) || numericId <= 0) return;
+    const thread = await window.CCCommon.api("/api/conversations/by-offer", { method: "POST", body: { offerId: numericId } });
+    await loadConversations();
+    if (thread?.id) { state.activeThreadId = thread.id; await openThread(thread.id); }
+}
 
-    // ---- Anti-Leak ----
-    const LEAK_PATTERNS_CLIENT = [
-        /(?:\+|00)?\d[\d\s\-\.]{7,}/,
-        /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i,
-        /whatsapp|wa\.me|telegram|t\.me/i,
-        /@[a-z0-9._]{3,}/i,
-        /https?:\/\/|www\./i,
-        /facebook|instagram|tiktok|snapchat|twitter/i,
-    ];
+// ---- Anti-Leak ----
+const LEAK_PATTERNS_CLIENT = [
+    /(?:\+|00)?\d[\d\s\-\.]{7,}/,
+    /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i,
+    /whatsapp|wa\.me|telegram|t\.me/i,
+    /@[a-z0-9._]{3,}/i,
+    /https?:\/\/|www\./i,
+    /facebook|instagram|tiktok|snapchat|twitter/i,
+];
 
-    function detectLeakClient(text) {
-        if (!text) return false;
-        return LEAK_PATTERNS_CLIENT.some(p => p.test(text.trim().toLowerCase()));
-    }
+function detectLeakClient(text) {
+    if (!text) return false;
+    return LEAK_PATTERNS_CLIENT.some(p => p.test(text.trim().toLowerCase()));
+}
 
-    function showLeakWarning(show) {
-        let banner = document.getElementById("chat-leak-warning");
-        if (show) {
-            if (!banner) {
-                banner = document.createElement("div");
-                banner.id = "chat-leak-warning";
-                banner.className = "chat-leak-banner";
-                banner.innerHTML = `⚠️ <strong>Contenu interdit détecté.</strong> Partager des coordonnées personnelles est interdit et enregistré.`;
-                els.messageForm?.parentNode?.insertBefore(banner, els.messageForm);
-            }
-            banner.classList.add("visible");
-            const submitBtn = els.messageForm?.querySelector("[type='submit']");
-            if (submitBtn) submitBtn.disabled = true;
-        } else {
-            if (banner) banner.classList.remove("visible");
-            const submitBtn = els.messageForm?.querySelector("[type='submit']");
-            if (submitBtn) submitBtn.disabled = false;
+function showLeakWarning(show) {
+    let banner = document.getElementById("chat-leak-warning");
+    if (show) {
+        if (!banner) {
+            banner = document.createElement("div");
+            banner.id = "chat-leak-warning";
+            banner.className = "chat-leak-banner";
+            banner.innerHTML = `⚠️ <strong>Contenu interdit détecté.</strong> Partager des coordonnées personnelles est interdit et enregistré.`;
+            els.messageForm?.parentNode?.insertBefore(banner, els.messageForm);
         }
+        banner.classList.add("visible");
+        const submitBtn = els.messageForm?.querySelector("[type='submit']");
+        if (submitBtn) submitBtn.disabled = true;
+    } else {
+        if (banner) banner.classList.remove("visible");
+        const submitBtn = els.messageForm?.querySelector("[type='submit']");
+        if (submitBtn) submitBtn.disabled = false;
     }
+}
 
-    async function submitMessage(event) {
-        event.preventDefault();
-        if (!window.CCCommon.requireCompletedProfile()) return;
-        const text = String(els.messageInput?.value || "").trim();
-        if (!text) return;
-        if (!state.activeThreadId) { alert("Sélectionnez une conversation."); return; }
-        if (!state.isTutorialAccepted) { triggerTutorialFocus(); return; }
-        if (detectLeakClient(text)) { showLeakWarning(true); return; }
-        try {
-            await window.CCCommon.api(`/api/conversations/${encodeURIComponent(state.activeThreadId)}/messages`, { method: "POST", body: { text } });
-            if (els.messageInput) els.messageInput.value = "";
-            showLeakWarning(false);
-            await openThread(state.activeThreadId);
-        } catch (error) {
-            if (error?.payload?.code === "CONTACT_INFO_BLOCKED") showLeakWarning(true);
-            else alert(error.message || "Envoi impossible.");
-        }
+async function submitMessage(event) {
+    event.preventDefault();
+    if (!window.CCCommon.requireCompletedProfile()) return;
+    const text = String(els.messageInput?.value || "").trim();
+    if (!text) return;
+    if (!state.activeThreadId) { alert("Sélectionnez une conversation."); return; }
+    if (!state.isTutorialAccepted) { triggerTutorialFocus(); return; }
+    if (detectLeakClient(text)) { showLeakWarning(true); return; }
+    try {
+        await window.CCCommon.api(`/api/conversations/${encodeURIComponent(state.activeThreadId)}/messages`, { method: "POST", body: { text } });
+        if (els.messageInput) els.messageInput.value = "";
+        showLeakWarning(false);
+        await openThread(state.activeThreadId);
+    } catch (error) {
+        if (error?.payload?.code === "CONTACT_INFO_BLOCKED") showLeakWarning(true);
+        else alert(error.message || "Envoi impossible.");
     }
+}
 
-    // ---- Payment ----
-    const PAYMENT_STATE = { step: null, amount: 0, totalAmount: 0 };
+// ---- Payment ----
+const PAYMENT_STATE = { step: null, amount: 0, totalAmount: 0 };
 
-    function fileToDataUrl(file) {
-        return new Promise((resolve, reject) => {
-            const r = new FileReader();
-            r.onload = () => resolve(String(r.result || ""));
-            r.onerror = () => reject(new Error("Lecture fichier impossible."));
-            r.readAsDataURL(file);
-        });
-    }
+function fileToDataUrl(file) {
+    return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result || ""));
+        r.onerror = () => reject(new Error("Lecture fichier impossible."));
+        r.readAsDataURL(file);
+    });
+}
 
-    async function openSplitPaymentModal(type = "commission", totalAmount = null) {
-        if (totalAmount) PAYMENT_STATE.totalAmount = totalAmount;
-        PAYMENT_STATE.step = type;
-        const thread = state.activeThreadData;
-        if (!thread) return alert("Données de réservation introuvables.");
-        const modal = document.getElementById("split-payment-modal");
-        const hubContainer = document.getElementById("payment-modal-container");
-        const manualPanel = document.getElementById("manual-payment-panel");
-        if (!modal || !hubContainer) return console.error("Modal elements missing");
-        if (manualPanel) manualPanel.style.display = "none";
-        if (hubContainer) hubContainer.style.display = "block";
+async function openSplitPaymentModal(type = "commission", totalAmount = null) {
+    if (totalAmount) PAYMENT_STATE.totalAmount = totalAmount;
+    PAYMENT_STATE.step = type;
+    const thread = state.activeThreadData;
+    if (!thread) return alert("Données de réservation introuvables.");
+    const modal = document.getElementById("split-payment-modal");
+    const hubContainer = document.getElementById("payment-modal-container");
+    const manualPanel = document.getElementById("manual-payment-panel");
+    if (!modal || !hubContainer) return console.error("Modal elements missing");
+    if (manualPanel) manualPanel.style.display = "none";
+    if (hubContainer) hubContainer.style.display = "block";
 
-        if (thread.status === "commission_payee") {
-            const qr = thread.travelerAlipayQr || thread.travelerWechatQr;
-            if (!qr) return alert("Le voyageur n'a pas encore configuré ses moyens de paiement.");
-            PAYMENT_STATE.step = "traveler";
-            PAYMENT_STATE.amount = 200;
-            if (manualPanel) manualPanel.style.display = "block";
-            if (hubContainer) hubContainer.style.display = "none";
-            modal.classList.remove("hidden");
-            return;
-        }
-
+    if (thread.status === "commission_payee") {
+        const qr = thread.travelerAlipayQr || thread.travelerWechatQr;
+        if (!qr) return alert("Le voyageur n'a pas encore configuré ses moyens de paiement.");
+        PAYMENT_STATE.step = "traveler";
         PAYMENT_STATE.amount = 200;
+        if (manualPanel) manualPanel.style.display = "block";
+        if (hubContainer) hubContainer.style.display = "none";
         modal.classList.remove("hidden");
-        hubContainer.innerHTML = `
+        return;
+    }
+
+    PAYMENT_STATE.amount = 200;
+    modal.classList.remove("hidden");
+    hubContainer.innerHTML = `
             <div class="payment-selection">
                 <h3 style="margin-bottom: 20px; font-weight: 600;">Comment souhaitez-vous payer ?</h3>
                 <div class="payment-methods-grid">
@@ -771,10 +706,10 @@
                 <button id="btn-close-pay" style="margin-top: 20px; opacity: 0.6; font-size: 0.9rem; background: transparent; border: none; color: white; cursor: pointer;">Annuler</button>
             </div>
         `;
-        document.getElementById("btn-close-pay").onclick = () => modal.classList.add("hidden");
-        document.getElementById("pay-card").onclick = () => handleHubPayment("card");
-        document.getElementById("pay-momo").onclick = () => {
-            hubContainer.innerHTML = `
+    document.getElementById("btn-close-pay").onclick = () => modal.classList.add("hidden");
+    document.getElementById("pay-card").onclick = () => handleHubPayment("card");
+    document.getElementById("pay-momo").onclick = () => {
+        hubContainer.innerHTML = `
                 <div style="animation: fadeIn 0.3s ease;">
                     <button id="btn-back-choice" style="background: transparent; border: none; color: #aaa; margin-bottom: 20px; cursor: pointer;">← Retour</button>
                     <h3 style="margin-bottom: 10px;">Indicatif pays</h3>
@@ -784,164 +719,164 @@
                     <div id="momo-routing-zone"></div>
                 </div>
             `;
-            document.getElementById("btn-back-choice").onclick = () => openSplitPaymentModal(type, totalAmount);
-            const prefixInput = document.getElementById("momo-prefix");
-            const routingZone = document.getElementById("momo-routing-zone");
-            const countryCodes = {
-                "+225": { name: "Côte d'Ivoire 🇨🇮", iso: "CI" }, "+221": { name: "Sénégal 🇸🇳", iso: "SN" },
-                "+229": { name: "Bénin 🇧🇯", iso: "BJ" }, "+237": { name: "Cameroun 🇨🇲", iso: "CM" },
-                "+243": { name: "RD Congo 🇨🇩", iso: "CD" }, "+242": { name: "Congo 🇨🇬", iso: "CG" },
-                "+241": { name: "Gabon 🇬🇦", iso: "GA" }, "+254": { name: "Kenya 🇰🇪", iso: "KE" },
-            };
-            prefixInput.oninput = () => {
-                const val = prefixInput.value.trim();
-                const matched = Object.keys(countryCodes).find(p => val === p || (val.length > 3 && val.startsWith(p)));
-                if (matched) {
-                    const c = countryCodes[matched];
-                    routingZone.innerHTML = `<button class="method-btn-premium" id="btn-momo-go" style="width:100%;border-color:var(--emerald-bright);margin-top:10px;"><span class="icon">🚀</span><div class="text-wrap"><span class="title">Continuer en ${c.name}</span></div></button>`;
-                    document.getElementById("btn-momo-go").onclick = () => handleHubPayment("momo", null, null, c.iso);
-                } else if (val.length >= 4) {
-                    routingZone.innerHTML = `<div style="color:#f87171; padding:15px; border-radius:12px; background:rgba(239,68,68,0.1);">Mobile Money non disponible pour ce pays.</div>`;
-                } else { routingZone.innerHTML = ""; }
-            };
+        document.getElementById("btn-back-choice").onclick = () => openSplitPaymentModal(type, totalAmount);
+        const prefixInput = document.getElementById("momo-prefix");
+        const routingZone = document.getElementById("momo-routing-zone");
+        const countryCodes = {
+            "+225": { name: "Côte d'Ivoire 🇨🇮", iso: "CI" }, "+221": { name: "Sénégal 🇸🇳", iso: "SN" },
+            "+229": { name: "Bénin 🇧🇯", iso: "BJ" }, "+237": { name: "Cameroun 🇨🇲", iso: "CM" },
+            "+243": { name: "RD Congo 🇨🇩", iso: "CD" }, "+242": { name: "Congo 🇨🇬", iso: "CG" },
+            "+241": { name: "Gabon 🇬🇦", iso: "GA" }, "+254": { name: "Kenya 🇰🇪", iso: "KE" },
         };
-    }
+        prefixInput.oninput = () => {
+            const val = prefixInput.value.trim();
+            const matched = Object.keys(countryCodes).find(p => val === p || (val.length > 3 && val.startsWith(p)));
+            if (matched) {
+                const c = countryCodes[matched];
+                routingZone.innerHTML = `<button class="method-btn-premium" id="btn-momo-go" style="width:100%;border-color:var(--emerald-bright);margin-top:10px;"><span class="icon">🚀</span><div class="text-wrap"><span class="title">Continuer en ${c.name}</span></div></button>`;
+                document.getElementById("btn-momo-go").onclick = () => handleHubPayment("momo", null, null, c.iso);
+            } else if (val.length >= 4) {
+                routingZone.innerHTML = `<div style="color:#f87171; padding:15px; border-radius:12px; background:rgba(239,68,68,0.1);">Mobile Money non disponible pour ce pays.</div>`;
+            } else { routingZone.innerHTML = ""; }
+        };
+    };
+}
 
-    async function submitSplitPayment() {
-        const receiptInput = document.getElementById("split-payment-receipt");
-        const file = receiptInput?.files?.[0];
-        if (!file) return alert("Veuillez uploader la capture d'écran du paiement.");
-        const submitBtn = document.getElementById("split-payment-submit");
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<span class="spinner"></span> Envoi...';
-        try {
-            const base64 = await fileToDataUrl(file);
-            const isCommission = PAYMENT_STATE.step === "commission";
-            const reservationId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id;
-            if (!reservationId) throw new Error("Erreur système : ID de réservation introuvable.");
-            const endpoint = isCommission ? `/api/reservations/${reservationId}/pay-commission` : `/api/reservations/${reservationId}/pay-traveler`;
-            await window.CCCommon.api(endpoint, { method: "POST", body: { receiptData: base64, amount: PAYMENT_STATE.amount } });
-            document.getElementById("split-payment-modal").classList.add("hidden");
-            if (isCommission) {
-                alert("Paiement plateforme reçu ! Vous pouvez maintenant payer le voyageur directement.");
-                await loadConversations();
-                if (PAYMENT_STATE.totalAmount > 0) await openSplitPaymentModal("traveler", PAYMENT_STATE.totalAmount);
-            } else {
-                alert("Preuve de paiement envoyée au voyageur avec succès !");
-                await openThread(state.activeThreadId);
-            }
-        } catch (err) { alert(err.message || "Erreur lors de l'envoi."); }
-        finally { submitBtn.disabled = false; submitBtn.innerHTML = "Confirmer le paiement"; }
-    }
-
-    async function handleHubPayment(type, provider = null, phoneNum = null, country = null) {
-        const resId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id || state.activeThreadData?.reservationId;
-        if (!resId) return alert("Identifiant réservation manquant.");
-        const btn = document.getElementById(type === "card" ? "pay-card" : "btn-momo-validate");
-        const originalContent = btn ? btn.innerHTML : "";
-        if (btn) { btn.innerHTML = `<span class="spinner"></span> Connexion...`; btn.style.pointerEvents = "none"; }
-        try {
-            const result = await window.CCCommon.api(`/api/payments/initiate${country ? '?country=' + country : ''}`, {
-                method: "POST",
-                body: { reservationId: resId, type, phoneNumber: phoneNum, amountEUR: PAYMENT_STATE.amount, country }
-            });
-            if (result.paymentUrl) window.location.href = result.paymentUrl;
-            else throw new Error("Lien de paiement non généré.");
-        } catch (err) {
-            if (btn) { btn.innerHTML = originalContent; btn.style.pointerEvents = ""; }
-            alert("Erreur: " + (err.message || "Service momentanément indisponible."));
+async function submitSplitPayment() {
+    const receiptInput = document.getElementById("split-payment-receipt");
+    const file = receiptInput?.files?.[0];
+    if (!file) return alert("Veuillez uploader la capture d'écran du paiement.");
+    const submitBtn = document.getElementById("split-payment-submit");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span> Envoi...';
+    try {
+        const base64 = await fileToDataUrl(file);
+        const isCommission = PAYMENT_STATE.step === "commission";
+        const reservationId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id;
+        if (!reservationId) throw new Error("Erreur système : ID de réservation introuvable.");
+        const endpoint = isCommission ? `/api/reservations/${reservationId}/pay-commission` : `/api/reservations/${reservationId}/pay-traveler`;
+        await window.CCCommon.api(endpoint, { method: "POST", body: { receiptData: base64, amount: PAYMENT_STATE.amount } });
+        document.getElementById("split-payment-modal").classList.add("hidden");
+        if (isCommission) {
+            alert("Paiement plateforme reçu ! Vous pouvez maintenant payer le voyageur directement.");
+            await loadConversations();
+            if (PAYMENT_STATE.totalAmount > 0) await openSplitPaymentModal("traveler", PAYMENT_STATE.totalAmount);
+        } else {
+            alert("Preuve de paiement envoyée au voyageur avec succès !");
+            await openThread(state.activeThreadId);
         }
+    } catch (err) { alert(err.message || "Erreur lors de l'envoi."); }
+    finally { submitBtn.disabled = false; submitBtn.innerHTML = "Confirmer le paiement"; }
+}
+
+async function handleHubPayment(type, provider = null, phoneNum = null, country = null) {
+    const resId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id || state.activeThreadData?.reservationId;
+    if (!resId) return alert("Identifiant réservation manquant.");
+    const btn = document.getElementById(type === "card" ? "pay-card" : "btn-momo-validate");
+    const originalContent = btn ? btn.innerHTML : "";
+    if (btn) { btn.innerHTML = `<span class="spinner"></span> Connexion...`; btn.style.pointerEvents = "none"; }
+    try {
+        const result = await window.CCCommon.api(`/api/payments/initiate${country ? '?country=' + country : ''}`, {
+            method: "POST",
+            body: { reservationId: resId, type, phoneNumber: phoneNum, amountEUR: PAYMENT_STATE.amount, country }
+        });
+        if (result.paymentUrl) window.location.href = result.paymentUrl;
+        else throw new Error("Lien de paiement non généré.");
+    } catch (err) {
+        if (btn) { btn.innerHTML = originalContent; btn.style.pointerEvents = ""; }
+        alert("Erreur: " + (err.message || "Service momentanément indisponible."));
     }
+}
 
-    // ---- Events ----
-    function bindEvents() {
-        els.refreshBtn?.addEventListener("click", () => {
-            loadConversations().catch((error) => alert(error.message || "Rafraîchissement impossible."));
-        });
-
-        els.conversationsList?.addEventListener("click", (event) => {
-            const button = event.target.closest("[data-thread-id]");
-            if (!button) return;
-            const threadId = button.getAttribute("data-thread-id");
-            if (threadId) openThread(threadId).catch((error) => alert(error.message || "Ouverture impossible."));
-        });
-
-        els.chatBackBtn?.addEventListener("click", () => showListView());
-
-        els.convSearchInput?.addEventListener("input", () => {
-            renderConversations(els.convSearchInput.value);
-        });
-
-        els.messageForm?.addEventListener("submit", (event) => {
-            submitMessage(event).catch((error) => alert(error.message || "Envoi impossible."));
-        });
-
-        els.messageInput?.addEventListener("input", () => {
-            showLeakWarning(detectLeakClient(els.messageInput.value));
-        });
-
-        els.chatPayBtn?.addEventListener("click", () => {
-            const thread = state.activeThreadData;
-            const price = thread?.offerPrice || thread?.offer?.price || 0;
-            openSplitPaymentModal("commission", price);
-        });
-
-        document.getElementById("split-payment-close")?.addEventListener("click", () => {
-            document.getElementById("split-payment-modal").classList.add("hidden");
-        });
-        document.getElementById("payment-hub-close")?.addEventListener("click", () => {
-            document.getElementById("payment-hub-modal").classList.add("hidden");
-        });
-        document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
-
-        els.comprisBtn?.addEventListener("click", () => {
-            state.isTutorialAccepted = true;
-            if (state.activeThreadId) markThreadTutorialAccepted(state.activeThreadId);
-            els.tutorialOverlay?.classList.add("hidden");
-            els.chatInfoBanner?.classList.remove("tutorial-focus");
-            els.comprisBtn?.classList.remove("highlight-mode");
-            els.comprisBtn?.classList.add("hidden");
-        });
-
-        els.messageInput?.addEventListener("mousedown", (e) => {
-            if (!state.isTutorialAccepted && els.chatInfoBanner && !els.chatInfoBanner.classList.contains("hidden")) {
-                e.preventDefault();
-                triggerTutorialFocus();
-            }
-        });
-    }
-
-    // ---- Bootstrap ----
-    async function bootstrap() {
-        try {
-            await window.CCCommon.init("chat");
-            console.log("Chat initialized");
-        } catch (e) { console.error("CCCommon init error:", e); }
-
-        bindEvents();
-
-        try {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('status') === 'success') {
-                const ref = urlParams.get('reference');
-                showNotification(`✅ Paiement validé (${ref}) ! Vos informations de contact sont en cours de déblocage.`, "success");
-                if (window.CCCommon.state.user) setTimeout(() => loadConversations(), 1000);
-            }
-        } catch (e) { console.error("Payment return handling error:", e); }
-
-        if (!window.CCCommon.requireAuth("chat.html")) return;
-        state.userId = window.CCCommon.state.user?.id;
-
-        const params = new URLSearchParams(window.location.search || "");
-        const offerId = params.get("offerId");
-
-        if (offerId) await ensureConversationForOffer(offerId);
-        else await loadConversations();
-
-        setTimeout(() => { window.CCCommon?.syncNotificationBadges?.(); }, 1500);
-    }
-
-    bootstrap().catch((error) => {
-        alert(error.message || "Initialisation impossible.");
+// ---- Events ----
+function bindEvents() {
+    els.refreshBtn?.addEventListener("click", () => {
+        loadConversations().catch((error) => alert(error.message || "Rafraîchissement impossible."));
     });
-})();
+
+    els.conversationsList?.addEventListener("click", (event) => {
+        const button = event.target.closest("[data-thread-id]");
+        if (!button) return;
+        const threadId = button.getAttribute("data-thread-id");
+        if (threadId) openThread(threadId).catch((error) => alert(error.message || "Ouverture impossible."));
+    });
+
+    els.chatBackBtn?.addEventListener("click", () => showListView());
+
+    els.convSearchInput?.addEventListener("input", () => {
+        renderConversations(els.convSearchInput.value);
+    });
+
+    els.messageForm?.addEventListener("submit", (event) => {
+        submitMessage(event).catch((error) => alert(error.message || "Envoi impossible."));
+    });
+
+    els.messageInput?.addEventListener("input", () => {
+        showLeakWarning(detectLeakClient(els.messageInput.value));
+    });
+
+    els.chatPayBtn?.addEventListener("click", () => {
+        const thread = state.activeThreadData;
+        const price = thread?.offerPrice || thread?.offer?.price || 0;
+        openSplitPaymentModal("commission", price);
+    });
+
+    document.getElementById("split-payment-close")?.addEventListener("click", () => {
+        document.getElementById("split-payment-modal").classList.add("hidden");
+    });
+    document.getElementById("payment-hub-close")?.addEventListener("click", () => {
+        document.getElementById("payment-hub-modal").classList.add("hidden");
+    });
+    document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
+
+    els.comprisBtn?.addEventListener("click", () => {
+        state.isTutorialAccepted = true;
+        if (state.activeThreadId) markThreadTutorialAccepted(state.activeThreadId);
+        els.tutorialOverlay?.classList.add("hidden");
+        els.chatInfoBanner?.classList.remove("tutorial-focus");
+        els.comprisBtn?.classList.remove("highlight-mode");
+        els.comprisBtn?.classList.add("hidden");
+    });
+
+    els.messageInput?.addEventListener("mousedown", (e) => {
+        if (!state.isTutorialAccepted && els.chatInfoBanner && !els.chatInfoBanner.classList.contains("hidden")) {
+            e.preventDefault();
+            triggerTutorialFocus();
+        }
+    });
+}
+
+// ---- Bootstrap ----
+async function bootstrap() {
+    try {
+        await window.CCCommon.init("chat");
+        console.log("Chat initialized");
+    } catch (e) { console.error("CCCommon init error:", e); }
+
+    bindEvents();
+
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('status') === 'success') {
+            const ref = urlParams.get('reference');
+            showNotification(`✅ Paiement validé (${ref}) ! Vos informations de contact sont en cours de déblocage.`, "success");
+            if (window.CCCommon.state.user) setTimeout(() => loadConversations(), 1000);
+        }
+    } catch (e) { console.error("Payment return handling error:", e); }
+
+    if (!window.CCCommon.requireAuth("chat.html")) return;
+    state.userId = window.CCCommon.state.user?.id;
+
+    const params = new URLSearchParams(window.location.search || "");
+    const offerId = params.get("offerId");
+
+    if (offerId) await ensureConversationForOffer(offerId);
+    else await loadConversations();
+
+    setTimeout(() => { window.CCCommon?.syncNotificationBadges?.(); }, 1500);
+}
+
+bootstrap().catch((error) => {
+    alert(error.message || "Initialisation impossible.");
+});
+}) ();

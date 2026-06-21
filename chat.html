@@ -26,7 +26,7 @@
     <script defer src="standalone-common.js"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script defer src="chat.js?v=55"></script>
+    <script defer src="chat.js?v=57"></script>
 </head>
 
 <body class="chat-page">
@@ -180,82 +180,106 @@
         </div>
     </div>
 
-    <!-- MODÈLE CACHÉ POUR LE PDF (DESIGN PREMIUM) -->
-    <div id="receipt-pdf-template"
-        style="display: none; position: fixed; top: 0; left: 0; width: 800px; padding: 40px; background: white; color: #1a1a1a; font-family: 'Inter', sans-serif; z-index: 100000;">
-        <div
-            style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
-            <div>
-                <h1 style="color: #059669; margin: 0; font-size: 28px;">ColisConnect</h1>
-                <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Le monde. Plus proche.</p>
-            </div>
-            <div style="text-align: right;">
-                <h2 style="margin: 0; font-size: 20px; text-transform: uppercase; color: #333;">Bon de Mise en Relation
-                </h2>
-                <p style="margin: 5px 0 0; color: #888; font-size: 12px;">Document officiel émis par ColisConnect</p>
-                <div style="margin-top: 10px; font-weight: bold; font-size: 11px; color: #059669;" id="pdf-receipt-id">
-                    ID: TX-123456</div>
-            </div>
-        </div>
+    <!-- MODALE DE VISUALISATION DU REÇU (BON DE MISE EN RELATION) -->
+    <div id="receipt-view-modal" class="modal hidden" role="dialog" aria-modal="true" style="z-index: 200000;">
+        <div class="modal-card receipt-modal-card"
+            style="width: min(800px, 95vw); background: white; padding: 0; overflow: hidden; position: relative;">
+            <button class="close-modal"
+                style="color: #333; position: absolute; top: 15px; right: 20px; font-size: 24px; z-index: 10;"
+                onclick="document.getElementById('receipt-view-modal').classList.add('hidden')">×</button>
 
-        <div style="display: flex; gap: 20px; margin-bottom: 30px;">
-            <div
-                style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
-                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Date du jour</div>
-                <div style="font-weight: bold; color: #111827;" id="pdf-date">25 juin 2025</div>
-            </div>
-            <div
-                style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
-                <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Heure</div>
-                <div style="font-weight: bold; color: #111827;" id="pdf-hour">14:35</div>
-            </div>
-            <div
-                style="flex: 1; background: #f0fdf4; padding: 15px; border-radius: 12px; border: 1px solid #d1fae5; text-align: center;">
-                <div style="font-size: 10px; color: #059669; text-transform: uppercase;">Statut</div>
-                <div style="font-weight: bold; color: #059669;">VÉRIFIÉ ✅</div>
-            </div>
-        </div>
+            <div id="receipt-content-view"
+                style="padding: 40px; color: #1a1a1a; font-family: 'Inter', sans-serif; background: white;">
+                <div id="receipt-pdf-template" style="display: block; width: 100%;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: start; border-bottom: 2px solid #f0f0f0; padding-bottom: 20px; margin-bottom: 30px;">
+                        <div>
+                            <h1 style="color: #059669; margin: 0; font-size: 28px;">ColisConnect</h1>
+                            <p style="margin: 5px 0 0; color: #666; font-size: 14px;">Le monde. Plus proche.</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <h2 style="margin: 0; font-size: 20px; text-transform: uppercase; color: #333;">Bon de Mise
+                                en
+                                Relation</h2>
+                            <p style="margin: 5px 0 0; color: #888; font-size: 12px;">Document officiel émis par
+                                ColisConnect
+                            </p>
+                            <div style="margin-top: 10px; font-weight: bold; font-size: 11px; color: #059669;"
+                                id="pdf-receipt-id">ID: TX-123456</div>
+                        </div>
+                    </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;">
-            <div style="border-left: 4px solid #059669; padding-left: 15px;">
-                <h3 style="margin: 0 0 10px; font-size: 14px; text-transform: uppercase; color: #6b7280;">Expéditeur
-                </h3>
-                <p style="margin: 0; font-weight: bold; font-size: 18px;" id="pdf-sender-name">Chargement...</p>
-                <p style="margin: 5px 0; color: #9ca3af; font-size: 12px;" id="pdf-sender-id">ID: USER-000</p>
-            </div>
-            <div style="border-left: 4px solid #3b82f6; padding-left: 15px;">
-                <h3 style="margin: 0 0 10px; font-size: 14px; text-transform: uppercase; color: #6b7280;">Voyageur</h3>
-                <p style="margin: 0; font-weight: bold; font-size: 18px;" id="pdf-traveler-name">Chargement...</p>
-                <p style="margin: 5px 0; color: #9ca3af; font-size: 12px;" id="pdf-traveler-id">ID: TRAVELER-000</p>
-            </div>
-        </div>
+                    <div style="display: flex; gap: 20px; margin-bottom: 30px;">
+                        <div
+                            style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
+                            <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Date du jour</div>
+                            <div style="font-weight: bold; color: #111827;" id="pdf-date">25 juin 2025</div>
+                        </div>
+                        <div
+                            style="flex: 1; background: #f9fafb; padding: 15px; border-radius: 12px; border: 1px solid #eee; text-align: center;">
+                            <div style="font-size: 10px; color: #9ca3af; text-transform: uppercase;">Heure</div>
+                            <div style="font-weight: bold; color: #111827;" id="pdf-hour">14:35</div>
+                        </div>
+                        <div
+                            style="flex: 1; background: #f0fdf4; padding: 15px; border-radius: 12px; border: 1px solid #d1fae5; text-align: center;">
+                            <div style="font-size: 10px; color: #059669; text-transform: uppercase;">Statut</div>
+                            <div style="font-weight: bold; color: #059669;">VÉRIFIÉ ✅</div>
+                        </div>
+                    </div>
 
-        <div style="background: #111827; color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
-            <h3
-                style="margin: 0 0 15px; color: #10b981; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
-                Détails du trajet</h3>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="text-align: left;">
-                    <div style="font-size: 11px; opacity: 0.6;">DÉPART</div>
-                    <div style="font-size: 18px; font-weight: bold;" id="pdf-trip-from">France</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 30px;">
+                        <div style="border-left: 4px solid #059669; padding-left: 15px;">
+                            <h3 style="margin: 0 0 10px; font-size: 14px; text-transform: uppercase; color: #6b7280;">
+                                Expéditeur
+                            </h3>
+                            <p style="margin: 0; font-weight: bold; font-size: 18px;" id="pdf-sender-name">Chargement...
+                            </p>
+                            <p style="margin: 5px 0; color: #9ca3af; font-size: 12px;" id="pdf-sender-id">ID: USER-000
+                            </p>
+                        </div>
+                        <div style="border-left: 4px solid #3b82f6; padding-left: 15px;">
+                            <h3 style="margin: 0 0 10px; font-size: 14px; text-transform: uppercase; color: #6b7280;">
+                                Voyageur</h3>
+                            <p style="margin: 0; font-weight: bold; font-size: 18px;" id="pdf-traveler-name">
+                                Chargement...</p>
+                            <p style="margin: 5px 0; color: #9ca3af; font-size: 12px;" id="pdf-traveler-id">ID:
+                                TRAVELER-000
+                            </p>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: #111827; color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+                        <h3
+                            style="margin: 0 0 15px; color: #10b981; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+                            Détails du trajet</h3>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div style="text-align: left;">
+                                <div style="font-size: 11px; opacity: 0.6;">DÉPART</div>
+                                <div style="font-size: 18px; font-weight: bold;" id="pdf-trip-from">France</div>
+                            </div>
+                            <div style="font-size: 24px; opacity: 0.3;">✈️</div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 11px; opacity: 0.6;">DESTINATION</div>
+                                <div style="font-size: 18px; font-weight: bold;" id="pdf-trip-to">Côte d'Ivoire</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; border-top: 1px solid #eee; padding-top: 30px;">
+                        <span
+                            style="display: block; color: #9ca3af; font-size: 11px; line-height: 1.6; margin-bottom: 15px;">
+                            Ce document atteste que la transaction de mise en relation a été effectuée avec succès sur
+                            ColisConnect.
+                            La plateforme a vérifié le paiement et libéré les contacts respectifs pour l'exécution du
+                            service.
+                        </span>
+                        <div
+                            style="display: inline-block; padding: 8px 15px; border: 1px solid #eee; border-radius: 8px; font-weight: bold; font-size: 11px; color: #555;">
+                            SÉCURISÉ PAR COLISCONNECT SHIELD 🛡️
+                        </div>
+                    </div>
                 </div>
-                <div style="font-size: 24px; opacity: 0.3;">✈️</div>
-                <div style="text-align: right;">
-                    <div style="font-size: 11px; opacity: 0.6;">DESTINATION</div>
-                    <div style="font-size: 18px; font-weight: bold;" id="pdf-trip-to">Côte d'Ivoire</div>
-                </div>
-            </div>
-        </div>
-
-        <div style="text-align: center; border-top: 1px solid #eee; padding-top: 30px;">
-            <p style="color: #9ca3af; font-size: 11px; line-height: 1.6;">
-                Ce document atteste que la transaction de mise en relation a été effectuée avec succès sur
-                ColisConnect.<br>
-                La plateforme a vérifié le paiement et libéré les contacts respectifs pour l'exécution du service.
-            </p>
-            <div
-                style="margin-top: 10px; display: inline-block; padding: 8px 15px; border: 1px solid #eee; border-radius: 8px; font-weight: bold; font-size: 11px; color: #555;">
-                SÉCURISÉ PAR COLISCONNECT SHIELD 🛡️
             </div>
         </div>
     </div>
