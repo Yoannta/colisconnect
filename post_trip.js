@@ -40,7 +40,12 @@
         currencyToggle: document.getElementById("currency-toggle-btn"),
         currencyPopover: document.getElementById("currency-popover"),
         currentCurrencyText: document.getElementById("current-currency-text"),
-        priceCurrencyInput: document.getElementById("price-currency")
+        priceCurrencyInput: document.getElementById("price-currency"),
+        // profile_type modal
+        profileTypeModal: document.getElementById("profile-type-modal"),
+        choiceTraveler: document.getElementById("profile-choice-traveler"),
+        choiceCargo: document.getElementById("profile-choice-cargo"),
+        confirmProfileTypeBtn: document.getElementById("profile-type-confirm-btn")
     };
 
     // ---- Payment method state ----
@@ -49,6 +54,8 @@
         selectedMethodName: null,
         accountNumber: null
     };
+
+    let selectedProfileTypeChoice = null;
 
     // Initialisation dynamique des réseaux via API
     async function fetchAvailableMethods(country) {
@@ -356,6 +363,19 @@
             return;
         }
 
+        const user = window.CCCommon.state?.user;
+        if (user && (!user.profile_type || user.profile_type === 'client')) {
+            els.profileTypeModal?.classList.remove("hidden");
+            return;
+        }
+
+        await proceedSubmitTrip();
+    }
+
+    async function proceedSubmitTrip() {
+        const departureCountry = String(els.departure?.value || "").trim();
+        const destinationCountry = String(els.destination?.value || "").trim();
+
         const payload = {
             title: `Trajet ${departureCountry} -> ${destinationCountry}`,
             origin: departureCountry,
@@ -429,6 +449,55 @@
 
         // Initial load of currency options
         updateCurrencySelector();
+
+        // Choix du type de profil
+        els.choiceTraveler?.addEventListener("click", () => {
+            selectedProfileTypeChoice = "traveler";
+            els.choiceTraveler.classList.add("selected");
+            els.choiceCargo?.classList.remove("selected");
+            if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
+        });
+
+        els.choiceCargo?.addEventListener("click", () => {
+            selectedProfileTypeChoice = "cargo";
+            els.choiceCargo.classList.add("selected");
+            els.choiceTraveler?.classList.remove("selected");
+            if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
+        });
+
+        els.confirmProfileTypeBtn?.addEventListener("click", async () => {
+            if (!selectedProfileTypeChoice) return;
+
+            if (els.confirmProfileTypeBtn) {
+                els.confirmProfileTypeBtn.disabled = true;
+                els.confirmProfileTypeBtn.textContent = "Configuration...";
+            }
+
+            try {
+                const response = await window.CCCommon.api('/users/me/profile', {
+                    method: 'PATCH',
+                    body: { profileType: selectedProfileTypeChoice }
+                });
+
+                if (response.success) {
+                    if (window.CCCommon.state?.user) {
+                        window.CCCommon.state.user.profile_type = selectedProfileTypeChoice;
+                    }
+                    els.profileTypeModal?.classList.add("hidden");
+                    // Relancer la soumission
+                    await proceedSubmitTrip();
+                } else {
+                    alert("Erreur lors de la configuration du profil.");
+                }
+            } catch (err) {
+                alert(err.message || "Erreur lors de la configuration du profil. Veuillez réessayer.");
+            } finally {
+                if (els.confirmProfileTypeBtn) {
+                    els.confirmProfileTypeBtn.disabled = false;
+                    els.confirmProfileTypeBtn.textContent = "Confirmer mon choix";
+                }
+            }
+        });
     }
 
     async function bootstrap() {

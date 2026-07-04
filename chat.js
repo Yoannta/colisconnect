@@ -543,18 +543,12 @@
     }
 
     // ---- Anti-Leak ----
-    const LEAK_PATTERNS_CLIENT = [
-        /(?:\+|00)?\d[\d\s\-\.]{7,}/,
-        /[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}/i,
-        /whatsapp|wa\.me|telegram|t\.me/i,
-        /@[a-z0-9._]{3,}/i,
-        /https?:\/\/|www\./i,
-        /facebook|instagram|tiktok|snapchat|twitter/i,
-    ];
-
     function detectLeakClient(text) {
         if (!text) return false;
-        return LEAK_PATTERNS_CLIENT.some(p => p.test(text.trim().toLowerCase()));
+        if (window.CCAntiContact?.evaluate) {
+            return !window.CCAntiContact.evaluate(text).allowed;
+        }
+        return /(?:\+|00)?\d[\d\s\-\.]{7,}|[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}|https?:\/\/|www\.|whatsapp|telegram|instagram|facebook|snapchat|tiktok/i.test(text);
     }
 
     function showLeakWarning(show) {

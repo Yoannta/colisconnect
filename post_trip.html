@@ -16,7 +16,9 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">    <!-- Supabase Core & Init -->    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>    <script src="supabase-init.js"></script>
+    <link rel="stylesheet" href="style.css"> <!-- Supabase Core & Init -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
     <script defer src="standalone-common.js"></script>
@@ -163,6 +165,71 @@
             to {
                 transform: rotate(360deg);
             }
+        }
+
+        /* Profile Selection Modal Styles */
+        .profile-type-modal-card {
+            max-width: 480px !important;
+            width: 90%;
+            text-align: center;
+        }
+
+        .profile-options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 24px 0;
+            text-align: left;
+        }
+
+        .profile-option-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(19, 236, 200, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .profile-option-card.selected {
+            background: rgba(19, 236, 200, 0.1);
+            border-color: #13ecc8 !important;
+            box-shadow: 0 0 20px rgba(19, 236, 200, 0.2);
+        }
+
+        .profile-option-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            border-color: rgba(19, 236, 200, 0.4);
+        }
+
+        .profile-option-icon {
+            font-size: 1.8rem;
+            color: #13ecc8;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .profile-option-content {
+            flex: 1;
+        }
+
+        .profile-option-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .profile-option-desc {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+            line-height: 1.4;
         }
     </style>
 </head>
@@ -381,6 +448,37 @@
     </div>
 
 
+
+    <!-- Modale de sélection de type de profil -->
+    <div id="profile-type-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="pt-modal-card glass-panel profile-type-modal-card">
+            <h3 class="pm-title">Choisissez votre type de profil</h3>
+            <p class="pm-subtitle">Afin de personnaliser votre expérience et adapter nos limites de publication.</p>
+
+            <div class="profile-options-grid">
+                <div class="profile-option-card" id="profile-choice-traveler" data-type="traveler">
+                    <div class="profile-option-icon">✈️</div>
+                    <div class="profile-option-content">
+                        <div class="profile-option-title">Voyageur simple</div>
+                        <div class="profile-option-desc">Je voyage ponctuellement et je souhaite rentabiliser mes kilos
+                            de bagages non utilisés. (Limite : 1 trajet actif)</div>
+                    </div>
+                </div>
+
+                <div class="profile-option-card" id="profile-choice-cargo" data-type="cargo">
+                    <div class="profile-option-icon">📦</div>
+                    <div class="profile-option-content">
+                        <div class="profile-option-title">Entreprise cargo</div>
+                        <div class="profile-option-desc">Je suis un professionnel, import-export ou transitaire avec un
+                            volume régulier. (Limite : 5 trajets actifs)</div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="btn primary full-width" id="profile-type-confirm-btn" disabled>Confirmer mon
+                choix</button>
+        </div>
+    </div>
 
     <!-- Navigation Mobile Basse -->
     <nav class="mobile-bottom-nav" aria-label="Navigation mobile">

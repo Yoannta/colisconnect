@@ -278,9 +278,22 @@
             const isVerified = Boolean(u.isVerified);
             const missing = formatMissingFields(u.profileCompletionMissing);
             const activity = `Offres:${u.offersCount || 0} | Reserv:${u.reservationsCount || 0} | Chats:${u.conversationsCount || 0} | Last:${fmtDateTime(u.lastSeenAt)}`;
+
             const verifyBtn = isVerified
                 ? `<button class="btn ghost sm" data-user-verify="${escapeHtml(u.id)}" data-target-verified="0">Desapprouver</button>`
                 : `<button class="btn primary sm" data-user-verify="${escapeHtml(u.id)}" data-target-verified="1" title="Approuver utilisateur">Approuver</button>`;
+
+            const currentProfileType = u.profileType || "";
+            const profileTypeSelect = `
+                <select class="admin-profile-type-select" data-user-id="${escapeHtml(u.id)}" style="background: rgba(15, 34, 72, 0.8); border: 1px solid var(--adm-border); color: #fff; border-radius: 4px; padding: 4px; font-size: 0.85rem; outline: none;">
+                    <option value="" ${currentProfileType === "" ? "selected" : ""}>Aucun</option>
+                    <option value="client" ${currentProfileType === "client" ? "selected" : ""}>Client</option>
+                    <option value="traveler" ${currentProfileType === "traveler" ? "selected" : ""}>Voyageur</option>
+                    <option value="cargo" ${currentProfileType === "cargo" ? "selected" : ""}>Cargo</option>
+                </select>
+                <div style="font-size: 0.75rem; color: var(--adm-text-soft); margin-top: 4px;">Complété: ${escapeHtml(completion)}%${missing ? ` (manque: ${escapeHtml(missing)})` : ""}</div>
+            `;
+
             return `<tr>
 <td>#${escapeHtml(u.id)}</td>
 <td>${escapeHtml(u.fullName)}</td>
@@ -288,7 +301,7 @@
 <td>${escapeHtml(u.email)}</td>
 <td>${statusBadge(role)}</td>
 <td>${statusBadge(active ? "active" : "suspended")} ${statusBadge(isVerified ? "verified" : "unverified")}</td>
-<td>${escapeHtml(completion)}%${missing ? `<br><span class="admin-note">manque: ${escapeHtml(missing)}</span>` : ""}</td>
+<td>${profileTypeSelect}</td>
 <td>${escapeHtml(activity)}</td>
 <td><div class="admin-actions">
 ${verifyBtn}
@@ -809,6 +822,19 @@ ${agreementBtn}
                 const id = remove.getAttribute("data-user-delete");
                 if (!window.confirm("Supprimer cet utilisateur ?")) return;
                 refreshAfterAction(() => api(`/api/admin/users/${id}`, { method: "DELETE" }), "Utilisateur supprime.");
+            }
+        });
+
+        els.usersBody?.addEventListener("change", async (event) => {
+            const select = event.target.closest(".admin-profile-type-select");
+            if (!select) return;
+            const userId = select.getAttribute("data-user-id");
+            const newProfileType = select.value || null;
+            try {
+                await api(`/api/admin/users/${userId}/profile-type`, { method: "PATCH", body: { profileType: newProfileType } });
+                showToast(`Type de profil mis à jour : ${newProfileType || "Aucun"}`);
+            } catch (err) {
+                showToast(err.message || "Erreur mise à jour du type de profil.");
             }
         });
 

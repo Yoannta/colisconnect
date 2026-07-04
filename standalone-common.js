@@ -388,6 +388,74 @@
         return candidates;
     }
 
+    function buildContactBlockedError(result) {
+        const error = new Error("Partager des coordonnées personnelles avant paiement est interdit.");
+        error.status = 400;
+        error.code = "CONTACT_INFO_BLOCKED";
+        error.payload = {
+            code: "CONTACT_INFO_BLOCKED",
+            risk: result?.risk || 0,
+            flags: result?.flags || [],
+            summary: result?.summary || ""
+        };
+        return error;
+    }
+
+    async function recentChatText(threadId, limit = 6) {
+        try {
+            const since = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+            const { data, error } = await window.ccSupabase
+                .from("chat_messages")
+                .select("text,created_at")
+                .eq("thread_id", threadId)
+                .gte("created_at", since)
+                .order("created_at", { ascending: false })
+                .limit(limit);
+            if (error) throw error;
+            return (data || []).reverse().map((row) => row.text || "").join("\n");
+        } catch (error) {
+            console.warn("Anti-contact recent chat lookup failed:", error.message || error);
+            return "";
+        }
+    }
+
+    async function threadModerationContext(threadId) {
+        try {
+            const { data, error } = await window.ccSupabase
+                .from("chat_threads")
+                .select("id,reservation_id")
+                .eq("id", threadId)
+                .maybeSingle();
+            if (error) throw error;
+            return data || { id: threadId, reservation_id: null };
+        } catch (error) {
+            console.warn("Anti-contact thread context lookup failed:", error.message || error);
+            return { id: threadId, reservation_id: null };
+        }
+    }
+
+    async function logContactModeration({ threadId, text, result, action }) {
+        try {
+            const context = await threadModerationContext(threadId);
+            const payload = {
+                thread_id: threadId,
+                reservation_id: context.reservation_id || null,
+                user_id: state.user?.id || null,
+                risk_level: result.riskLevel || "high",
+                summary: result.summary || "Tentative de contournement anti-contact détectée.",
+                flags: result.flags || [],
+                is_dismissed: false,
+                raw_content: text,
+                normalized_content: result.normalized || "",
+                action_taken: action || result.action || "blocked"
+            };
+            const { error } = await window.ccSupabase.from("ai_moderation_logs").insert(payload);
+            if (error) throw error;
+        } catch (error) {
+            console.warn("Anti-contact moderation log failed:", error.message || error);
+        }
+    }
+
     async function api(path, options = {}) {
         // [SUPABASE BRIDGE UNIVERSEL V4 - FULL CLOUD]
         if (window.ccSupabase) {
@@ -431,7 +499,8 @@
                     phoneNumber: 'phone_number',
                     country: 'country',
                     identityDocumentData: 'identity_document',
-                    profilePhotoData: 'profile_photo'
+                    profilePhotoData: 'profile_photo',
+                    profileType: 'profile_type'
                 };
                 const mappedBody = {};
                 for (const k in options.body) { mappedBody[mapping[k] || k] = options.body[k]; }
@@ -461,6 +530,28 @@
                     return { success: true };
                 }
                 if (options.method === "POST") {
+                    const { data: profile, error: pErr } = await window.ccSupabase.from('profiles').select('profile_type').eq('id', state.user?.id).single();
+                    if (pErr) throw pErr;
+
+                    const profileType = profile?.profile_type;
+                    if (profileType === 'traveler' || profileType === 'cargo') {
+                        const today = new Date().toISOString().split('T')[0];
+                        const { data: activeOffers, error: activeErr } = await window.ccSupabase.from('offers')
+                            .select('id')
+                            .eq('user_id', state.user?.id)
+                            .eq('status', 'active')
+                            .gte('departure_date', today);
+                        if (activeErr) throw activeErr;
+
+                        const count = activeOffers ? activeOffers.length : 0;
+                        if (profileType === 'traveler' && count >= 1) {
+                            throw new Error("Limite de trajet dépassée : En tant que voyageur simple, vous ne pouvez publier qu'un seul trajet actif à la fois.");
+                        }
+                        if (profileType === 'cargo' && count >= 5) {
+                            throw new Error("Limite de trajets dépassée : En tant que cargo, vous ne pouvez pas avoir plus de 5 trajets actifs simultanément.");
+                        }
+                    }
+
                     const mapping = {
                         availableKg: 'available_kg',
                         pricePerKg: 'price_per_kg',
@@ -547,12 +638,24 @@
                 if (threadMatch && options.method === "POST") {
                     // SEND MESSAGE
                     const threadId = threadMatch[1];
+                    const text = String(options.body?.text || "");
+                    if (window.CCAntiContact?.evaluate) {
+                        const recentText = await recentChatText(threadId);
+                        const moderation = window.CCAntiContact.evaluate(text, { recentText });
+                        if (!moderation.allowed) {
+                            await logContactModeration({ threadId, text, result: moderation, action: "blocked" });
+                            throw buildContactBlockedError(moderation);
+                        }
+                        if (moderation.action === "warn") {
+                            await logContactModeration({ threadId, text, result: moderation, action: "warned" });
+                        }
+                    }
                     const senderType = state.user?.id ? "user" : "system";
                     const { data, error } = await window.ccSupabase.from('chat_messages').insert({
                         thread_id: threadId,
                         sender_user_id: state.user?.id,
                         sender_type: senderType,
-                        text: options.body.text
+                        text
                     }).select().single();
                     if (error) throw error;
                     return data;
@@ -651,6 +754,12 @@
                     if (error) throw error;
                     return { success: true };
                 }
+                const idProfileTypeMatch = path.match(/\/admin\/users\/([^\/\?]+)\/profile-type/);
+                if (idProfileTypeMatch && options.method === "PATCH") {
+                    const { error } = await window.ccSupabase.from('profiles').update({ profile_type: options.body.profileType }).eq('id', idProfileTypeMatch[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
                 const idSessionsMatch = path.match(/\/admin\/users\/([^\/\?]+)\/sessions/);
                 if (idSessionsMatch && options.method === "DELETE") return { success: true };
 
@@ -683,16 +792,39 @@
                     isVerified: u.is_verified,
                     phoneNumber: u.phone_number,
                     email: u.email || "Utilisateur Supabase",
+                    profileType: u.profile_type,
                     profileCompletionPercent: 50,
                     profileCompletionMissing: ""
                 }));
                 return { items };
             }
             if (p.includes("/admin/analytics/daily")) return { points: [] };
+            const aiLogDismissMatch = path.match(/\/api\/admin\/ai-moderation\/logs\/([^\/\?]+)/);
+            if (aiLogDismissMatch && options.method === "PATCH") {
+                const { error } = await window.ccSupabase
+                    .from("ai_moderation_logs")
+                    .update({ is_dismissed: !!options.body?.is_dismissed })
+                    .eq("id", aiLogDismissMatch[1]);
+                if (error) throw error;
+                return { success: true };
+            }
+            if (p.includes("/admin/ai-moderation/logs")) {
+                try {
+                    const { data, error } = await window.ccSupabase
+                        .from("ai_moderation_logs")
+                        .select("*")
+                        .order("created_at", { ascending: false })
+                        .limit(160);
+                    if (error) throw error;
+                    return data || [];
+                } catch (error) {
+                    console.warn("Admin moderation logs unavailable:", error.message || error);
+                    return [];
+                }
+            }
             if (p.includes("/admin/reservations") || p.includes("/admin/flags") || p.includes("/admin/security/blocks") || p.includes("/admin/audit-log")) return [];
             if (p.includes("/admin/financials/stats")) return { monthly: [], recent: [] };
             if (p.includes("/settings/platform-qr")) return { qrCode: "" };
-            if (p.includes("/admin/ai-moderation/logs")) return [];
 
             // 6. GENERAL ADMIN & NOTIFS
             if (p.includes("/admin/inbox") || p.includes("/notification-counts")) {

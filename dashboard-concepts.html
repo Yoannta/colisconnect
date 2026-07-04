@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepts dashboards | ColisConnect</title>
+    <style>
+        :root {
+            --bg: #08110f;
+            --panel: #101b18;
+            --panel-2: #14231f;
+            --line: rgba(184, 245, 226, 0.16);
+            --text: #f4fbf8;
+            --muted: #a8bbb4;
+            --emerald: #20e0a4;
+            --sky: #69c6ff;
+            --amber: #ffc857;
+            --rose: #ff7a90;
+            --violet: #a78bfa;
+            --shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Plus Jakarta Sans", "Segoe UI", Arial, sans-serif;
+        }
+
+        .wrap {
+            width: min(1440px, 100%);
+            margin: 0 auto;
+            padding: 28px;
+        }
+
+        .concept {
+            min-height: 900px;
+            padding: 28px;
+            border: 1px solid var(--line);
+            background:
+                radial-gradient(circle at 14% 0%, rgba(32, 224, 164, 0.18), transparent 28%),
+                radial-gradient(circle at 96% 10%, rgba(105, 198, 255, 0.13), transparent 26%),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.035), transparent 48%),
+                #091310;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .concept + .concept {
+            margin-top: 32px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 26px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 220px;
+        }
+
+        .logo {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            background: var(--emerald);
+            color: #06110e;
+            font-weight: 900;
+        }
+
+        .brand strong,
+        h1,
+        h2,
+        h3,
+        p {
+            margin: 0;
+        }
+
+        .brand span {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+            padding: 6px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+        }
+
+        .nav span {
+            padding: 10px 14px;
+            border-radius: 6px;
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .nav .active {
+            color: #06110e;
+            background: var(--emerald);
+        }
+
+        .user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: #20352f;
+            color: var(--text);
+            font-weight: 900;
+            border: 1px solid var(--line);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 22px;
+            align-items: stretch;
+            margin-bottom: 22px;
+        }
+
+        .hero-main,
+        .panel,
+        .card,
+        .list,
+        .timeline {
+            border: 1px solid var(--line);
+            background: rgba(16, 27, 24, 0.86);
+            border-radius: 8px;
+        }
+
+        .hero-main {
+            padding: 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 230px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: fit-content;
+            color: var(--emerald);
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin-top: 14px;
+            max-width: 760px;
+            font-size: 42px;
+            line-height: 1.03;
+            letter-spacing: 0;
+        }
+
+        .sub {
+            margin-top: 12px;
+            max-width: 700px;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .hero-actions,
+        .row,
+        .chips,
+        .metric-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .hero-actions {
+            margin-top: 24px;
+        }
+
+        .btn {
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-weight: 900;
+            color: #06110e;
+            background: var(--emerald);
+        }
+
+        .btn.secondary {
+            color: var(--text);
+            border-color: var(--line);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .btn.sky {
+            background: var(--sky);
+        }
+
+        .btn.amber {
+            background: var(--amber);
+        }
+
+        .hero-side {
+            display: grid;
+            gap: 12px;
+        }
+
+        .stat {
+            padding: 18px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 30px;
+            margin-bottom: 6px;
+        }
+
+        .stat span {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 0.8fr;
+            gap: 18px;
+        }
+
+        .grid.two {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .panel {
+            padding: 20px;
+            min-height: 220px;
+        }
+
+        .panel-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            font-size: 20px;
+            letter-spacing: 0;
+        }
+
+        .tag,
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            min-height: 26px;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .tag.good {
+            color: #0b1713;
+            background: var(--emerald);
+        }
+
+        .tag.warn {
+            color: #1a1304;
+            background: var(--amber);
+        }
+
+        .tag.hot {
+            color: #21060b;
+            background: var(--rose);
+        }
+
+        .item {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .item:first-child {
+            border-top: 0;
+        }
+
+        .icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: grid;
+            place-items: center;
+            background: rgba(32, 224, 164, 0.12);
+            color: var(--emerald);
+            font-weight: 900;
+        }
+
+        .item strong {
+            display: block;
+            font-size: 14px;
+        }
+
+        .item small {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .progress {
+            height: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .progress span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--emerald);
+        }
+
+        .map {
+            min-height: 210px;
+            position: relative;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background:
+                linear-gradient(90deg, transparent 48%, rgba(255, 255, 255, 0.05) 49%, transparent 50%),
+                linear-gradient(0deg, transparent 48%, rgba(255, 255, 255, 0.05) 49%, transparent 50%),
+                #0f1f1b;
+            overflow: hidden;
+        }
+
+        .route {
+            position: absolute;
+            left: 12%;
+            right: 12%;
+            top: 46%;
+            height: 3px;
+            background: var(--emerald);
+            transform: rotate(-8deg);
+            box-shadow: 0 0 24px rgba(32, 224, 164, 0.6);
+        }
+
+        .pin {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--sky);
+            border: 3px solid #08110f;
+            box-shadow: 0 0 0 6px rgba(105, 198, 255, 0.16);
+        }
+
+        .pin.a {
+            left: 14%;
+            top: 50%;
+        }
+
+        .pin.b {
+            right: 15%;
+            top: 35%;
+            background: var(--emerald);
+            box-shadow: 0 0 0 6px rgba(32, 224, 164, 0.18);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: 12px 10px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            color: var(--muted);
+        }
+
+        .table th {
+            color: var(--text);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .table strong {
+            color: var(--text);
+        }
+
+        .mobile-strip {
+            display: none;
+        }
+
+        @media (max-width: 900px) {
+            .wrap {
+                padding: 12px;
+            }
+
+            .concept {
+                padding: 16px;
+            }
+
+            .topbar,
+            .hero,
+            .grid,
+            .grid.two {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                display: grid;
+            }
+
+            .nav {
+                overflow-x: auto;
+            }
+
+            h1 {
+                font-size: 30px;
+            }
+
+            .user {
+                display: none;
+            }
+
+            .mobile-strip {
+                display: flex;
+                position: fixed;
+                left: 16px;
+                right: 16px;
+                bottom: 16px;
+                justify-content: space-around;
+                padding: 10px;
+                border: 1px solid var(--line);
+                background: #101b18;
+                border-radius: 8px;
+                z-index: 5;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <section class="concept" id="client-dashboard">
+            <header class="topbar">
+                <div class="brand">
+                    <div class="logo">CC</div>
+                    <div><strong>ColisConnect</strong><span>Dashboard client</span></div>
+                </div>
+                <nav class="nav" aria-label="Navigation client">
+                    <span class="active">Accueil</span>
+                    <span>Explorer</span>
+                    <span>Demandes</span>
+                    <span>Messages</span>
+                    <span>Paiements</span>
+                </nav>
+                <div class="user"><span>Profil verifie a 75%</span><div class="avatar">AM</div></div>
+            </header>
+
+            <div class="hero">
+                <div class="hero-main">
+                    <div>
+                        <span class="eyebrow">Priorite client</span>
+                        <h1>Trouver un transporteur fiable ou publier mon besoin.</h1>
+                        <p class="sub">Le client voit d'abord les trajets compatibles, puis une option de demande ouverte si aucune offre ne correspond.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <span class="btn">Chercher un trajet</span>
+                        <span class="btn secondary">Publier une demande</span>
+                    </div>
+                </div>
+                <div class="hero-side">
+                    <div class="stat"><strong>8</strong><span>offres compatibles cette semaine</span></div>
+                    <div class="stat"><strong>2</strong><span>discussions en attente de decision</span></div>
+                    <div class="stat"><strong>1</strong><span>paiement pret a valider</span></div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <section class="panel">
+                    <div class="panel-head"><h2>Recherche rapide</h2><span class="tag good">Actif</span></div>
+                    <div class="map"><span class="route"></span><span class="pin a"></span><span class="pin b"></span></div>
+                    <div class="chips" style="margin-top: 14px;">
+                        <span class="pill">Paris -> Abidjan</span>
+                        <span class="pill">5 kg</span>
+                        <span class="pill">Avant 12 juillet</span>
+                    </div>
+                </section>
+                <section class="panel">
+                    <div class="panel-head"><h2>Meilleures offres</h2><span class="tag">8 resultats</span></div>
+                    <div class="item"><span class="icon">1</span><div><strong>Fatou D. verified</strong><small>Paris -> Abidjan, 8 kg, 14 EUR/kg</small></div><span class="tag good">Contacter</span></div>
+                    <div class="item"><span class="icon">2</span><div><strong>Cargo Express CI</strong><small>Depart vendredi, avion, 32 kg restants</small></div><span class="tag good">Contacter</span></div>
+                    <div class="item"><span class="icon">3</span><div><strong>Yann M.</strong><small>Lyon -> Dakar, 3 kg, reponse rapide</small></div><span class="tag">Voir</span></div>
+                </section>
+                <section class="panel">
+                    <div class="panel-head"><h2>Mes actions</h2><span class="tag warn">A faire</span></div>
+                    <div class="item"><span class="icon">$</span><div><strong>Valider reservation</strong><small>Paiement securise avant contact</small></div><span class="tag warn">Payer</span></div>
+                    <div class="item"><span class="icon">?</span><div><strong>Demande ouverte</strong><small>Paris -> Cotonou, 10 kg</small></div><span class="tag">Modifier</span></div>
+                    <div class="item"><span class="icon">!</span><div><strong>Profil</strong><small>Photo acceptee, CNI en attente</small></div><span class="tag">Suivre</span></div>
+                </section>
+            </div>
+        </section>
+
+        <section class="concept" id="voyageur-dashboard">
+            <header class="topbar">
+                <div class="brand">
+                    <div class="logo">CC</div>
+                    <div><strong>ColisConnect</strong><span>Dashboard voyageur</span></div>
+                </div>
+                <nav class="nav" aria-label="Navigation voyageur">
+                    <span class="active">Mon trajet</span>
+                    <span>Demandes</span>
+                    <span>Messages</span>
+                    <span>Paiements</span>
+                    <span>Profil</span>
+                </nav>
+                <div class="user"><span>Voyageur verifie</span><div class="avatar">FD</div></div>
+            </header>
+
+            <div class="hero">
+                <div class="hero-main">
+                    <div>
+                        <span class="eyebrow">Priorite voyageur</span>
+                        <h1>Vendre mes kilos disponibles sans perdre le controle.</h1>
+                        <p class="sub">Le voyageur voit son unique offre active, les demandes entrantes et l'argent a recevoir. La restriction une offre active devient visible et rassurante.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <span class="btn sky">Gerer mon offre active</span>
+                        <span class="btn secondary">Ouvrir messages</span>
+                    </div>
+                </div>
+                <div class="hero-side">
+                    <div class="stat"><strong>12 kg</strong><span>capacite restante sur 20 kg</span></div>
+                    <div class="stat"><strong>4</strong><span>clients interesses</span></div>
+                    <div class="stat"><strong>168 EUR</strong><span>revenu potentiel restant</span></div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <section class="panel">
+                    <div class="panel-head"><h2>Offre active</h2><span class="tag good">Publiee</span></div>
+                    <div class="map"><span class="route"></span><span class="pin a"></span><span class="pin b"></span></div>
+                    <div class="metric-row" style="margin-top: 14px;">
+                        <span class="pill">France -> Cote d'Ivoire</span>
+                        <span class="pill">16 juillet</span>
+                        <span class="pill">14 EUR/kg</span>
+                    </div>
+                    <div class="progress"><span style="width: 40%;"></span></div>
+                    <p class="sub">Une nouvelle offre sera disponible apres la date du voyage ou si celle-ci est annulee.</p>
+                </section>
+                <section class="panel">
+                    <div class="panel-head"><h2>Demandes entrantes</h2><span class="tag hot">4 nouveaux</span></div>
+                    <div class="item"><span class="icon">M</span><div><strong>Mariam veut 5 kg</strong><small>Paiement possible aujourd'hui</small></div><span class="tag good">Repondre</span></div>
+                    <div class="item"><span class="icon">S</span><div><strong>Serge veut 2 kg</strong><small>Demande fragile, besoin confirmation</small></div><span class="tag">Voir</span></div>
+                    <div class="item"><span class="icon">A</span><div><strong>Aicha veut 3 kg</strong><small>Dernier message il y a 12 min</small></div><span class="tag good">Chat</span></div>
+                </section>
+                <section class="panel">
+                    <div class="panel-head"><h2>Paiements</h2><span class="tag warn">Suivi</span></div>
+                    <div class="item"><span class="icon">$</span><div><strong>Commission a reverser</strong><small>Statut voyageur_paye</small></div><span class="tag warn">Payer</span></div>
+                    <div class="item"><span class="icon">OK</span><div><strong>Contacts liberes</strong><small>2 transactions terminees</small></div><span class="tag good">OK</span></div>
+                    <div class="item"><span class="icon">ID</span><div><strong>Verification</strong><small>Badge actif sur vos offres</small></div><span class="tag good">Actif</span></div>
+                </section>
+            </div>
+        </section>
+
+        <section class="concept" id="cargo-dashboard">
+            <header class="topbar">
+                <div class="brand">
+                    <div class="logo">CC</div>
+                    <div><strong>ColisConnect</strong><span>Dashboard cargo</span></div>
+                </div>
+                <nav class="nav" aria-label="Navigation cargo">
+                    <span class="active">Operations</span>
+                    <span>Offres</span>
+                    <span>Files</span>
+                    <span>Paiements</span>
+                    <span>Equipe</span>
+                </nav>
+                <div class="user"><span>Cargo certifie</span><div class="avatar">CE</div></div>
+            </header>
+
+            <div class="hero">
+                <div class="hero-main">
+                    <div>
+                        <span class="eyebrow">Priorite cargo</span>
+                        <h1>Piloter plusieurs lignes cargo et traiter le flux vite.</h1>
+                        <p class="sub">Le cargo a une vue operationnelle: 5 offres max, demandes a trier, capacites par ligne, paiements et documents.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <span class="btn amber">Ajouter une ligne cargo</span>
+                        <span class="btn secondary">Traiter la file</span>
+                    </div>
+                </div>
+                <div class="hero-side">
+                    <div class="stat"><strong>4 / 5</strong><span>offres actives publiees</span></div>
+                    <div class="stat"><strong>37</strong><span>demandes a qualifier</span></div>
+                    <div class="stat"><strong>248 kg</strong><span>capacite disponible totale</span></div>
+                </div>
+            </div>
+
+            <div class="grid two">
+                <section class="panel">
+                    <div class="panel-head"><h2>Operations cargo</h2><span class="tag warn">Priorite haute</span></div>
+                    <table class="table">
+                        <thead><tr><th>Ligne</th><th>Mode</th><th>Capacite</th><th>Statut</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>Paris -> Abidjan</strong></td><td>Avion</td><td>64 kg</td><td><span class="tag good">Active</span></td></tr>
+                            <tr><td><strong>Guangzhou -> Dakar</strong></td><td>Bateau</td><td>120 kg</td><td><span class="tag warn">Collecte</span></td></tr>
+                            <tr><td><strong>Bruxelles -> Douala</strong></td><td>Avion</td><td>22 kg</td><td><span class="tag hot">Presque plein</span></td></tr>
+                            <tr><td><strong>Dubai -> Cotonou</strong></td><td>Avion</td><td>42 kg</td><td><span class="tag good">Active</span></td></tr>
+                        </tbody>
+                    </table>
+                </section>
+                <section class="panel">
+                    <div class="panel-head"><h2>File entrante</h2><span class="tag hot">37 demandes</span></div>
+                    <div class="item"><span class="icon">1</span><div><strong>12 kg electronique</strong><small>Paris -> Abidjan, besoin assurance</small></div><span class="tag good">Qualifier</span></div>
+                    <div class="item"><span class="icon">2</span><div><strong>35 kg textile</strong><small>Guangzhou -> Dakar, bateau OK</small></div><span class="tag good">Devis</span></div>
+                    <div class="item"><span class="icon">3</span><div><strong>4 kg documents</strong><small>Urgent, avion recommande</small></div><span class="tag warn">Priorite</span></div>
+                    <div class="item"><span class="icon">4</span><div><strong>18 kg pieces auto</strong><small>Verification contenu requise</small></div><span class="tag">Verifier</span></div>
+                </section>
+            </div>
+
+            <div class="grid" style="margin-top: 18px;">
+                <section class="panel">
+                    <div class="panel-head"><h2>Limite offres</h2><span class="tag">4/5</span></div>
+                    <div class="progress"><span style="width: 80%; background: var(--amber);"></span></div>
+                    <p class="sub">Une place reste disponible pour une nouvelle ligne active.</p>
+                </section>
+                <section class="panel">
+                    <div class="panel-head"><h2>Paiements</h2><span class="tag good">18 valides</span></div>
+                    <div class="item"><span class="icon">$</span><div><strong>2 840 EUR</strong><small>volume valide ce mois</small></div><span class="tag good">Voir</span></div>
+                    <div class="item"><span class="icon">%</span><div><strong>Commissions</strong><small>3 reversements a controler</small></div><span class="tag warn">Suivre</span></div>
+                </section>
+                <section class="panel">
+                    <div class="panel-head"><h2>Confiance</h2><span class="tag good">Certifie</span></div>
+                    <div class="item"><span class="icon">ID</span><div><strong>Documents cargo</strong><small>Licence et contacts valides</small></div><span class="tag good">OK</span></div>
+                    <div class="item"><span class="icon">S</span><div><strong>SLA reponse</strong><small>86% des chats repondus sous 1h</small></div><span class="tag">Suivre</span></div>
+                </section>
+            </div>
+        </section>
+    </div>
+</body>
+
+</html>

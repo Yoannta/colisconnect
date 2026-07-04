@@ -118,6 +118,22 @@
 
         const target = `chat.html?offerId=${encodeURIComponent(String(offer.id))}`;
         if (!window.CCCommon.requireCompletedProfile(target)) return;
+
+        const user = window.CCCommon.state?.user;
+        if (user && !user.profile_type) {
+            try {
+                const response = await window.CCCommon.api('/users/me/profile', {
+                    method: 'PATCH',
+                    body: { profileType: 'client' }
+                });
+                if (response.success) {
+                    window.CCCommon.state.user.profile_type = 'client';
+                }
+            } catch (err) {
+                console.warn("Erreur lors de la mise à jour automatique vers 'client':", err);
+            }
+        }
+
         window.location.href = target;
     }
 
