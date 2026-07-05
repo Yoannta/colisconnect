@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
@@ -26,7 +26,7 @@
     <script defer src="dashboard.js"></script>
 </head>
 
-<body>
+<body class="dashboard-page traveler-dashboard-page">
     <div class="noise-layer" aria-hidden="true"></div>
     <div class="ambient ambient-a" aria-hidden="true"></div>
     <div class="ambient ambient-b" aria-hidden="true"></div>
@@ -64,88 +64,75 @@
         </div>
     </header>
 
-    <main class="app-shell">
-        <section class="view is-active" data-view="dashboard" id="dashboard-view">
-            <div class="view-head">
-                <div class="welcome-section">
-                    <p class="kicker">Tableau de bord</p>
-                    <h2 class="welcome-title">Bienvenue, <span id="dashboard-user">Utilisateur</span></h2>
+    <main class="app-shell traveler-shell">
+        <section class="view is-active traveler-dashboard-view" data-view="dashboard" id="dashboard-view">
+            <div class="view-head traveler-head">
+                <div class="welcome-section traveler-welcome">
+                    <p class="kicker">Priorite voyageur</p>
+                    <h2 class="welcome-title">Vendre mes kilos disponibles sans perdre le controle.</h2>
+                    <p class="traveler-summary">Le voyageur voit son offre active, les demandes entrantes, le revenu potentiel restant et les actions rapides pour gerer son trajet.</p>
+                    <div class="traveler-actions">
+                        <button id="manage-offer-btn" class="btn primary btn-lg">Gerer mon offre active</button>
+                        <a href="chat.html" id="open-messages-btn" class="btn secondary btn-lg">Ouvrir messages</a>
+                    </div>
                 </div>
-                <div class="view-actions">
-                    <button id="logout-mobile-btn-top" class="btn ghost btn-sm mobile-only"
-                        style="color: #ff6b6b;">Quitter</button>
-                    <button id="refresh-dashboard-btn" class="btn ghost btn-sm">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon-sm" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C14.8273 3 17.3371 4.3039 18.9632 6.33333M21 6.33333H18.9632M18.9632 3V6.33333"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        Rafraichir
-                    </button>
-                    <a href="post_trip.html" class="btn primary btn-sm">Nouveau trajet</a>
+
+                <div class="traveler-stats">
+                    <article class="traveler-stat-card">
+                        <strong id="stat-remaining-kg">12 kg</strong>
+                        <span id="stat-remaining-label">capacite restante sur 20 kg</span>
+                    </article>
+                    <article class="traveler-stat-card">
+                        <strong id="stat-interested">4</strong>
+                        <span id="stat-interested-label">clients interesses</span>
+                    </article>
+                    <article class="traveler-stat-card">
+                        <strong id="stat-revenue">168 EUR</strong>
+                        <span id="stat-revenue-label">revenu potentiel restant</span>
+                    </article>
                 </div>
             </div>
 
-            <div class="dashboard-grid">
-                <!-- Profil Widget -->
-                <article class="dashboard-card profile-widget glassmorphic">
-                    <div class="card-header">
-                        <h3>Statut de verification</h3>
-                        <div id="status-badge-container"></div>
+            <div class="traveler-grid">
+                <article class="dashboard-panel traveler-offer-panel">
+                    <div class="panel-head">
+                        <h3>Offre active</h3>
+                        <span id="active-offer-badge" class="count-badge">Publiee</span>
                     </div>
-
-                    <div class="profile-stats">
-                        <div class="circular-progress-container">
-                            <svg viewBox="0 0 100 100" class="circular-progress">
-                                <circle class="progress-bg" cx="50" cy="50" r="45"></circle>
-                                <circle id="profile-progress-circle" class="progress-fill" cx="50" cy="50" r="45"
-                                    style="stroke-dasharray: 283; stroke-dashoffset: 283;"></circle>
-                            </svg>
-                            <span id="profile-progress-value" class="progress-text">25%</span>
-                        </div>
-                        <div class="profile-info">
-                            <p id="profile-type-badge"
-                                style="font-size: 0.85rem; font-weight: bold; background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-bottom: 6px; border: 1px solid rgba(59, 130, 246, 0.3); text-transform: uppercase; letter-spacing: 0.05em;">
-                            </p>
-                            <p id="profile-progress-label" class="status-label">Profil incomplet</p>
-                            <p id="profile-progress-missing" class="admin-note"></p>
-                        </div>
-                    </div>
-
-                    <div class="card-footer" style="display: flex; flex-direction: column; gap: 10px;">
-                        <button id="complete-profile-btn" class="btn secondary full-width hidden">Completer mon
-                            profil</button>
-                        <button id="logout-mobile-btn" class="btn tertiary full-width mobile-only">Se
-                            déconnecter</button>
+                    <div id="active-offer-card" class="offer-preview-shell">
+                        <div class="loading-state">Chargement...</div>
                     </div>
                 </article>
 
-                <!-- Offres Section -->
-                <section class="dashboard-section offers-section">
-                    <div class="section-header">
-                        <h3>Mes offres de trajet</h3>
-                        <span class="count-badge" id="dash-offers-count">0</span>
+                <section class="dashboard-panel traveler-requests-panel">
+                    <div class="panel-head">
+                        <h3>Demandes entrantes</h3>
+                        <span class="count-badge" id="dash-conversations-count">0</span>
                     </div>
-                    <div id="dash-offers" class="offers-grid">
+                    <div id="dash-conversations" class="traveler-request-list">
                         <div class="loading-state">Chargement...</div>
                     </div>
                 </section>
 
-                <!-- Conversations Section -->
-                <section class="dashboard-section threads-section">
-                    <div class="section-header">
-                        <h3>Mes conversations</h3>
-                        <span class="count-badge" id="dash-conversations-count">0</span>
+                <section class="dashboard-panel traveler-focus-panel">
+                    <div class="panel-head">
+                        <h3>Gestion rapide</h3>
+                        <span id="profile-type-badge" class="profile-type-badge hidden"></span>
                     </div>
-                    <div id="dash-conversations" class="threads-list">
-                        <div class="loading-state">Chargement...</div>
+                    <div id="quick-summary-card" class="quick-summary-card">
+                        <div class="quick-summary-icon">✦</div>
+                        <p class="quick-summary-title">Details du trajet</p>
+                        <p id="quick-summary-text" class="quick-summary-text">Ouvre la fiche de l'offre pour modifier les dates, les kilos ou le prix.</p>
+                    </div>
+                    <div class="quick-actions">
+                        <button id="edit-offer-btn" class="btn secondary full-width">Modifier l'offre</button>
+                        <button id="refresh-dashboard-btn" class="btn ghost full-width">Rafraichir</button>
                     </div>
                 </section>
             </div>
         </section>
     </main>
 
-    <!-- Navigation Mobile Basse -->
     <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
         <a href="index.html" class="mob-nav-item">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -174,14 +161,6 @@
             </svg>
             <span>Messages</span>
         </a>
-        <a href="partner.html" id="mobile-partner-link" class="mob-nav-item hidden">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-            </svg>
-            <span>Partenaire</span>
-        </a>
         <a href="dashboard.html" class="mob-nav-item active">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -193,52 +172,54 @@
             <span>Profil</span>
         </a>
     </nav>
-    <!-- Modale Centralisation QR Codes -->
-    <div id="setup-payment-modal" class="modal hidden" role="dialog" aria-modal="true">
-        <div class="modal-card">
-            <button class="close-modal" id="close-setup-modal">x</button>
-            <div class="modal-panel">
-                <div class="step-indicator">Étape <span id="setup-step-num">1</span>/3</div>
-                <h3 id="setup-step-title">Configuration Profil</h3>
-                <p id="setup-step-desc">Vérifiez votre pays de résidence pour ajuster les tarifs.</p>
 
-                <div id="setup-country-container" style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Votre Pays de résidence</label>
-                    <input type="text" id="setup-country-input" list="destination-list" class="estimator-input"
-                        placeholder="Ex: France" style="width: 100%; height: 45px;">
-                </div>
-
-                <div class="upload-zone" id="setup-upload-zone">
-                    <input type="file" id="setup-qr-input" accept="image/*" class="hidden">
-                    <label for="setup-qr-input" class="upload-label">
-                        <svg viewBox="0 0 24 24" fill="none" class="icon-md" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M12 16V8M12 8L9 11M12 8L15 11M20 16.5C20 18.9853 17.9853 21 15.5 21H8.5C6.01472 21 4 18.9853 4 16.5C4 14.3644 5.48512 12.5746 7.48168 12.1158C7.94697 12.0089 8.35824 11.7225 8.62534 11.319C9.40051 10.1482 10.7107 9.40039 12.2031 9.40039C13.6955 9.40039 15.0057 10.1482 15.7808 11.319C16.0357 11.7032 16.4258 11.979 16.8711 12.0818C18.6657 12.4952 20 14.1011 20 16.0366V16.5Z"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        <span>Cliquer pour uploader</span>
-                    </label>
-                    <div id="setup-preview-container" class="hidden">
-                        <img id="setup-qr-preview" alt="Aperçu QR Code">
+    <div id="offer-details-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card traveler-modal-card">
+            <button class="close-modal" id="close-offer-modal">x</button>
+            <div class="modal-panel traveler-modal-panel">
+                <div class="modal-panel-head">
+                    <div>
+                        <p class="kicker">Gestion de l'offre</p>
+                        <h3 id="offer-modal-title">Gerer mon offre active</h3>
                     </div>
+                    <span id="offer-modal-badge" class="count-badge">Active</span>
                 </div>
+                <p id="offer-modal-summary" class="modal-summary">Modifie les details du trajet et les kilos restants.</p>
 
-                <div class="modal-actions" style="margin-top: 20px;">
-                    <button id="setup-next-btn" class="btn primary full-width">Suivant</button>
-                    <p id="setup-error" class="error-text hidden" style="margin-top: 10px;"></p>
-                </div>
-            </div>
-        </div>
-    </div>
+                <form id="offer-edit-form" class="traveler-edit-form">
+                    <div class="form-grid">
+                        <label class="form-field">
+                            <span>Pays de depart</span>
+                            <input id="offer-origin" type="text" class="estimator-input" />
+                        </label>
+                        <label class="form-field">
+                            <span>Pays d'arrivee</span>
+                            <input id="offer-destination" type="text" class="estimator-input" />
+                        </label>
+                        <label class="form-field">
+                            <span>Date du voyage</span>
+                            <input id="offer-departure-date" type="date" class="estimator-input" />
+                        </label>
+                        <label class="form-field">
+                            <span>Kilos restants</span>
+                            <input id="offer-available-kg" type="number" min="1" class="estimator-input" />
+                        </label>
+                        <label class="form-field">
+                            <span>Prix par kilo</span>
+                            <input id="offer-price-per-kg" type="number" min="0" class="estimator-input" />
+                        </label>
+                        <label class="form-field">
+                            <span>Devise</span>
+                            <input id="offer-base-currency" type="text" maxlength="3" class="estimator-input" />
+                        </label>
+                    </div>
 
-    <!-- Modale Félicitations -->
-    <div id="setup-success-modal" class="modal hidden" role="dialog" aria-modal="true">
-        <div class="modal-card">
-            <div class="modal-panel" style="text-align: center;">
-                <div class="verified-badge" style="width: 60px; height: 60px; margin: 0 auto 20px;">?</div>
-                <h3>Félicitations !</h3>
-                <p>Vos moyens de paiement sont maintenant centralisés. Vous êtes prêt à être payé sans soucis.</p>
-                <button id="setup-success-ok" class="btn primary full-width" style="margin-top: 20px;">OK</button>
+                    <div class="modal-actions traveler-modal-actions">
+                        <button id="save-offer-btn" type="submit" class="btn primary full-width">Enregistrer les modifications</button>
+                        <button id="open-chat-from-modal-btn" type="button" class="btn secondary full-width">Ouvrir les messages</button>
+                    </div>
+                    <p id="offer-save-feedback" class="error-text hidden"></p>
+                </form>
             </div>
         </div>
     </div>
