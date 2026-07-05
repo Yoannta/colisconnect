@@ -9,3 +9,21 @@ dist/
 .DS_Store
 backend/
 tmp/
+
+# Dossiers parasites - ne pas inclure dans le repo
+proteus_*/
+employee_record_system/
+employee_record_system.rar
+employee_record_system.zip
+snapshots/
+.codex/
+_temp_npm/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Archives
+*.rar
+*.zip
