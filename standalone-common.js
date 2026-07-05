@@ -594,8 +594,10 @@
                 if (p.includes("scope=mine")) {
                     query = query.eq('user_id', state.user?.id);
                 } else {
-                    query = query.eq('status', 'active');
+                    const today = new Date().toISOString().split('T')[0];
                     const params = new URLSearchParams(path.split('?')[1] || "");
+                    query = query.eq('status', 'active');
+                    query = query.gte('departure_date', today); // Exclure automatiquement les offres expirées
                     if (params.get("destination")) query = query.ilike('destination', `%${params.get("destination")}%`);
                     if (params.get("minKg")) query = query.gte('available_kg', parseInt(params.get("minKg")));
                 }
@@ -1877,6 +1879,16 @@
         return false;
     }
 
+    // Purge silencieuse des offres dont la date de départ est passée
+    async function purgeExpiredOffers() {
+        try {
+            const { error } = await window.ccSupabase.rpc('purge_expired_offers');
+            if (error) console.warn('[CC] Purge offres expirées:', error.message);
+        } catch (e) {
+            // Silencieux — ne jamais bloquer l'init
+        }
+    }
+
     async function init(activePage = "") {
         await restoreSession();
         ensureAuthModal();
@@ -1887,6 +1899,9 @@
         if (state.user && state.token) {
             startNotifPolling();
         }
+
+        // Purge silencieuse des offres expirées (arrière-plan, sans bloquer)
+        purgeExpiredOffers().catch(() => { });
 
         if (!state.user && requiresAuthTarget(currentTarget())) {
             openAuthGate(currentTarget());
