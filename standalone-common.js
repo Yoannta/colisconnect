@@ -504,9 +504,31 @@
                 };
                 const mappedBody = {};
                 for (const k in options.body) { mappedBody[mapping[k] || k] = options.body[k]; }
-                const { data, error } = await window.ccSupabase.from('profiles').update(mappedBody).eq('id', state.user?.id).select();
-                if (error) throw error;
-                return { success: true, user: { ...state.user, ...data[0] } };
+
+                // Validation & règles de transition de profil type
+                if (mappedBody.profile_type !== undefined) {
+                    const currentType = state.user?.profile_type || null;
+                    const nextType = mappedBody.profile_type;
+
+                    if (nextType === 'client') {
+                        // Impossible de repasser à un grade inférieur (qui est déjà classé client, traveler, cargo)
+                        if (currentType !== null) {
+                            delete mappedBody.profile_type;
+                        }
+                    }
+                    // Les transitions de client -> traveler / client -> cargo et traveler <-> cargo sont entièrement autorisées.
+                }
+
+                let data = [];
+                if (Object.keys(mappedBody).length > 0) {
+                    const { data: updated, error } = await window.ccSupabase.from('profiles').update(mappedBody).eq('id', state.user?.id).select();
+                    if (error) throw error;
+                    data = updated;
+                }
+
+                const updatedRow = (data && data[0]) ? data[0] : {};
+                state.user = { ...state.user, ...updatedRow };
+                return { success: true, user: state.user };
             }
 
             // 2b. PAYMENT QRS

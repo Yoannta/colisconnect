@@ -126,7 +126,7 @@
         if (!offer) return;
 
         const target = `chat.html?offerId=${encodeURIComponent(String(offer.id))}`;
-        if (!window.CCCommon.requireCompletedProfile(target)) return;
+        if (!window.CCCommon.requireAuth(target)) return;
 
         const user = window.CCCommon.state?.user;
         if (user && !user.profile_type) {
