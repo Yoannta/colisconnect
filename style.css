@@ -6092,3 +6092,31 @@ label {
     margin-top: 4px;
     font-style: italic;
 }
+
+/* Boutons de filtrage de profil (Voyageur/Cargo) */
+.filter-tab {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(19, 236, 200, 0.15);
+    color: var(--muted);
+    padding: 8px 20px;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.filter-tab:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(19, 236, 200, 0.3);
+}
+
+.filter-tab.active {
+    color: var(--bg-obsidian);
+    background: var(--emerald-bright);
+    font-weight: 700;
+    border-color: var(--emerald-bright);
+    box-shadow: 0 4px 15px rgba(19, 236, 200, 0.35);
+}

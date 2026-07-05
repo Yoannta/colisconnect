@@ -1,7 +1,8 @@
 ﻿(() => {
     const state = {
         offers: [],
-        userCurrency: 'EUR'
+        userCurrency: 'EUR',
+        filterProfileType: 'traveler'
     };
 
     const convertCurrency = window.CCCommon.convertCurrency;
@@ -45,12 +46,24 @@
 
     function renderOffers() {
         if (!els.offersList) return;
-        if (!state.offers.length) {
+
+        // Filtrer les offres selon l'onglet actif
+        const filteredOffers = state.offers.filter(offer => {
+            const pType = offer.ownerProfileType;
+            if (state.filterProfileType === 'traveler') {
+                return pType === 'traveler' || !pType || pType === 'client'; // Par défaut ou vide = voyageur
+            } else if (state.filterProfileType === 'cargo') {
+                return pType === 'cargo';
+            }
+            return true;
+        });
+
+        if (!filteredOffers.length) {
             els.offersList.innerHTML = '<div class="empty-card">Aucune offre pour ce filtre.</div>';
             return;
         }
 
-        els.offersList.innerHTML = state.offers
+        els.offersList.innerHTML = filteredOffers
             .map((offer) => {
                 const initials = getInitials(offer.ownerName);
                 const isVerified = Boolean(offer.ownerIsVerified);
@@ -232,6 +245,33 @@
                         alert(error.message || "Impossible de contacter ce voyageur.");
                     }
                 });
+            });
+        }
+
+        // Profil type Filters
+        const btnTraveler = document.getElementById("filter-traveler-btn");
+        const btnCargo = document.getElementById("filter-cargo-btn");
+        const headLine = document.getElementById("results-headline");
+
+        if (btnTraveler && btnCargo) {
+            btnTraveler.addEventListener("click", () => {
+                btnTraveler.classList.add("active");
+                btnCargo.classList.remove("active");
+                state.filterProfileType = 'traveler';
+                if (headLine) {
+                    headLine.textContent = "Voyageurs disponibles pour vos transferts urgents ou petites quantités";
+                }
+                renderOffers();
+            });
+
+            btnCargo.addEventListener("click", () => {
+                btnCargo.classList.add("active");
+                btnTraveler.classList.remove("active");
+                state.filterProfileType = 'cargo';
+                if (headLine) {
+                    headLine.textContent = "Entreprises cargo disponibles pour vos colis";
+                }
+                renderOffers();
             });
         }
     }
