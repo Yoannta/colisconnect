@@ -22,6 +22,7 @@
         completeProfileBtn: document.getElementById("complete-profile-btn"),
         logoutMobileBtn: document.getElementById("logout-mobile-btn"),
         logoutMobileBtnTop: document.getElementById("logout-mobile-btn-top"),
+        profileTypeBadge: document.getElementById("profile-type-badge"),
         navTabs: document.querySelectorAll(".nav-tab"),
     };
 
@@ -42,6 +43,31 @@
         const isVerified = Boolean(user && (Number(user.isVerified) === 1 || user.isVerified === true));
 
         if (els.progressValue) els.progressValue.textContent = `${percent}%`;
+
+        if (els.profileTypeBadge) {
+            const pType = user?.profile_type;
+            if (pType === "client") {
+                els.profileTypeBadge.textContent = "Compte Client";
+                els.profileTypeBadge.style.background = "rgba(59, 130, 246, 0.2)";
+                els.profileTypeBadge.style.color = "#3b82f6";
+                els.profileTypeBadge.style.border = "1px solid rgba(59, 130, 246, 0.3)";
+                els.profileTypeBadge.style.display = "inline-block";
+            } else if (pType === "traveler") {
+                els.profileTypeBadge.textContent = "Compte Voyageur";
+                els.profileTypeBadge.style.background = "rgba(16, 185, 129, 0.2)";
+                els.profileTypeBadge.style.color = "#10b981";
+                els.profileTypeBadge.style.border = "1px solid rgba(16, 185, 129, 0.3)";
+                els.profileTypeBadge.style.display = "inline-block";
+            } else if (pType === "cargo") {
+                els.profileTypeBadge.textContent = "Compte Cargo";
+                els.profileTypeBadge.style.background = "rgba(245, 158, 11, 0.2)";
+                els.profileTypeBadge.style.color = "#f59e0b";
+                els.profileTypeBadge.style.border = "1px solid rgba(245, 158, 11, 0.3)";
+                els.profileTypeBadge.style.display = "inline-block";
+            } else {
+                els.profileTypeBadge.style.display = "none";
+            }
+        }
 
         if (els.progressCircle) {
             // Circumference of a circle with r=45 is 2 * PI * 45 = 282.74

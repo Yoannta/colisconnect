@@ -77,6 +77,14 @@
                 const priceDisplay = formatAmount(convertedPrice, userCur);
                 const originalDisplay = baseCur !== userCur ? `<span class="price-original">(${formatAmount(pricePerKgRaw, baseCur)})</span>` : '';
 
+                const pType = offer.ownerProfileType;
+                let profileTypeBadge = "";
+                if (pType === "traveler") {
+                    profileTypeBadge = `<span style="font-size: 0.7rem; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; text-transform: uppercase;">✈️ Voyageur</span>`;
+                } else if (pType === "cargo") {
+                    profileTypeBadge = `<span style="font-size: 0.7rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; text-transform: uppercase;">📦 Cargo</span>`;
+                }
+
                 return `
 <article class="offer-compact-card">
     <div class="compact-row compact-row-top">
@@ -98,6 +106,7 @@
             <span class="compact-avatar">${initials}</span>
             <span class="compact-owner-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
             ${verificationBadge}
+            ${profileTypeBadge}
         </div>
         <div class="compact-meta">
             <span class="compact-meta-chip">${availableKg}kg</span>
