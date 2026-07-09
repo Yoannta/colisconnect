@@ -1104,4 +1104,4 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 ---
 
-**2026-07-09 : Fix déploiement dashboard voyageur** — Résolution du build GitHub Pages bloqué depuis le 05/07 (conflit de workflow). Le nouveau dashboard voyageur redessiné est maintenant live : https://yoannta.github.io/colisconnect/dashboard.html
+**2026-07-09 : Fix deploiement dashboard voyageur** - Resolution du build GitHub Pages bloque depuis le 05/07 (conflit de workflow). Le nouveau dashboard voyageur redessine est maintenant live : https://yoannta.github.io/colisconnect/dashboard.html
