@@ -247,7 +247,7 @@
         const modal = els.offerModal;
         if (!modal) return;
 
-        if (els.offerModalTitle) els.offerModalTitle.textContent = "Gerer mon offre active";
+        if (els.offerModalTitle) els.offerModalTitle.textContent = "Modifier mon offre";
         if (els.offerModalSummary) {
             els.offerModalSummary.textContent = `Modifie les details du trajet ${getRouteLabel(offer)} et garde tes kilos à jour.`;
         }
@@ -353,7 +353,7 @@
         renderRequests(requests, state.activeOffer);
 
         if (els.manageOfferBtn) {
-            els.manageOfferBtn.textContent = state.activeOffer ? "Gerer mon offre active" : "Publier mon trajet";
+            els.manageOfferBtn.textContent = state.activeOffer ? "Modifier mon offre" : "Publier mon trajet";
         }
         if (els.editOfferBtn) {
             els.editOfferBtn.disabled = !state.activeOffer;

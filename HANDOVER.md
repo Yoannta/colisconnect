@@ -1,45 +1,49 @@
-﻿# 📋 DOSSIER DE PASSATION - COLISCONNECT
+﻿# 🔖 HANDOVER — ColisConnect (session courante)
 
-## 🎯 OBJECTIF
+## ✅ RÉSOLU — Déploiement du Dashboard Voyageur
 
-Finaliser la transition Cloud-Native Supabase et stabiliser l'interface Admin.
+Le dashboard voyageur redessiné (`dashboard.html`) est désormais **en ligne et fonctionnel** sur GitHub Pages.
 
-## ✅ RÉALISÉ (SESSION PRÉCÉDENTE)
+- Commit de fix : `0cf3255` ("fix: retrigger deployment - traveler dashboard redesign")
+- Run GitHub Actions : `#133` → ✅ **Succès** (2026-07-09T08:59)
+- URL en prod : <https://yoannta.github.io/colisconnect/dashboard.html>
 
-- **Sécurisation API** : Toutes les clés (`DeepSeek`, `Stripe`, `GeniusPay`, `Gemini`) ont été migrées vers **Supabase Secrets**. Le fichier `.env` local est ignoré par Git.
-- **Pont Universel (V9)** : `standalone-common.js` centralise désormais tous les appels Cloud.
-- **Correction Parasites** : Suppression massive des caractères ``n` injectés par erreur dans les fichiers HTML.
-- **Authentification** : Standardisation sur `cc_auth_token`.
+### Cause de l'échec précédent
 
-## 🚧 EN COURS / À FAIRE IMMÉDIATEMENT
+Le run `#132` (`3d159ea`) avait échoué uniquement au step "Deploy to GitHub Pages" car un **conflit de concurrence** avec un workflow custom `deploy.yml` qui tournait simultanément. Le build Jekyll lui-même était parfait. Un simple commit vide a relancé le build sans conflit.
 
-### 1. Erreur de Jointure (Results.html)
+---
 
-**Problème** : `Could not find a relationship between 'offers' and 'profiles'`.
-**Solution** : Exécuter ce SQL dans le dashboard Supabase :
+## 🧠 Contexte métier
 
-```sql
-ALTER TABLE offers
-ADD CONSTRAINT fk_offers_profiles
-FOREIGN KEY (user_id)
-REFERENCES profiles(id)
-ON DELETE CASCADE;
-```
+- `profiles.profile_type` (Supabase) : `null` / `client` / `traveler` / `cargo`
+- Un user devient `traveler` automatiquement quand il publie une offre
+- Un user reste `traveler` même s'il contacte quelqu'un (pas de rétrogradation)
+- Le dashboard voyageur ne s'affiche que si `profile_type === 'traveler'` ou `'cargo'`
+- L'utilisateur test confirmé voyageur : **Hamzah Dosso** (`hamzahbrine7@gmail.com`)
 
-### 2. Finalisation de la page Admin
+## ⚙️ Stack
 
-- La page affiche désormais les données via Supabase, mais certains endpoints avancés (Analytics, Audit Log) sont encore vides (statiques dans le bridge).
-- Le bug du "mur de texte Base64" sur l'admin a été corrigé en sécurisant la fonction `api()` de `admin.js`.
+- **Frontend** : HTML/CSS/JS statique → GitHub Pages (`https://yoannta.github.io/colisconnect/`)
+- **Backend** : Supabase (PostgreSQL + Auth + RLS + Edge Functions)
+- **Bridge** : `standalone-common.js` → `window.CCCommon`
+- **Repo** : `https://github.com/Yoannta/colisconnect.git` (branche `main`)
 
-### 3. Edge Function "ai-assistant"
+## ✅ Tout ce qui fonctionne
 
-- La fonction est créée dans `supabase/functions/ai-assistant`.
-- Elle supporte DeepSeek (chat-model), Gemini et Kimi.
-- **Action requise** : Déployer (`supabase functions deploy ai-assistant`).
+- Le nouveau dashboard voyageur redessiné (`dashboard.html`) ✅ (déployé)
+- Le changement de `profile_type` en `traveler` lors de la publication d'une offre ✅
+- Les badges de type sur le dashboard admin ✅
+- La purge automatique des offres expirées (via RPC Supabase) ✅
+- Les filtres Voyageur / Cargo sur `results.html` ✅
+- La limite 1 offre active (voyageur) / 5 offres actives (cargo) ✅
 
-## 🛠️ OUTILS & RÉFÉRENCES
+## 📋 Prochaine étape suggérée
 
-- **Pont UI** : `standalone-common.js`
-- **Session** : `localStorage.getItem("cc_auth_token")`.
+Tester le dashboard voyageur en live avec le compte **Hamzah Dosso** pour valider l'affichage du redesign (stats, offre active, modal édition).
 
-Dernière mise à jour : Correction RLS chat_threads et stabilisation mapping le 06/06/2026 à 06:55
+---
+
+## 2026-07-09 : Déploiement Dashboard Voyageur
+
+Fix du déploiement GitHub Pages bloqué depuis le 05/07 (run #132 en échec). Cause : conflit de concurrence entre le workflow Jekyll natif et un ancien workflow custom. Solution : commit vide pour relancer le build. Run #133 → ✅ Succès. Le nouveau dashboard voyageur redessiné est maintenant live sur https://yoannta.github.io/colisconnect/dashboard.html
