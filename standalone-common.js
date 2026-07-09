@@ -480,6 +480,20 @@
                     }
                 });
                 if (error) throw error;
+
+                // Creer le profil avec profile_type = 'client' par defaut
+                const userId = data.user?.id;
+                if (userId) {
+                    const { error: profileError } = await window.ccSupabase.from('profiles').upsert({
+                        id: userId,
+                        full_name: options.body.fullName || "",
+                        country: options.body.country || "",
+                        profile_type: options.body.profile_type || "client",
+                        created_at: new Date().toISOString()
+                    }, { onConflict: 'id' });
+                    if (profileError) throw profileError;
+                }
+
                 return { message: "Inscription réussie", user: data.user };
             }
             if (p.includes("/auth/me")) {
