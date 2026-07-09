@@ -1101,3 +1101,7 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 - `chat.js` : Simplification de l'initialisation de conversation via offre.
 
 ---
+
+---
+
+**2026-07-09 : Fix déploiement dashboard voyageur** — Résolution du build GitHub Pages bloqué depuis le 05/07 (conflit de workflow). Le nouveau dashboard voyageur redessiné est maintenant live : https://yoannta.github.io/colisconnect/dashboard.html
