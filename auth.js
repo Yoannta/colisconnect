@@ -43,7 +43,7 @@
         const payload = await window.CCCommon.api("/api/auth/register", {
             method: "POST",
             auth: false,
-            body: { fullName, email, password, role, country }
+            body: { fullName, email, password, role, country, profile_type: "client" }
         });
 
         window.CCCommon.setSession(payload.token, payload.user);
