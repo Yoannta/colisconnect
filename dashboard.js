@@ -3,6 +3,7 @@
         offers: [],
         activeOffer: null,
         requests: [],
+        conversations: [],
         loading: false,
     };
 
@@ -43,6 +44,17 @@
         saveOfferBtn: document.getElementById("save-offer-btn"),
         openChatFromModalBtn: document.getElementById("open-chat-from-modal-btn"),
         offerSaveFeedback: document.getElementById("offer-save-feedback"),
+        // Client dashboard elements
+        travelerView: document.getElementById("traveler-dashboard-view"),
+        clientView: document.getElementById("client-dashboard-view"),
+        clientStatOffers: document.getElementById("client-stat-offers"),
+        clientStatDiscussions: document.getElementById("client-stat-discussions"),
+        clientStatPayments: document.getElementById("client-stat-payments"),
+        clientRequestsList: document.getElementById("client-requests-list"),
+        clientRequestsCount: document.getElementById("client-requests-count"),
+        clientDiscussionsList: document.getElementById("client-discussions-list"),
+        clientDiscussionsCount: document.getElementById("client-discussions-count"),
+        clientValidatedList: document.getElementById("client-validated-list"),
     };
 
     function getCurrencyCode(user, offer) {
@@ -202,7 +214,7 @@
             els.requestsList.innerHTML = `
                 <div class="traveler-empty-requests">
                     <p>Aucune demande entrante pour le moment.</p>
-                    <span>Les personnes intéressées apparaîtront ici.</span>
+                    <span>Les personnes interessees apparaiteront ici.</span>
                 </div>`;
             return;
         }
@@ -223,6 +235,118 @@
                     <button class="btn secondary btn-sm traveler-request-action" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
                 </article>`;
         }).join("");
+    }
+
+    // ===== CLIENT DASHBOARD FUNCTIONS =====
+
+    function renderClientRequests(requests) {
+        if (!els.clientRequestsList) return;
+        if (els.clientRequestsCount) els.clientRequestsCount.textContent = `${requests.length}`;
+
+        if (!requests.length) {
+            els.clientRequestsList.innerHTML = `
+                <div class="traveler-empty-requests">
+                    <p>Aucune demande de trajet pour le moment.</p>
+                    <span>Publiez un appel si vous ne trouvez pas de voyageur.</span>
+                </div>`;
+            return;
+        }
+
+        els.clientRequestsList.innerHTML = requests.map((item, i) => `
+            <div class="client-discussion-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+                <div class="client-item-index">${i + 1}</div>
+                <div class="item-content">
+                    <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "Origine")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "Destination")}</div>
+                    <div class="item-desc">${item.kg ? item.kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
+                </div>
+                <button class="client-item-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
+            </div>
+        `).join("");
+    }
+
+    function renderClientDiscussions(conversations) {
+        if (!els.clientDiscussionsList) return;
+        if (els.clientDiscussionsCount) els.clientDiscussionsCount.textContent = `${conversations.length}`;
+
+        if (!conversations.length) {
+            els.clientDiscussionsList.innerHTML = `
+                <div class="traveler-empty-requests">
+                    <p>Aucune discussion en cours.</p>
+                    <span>Contactez un voyageur pour echanger.</span>
+                </div>`;
+            return;
+        }
+
+        els.clientDiscussionsList.innerHTML = conversations.map((item, i) => {
+            const name = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Voyageur");
+            const desc = window.CCCommon.escapeHtml(item.preview || (item.origin && item.destination ? `${item.origin} -> ${item.destination}` : ""));
+            const isVerified = item.isVerified ? " verified" : "";
+            const hasNewMsg = item.hasNewMessage;
+            return `
+                <div class="client-discussion-item ${hasNewMsg ? "is-new" : ""}" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="client-item-index">${i + 1}</div>
+                    <div class="item-content">
+                        <div class="item-name">${name}${isVerified}</div>
+                        <div class="item-desc">${desc || "Demande en cours"}</div>
+                    </div>
+                    <button class="client-item-btn client-item-btn-outline" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function renderClientValidated(validated) {
+        if (!els.clientValidatedList) return;
+        if (!validated || !validated.length) {
+            els.clientValidatedList.innerHTML = `
+                <div class="traveler-empty-requests">
+                    <p>Aucun trajet valide pour le moment.</p>
+                    <span>Vos trajets confirmes apparaitront ici.</span>
+                </div>`;
+            return;
+        }
+        els.clientValidatedList.innerHTML = validated.map((item) => `
+            <div class="client-discussion-item">
+                <div class="item-content">
+                    <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
+                    <div class="item-desc">${item.status || "Valide"}</div>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    function switchDashboardView(profileType) {
+        const isTraveler = profileType === "traveler";
+        // Gere la visibilite via les classes is-active et hidden
+        if (els.travelerView) {
+            els.travelerView.classList.toggle("is-active", isTraveler);
+            els.travelerView.classList.toggle("hidden", !isTraveler);
+        }
+        if (els.clientView) {
+            els.clientView.classList.toggle("is-active", !isTraveler);
+            els.clientView.classList.toggle("hidden", isTraveler);
+        }
+    }
+
+    async function loadClientDashboard() {
+        const user = window.CCCommon.state.user;
+        if (!user) return;
+
+        const [offersResp, conversationsResp] = await Promise.all([
+            window.CCCommon.api("/api/offers?scope=all&pageSize=10"),
+            window.CCCommon.api("/api/conversations")
+        ]);
+
+        const compatibleOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
+        const conversations = Array.isArray(conversationsResp) ? conversationsResp.filter(c => !c.isOfferOwner) : [];
+
+        if (els.clientStatOffers) els.clientStatOffers.textContent = `${compatibleOffers.length}`;
+        if (els.clientStatDiscussions) els.clientStatDiscussions.textContent = `${conversations.length}`;
+        if (els.clientStatPayments) els.clientStatPayments.textContent = "0";
+
+        renderClientRequests([]);
+        renderClientDiscussions(conversations);
+        renderClientValidated([]);
     }
 
     function openChatPage(threadId = "", offerId = "") {
@@ -328,44 +452,50 @@
 
     async function loadDashboard() {
         if (!window.CCCommon.state.user) return;
-        const [offersResp, requestsResp] = await Promise.all([
-            window.CCCommon.api("/api/offers?scope=mine&pageSize=100"),
-            window.CCCommon.api("/api/conversations")
-        ]);
-
-        state.offers = Array.isArray(offersResp?.items) ? offersResp.items : [];
-        state.activeOffer = getActiveOffer();
-        state.requests = (Array.isArray(requestsResp) ? requestsResp : []).filter((item) => item.isOfferOwner);
-
-        const requests = getRequestsForOffer(state.activeOffer);
         const user = window.CCCommon.state.user;
-        const currency = getCurrencyCode(user, state.activeOffer);
+        const profileType = String(user?.profile_type || "").toLowerCase();
 
-        if (els.dashboardUser) {
-            els.dashboardUser.textContent = user?.fullName || "Voyageur";
-        }
-        if (els.userChip) {
-            els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
-        }
-        renderProfileChip(user);
-        renderStats(state.activeOffer, requests);
-        renderActiveOffer(state.activeOffer, requests);
-        renderRequests(requests, state.activeOffer);
+        if (profileType === "traveler") {
+            const [offersResp, requestsResp] = await Promise.all([
+                window.CCCommon.api("/api/offers?scope=mine&pageSize=100"),
+                window.CCCommon.api("/api/conversations")
+            ]);
 
-        if (els.manageOfferBtn) {
-            els.manageOfferBtn.textContent = state.activeOffer ? "Modifier mon offre" : "Publier mon trajet";
-        }
-        if (els.editOfferBtn) {
-            els.editOfferBtn.disabled = !state.activeOffer;
-        }
-        if (els.openMessagesBtn) {
-            els.openMessagesBtn.href = state.activeOffer ? `chat.html?offerId=${encodeURIComponent(String(state.activeOffer.id))}` : "chat.html";
-        }
+            state.offers = Array.isArray(offersResp?.items) ? offersResp.items : [];
+            state.activeOffer = getActiveOffer();
+            state.requests = (Array.isArray(requestsResp) ? requestsResp : []).filter((item) => item.isOfferOwner);
 
-        if (els.quickSummaryText && state.activeOffer) {
-            els.quickSummaryText.textContent = `${getRouteLabel(state.activeOffer)} | ${formatAmount(Number(state.activeOffer.pricePerKg || state.activeOffer.price_per_kg || 0), state.activeOffer.baseCurrency || state.activeOffer.base_currency || currency)}/kg`;
-        } else if (els.quickSummaryText) {
-            els.quickSummaryText.textContent = "Aucune offre active pour le moment.";
+            const requests = getRequestsForOffer(state.activeOffer);
+            const currency = getCurrencyCode(user, state.activeOffer);
+
+            if (els.dashboardUser) {
+                els.dashboardUser.textContent = user?.fullName || "Voyageur";
+            }
+            if (els.userChip) {
+                els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
+            }
+            renderProfileChip(user);
+            renderStats(state.activeOffer, requests);
+            renderActiveOffer(state.activeOffer, requests);
+            renderRequests(requests, state.activeOffer);
+
+            if (els.manageOfferBtn) {
+                els.manageOfferBtn.textContent = state.activeOffer ? "Modifier mon offre" : "Publier mon trajet";
+            }
+            if (els.editOfferBtn) {
+                els.editOfferBtn.disabled = !state.activeOffer;
+            }
+            if (els.openMessagesBtn) {
+                els.openMessagesBtn.href = state.activeOffer ? `chat.html?offerId=${encodeURIComponent(String(state.activeOffer.id))}` : "chat.html";
+            }
+
+            if (els.quickSummaryText && state.activeOffer) {
+                els.quickSummaryText.textContent = `${getRouteLabel(state.activeOffer)} | ${formatAmount(Number(state.activeOffer.pricePerKg || state.activeOffer.price_per_kg || 0), state.activeOffer.baseCurrency || state.activeOffer.base_currency || currency)}/kg`;
+            } else if (els.quickSummaryText) {
+                els.quickSummaryText.textContent = "Aucune offre active pour le moment.";
+            }
+        } else {
+            await loadClientDashboard();
         }
     }
 
@@ -427,6 +557,29 @@
                 if (threadId) openChatPage(threadId);
             }
         });
+
+        // Client dashboard click delegation
+        els.clientDiscussionsList?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-open-thread]");
+            const item = event.target.closest("[data-thread-id]");
+            if (button) {
+                const threadId = button.getAttribute("data-open-thread");
+                if (threadId) openChatPage(threadId);
+                return;
+            }
+            if (item) {
+                const threadId = item.getAttribute("data-thread-id");
+                if (threadId) openChatPage(threadId);
+            }
+        });
+
+        els.clientRequestsList?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-open-thread]");
+            if (button) {
+                const threadId = button.getAttribute("data-open-thread");
+                if (threadId) openChatPage(threadId);
+            }
+        });
     }
 
     async function bootstrap() {
@@ -434,8 +587,17 @@
         if (!window.CCCommon.requireAuth("dashboard.html")) return;
 
         const user = window.CCCommon.state.user;
+        const profileType = String(user?.profile_type || "").toLowerCase();
+
+        // Basculer entre la vue traveler et client
+        switchDashboardView(profileType);
+
         if (els.dashboardUser) {
             els.dashboardUser.textContent = user?.fullName || "Voyageur";
+        }
+
+        if (els.userChip) {
+            els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
         }
 
         if (els.openMessagesBtn) {

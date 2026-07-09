@@ -26,7 +26,7 @@
     <script defer src="dashboard.js"></script>
 </head>
 
-<body class="dashboard-page traveler-dashboard-page">
+<body class="dashboard-page">
     <div class="noise-layer" aria-hidden="true"></div>
     <div class="ambient ambient-a" aria-hidden="true"></div>
     <div class="ambient ambient-b" aria-hidden="true"></div>
@@ -64,8 +64,10 @@
         </div>
     </header>
 
-    <main class="app-shell traveler-shell">
-        <section class="view is-active traveler-dashboard-view" data-view="dashboard" id="dashboard-view">
+    <main class="app-shell">
+
+        <!-- ===== SECTION VOYAGEUR ===== -->
+        <section class="view is-active traveler-dashboard-view hidden" data-view="traveler-dashboard" id="traveler-dashboard-view">
             <div class="view-head traveler-head">
                 <div class="welcome-section traveler-welcome">
                     <p class="kicker">Priorite voyageur</p>
@@ -115,6 +117,67 @@
                 </section>
 
 
+            </div>
+        </section>
+
+        <!-- ===== SECTION CLIENT ===== -->
+        <section class="view client-dashboard-view hidden" data-view="client-dashboard" id="client-dashboard-view">
+            <div class="client-head">
+                <div class="client-hero">
+                    <p class="kicker">Priorite client</p>
+                    <h2 class="welcome-title">Trouver un transporteur fiable ou publier mon besoin.</h2>
+                    <p class="client-summary">Le client voit d'abord les trajets compatibles, puis une option de demande ouverte si aucune offre ne correspond.</p>
+                    <div class="client-actions">
+                        <a href="results.html" class="btn primary btn-lg">Chercher un trajet</a>
+                        <a href="post_trip.html" class="btn secondary btn-lg">Lancer un appel</a>
+                    </div>
+                </div>
+
+                <div class="client-stats">
+                    <article class="client-stat-card">
+                        <strong id="client-stat-offers">0</strong>
+                        <span>offres compatibles cette semaine</span>
+                    </article>
+                    <article class="client-stat-card">
+                        <strong id="client-stat-discussions">0</strong>
+                        <span>discussions en attente de decision</span>
+                    </article>
+                    <article class="client-stat-card">
+                        <strong id="client-stat-payments">0</strong>
+                        <span>paiement pret a valider</span>
+                    </article>
+                </div>
+            </div>
+
+            <div class="client-grid">
+                <article class="dashboard-panel client-requests-panel">
+                    <div class="panel-head">
+                        <h3>Mes demandes de trajet</h3>
+                        <span class="count-badge" id="client-requests-count">0</span>
+                    </div>
+                    <div id="client-requests-list" class="client-request-list">
+                        <div class="loading-state">Chargement...</div>
+                    </div>
+                </article>
+
+                <section class="dashboard-panel client-discussions-panel">
+                    <div class="panel-head">
+                        <h3>Mes discussions en cours</h3>
+                        <span class="count-badge" id="client-discussions-count">0</span>
+                    </div>
+                    <div id="client-discussions-list" class="client-discussion-list">
+                        <div class="loading-state">Chargement...</div>
+                    </div>
+                </section>
+
+                <article class="dashboard-panel client-validated-panel">
+                    <div class="panel-head">
+                        <h3>Mes trajets valides</h3>
+                    </div>
+                    <div id="client-validated-list" class="client-validated-list">
+                        <div class="loading-state">Chargement...</div>
+                    </div>
+                </article>
             </div>
         </section>
     </main>
