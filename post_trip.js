@@ -363,18 +363,34 @@
             return;
         }
 
-        const user = window.CCCommon.state?.user;
-        if (user && (!user.profile_type || user.profile_type === 'client')) {
-            els.profileTypeModal?.classList.remove("hidden");
-            return;
-        }
-
-        await proceedSubmitTrip();
+        // Toujours afficher la modale de choix voyageur/cargo avant de publier
+        els.profileTypeModal?.classList.remove("hidden");
+        return;
     }
 
     async function proceedSubmitTrip() {
         const departureCountry = String(els.departure?.value || "").trim();
         const destinationCountry = String(els.destination?.value || "").trim();
+
+        // Verifier la limite de publication selon le type choisi
+        const profileType = selectedProfileTypeChoice || window.CCCommon.state?.user?.profile_type;
+        try {
+            const myOffers = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
+            const activeOffers = (myOffers?.items || []).filter(o => String(o.status || "").toLowerCase() === "active");
+            const activeCount = activeOffers.length;
+
+            if (profileType === "traveler" && activeCount >= 1) {
+                alert("Limite de trajet depassee : En tant que voyageur simple, vous ne pouvez publier qu'un seul trajet actif a la fois.");
+                return;
+            }
+            if (profileType === "cargo" && activeCount >= 5) {
+                alert("Limite de trajet depassee : En tant qu'entreprise cargo, vous ne pouvez publier que 5 trajets actifs au maximum.");
+                return;
+            }
+        } catch (e) {
+            // Si l'API des offres echoue, on continue (la validation backend fera le refus)
+            console.warn("Impossible de verifier le nombre d'offres actives.", e);
+        }
 
         const payload = {
             title: `Trajet ${departureCountry} -> ${destinationCountry}`,

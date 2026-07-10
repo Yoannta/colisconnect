@@ -1105,3 +1105,48 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 ---
 
 **2026-07-09 : Fix deploiement dashboard voyageur** - Resolution du build GitHub Pages bloque depuis le 05/07 (conflit de workflow). Le nouveau dashboard voyageur redessine est maintenant live : https://yoannta.github.io/colisconnect/dashboard.html
+---
+
+## Mise à jour : Dashboard Client personnalisé (2026-07-09)
+
+### Modifications apportées
+
+#### `dashboard.html`
+- Ajout d'une **section client** complète avec :
+  - Hero : "Trouver un transporteur fiable ou publier mon besoin."
+  - Boutons : "Chercher un trajet" → `results.html` / "Lancer un appel" → `post_trip.html`
+  - 3 stats : offres compatibles, discussions, paiements
+  - 3 panels : demandes de trajet, discussions en cours, trajets validés
+- La section voyageur est masquée par défaut (`hidden`), la section client aussi
+- Le body n'est plus figé en `traveler-dashboard-page`
+
+#### `dashboard.js`
+- Nouvelle fonction `switchDashboardView(profileType)` : bascule entre vues traveler/client via les classes `is-active` et `hidden`
+- Nouvelle fonction `loadClientDashboard()` : charge les données client
+- `bootstrap()` détecte `profile_type` et bascule automatiquement la vue
+- Événements click ajoutés pour les listes du dashboard client
+- `loadDashboard()` branche selon le profil (traveler → données voyageur, sinon → données client)
+
+#### `style.css`
+- Nouveaux styles pour le dashboard client :
+  - `.client-head`, `.client-hero`, `.client-stats`, `.client-stat-card`
+  - `.client-grid`, `.client-discussion-item`, `.client-item-index`, `.client-item-btn`
+  - Responsive (passe en 1 colonne sur mobile)
+  - Adapté au thème existant (variables `--emerald-bright`, `--surface-strong`, `--line`)
+
+#### `auth.js`
+- Ajout de `profile_type: "client"` dans le payload d'inscription
+
+#### `standalone-common.js`
+- Après `signUp`, création systématique d'une entrée dans la table `profiles` avec `profile_type: "client"` par défaut
+
+#### `settings.json` (~/.deepcode/)
+- Configuration MCP Supabase : `mcp-server-postgres` avec `?sslmode=require&uselibpqcompat=true`
+
+### Règle métier
+- Nouvel inscrit → `profile_type = "client"` par défaut
+- Les actions futures (publier un trajet, etc.) reclassent l'utilisateur
+- Dashboard affiché selon `profile_type` : traveler → vue voyageur, client/cargo/null → vue client
+
+### Rétroactif
+- Les utilisateurs déjà en `profile_type = NULL` ont été mis à jour en `'client'` via l'API REST Supabase (service_role key)
