@@ -783,6 +783,32 @@
                 openOfferModal();
             }
         });
+
+        // Upload photo de profil
+        document.querySelectorAll(".avatar-file-input").forEach(input => {
+            input.addEventListener("change", function() {
+                const file = this.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const dataUrl = e.target?.result;
+                    if (!dataUrl) return;
+                    // Appliquer a tous les cercles avatar
+                    document.querySelectorAll(".avatar-circle").forEach(el => {
+                        el.style.backgroundImage = `url(${dataUrl})`;
+                        el.classList.add("has-image");
+                    });
+                    // Sauvegarder
+                    const userId = window.CCCommon.state?.user?.id;
+                    if (userId) {
+                        try {
+                            localStorage.setItem("cc_profile_photo_" + userId, dataUrl);
+                        } catch(e) {}
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        });
     }
 
     async function bootstrap() {
@@ -806,6 +832,26 @@
         if (els.openMessagesBtn) {
             els.openMessagesBtn.href = "chat.html";
         }
+
+        // Remplir les noms de bienvenue
+        const fullName = user?.fullName || user?.email || "Utilisateur";
+        const travelerName = document.getElementById("traveler-welcome-name");
+        const clientName = document.getElementById("client-welcome-name");
+        const cargoName = document.getElementById("cargo-welcome-name");
+        if (travelerName) travelerName.textContent = fullName;
+        if (clientName) clientName.textContent = fullName;
+        if (cargoName) cargoName.textContent = fullName;
+
+        // Charger les photos de profil existantes depuis localStorage
+        try {
+            const savedPhoto = localStorage.getItem("cc_profile_photo_" + (user?.id || ""));
+            if (savedPhoto) {
+                document.querySelectorAll(".avatar-circle").forEach(el => {
+                    el.style.backgroundImage = `url(${savedPhoto})`;
+                    el.classList.add("has-image");
+                });
+            }
+        } catch(e) {}
 
         bindEvents();
 

@@ -70,9 +70,18 @@
         <section class="view is-active traveler-dashboard-view hidden" data-view="traveler-dashboard" id="traveler-dashboard-view">
             <div class="view-head traveler-head">
                 <div class="welcome-section traveler-welcome">
-                    <p class="kicker">Priorite voyageur</p>
-                    <h2 class="welcome-title">Vendre mes kilos disponibles sans perdre le controle.</h2>
-                    <p class="traveler-summary">Le voyageur voit son offre active, les demandes entrantes, le revenu potentiel restant et les actions rapides pour gerer son trajet.</p>
+                    <div class="cargo-welcome-row">
+                        <label class="avatar-upload-label" id="traveler-avatar-label" title="Changer ma photo de profil">
+                            <input type="file" accept="image/*" class="avatar-file-input" data-profile="traveler">
+                            <div class="avatar-circle" id="traveler-avatar-circle">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </div>
+                        </label>
+                        <div class="cargo-welcome-text">
+                            <p class="kicker">Priorite voyageur</p>
+                            <h2 class="welcome-title">Bienvenue, <span id="traveler-welcome-name">...</span></h2>
+                        </div>
+                    </div>
                     <div class="traveler-actions">
                         <button id="manage-offer-btn" class="btn primary btn-lg">Modifier mon offre</button>
                         <a href="chat.html" id="open-messages-btn" class="btn secondary btn-lg">Ouvrir messages</a>
@@ -124,9 +133,18 @@
         <section class="view client-dashboard-view hidden" data-view="client-dashboard" id="client-dashboard-view">
             <div class="client-head">
                 <div class="client-hero">
-                    <p class="kicker">Priorite client</p>
-                    <h2 class="welcome-title">Trouver un transporteur fiable ou publier mon besoin.</h2>
-                    <p class="client-summary">Le client voit d'abord les trajets compatibles, puis une option de demande ouverte si aucune offre ne correspond.</p>
+                    <div class="cargo-welcome-row">
+                        <label class="avatar-upload-label" id="client-avatar-label" title="Changer ma photo de profil">
+                            <input type="file" accept="image/*" class="avatar-file-input" data-profile="client">
+                            <div class="avatar-circle" id="client-avatar-circle">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </div>
+                        </label>
+                        <div class="cargo-welcome-text">
+                            <p class="kicker">Priorite client</p>
+                            <h2 class="welcome-title">Bienvenue, <span id="client-welcome-name">...</span></h2>
+                        </div>
+                    </div>
                     <div class="client-actions">
                         <a href="results.html" class="btn primary btn-lg">Chercher un trajet</a>
                         <a href="post_trip.html" class="btn secondary btn-lg">Lancer un appel</a>
@@ -186,9 +204,18 @@
             <!-- Top Row -->
             <div class="cargo-head">
                 <div class="cargo-hero card">
-                    <span class="kicker">Priorite cargo</span>
-                    <h2 class="welcome-title">Piloter plusieurs lignes cargo et traiter le flux vite.</h2>
-                    <p class="cargo-summary">Le cargo a une vue operationnelle: 5 offres max, demandes a trier, capacites par ligne, paiements et documents.</p>
+                    <div class="cargo-welcome-row">
+                        <label class="avatar-upload-label" id="cargo-avatar-label" title="Changer ma photo de profil">
+                            <input type="file" accept="image/*" class="avatar-file-input" data-profile="cargo">
+                            <div class="avatar-circle" id="cargo-avatar-circle">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            </div>
+                        </label>
+                        <div class="cargo-welcome-text">
+                            <span class="kicker">Priorite cargo</span>
+                            <h2 class="welcome-title">Bienvenue, <span id="cargo-welcome-name">...</span></h2>
+                        </div>
+                    </div>
                     <div class="cargo-actions">
                         <a href="post_trip.html" class="btn btn-yellow">Ajouter une ligne cargo</a>
                         <a href="chat.html" class="btn secondary">Messages</a>

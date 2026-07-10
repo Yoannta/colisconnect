@@ -3878,6 +3878,79 @@ label {
     line-height: 1.2;
 }
 
+.dashboard-page .cargo-welcome-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.dashboard-page .avatar-upload-label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dashboard-page .avatar-upload-label input[type="file"] {
+    display: none;
+}
+
+.dashboard-page .avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(19, 236, 200, 0.12);
+    border: 2px dashed rgba(19, 236, 200, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--emerald-bright);
+    transition: all 0.2s;
+    overflow: hidden;
+}
+
+.dashboard-page .avatar-circle:hover {
+    background: rgba(19, 236, 200, 0.2);
+    border-color: var(--emerald-bright);
+}
+
+.dashboard-page .avatar-circle.has-image {
+    border-style: solid;
+    background-size: cover;
+    background-position: center;
+}
+
+.dashboard-page .avatar-circle svg {
+    width: 20px;
+    height: 20px;
+}
+
+.dashboard-page .avatar-circle.has-image svg {
+    display: none;
+}
+
+.dashboard-page .cargo-welcome-text {
+    flex: 1;
+}
+
+.dashboard-page .cargo-welcome-text .kicker {
+    color: var(--emerald-bright);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.dashboard-page .cargo-welcome-text .welcome-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+}
+
 .dashboard-page .cargo-summary {
     color: var(--muted);
     font-size: 14px;
