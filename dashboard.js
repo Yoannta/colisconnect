@@ -784,13 +784,13 @@
             }
         });
 
-        // Upload photo de profil
+        // Upload photo de profil -> Sauvegarde dans Supabase
         document.querySelectorAll(".avatar-file-input").forEach(input => {
-            input.addEventListener("change", function() {
+            input.addEventListener("change", async function() {
                 const file = this.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = function(e) {
+                reader.onload = async function(e) {
                     const dataUrl = e.target?.result;
                     if (!dataUrl) return;
                     // Appliquer a tous les cercles avatar
@@ -798,12 +798,20 @@
                         el.style.backgroundImage = `url(${dataUrl})`;
                         el.classList.add("has-image");
                     });
-                    // Sauvegarder
+                    // Sauvegarder dans Supabase
                     const userId = window.CCCommon.state?.user?.id;
-                    if (userId) {
+                    if (userId && window.ccSupabase) {
                         try {
-                            localStorage.setItem("cc_profile_photo_" + userId, dataUrl);
-                        } catch(e) {}
+                            const maxSize = 500 * 1024; // 500KB max
+                            const trimmed = dataUrl.length > maxSize ? dataUrl.substring(0, maxSize) : dataUrl;
+                            await window.ccSupabase.from("profiles").update({
+                                profile_photo: trimmed,
+                                updated_at: new Date().toISOString()
+                            }).eq("id", userId);
+                            console.log("Photo de profil sauvegardee");
+                        } catch(e) {
+                            console.warn("Impossible de sauvegarder la photo:", e);
+                        }
                     }
                 };
                 reader.readAsDataURL(file);
@@ -834,7 +842,7 @@
         }
 
         // Remplir les noms de bienvenue
-        const fullName = user?.fullName || user?.email || "Utilisateur";
+        const fullName = user?.fullName || "Utilisateur";
         const travelerName = document.getElementById("traveler-welcome-name");
         const clientName = document.getElementById("client-welcome-name");
         const cargoName = document.getElementById("cargo-welcome-name");
@@ -842,16 +850,25 @@
         if (clientName) clientName.textContent = fullName;
         if (cargoName) cargoName.textContent = fullName;
 
-        // Charger les photos de profil existantes depuis localStorage
-        try {
-            const savedPhoto = localStorage.getItem("cc_profile_photo_" + (user?.id || ""));
-            if (savedPhoto) {
-                document.querySelectorAll(".avatar-circle").forEach(el => {
-                    el.style.backgroundImage = `url(${savedPhoto})`;
-                    el.classList.add("has-image");
-                });
+        // Charger la photo de profil depuis Supabase
+        if (user?.id && window.ccSupabase) {
+            try {
+                const { data: profile } = await window.ccSupabase
+                    .from("profiles")
+                    .select("profile_photo")
+                    .eq("id", user.id)
+                    .maybeSingle();
+                const savedPhoto = profile?.profile_photo;
+                if (savedPhoto) {
+                    document.querySelectorAll(".avatar-circle").forEach(el => {
+                        el.style.backgroundImage = `url(${savedPhoto})`;
+                        el.classList.add("has-image");
+                    });
+                }
+            } catch(e) {
+                console.warn("Impossible de charger la photo de profil:", e);
             }
-        } catch(e) {}
+        }
 
         bindEvents();
 
