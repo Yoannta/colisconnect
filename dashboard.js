@@ -487,6 +487,7 @@
         // Charger les offres du cargo
         const offersResp = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
         const myOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
+        state.offers = myOffers; // Stocker pour le bouton Modifier
         const activeOffers = myOffers.filter(o => String(o.status || "").toLowerCase() === "active");
         const allOffers = myOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
         const activeCount = activeOffers.length;
@@ -695,6 +696,20 @@
             if (button) {
                 const threadId = button.getAttribute("data-open-thread");
                 if (threadId) openChatPage(threadId);
+            }
+        });
+
+        // Bouton Modifier dans le tableau Operations cargo
+        els.cargoOpsTable?.addEventListener("click", (event) => {
+            const button = event.target.closest(".cargo-ops-btn");
+            if (!button) return;
+            const offerId = button.getAttribute("data-offer-id");
+            if (!offerId) return;
+            // Ouvrir la modale d'édition avec cette offre
+            const offer = state.offers.find(o => String(o.id) === offerId);
+            if (offer) {
+                state.activeOffer = offer;
+                openOfferModal();
             }
         });
     }
