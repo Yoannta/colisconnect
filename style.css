@@ -3898,11 +3898,11 @@ label {
 }
 
 .dashboard-page .avatar-circle {
-    width: 48px;
-    height: 48px;
+    width: 144px;
+    height: 144px;
     border-radius: 50%;
     background: rgba(19, 236, 200, 0.12);
-    border: 2px dashed rgba(19, 236, 200, 0.4);
+    border: 3px dashed rgba(19, 236, 200, 0.4);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3923,8 +3923,8 @@ label {
 }
 
 .dashboard-page .avatar-circle svg {
-    width: 20px;
-    height: 20px;
+    width: 40px;
+    height: 40px;
 }
 
 .dashboard-page .avatar-circle.has-image svg {
