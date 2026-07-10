@@ -842,7 +842,7 @@
         }
 
         // Remplir les noms de bienvenue
-        const fullName = user?.fullName || "Utilisateur";
+        const fullName = user?.fullName || user?.full_name || "Utilisateur";
         const travelerName = document.getElementById("traveler-welcome-name");
         const clientName = document.getElementById("client-welcome-name");
         const cargoName = document.getElementById("cargo-welcome-name");

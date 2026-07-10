@@ -4182,8 +4182,8 @@ label {
 }
 
 .dashboard-page .cargo-add-line-btn {
-    width: 64px;
-    height: 64px;
+    width: 44px;
+    height: 44px;
     border-radius: 50%;
     background: rgba(19, 236, 200, 0.12);
     border: 2px solid rgba(19, 236, 200, 0.3);
@@ -4203,8 +4203,8 @@ label {
 }
 
 .dashboard-page .cargo-add-line-btn svg {
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
 }
 
 /* Modale liste complète demandes */
