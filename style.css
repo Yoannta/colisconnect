@@ -4029,6 +4029,10 @@ label {
     gap: 6px;
 }
 
+.dashboard-page .cargo-ops-header > div {
+    text-align: left;
+}
+
 .dashboard-page .cargo-ops-row {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr 0.8fr;
@@ -4038,6 +4042,10 @@ label {
     font-size: 13px;
     color: var(--text);
     gap: 6px;
+}
+
+.dashboard-page .cargo-ops-row > div {
+    text-align: left;
 }
 
 .dashboard-page .cargo-ops-row:last-child {
