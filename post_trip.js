@@ -61,6 +61,21 @@
     let selectedProfileTypeChoice = null;
     let selectedTransportMode = null;
 
+    async function updateProfileType(type) {
+        if (!type) return;
+        try {
+            const response = await window.CCCommon.api('/users/me/profile', {
+                method: 'PATCH',
+                body: { profileType: type }
+            });
+            if (response.success && window.CCCommon.state?.user) {
+                window.CCCommon.state.user.profile_type = type;
+            }
+        } catch (err) {
+            console.warn("Impossible de mettre à jour le profil:", err);
+        }
+    }
+
     // Initialisation dynamique des réseaux via API
     async function fetchAvailableMethods(country) {
         try {
@@ -367,9 +382,17 @@
             return;
         }
 
-        // Toujours afficher la modale de choix voyageur/cargo avant de publier
-        els.profileTypeModal?.classList.remove("hidden");
-        return;
+        // Les champs supplementaires et le bouton submit sont dans trip-extra-fields
+        // Si l'utilisateur n'a pas encore choisi son profil, afficher les champs n'est pas suffisant
+        // On vérifie qu'un choix a ete fait
+        const hasChoice = !!selectedProfileTypeChoice;
+        if (!hasChoice) {
+            alert("Veuillez d'abord choisir votre type de profil (Voyageur simple ou Entreprise cargo).");
+            return;
+        }
+
+        // Soumettre directement (les champs sont visibles)
+        await proceedSubmitTrip();
     }
 
     async function proceedSubmitTrip() {
@@ -478,14 +501,31 @@
         updateCurrencySelector();
 
         // Choix du type de profil
-        els.choiceTraveler?.addEventListener("click", () => {
+        document.getElementById("btn-traveler-choice")?.addEventListener("click", () => {
             selectedProfileTypeChoice = "traveler";
-            els.choiceTraveler.classList.add("selected");
-            els.choiceCargo?.classList.remove("selected");
-            if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
-            // Cacher le choix transport si on choisit traveler
-            els.modalTransportMode?.classList.add("hidden");
+            document.getElementById("btn-traveler-choice").classList.add("selected");
+            document.getElementById("btn-cargo-choice")?.classList.remove("selected");
             selectedTransportMode = null;
+
+            // Afficher les champs additionnels + cacher le groupe kilos si cargo
+            document.getElementById("trip-extra-fields")?.classList.remove("hidden");
+            document.getElementById("kilos-group")?.classList.remove("hidden");
+
+            // Mettre à jour le profil via API
+            updateProfileType("traveler");
+        });
+
+        document.getElementById("btn-cargo-choice")?.addEventListener("click", () => {
+            selectedProfileTypeChoice = "cargo";
+            document.getElementById("btn-cargo-choice").classList.add("selected");
+            document.getElementById("btn-traveler-choice")?.classList.remove("selected");
+
+            // Afficher les champs additionnels + cacher le groupe kilos
+            document.getElementById("trip-extra-fields")?.classList.remove("hidden");
+            document.getElementById("kilos-group")?.classList.add("hidden");
+
+            // Mettre à jour le profil via API
+            updateProfileType("cargo");
         });
 
         els.choiceCargo?.addEventListener("click", () => {
