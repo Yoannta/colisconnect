@@ -487,6 +487,7 @@
                     const { error: profileError } = await window.ccSupabase.from('profiles').upsert({
                         id: userId,
                         full_name: options.body.fullName || "",
+                        email: options.body.email || "",
                         country: options.body.country || "",
                         profile_type: options.body.profile_type || "client",
                         created_at: new Date().toISOString()
