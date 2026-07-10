@@ -46,10 +46,9 @@
         choiceTraveler: document.getElementById("profile-choice-traveler"),
         choiceCargo: document.getElementById("profile-choice-cargo"),
         confirmProfileTypeBtn: document.getElementById("profile-type-confirm-btn"),
-        // Transport mode
-        transportModeGroup: document.getElementById("transport-mode-group"),
-        transportModeBtns: document.querySelectorAll(".transport-mode-btn"),
-        transportModeInput: document.getElementById("transport-mode-input"),
+        // Transport mode (dans la modale)
+        modalTransportMode: document.getElementById("modal-transport-mode"),
+        modalTransportBtns: document.querySelectorAll(".modal-transport-btn"),
     };
 
     // ---- Payment method state ----
@@ -60,6 +59,7 @@
     };
 
     let selectedProfileTypeChoice = null;
+    let selectedTransportMode = null;
 
     // Initialisation dynamique des réseaux via API
     async function fetchAvailableMethods(country) {
@@ -396,13 +396,10 @@
             console.warn("Impossible de verifier le nombre d'offres actives.", e);
         }
 
-        // Validation : si cargo, le mode de transport est requis
-        if (selectedProfileTypeChoice === "cargo") {
-            const mode = els.transportModeInput?.value || "";
-            if (!mode) {
-                alert("Veuillez choisir un mode de transport (Avion, Bateau ou Les deux).");
-                return;
-            }
+        // Validation : si cargo, le mode de transport est requis (stocke dans le state)
+        if (selectedProfileTypeChoice === "cargo" && !selectedTransportMode) {
+            alert("Veuillez choisir un mode de transport (Avion, Bateau ou Les deux).");
+            return;
         }
 
         const payload = {
@@ -416,7 +413,7 @@
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
             referralCode: String(document.getElementById("referral-code")?.value || "").trim(),
-            mode: (selectedProfileTypeChoice === "cargo") ? (els.transportModeInput?.value || "") : ""
+            mode: (selectedProfileTypeChoice === "cargo") ? (selectedTransportMode || "") : ""
         };
 
         const submitBtn = els.form?.querySelector("button[type='submit']");
@@ -486,8 +483,9 @@
             els.choiceTraveler.classList.add("selected");
             els.choiceCargo?.classList.remove("selected");
             if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
-            // Cacher le groupe mode transport si on choisit traveler
-            els.transportModeGroup?.classList.add("hidden");
+            // Cacher le choix transport si on choisit traveler
+            els.modalTransportMode?.classList.add("hidden");
+            selectedTransportMode = null;
         });
 
         els.choiceCargo?.addEventListener("click", () => {
@@ -495,16 +493,16 @@
             els.choiceCargo.classList.add("selected");
             els.choiceTraveler?.classList.remove("selected");
             if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
-            // Afficher le groupe mode transport si on choisit cargo
-            els.transportModeGroup?.classList.remove("hidden");
+            // Afficher le choix transport si on choisit cargo
+            els.modalTransportMode?.classList.remove("hidden");
         });
 
-        // Sélection du mode de transport
-        els.transportModeBtns?.forEach(btn => {
+        // Sélection du mode de transport (dans la modale)
+        els.modalTransportBtns?.forEach(btn => {
             btn.addEventListener("click", () => {
-                els.transportModeBtns.forEach(b => b.classList.remove("selected"));
+                els.modalTransportBtns.forEach(b => b.classList.remove("selected"));
                 btn.classList.add("selected");
-                if (els.transportModeInput) els.transportModeInput.value = btn.dataset.mode;
+                selectedTransportMode = btn.dataset.mode;
             });
         });
 

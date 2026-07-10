@@ -264,6 +264,44 @@
             color: var(--emerald-bright, #13ecc8);
             font-weight: 700;
         }
+
+        /* Modal transport buttons */
+        .modal-transport-mode {
+            margin-bottom: 16px;
+        }
+        .modal-transport-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+            margin: 16px 0;
+        }
+        .modal-transport-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .modal-transport-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px 8px;
+            cursor: pointer;
+            color: #f0f7f6;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .modal-transport-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .modal-transport-btn.selected {
+            background: rgba(19,236,200,0.15);
+            border-color: var(--emerald-bright, #13ecc8);
+            color: var(--emerald-bright, #13ecc8);
+            font-weight: 700;
+        }
     </style>
 </head>
 
@@ -408,23 +446,6 @@
                                 partenaire.</small>
                         </div>
 
-                        <!-- Mode de transport (visible uniquement pour cargo) -->
-                        <div id="transport-mode-group" class="form-group hidden">
-                            <label>Mode de transport</label>
-                            <div class="transport-mode-grid">
-                                <button type="button" class="transport-mode-btn" data-mode="avion">
-                                    <span>Avion</span>
-                                </button>
-                                <button type="button" class="transport-mode-btn" data-mode="bateau">
-                                    <span>Bateau</span>
-                                </button>
-                                <button type="button" class="transport-mode-btn" data-mode="les_deux">
-                                    <span>Les deux</span>
-                                </button>
-                            </div>
-                            <input type="hidden" id="transport-mode-input" value="">
-                        </div>
-
                         <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon
                             trajet</button>
                     </form>
@@ -499,7 +520,7 @@
 
 
 
-    <!-- Modale de sélection de type de profil -->
+    <!-- Modale de sélection de type de profil + mode transport -->
     <div id="profile-type-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true">
         <div class="pt-modal-card glass-panel profile-type-modal-card">
             <h3 class="pm-title">Choisissez votre type de profil</h3>
@@ -522,6 +543,23 @@
                         <div class="profile-option-desc">Je suis un professionnel, import-export ou transitaire avec un
                             volume régulier. (Limite : 5 trajets actifs)</div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Choix mode transport (caché par défaut, visible si cargo) -->
+            <div id="modal-transport-mode" class="modal-transport-mode hidden">
+                <div class="modal-transport-divider"></div>
+                <p class="pm-subtitle" style="margin-bottom:12px;font-weight:600;">Mode de transport</p>
+                <div class="modal-transport-grid">
+                    <button type="button" class="modal-transport-btn" data-mode="avion">
+                        <span>Avion</span>
+                    </button>
+                    <button type="button" class="modal-transport-btn" data-mode="bateau">
+                        <span>Bateau</span>
+                    </button>
+                    <button type="button" class="modal-transport-btn" data-mode="les_deux">
+                        <span>Les deux</span>
+                    </button>
                 </div>
             </div>
 
