@@ -513,10 +513,10 @@
                     const statusPill = isFull ? 'pill-pink' : 'pill-green';
                     const statusLabel = isFull ? 'Presque plein' : 'Active';
                     return `<div class="cargo-ops-row">
-                        <div>${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
-                        <div>${mode}</div>
-                        <div class="col-pill"><span class="${statusPill}">${statusLabel}</span></div>
-                        <div class="cargo-ops-actions">
+                        <div class="col-ligne">${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
+                        <div class="col-mode">${mode}</div>
+                        <div class="col-statut"><span class="${statusPill}">${statusLabel}</span></div>
+                        <div class="col-actions">
                             <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
                             <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
                         </div>
