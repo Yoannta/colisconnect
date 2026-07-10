@@ -518,7 +518,7 @@
                         <div>${totalKgOffer} kg</div>
                         <div>${restante} kg</div>
                         <div class="col-pill"><span class="${statusPill}">${statusLabel}</span></div>
-                        <div>
+                        <div class="cargo-ops-actions">
                             <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
                             <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
                         </div>

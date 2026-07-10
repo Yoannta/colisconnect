@@ -4075,6 +4075,12 @@ label {
     background: rgba(255, 77, 77, 0.1);
 }
 
+.dashboard-page .cargo-ops-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
 /* File items */
 .dashboard-page .cargo-file-list {
     display: flex;
