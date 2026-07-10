@@ -1150,3 +1150,47 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 
 ### Rétroactif
 - Les utilisateurs déjà en `profile_type = NULL` ont été mis à jour en `'client'` via l'API REST Supabase (service_role key)
+
+---
+
+## Mise à jour : Dashboard Cargo personnalisé (2026-07-09)
+
+### Modifications apportées
+
+#### `dashboard.html`
+- Nouvelle **section cargo** avec :
+  - Hero : "Piloter plusieurs lignes cargo et traiter le flux vite."
+  - Boutons : "Ajouter une ligne cargo" (jaune), "Traiter la file"
+  - 3 stats : offres actives (4/5), demandes à qualifier, capacité totale
+  - Tableau "Operations cargo" avec lignes, mode, capacité, statut
+  - "File entrante" : liste des demandes entrantes avec puces numérotées
+  - "Limite offres" : barre de progression 4/5
+  - "Paiements" : volume validé, commissions
+  - "Confiance" : documents cargo, SLA réponse
+- Adapté au thème existant (variables CSS du projet)
+- Visible uniquement pour les utilisateurs avec `profile_type = "cargo"`
+
+#### `dashboard.js`
+- `switchDashboardView()` gère maintenant 3 profils : traveler, client, cargo
+- Nouvelle fonction `loadCargoDashboard()` :
+  - Compte les offres actives
+  - Calcule le statut "Presque plein" si < 5 kg restants
+  - Charge les conversations entrantes (file)
+  - Barre de progression dynamique
+  - Placeholder paiements et confiance
+- Événements click pour la file entrante cargo
+
+#### `style.css`
+- Styles complets du dashboard cargo avec couleurs spécifiques :
+  - Jaune (`#ffd666`) pour boutons "Ajouter ligne" et badges
+  - Rose (`#ff8ba7`) pour badges "Presque plein" et compteur
+  - Adapté au fond sombre et bordures du thème existant
+- Responsive (passe en 1 colonne sur mobile)
+
+### Fonctionnalités non encore implémentées (à coder)
+1. Mode de transport (Avion/Bateau) - stocker dans l'offre
+2. Statut "Presque plein" - détection automatique basée sur kg restants
+3. File entrante - qualification des demandes (Qualifier/Devis/Priorite/Vérifier)
+4. Paiements - volume mensuel, reversements
+5. Confiance/SLA - taux de réponse aux messages
+6. Progression d'offres - barre liée au nombre d'offres actives / 5

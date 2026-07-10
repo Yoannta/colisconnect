@@ -3844,6 +3844,517 @@ label {
     }
 }
 
+/* ===== CARGO DASHBOARD ===== */
+.dashboard-page .cargo-head {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.dashboard-page .cargo-hero.card {
+    background: var(--surface-strong);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dashboard-page .cargo-hero .kicker {
+    color: var(--emerald-bright);
+    text-transform: uppercase;
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+.dashboard-page .cargo-hero .welcome-title {
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    line-height: 1.2;
+}
+
+.dashboard-page .cargo-summary {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 28px 0;
+    max-width: 480px;
+    line-height: 1.5;
+}
+
+.dashboard-page .cargo-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.dashboard-page .btn-yellow {
+    background: #ffd666;
+    color: #050709;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.dashboard-page .btn-yellow:hover {
+    opacity: 0.85;
+}
+
+.dashboard-page .cargo-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dashboard-page .cargo-stat-card {
+    background: var(--surface-strong);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 20px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.dashboard-page .cargo-stat-card strong {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    color: var(--text);
+}
+
+.dashboard-page .cargo-stat-card span {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.dashboard-page .cargo-middle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.dashboard-page .cargo-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+}
+
+.dashboard-page .cargo-middle .card,
+.dashboard-page .cargo-bottom .card {
+    background: var(--surface-strong);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.dashboard-page .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.dashboard-page .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text);
+}
+
+.dashboard-page .pill-yellow {
+    background: #ffd666;
+    color: #050709;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.dashboard-page .pill-pink {
+    background: #ff8ba7;
+    color: #050709;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.dashboard-page .pill-green {
+    background: var(--emerald-bright);
+    color: #050709;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+.dashboard-page .pill-pink-dark {
+    background: rgba(255, 139, 167, 0.2);
+    color: #ff8ba7;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+/* Operations table */
+.dashboard-page .cargo-ops-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.dashboard-page .cargo-ops-header {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.7fr;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    gap: 6px;
+}
+
+.dashboard-page .cargo-ops-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.7fr;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--text);
+    gap: 6px;
+}
+
+.dashboard-page .cargo-ops-row:last-child {
+    border-bottom: none;
+}
+
+.dashboard-page .cargo-ops-row .col-pill {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.dashboard-page .cargo-ops-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.dashboard-page .cargo-ops-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+/* File items */
+.dashboard-page .cargo-file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.dashboard-page .cargo-file-item {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    gap: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dashboard-page .cargo-file-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-page .cargo-file-item:last-child {
+    margin-bottom: 0;
+}
+
+.dashboard-page .cargo-file-index {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    background: var(--emerald-bright);
+    color: #050709;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.dashboard-page .file-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.dashboard-page .file-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-page .file-desc {
+    color: var(--muted);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dashboard-page .cargo-file-btn {
+    background: var(--emerald-bright);
+    color: #050709;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+}
+
+.dashboard-page .cargo-file-btn:hover {
+    opacity: 0.85;
+}
+
+/* Progress */
+.dashboard-page .progress-track {
+    width: 100%;
+    height: 4px;
+    background: var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.dashboard-page .progress-fill {
+    height: 100%;
+    background: #ffd666;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.dashboard-page .cargo-note {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 16px;
+}
+
+/* Payments */
+.dashboard-page .cargo-pay-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.dashboard-page .cargo-pay-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.dashboard-page .cargo-pay-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    background: rgba(19, 236, 200, 0.15);
+    color: var(--emerald-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.dashboard-page .pay-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dashboard-page .pay-amount {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.dashboard-page .pay-label {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.dashboard-page .pill-green-sm {
+    background: var(--emerald-bright);
+    color: #050709;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.dashboard-page .pill-green-sm:hover {
+    opacity: 0.85;
+}
+
+.dashboard-page .pill-yellow-sm {
+    background: #ffd666;
+    color: #050709;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.dashboard-page .pill-yellow-sm:hover {
+    opacity: 0.85;
+}
+
+/* Trust items */
+.dashboard-page .cargo-trust-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+}
+
+.dashboard-page .cargo-trust-item:last-child {
+    margin-bottom: 0;
+    padding-bottom: 0;
+    border-bottom: none;
+}
+
+.dashboard-page .cargo-trust-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    border-radius: 50%;
+    background: rgba(19, 236, 200, 0.15);
+    color: var(--emerald-bright);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.dashboard-page .trust-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dashboard-page .trust-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+}
+
+.dashboard-page .trust-desc {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.dashboard-page .badge-green {
+    background: var(--emerald-bright);
+    color: #050709;
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.dashboard-page .badge-outline {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 2px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Cargo responsive */
+@media (max-width: 800px) {
+    .dashboard-page .cargo-head {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-page .cargo-middle {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-page .cargo-bottom {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-page .cargo-hero .welcome-title {
+        font-size: 22px;
+    }
+
+    .dashboard-page .cargo-hero.card {
+        padding: 24px;
+    }
+
+    .dashboard-page .cargo-stat-card strong {
+        font-size: 24px;
+    }
+
+    .dashboard-page .cargo-ops-header,
+    .dashboard-page .cargo-ops-row {
+        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.7fr;
+        font-size: 12px;
+    }
+}
+
 .payment-modal-card {
     width: min(420px, 100%);
     padding: 1.5rem;

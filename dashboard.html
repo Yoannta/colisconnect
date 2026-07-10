@@ -180,6 +180,89 @@
                 </article>
             </div>
         </section>
+
+        <!-- ===== SECTION CARGO ===== -->
+        <section class="view cargo-dashboard-view hidden" data-view="cargo-dashboard" id="cargo-dashboard-view">
+            <!-- Top Row -->
+            <div class="cargo-head">
+                <div class="cargo-hero card">
+                    <span class="kicker">Priorite cargo</span>
+                    <h2 class="welcome-title">Piloter plusieurs lignes cargo et traiter le flux vite.</h2>
+                    <p class="cargo-summary">Le cargo a une vue operationnelle: 5 offres max, demandes a trier, capacites par ligne, paiements et documents.</p>
+                    <div class="cargo-actions">
+                        <a href="post_trip.html" class="btn btn-yellow">Ajouter une ligne cargo</a>
+                    </div>
+                </div>
+
+                <div class="cargo-stats">
+                    <article class="cargo-stat-card">
+                        <strong id="cargo-stat-offers">0 / 5</strong>
+                        <span>offres publiees</span>
+                    </article>
+                    <article class="cargo-stat-card">
+                        <strong id="cargo-stat-requests">0</strong>
+                        <span>demandes</span>
+                    </article>
+                    <article class="cargo-stat-card">
+                        <strong id="cargo-stat-capacity">0 kg</strong>
+                        <span>capacite disponible totale</span>
+                    </article>
+                </div>
+            </div>
+
+            <!-- Middle Row -->
+            <div class="cargo-middle">
+                <!-- Operations -->
+                <div class="card">
+                    <div class="section-header">
+                        <h3 class="section-title">Operations cargo</h3>
+                    </div>
+                    <div id="cargo-ops-table" class="cargo-ops-table">
+                        <div class="cargo-ops-header">
+                            <div>LIGNE</div>
+                            <div>MODE</div>
+                            <div>CAPACITE</div>
+                            <div>CAPACITE RESTANTE</div>
+                            <div>STATUT</div>
+                            <div></div>
+                        </div>
+                        <div class="loading-state">Chargement...</div>
+                    </div>
+                </div>
+
+                <!-- Demandes -->
+                <div class="card">
+                    <div class="section-header">
+                        <h3 class="section-title">Demandes</h3>
+                        <span class="pill-pink-dark" id="cargo-file-count">0</span>
+                    </div>
+                    <div id="cargo-file-list" class="cargo-file-list">
+                        <div class="loading-state">Chargement...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row -->
+            <div class="cargo-bottom">
+                <!-- Limite Offres -->
+                <div class="card">
+                    <div class="section-header">
+                        <h3 class="section-title">Limite offres</h3>
+                        <span class="progress-badge" id="cargo-limit-badge">0/5</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" id="cargo-progress-fill" style="width: 0%;"></div>
+                    </div>
+                    <p class="cargo-note" id="cargo-limit-note">Chargez vos offres pour commencer.</p>
+                </div>
+
+                <!-- Espace vide (anciennement Paiements) -->
+                <div class="card" style="min-height: 150px;"></div>
+
+                <!-- Espace vide (anciennement Confiance) -->
+                <div class="card" style="min-height: 150px;"></div>
+            </div>
+        </section>
     </main>
 
     <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
@@ -239,12 +322,13 @@
                     <div class="form-grid">
                         <label class="form-field">
                             <span>Pays de depart</span>
-                            <input id="offer-origin" type="text" class="estimator-input" />
+                            <input id="offer-origin" type="text" class="estimator-input" list="offer-country-list" autocomplete="off" />
                         </label>
                         <label class="form-field">
                             <span>Pays d'arrivee</span>
-                            <input id="offer-destination" type="text" class="estimator-input" />
+                            <input id="offer-destination" type="text" class="estimator-input" list="offer-country-list" autocomplete="off" />
                         </label>
+                        <datalist id="offer-country-list"></datalist>
                         <label class="form-field">
                             <span>Date du voyage</span>
                             <input id="offer-departure-date" type="date" class="estimator-input" />

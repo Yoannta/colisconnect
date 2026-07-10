@@ -55,6 +55,17 @@
         clientDiscussionsList: document.getElementById("client-discussions-list"),
         clientDiscussionsCount: document.getElementById("client-discussions-count"),
         clientValidatedList: document.getElementById("client-validated-list"),
+        // Cargo dashboard elements
+        cargoView: document.getElementById("cargo-dashboard-view"),
+        cargoStatOffers: document.getElementById("cargo-stat-offers"),
+        cargoStatRequests: document.getElementById("cargo-stat-requests"),
+        cargoStatCapacity: document.getElementById("cargo-stat-capacity"),
+        cargoOpsTable: document.getElementById("cargo-ops-table"),
+        cargoFileList: document.getElementById("cargo-file-list"),
+        cargoFileCount: document.getElementById("cargo-file-count"),
+        cargoLimitBadge: document.getElementById("cargo-limit-badge"),
+        cargoProgressFill: document.getElementById("cargo-progress-fill"),
+        cargoLimitNote: document.getElementById("cargo-limit-note"),
     };
 
     function getCurrencyCode(user, offer) {
@@ -317,14 +328,20 @@
 
     function switchDashboardView(profileType) {
         const isTraveler = profileType === "traveler";
-        // Gere la visibilite via les classes is-active et hidden
+        const isCargo = profileType === "cargo";
+        const isClient = !isTraveler && !isCargo; // client ou null
+
         if (els.travelerView) {
             els.travelerView.classList.toggle("is-active", isTraveler);
             els.travelerView.classList.toggle("hidden", !isTraveler);
         }
         if (els.clientView) {
-            els.clientView.classList.toggle("is-active", !isTraveler);
-            els.clientView.classList.toggle("hidden", isTraveler);
+            els.clientView.classList.toggle("is-active", isClient);
+            els.clientView.classList.toggle("hidden", !isClient);
+        }
+        if (els.cargoView) {
+            els.cargoView.classList.toggle("is-active", isCargo);
+            els.cargoView.classList.toggle("hidden", !isCargo);
         }
     }
 
@@ -420,6 +437,19 @@
             return;
         }
 
+        // Valider que le pays est dans la liste officielle
+        const countryOptions = window.CCCommon.COUNTRY_OPTIONS || [];
+        const normalize = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        const validCountries = countryOptions.map(c => normalize(c));
+        if (!validCountries.includes(normalize(payload.origin))) {
+            setFeedback("Choisissez un pays de depart valide dans la liste.", true);
+            return;
+        }
+        if (!validCountries.includes(normalize(payload.destination))) {
+            setFeedback("Choisissez un pays d'arrivee valide dans la liste.", true);
+            return;
+        }
+
         if (payload.available_kg <= 0 || payload.price_per_kg < 0) {
             setFeedback("Les kilos et le prix doivent etre valides.", true);
             return;
@@ -447,6 +477,82 @@
                 els.saveOfferBtn.disabled = false;
                 els.saveOfferBtn.textContent = "Enregistrer les modifications";
             }
+        }
+    }
+
+    async function loadCargoDashboard() {
+        const user = window.CCCommon.state.user;
+        if (!user) return;
+
+        // Charger les offres du cargo
+        const offersResp = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
+        const myOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
+        const activeOffers = myOffers.filter(o => String(o.status || "").toLowerCase() === "active");
+        const allOffers = myOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
+        const activeCount = activeOffers.length;
+
+        // Stats
+        if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
+        if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${allOffers.length}`;
+        const totalKg = activeOffers.reduce((sum, o) => sum + Number(o.availableKg || o.available_kg || 0), 0);
+        if (els.cargoStatCapacity) els.cargoStatCapacity.textContent = `${totalKg} kg`;
+
+        // Table operations (6 colonnes: LIGNE | MODE | CAPACITE | CAPACITE RESTANTE | STATUT | [action])
+        if (els.cargoOpsTable) {
+            if (!activeOffers.length) {
+                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>CAPACITE</div><div>CAPACITE RESTANTE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests"><p>Aucune ligne active.</p><span>Creez votre premiere offre cargo.</span></div>`;
+            } else {
+                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>CAPACITE</div><div>CAPACITE RESTANTE</div><div>STATUT</div><div></div></div>` + activeOffers.map(o => {
+                    const kg = Number(o.availableKg || o.available_kg || 0);
+                    const totalKgOffer = Number(o.totalKg || o.total_kg || kg);
+                    const restante = kg;
+                    const status = String(o.status || "active").toLowerCase();
+                    const mode = o.mode || "Avion";
+                    const isFull = restante < 5;
+                    const statusPill = isFull ? 'pill-pink' : 'pill-green';
+                    const statusLabel = isFull ? 'Presque plein' : 'Active';
+                    return `<div class="cargo-ops-row">
+                        <div>${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
+                        <div>${mode}</div>
+                        <div>${totalKgOffer} kg</div>
+                        <div>${restante} kg</div>
+                        <div class="col-pill"><span class="${statusPill}">${statusLabel}</span></div>
+                        <div><button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button></div>
+                    </div>`;
+                }).join("");
+            }
+        }
+
+        // Demandes (conversations where user is not owner)
+        const convResp = await window.CCCommon.api("/api/conversations");
+        const incoming = Array.isArray(convResp) ? convResp.filter(c => !c.isOfferOwner) : [];
+        if (els.cargoFileCount) els.cargoFileCount.textContent = `${incoming.length}`;
+        if (els.cargoFileList) {
+            if (!incoming.length) {
+                els.cargoFileList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
+            } else {
+                els.cargoFileList.innerHTML = incoming.slice(0, 5).map((item, i) => {
+                    const userName = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
+                    const tripInfo = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "");
+                    return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+                        <div class="cargo-file-index">${i + 1}</div>
+                        <div class="file-content">
+                            <div class="file-title">${userName}</div>
+                            <div class="file-desc">${window.CCCommon.escapeHtml(tripInfo)}</div>
+                        </div>
+                        <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
+                    </div>`;
+                }).join("");
+            }
+        }
+
+        // Limite offres (progress bar)
+        const pct = Math.min(100, (activeCount / 5) * 100);
+        if (els.cargoLimitBadge) els.cargoLimitBadge.textContent = `${activeCount}/5`;
+        if (els.cargoProgressFill) els.cargoProgressFill.style.width = `${pct}%`;
+        if (els.cargoLimitNote) {
+            if (activeCount >= 5) els.cargoLimitNote.textContent = "Limite atteinte. Desactivez une offre pour en creer une nouvelle.";
+            else els.cargoLimitNote.textContent = `${5 - activeCount} place(s) restante(s) pour une nouvelle ligne active.`;
         }
     }
 
@@ -494,6 +600,8 @@
             } else if (els.quickSummaryText) {
                 els.quickSummaryText.textContent = "Aucune offre active pour le moment.";
             }
+        } else if (profileType === "cargo") {
+            await loadCargoDashboard();
         } else {
             await loadClientDashboard();
         }
@@ -580,6 +688,15 @@
                 if (threadId) openChatPage(threadId);
             }
         });
+
+        // Cargo file list click delegation
+        els.cargoFileList?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-open-thread]");
+            if (button) {
+                const threadId = button.getAttribute("data-open-thread");
+                if (threadId) openChatPage(threadId);
+            }
+        });
     }
 
     async function bootstrap() {
@@ -589,7 +706,7 @@
         const user = window.CCCommon.state.user;
         const profileType = String(user?.profile_type || "").toLowerCase();
 
-        // Basculer entre la vue traveler et client
+        // Basculer entre les vues traveler, client ou cargo
         switchDashboardView(profileType);
 
         if (els.dashboardUser) {
@@ -605,6 +722,14 @@
         }
 
         bindEvents();
+
+        // Remplir le datalist des pays pour la modale d'edition d'offre
+        const countryDatalist = document.getElementById("offer-country-list");
+        const countryOptions = window.CCCommon.COUNTRY_OPTIONS || [];
+        if (countryDatalist && countryOptions.length) {
+            countryDatalist.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
+        }
+
         await loadDashboard();
     }
 
