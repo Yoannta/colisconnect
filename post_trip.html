@@ -306,44 +306,33 @@
         /* Profile select buttons */
         .profile-select-grid {
             display: flex;
-            flex-direction: column;
-            gap: 10px;
+            gap: 8px;
         }
         .profile-select-btn {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(19,236,200,0.2);
-            border-radius: 16px;
-            padding: 18px 20px;
+            background: transparent;
+            border: 1px solid rgba(19,236,200,0.25);
+            border-radius: 8px;
+            padding: 8px 14px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: left;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px 14px;
-            align-items: center;
+            transition: all 0.2s ease;
+            text-align: center;
+            flex: 1;
+            white-space: nowrap;
         }
         .profile-select-btn:hover {
             background: rgba(255,255,255,0.06);
-            border-color: rgba(19,236,200,0.4);
+            border-color: rgba(19,236,200,0.5);
         }
         .profile-select-btn.selected {
-            background: rgba(19,236,200,0.1);
+            background: rgba(19,236,200,0.12);
             border-color: #13ecc8;
-            box-shadow: 0 0 20px rgba(19,236,200,0.2);
         }
-        .ps-icon {
-            font-size: 1.8rem;
-            flex-shrink: 0;
-        }
-        .ps-title {
-            font-size: 1.05rem;
-            font-weight: 700;
+        .profile-select-btn .ps-title {
+            font-size: 0.85rem;
+            font-weight: 600;
             color: white;
         }
-        .ps-desc {
-            font-size: 0.85rem;
-            color: #b0b0b0;
-            line-height: 1.4;
+    </style>
             width: 100%;
         }
     </style>
@@ -434,14 +423,10 @@
                             <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
                             <div class="profile-select-grid">
                                 <button type="button" class="profile-select-btn" id="btn-traveler-choice">
-                                    <span class="ps-icon">✈️</span>
                                     <span class="ps-title">Voyageur simple</span>
-                                    <span class="ps-desc">Je voyage ponctuellement et je vends mes kilos libres.</span>
                                 </button>
                                 <button type="button" class="profile-select-btn" id="btn-cargo-choice">
-                                    <span class="ps-icon">📦</span>
                                     <span class="ps-title">Entreprise cargo</span>
-                                    <span class="ps-desc">Je suis un professionnel avec un volume regulier.</span>
                                 </button>
                             </div>
                         </div>
