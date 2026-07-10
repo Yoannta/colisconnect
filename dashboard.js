@@ -492,9 +492,13 @@
         const allOffers = myOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
         const activeCount = activeOffers.length;
 
+        // Charger les conversations (pour le compteur demandes)
+        const convResp = await window.CCCommon.api("/api/conversations");
+        const incoming = Array.isArray(convResp) ? convResp.filter(c => !c.isOfferOwner) : [];
+
         // Stats
         if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
-        if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${allOffers.length}`;
+        if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${incoming.length}`;
         const totalKg = activeOffers.reduce((sum, o) => sum + Number(o.availableKg || o.available_kg || 0), 0);
         if (els.cargoStatCapacity) els.cargoStatCapacity.textContent = `${totalKg} kg`;
 
@@ -528,8 +532,6 @@
         }
 
         // Demandes (conversations where user is not owner)
-        const convResp = await window.CCCommon.api("/api/conversations");
-        const incoming = Array.isArray(convResp) ? convResp.filter(c => !c.isOfferOwner) : [];
         if (els.cargoFileCount) els.cargoFileCount.textContent = `${incoming.length}`;
         if (els.cargoFileList) {
             if (!incoming.length) {
