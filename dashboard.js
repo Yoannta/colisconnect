@@ -518,7 +518,10 @@
                         <div>${totalKgOffer} kg</div>
                         <div>${restante} kg</div>
                         <div class="col-pill"><span class="${statusPill}">${statusLabel}</span></div>
-                        <div><button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button></div>
+                        <div>
+                            <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
+                            <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
+                        </div>
                     </div>`;
                 }).join("");
             }
@@ -699,13 +702,35 @@
             }
         });
 
-        // Bouton Modifier dans le tableau Operations cargo
-        els.cargoOpsTable?.addEventListener("click", (event) => {
+        // Boutons Modifier / Supprimer dans le tableau Operations cargo
+        els.cargoOpsTable?.addEventListener("click", async (event) => {
             const button = event.target.closest(".cargo-ops-btn");
             if (!button) return;
             const offerId = button.getAttribute("data-offer-id");
             if (!offerId) return;
-            // Ouvrir la modale d'édition avec cette offre
+            const action = button.getAttribute("data-action");
+
+            if (action === "delete") {
+                if (!confirm("Supprimer cette offre ? Cette action est irreversible.")) return;
+                const offer = state.offers.find(o => String(o.id) === offerId);
+                if (!offer) return;
+                try {
+                    if (window.ccSupabase) {
+                        await window.ccSupabase.from("offers").update({
+                            status: "archived",
+                            updated_at: new Date().toISOString()
+                        }).eq("id", offerId).eq("user_id", window.CCCommon.state.user?.id);
+                    } else {
+                        await window.CCCommon.api(`/api/offers/${offerId}`, { method: "DELETE" });
+                    }
+                    await loadDashboard();
+                } catch (err) {
+                    alert(err.message || "Impossible de supprimer l'offre.");
+                }
+                return;
+            }
+
+            // Sinon : Modifier
             const offer = state.offers.find(o => String(o.id) === offerId);
             if (offer) {
                 state.activeOffer = offer;

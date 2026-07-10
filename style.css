@@ -4066,6 +4066,15 @@ label {
     background: rgba(255, 255, 255, 0.08);
 }
 
+.dashboard-page .cargo-ops-btn-danger {
+    border-color: rgba(255, 77, 77, 0.3);
+    color: #ff7d7d;
+}
+
+.dashboard-page .cargo-ops-btn-danger:hover {
+    background: rgba(255, 77, 77, 0.1);
+}
+
 /* File items */
 .dashboard-page .cargo-file-list {
     display: flex;
