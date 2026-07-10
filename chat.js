@@ -803,6 +803,8 @@
         document.getElementById("kg-modal")?.querySelector(".close-modal")?.addEventListener("click", () => {
             document.getElementById("kg-modal")?.classList.add("hidden");
         });
+
+        document.getElementById("split-payment-close")?.addEventListener("click", () => {
             document.getElementById("split-payment-modal").classList.add("hidden");
         });
         document.getElementById("payment-hub-close")?.addEventListener("click", () => {
