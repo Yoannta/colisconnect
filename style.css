@@ -4019,7 +4019,7 @@ label {
 
 .dashboard-page .cargo-ops-header {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.7fr;
+    grid-template-columns: 2fr 1fr 1fr 0.8fr;
     color: var(--muted);
     font-size: 11px;
     font-weight: 600;
@@ -4031,7 +4031,7 @@ label {
 
 .dashboard-page .cargo-ops-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.7fr;
+    grid-template-columns: 2fr 1fr 1fr 0.8fr;
     align-items: center;
     padding: 10px 0;
     border-bottom: 1px solid var(--line);
@@ -4365,7 +4365,7 @@ label {
 
     .dashboard-page .cargo-ops-header,
     .dashboard-page .cargo-ops-row {
-        grid-template-columns: 2fr 1fr 1fr 1fr 1fr 0.7fr;
+        grid-template-columns: 2fr 1fr 1fr 0.8fr;
         font-size: 12px;
     }
 }

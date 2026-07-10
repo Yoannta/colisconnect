@@ -499,28 +499,22 @@
         // Stats
         if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
         if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${incoming.length}`;
-        const totalKg = activeOffers.reduce((sum, o) => sum + Number(o.availableKg || o.available_kg || 0), 0);
-        if (els.cargoStatCapacity) els.cargoStatCapacity.textContent = `${totalKg} kg`;
 
-        // Table operations (6 colonnes: LIGNE | MODE | CAPACITE | CAPACITE RESTANTE | STATUT | [action])
+        // Table operations (4 colonnes: LIGNE | MODE | STATUT | [action])
         if (els.cargoOpsTable) {
             if (!activeOffers.length) {
-                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>CAPACITE</div><div>CAPACITE RESTANTE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests"><p>Aucune ligne active.</p><span>Creez votre premiere offre cargo.</span></div>`;
+                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests"><p>Aucune ligne active.</p><span>Creez votre premiere offre cargo.</span></div>`;
             } else {
-                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>CAPACITE</div><div>CAPACITE RESTANTE</div><div>STATUT</div><div></div></div>` + activeOffers.map(o => {
+                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>` + activeOffers.map(o => {
                     const kg = Number(o.availableKg || o.available_kg || 0);
-                    const totalKgOffer = Number(o.totalKg || o.total_kg || kg);
-                    const restante = kg;
                     const status = String(o.status || "active").toLowerCase();
                     const mode = o.mode || "Avion";
-                    const isFull = restante < 5;
+                    const isFull = kg < 5;
                     const statusPill = isFull ? 'pill-pink' : 'pill-green';
                     const statusLabel = isFull ? 'Presque plein' : 'Active';
                     return `<div class="cargo-ops-row">
                         <div>${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
                         <div>${mode}</div>
-                        <div>${totalKgOffer} kg</div>
-                        <div>${restante} kg</div>
                         <div class="col-pill"><span class="${statusPill}">${statusLabel}</span></div>
                         <div class="cargo-ops-actions">
                             <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
