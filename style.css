@@ -3965,6 +3965,53 @@ label {
     flex-wrap: wrap;
 }
 
+.dashboard-page .identite-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 200, 50, 0.3);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.dashboard-page .identite-btn:hover {
+    border-color: rgba(255, 200, 50, 0.6);
+    background: rgba(255, 200, 50, 0.05);
+}
+
+.dashboard-page .identite-btn svg {
+    flex-shrink: 0;
+}
+
+.dashboard-page .identite-steps {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.dashboard-page .identite-steps.level-0 {
+    background: rgba(255, 77, 77, 0.2);
+    color: #ff7d7d;
+}
+
+.dashboard-page .identite-steps.level-1 {
+    background: rgba(255, 200, 50, 0.2);
+    color: #ffd666;
+}
+
+.dashboard-page .identite-steps.level-2 {
+    background: rgba(19, 236, 200, 0.2);
+    color: var(--emerald-bright);
+}
+
 .dashboard-page .btn-yellow {
     background: #ffd666;
     color: #050709;

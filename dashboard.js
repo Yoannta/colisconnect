@@ -870,6 +870,21 @@
             }
         }
 
+        // Mettre à jour les badges de vérification d'identité
+        const updateIdentiteSteps = () => {
+            const isVerified = user?.is_verified || false;
+            const identityDoc = user?.identity_document_approved || false;
+            let steps = 0;
+            if (isVerified) steps++;
+            if (identityDoc) steps++;
+            const levelClass = steps === 0 ? 'level-0' : (steps === 1 ? 'level-1' : 'level-2');
+            document.querySelectorAll(".identite-steps").forEach(el => {
+                el.textContent = `${steps}/2`;
+                el.className = `identite-steps ${levelClass}`;
+            });
+        };
+        updateIdentiteSteps();
+
         bindEvents();
 
         // Remplir le datalist des pays pour la modale d'edition d'offre
