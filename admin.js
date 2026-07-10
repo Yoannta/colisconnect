@@ -298,7 +298,7 @@
 <td>#${escapeHtml(u.id)}</td>
 <td>${escapeHtml(u.fullName)}</td>
 <td>${escapeHtml(u.country || "-")}</td>
-<td>${escapeHtml(u.email)}</td>
+<td>${escapeHtml(u.email || (u.id ? u.id.substring(0, 8) + "..." : "-"))}</td>
 <td>${statusBadge(role)}</td>
 <td>${statusBadge(active ? "active" : "suspended")} ${statusBadge(isVerified ? "verified" : "unverified")}</td>
 <td>${profileTypeSelect}</td>
