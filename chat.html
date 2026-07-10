@@ -164,6 +164,23 @@
         </section>
     </div>
 
+    <!-- MODALE KILOS -->
+    <div id="kg-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card" style="width: min(340px, calc(100vw - 32px));">
+            <button class="close-modal" onclick="document.getElementById('kg-modal').classList.add('hidden')">x</button>
+            <div style="padding: 20px; text-align: center;">
+                <h3 style="margin-bottom: 8px; font-weight: 700;">Combien de kilos voulez-vous ?</h3>
+                <p style="color: var(--muted, #888); font-size: 0.85rem; margin-bottom: 20px;">Saisissez le nombre de kg que vous souhaitez faire transporter.</p>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" id="kg-modal-input" min="1" placeholder="Ex: 5" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--line, rgba(255,255,255,0.1)); border-radius: 10px; padding: 12px; font-size: 1.2rem; color: white; text-align: center; outline: none;">
+                    <span style="color: var(--muted, #888); font-weight: 600;">kg</span>
+                </div>
+                <p id="kg-modal-error" style="color: #f87171; font-size: 0.8rem; margin-top: 12px; display: none;">Veuillez saisir un nombre valide.</p>
+                <button id="kg-modal-confirm" class="btn primary" style="width: 100%; margin-top: 16px;">Continuer vers le paiement</button>
+            </div>
+        </div>
+    </div>
+
     <div id="split-payment-modal" class="modal hidden" role="dialog" aria-modal="true">
         <div class="modal-card" style="width: min(380px, calc(100vw - 32px)); max-height: 95vh; overflow-y: auto;">
             <button id="split-payment-close" class="close-modal" aria-label="Fermer"

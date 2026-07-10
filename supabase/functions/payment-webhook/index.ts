@@ -33,7 +33,14 @@ serve(async (req: Request) => {
         if (status === "success" || status === "COMPLETED" || payload.event === "payment.success") {
             const txId = payload.data?.transaction_id || payload.transaction_id || "GENIUS_" + Date.now();
 
-            // 1. Mise à jour de la réservation
+            // 1. Récupérer la réservation pour avoir les kg et l'offer_id
+            const { data: reservation } = await supabase
+                .from("reservations")
+                .select("id, kg, offer_id, status")
+                .eq("id", reservationId)
+                .maybeSingle();
+
+            // 2. Mise à jour de la réservation
             const { error: updateError } = await supabase
                 .from("reservations")
                 .update({
@@ -45,7 +52,39 @@ serve(async (req: Request) => {
             if (updateError) throw updateError;
             console.log(`[Webhook] Reservation ${reservationId} marked as PAID`);
 
-            // 2. Notification dans le Chat
+            // 3. Déduire les kg de l'offre si pas déjà fait
+            const reservedKg = (reservation as any)?.kg || 0;
+            const offerId = (reservation as any)?.offer_id;
+            const prevStatus = (reservation as any)?.status;
+
+            if (reservedKg > 0 && offerId && prevStatus !== "paid") {
+                // Utiliser une requête SQL brute pour déduire atomiquement (évite le race condition)
+                const { error: deductError } = await supabase.rpc('deduct_offer_kg', {
+                    p_offer_id: offerId,
+                    p_kg: reservedKg
+                }).maybeSingle();
+
+                // Fallback si la RPC n'existe pas : update direct
+                if (deductError) {
+                    const { data: offer } = await supabase
+                        .from("offers")
+                        .select("available_kg")
+                        .eq("id", offerId)
+                        .maybeSingle();
+                    const currentKg = (offer as any)?.available_kg || 0;
+                    const newKg = Math.max(0, currentKg - reservedKg);
+                    const { error: fallbackError } = await supabase
+                        .from("offers")
+                        .update({ available_kg: newKg })
+                        .eq("id", offerId);
+                    if (fallbackError) console.error("[Webhook] Failed to deduct kg:", fallbackError);
+                    else console.log(`[Webhook] Deducted ${reservedKg} kg from offer ${offerId}. Remaining: ${newKg} kg`);
+                } else {
+                    console.log(`[Webhook] RPC: Deducted ${reservedKg} kg from offer ${offerId}`);
+                }
+            }
+
+            // 4. Notification dans le Chat
             try {
                 const { data: thread } = await supabase
                     .from("chat_threads")
@@ -56,7 +95,7 @@ serve(async (req: Request) => {
                 if (thread) {
                     await supabase.from("chat_messages").insert({
                         thread_id: thread.id,
-                        text: `✅ PAIEMENT VALIDÉ !\nRéférence : ${txId}\n\nLe paiement de la commission ColisConnect a été reçu avec succès. Les informations de contact sont désormais débloquées.`,
+                        text: `✅ PAIEMENT VALIDÉ !\nRéférence : ${txId}${reservedKg > 0 ? `\nKilos réservés : ${reservedKg} kg` : ""}\n\nLe paiement de la commission ColisConnect a été reçu avec succès. Les informations de contact sont désormais débloquées.`,
                         sender_type: "system",
                         message_type: "text"
                     });

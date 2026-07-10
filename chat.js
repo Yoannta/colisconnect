@@ -754,11 +754,55 @@
 
         els.chatPayBtn?.addEventListener("click", () => {
             const thread = state.activeThreadData;
+            const availableKg = thread?.offer?.available_kg || thread?.offer?.availableKg || 0;
+            // Ouvrir la modale kg avant le paiement
+            const kgModal = document.getElementById("kg-modal");
+            const kgInput = document.getElementById("kg-modal-input");
+            const kgError = document.getElementById("kg-modal-error");
+            if (kgModal && kgInput) {
+                kgInput.value = "";
+                kgInput.max = availableKg;
+                if (kgError) kgError.style.display = "none";
+                if (availableKg) kgInput.placeholder = `Max ${availableKg} kg`;
+                kgModal.classList.remove("hidden");
+            }
+        });
+
+        // Bouton confirmation de la modale kg
+        document.getElementById("kg-modal-confirm")?.addEventListener("click", async () => {
+            const kgInput = document.getElementById("kg-modal-input");
+            const kgError = document.getElementById("kg-modal-error");
+            const kg = parseInt(kgInput?.value, 10);
+            const thread = state.activeThreadData;
+            const availableKg = thread?.offer?.available_kg || thread?.offer?.availableKg || 0;
+
+            if (!kg || kg < 1 || kg > availableKg) {
+                if (kgError) { kgError.style.display = "block"; kgError.textContent = `Veuillez saisir un nombre valide entre 1 et ${availableKg} kg.`; }
+                return;
+            }
+
+            // Sauvegarder les kg choisis
+            PAYMENT_STATE.chosenKg = kg;
+
+            // Mettre à jour la reservation avec les kg
+            const resId = thread?.reservation?.id || thread?.reservation_id || thread?.reservationId;
+            if (resId && window.ccSupabase) {
+                try {
+                    await window.ccSupabase.from("reservations").update({ kg: kg, updated_at: new Date().toISOString() }).eq("id", resId);
+                } catch (e) { console.warn("Impossible de mettre a jour les kg de la reservation:", e); }
+            }
+
+            document.getElementById("kg-modal")?.classList.add("hidden");
+
+            // Ouvrir le paiement
             const price = thread?.offerPrice || thread?.offer?.price || 0;
             openSplitPaymentModal("commission", price);
         });
 
-        document.getElementById("split-payment-close")?.addEventListener("click", () => {
+        // Fermer la modale kg au clic sur close
+        document.getElementById("kg-modal")?.querySelector(".close-modal")?.addEventListener("click", () => {
+            document.getElementById("kg-modal")?.classList.add("hidden");
+        });
             document.getElementById("split-payment-modal").classList.add("hidden");
         });
         document.getElementById("payment-hub-close")?.addEventListener("click", () => {
