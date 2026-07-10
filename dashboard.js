@@ -62,7 +62,9 @@
         cargoStatCapacity: document.getElementById("cargo-stat-capacity"),
         cargoOpsTable: document.getElementById("cargo-ops-table"),
         cargoFileList: document.getElementById("cargo-file-list"),
-        cargoFileCount: document.getElementById("cargo-file-count"),
+        cargoRequestsModal: document.getElementById("cargo-requests-modal"),
+        cargoRequestsModalList: document.getElementById("cargo-requests-modal-list"),
+        cargoRequestsModalCount: document.getElementById("cargo-requests-modal-count"),
         cargoLimitBadge: document.getElementById("cargo-limit-badge"),
         cargoProgressFill: document.getElementById("cargo-progress-fill"),
         cargoLimitNote: document.getElementById("cargo-limit-note"),
@@ -495,6 +497,7 @@
         // Charger les conversations (pour le compteur demandes)
         const convResp = await window.CCCommon.api("/api/conversations");
         const incoming = Array.isArray(convResp) ? convResp.filter(c => !c.isOfferOwner) : [];
+        state.incomingRequests = incoming; // Stocker pour la modale "Voir tous"
 
         // Stats
         if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
@@ -526,7 +529,6 @@
         }
 
         // Demandes (conversations where user is not owner)
-        if (els.cargoFileCount) els.cargoFileCount.textContent = `${incoming.length}`;
         if (els.cargoFileList) {
             if (!incoming.length) {
                 els.cargoFileList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
@@ -686,6 +688,54 @@
             if (button) {
                 const threadId = button.getAttribute("data-open-thread");
                 if (threadId) openChatPage(threadId);
+            }
+        });
+
+        // Cargo "Voir tous" -> ouvre la modale
+        document.getElementById("cargo-see-all-requests")?.addEventListener("click", () => {
+            if (els.cargoRequestsModal) {
+                els.cargoRequestsModal.classList.remove("hidden");
+                // Remplir la modale avec la liste complete
+                const allItems = state.incomingRequests || [];
+                if (els.cargoRequestsModalCount) els.cargoRequestsModalCount.textContent = `${allItems.length}`;
+                if (els.cargoRequestsModalList) {
+                    if (!allItems.length) {
+                        els.cargoRequestsModalList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
+                    } else {
+                        els.cargoRequestsModalList.innerHTML = allItems.map((item, i) => {
+                            const userName = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
+                            const tripInfo = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "");
+                            return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+                                <div class="cargo-file-index">${i + 1}</div>
+                                <div class="file-content">
+                                    <div class="file-title">${userName}</div>
+                                    <div class="file-desc">${window.CCCommon.escapeHtml(tripInfo)}</div>
+                                </div>
+                                <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
+                            </div>`;
+                        }).join("");
+                    }
+                }
+            }
+        });
+
+        // Fermer la modale
+        document.getElementById("close-cargo-requests-modal")?.addEventListener("click", () => {
+            els.cargoRequestsModal?.classList.add("hidden");
+        });
+        els.cargoRequestsModal?.addEventListener("click", (event) => {
+            if (event.target === els.cargoRequestsModal) els.cargoRequestsModal.classList.add("hidden");
+        });
+
+        // Clic sur les elements de la modale
+        els.cargoRequestsModalList?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-open-thread]");
+            if (button) {
+                const threadId = button.getAttribute("data-open-thread");
+                if (threadId) {
+                    els.cargoRequestsModal?.classList.add("hidden");
+                    openChatPage(threadId);
+                }
             }
         });
 

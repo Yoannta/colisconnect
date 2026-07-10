@@ -231,7 +231,7 @@
                 <div class="card">
                     <div class="section-header">
                         <h3 class="section-title">Demandes</h3>
-                        <span class="pill-pink-dark" id="cargo-file-count">0</span>
+                        <button type="button" class="cargo-see-all-btn" id="cargo-see-all-requests">Voir tous</button>
                     </div>
                     <div id="cargo-file-list" class="cargo-file-list">
                         <div class="loading-state">Chargement...</div>
@@ -346,6 +346,25 @@
                     </div>
                     <p id="offer-save-feedback" class="error-text hidden"></p>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale liste complète des demandes (cargo) -->
+    <div id="cargo-requests-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card cargo-requests-modal">
+            <button class="close-modal" id="close-cargo-requests-modal">x</button>
+            <div class="modal-panel traveler-modal-panel">
+                <div class="modal-panel-head">
+                    <div>
+                        <p class="kicker">Demandes</p>
+                        <h3>Toutes les demandes</h3>
+                    </div>
+                    <span class="count-badge" id="cargo-requests-modal-count">0</span>
+                </div>
+                <div id="cargo-requests-modal-list" class="cargo-file-list">
+                    <div class="loading-state">Chargement...</div>
+                </div>
             </div>
         </div>
     </div>

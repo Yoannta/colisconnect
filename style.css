@@ -4091,6 +4091,31 @@ label {
     background: rgba(255, 77, 77, 0.1);
 }
 
+.dashboard-page .cargo-see-all-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--emerald-bright);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    white-space: nowrap;
+}
+
+.dashboard-page .cargo-see-all-btn:hover {
+    background: rgba(19, 236, 200, 0.1);
+}
+
+/* Modale liste complète demandes */
+.dashboard-page .cargo-requests-modal {
+    max-width: 500px !important;
+    max-height: 80vh;
+    overflow-y: auto;
+    width: 90%;
+}
+
 /* File items */
 .dashboard-page .cargo-file-list {
     display: flex;
