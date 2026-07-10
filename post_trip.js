@@ -45,7 +45,11 @@
         profileTypeModal: document.getElementById("profile-type-modal"),
         choiceTraveler: document.getElementById("profile-choice-traveler"),
         choiceCargo: document.getElementById("profile-choice-cargo"),
-        confirmProfileTypeBtn: document.getElementById("profile-type-confirm-btn")
+        confirmProfileTypeBtn: document.getElementById("profile-type-confirm-btn"),
+        // Transport mode
+        transportModeGroup: document.getElementById("transport-mode-group"),
+        transportModeBtns: document.querySelectorAll(".transport-mode-btn"),
+        transportModeInput: document.getElementById("transport-mode-input"),
     };
 
     // ---- Payment method state ----
@@ -392,6 +396,15 @@
             console.warn("Impossible de verifier le nombre d'offres actives.", e);
         }
 
+        // Validation : si cargo, le mode de transport est requis
+        if (selectedProfileTypeChoice === "cargo") {
+            const mode = els.transportModeInput?.value || "";
+            if (!mode) {
+                alert("Veuillez choisir un mode de transport (Avion, Bateau ou Les deux).");
+                return;
+            }
+        }
+
         const payload = {
             title: `Trajet ${departureCountry} -> ${destinationCountry}`,
             origin: departureCountry,
@@ -402,7 +415,8 @@
             baseCurrency: els.priceCurrencyInput?.value || "EUR",  // [MULTI-CURRENCY]
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
-            referralCode: String(document.getElementById("referral-code")?.value || "").trim()
+            referralCode: String(document.getElementById("referral-code")?.value || "").trim(),
+            mode: (selectedProfileTypeChoice === "cargo") ? (els.transportModeInput?.value || "") : ""
         };
 
         const submitBtn = els.form?.querySelector("button[type='submit']");
@@ -472,6 +486,8 @@
             els.choiceTraveler.classList.add("selected");
             els.choiceCargo?.classList.remove("selected");
             if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
+            // Cacher le groupe mode transport si on choisit traveler
+            els.transportModeGroup?.classList.add("hidden");
         });
 
         els.choiceCargo?.addEventListener("click", () => {
@@ -479,6 +495,17 @@
             els.choiceCargo.classList.add("selected");
             els.choiceTraveler?.classList.remove("selected");
             if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
+            // Afficher le groupe mode transport si on choisit cargo
+            els.transportModeGroup?.classList.remove("hidden");
+        });
+
+        // Sélection du mode de transport
+        els.transportModeBtns?.forEach(btn => {
+            btn.addEventListener("click", () => {
+                els.transportModeBtns.forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+                if (els.transportModeInput) els.transportModeInput.value = btn.dataset.mode;
+            });
         });
 
         els.confirmProfileTypeBtn?.addEventListener("click", async () => {

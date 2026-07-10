@@ -231,6 +231,39 @@
             color: #b0b0b0;
             line-height: 1.4;
         }
+
+        /* Transport mode selector */
+        .transport-mode-grid {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .transport-mode-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--line, rgba(19, 236, 200, 0.12));
+            border-radius: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text, #f0f7f6);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        .transport-mode-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .transport-mode-btn.selected {
+            background: rgba(19, 236, 200, 0.15);
+            border-color: var(--emerald-bright, #13ecc8);
+            color: var(--emerald-bright, #13ecc8);
+            font-weight: 700;
+        }
     </style>
 </head>
 
@@ -373,6 +406,23 @@
                                 autocomplete="off">
                             <small class="form-help">Saisissez un code si vous avez été parrainé par un
                                 partenaire.</small>
+                        </div>
+
+                        <!-- Mode de transport (visible uniquement pour cargo) -->
+                        <div id="transport-mode-group" class="form-group hidden">
+                            <label>Mode de transport</label>
+                            <div class="transport-mode-grid">
+                                <button type="button" class="transport-mode-btn" data-mode="avion">
+                                    <span>Avion</span>
+                                </button>
+                                <button type="button" class="transport-mode-btn" data-mode="bateau">
+                                    <span>Bateau</span>
+                                </button>
+                                <button type="button" class="transport-mode-btn" data-mode="les_deux">
+                                    <span>Les deux</span>
+                                </button>
+                            </div>
+                            <input type="hidden" id="transport-mode-input" value="">
                         </div>
 
                         <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon
