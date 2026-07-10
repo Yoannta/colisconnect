@@ -838,9 +838,43 @@
 
         try {
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('status') === 'success') {
-                const ref = urlParams.get('reference');
-                showNotification(`✅ Paiement validé (${ref}) ! Vos informations de contact sont en cours de déblocage.`, "success");
+            const isPaymentSuccess = urlParams.get('payment') === 'success' || urlParams.get('status') === 'success';
+            if (isPaymentSuccess) {
+                const ref = urlParams.get('reference') || urlParams.get('transaction_id') || "OK";
+                const resId = urlParams.get('id');
+
+                // Déduire les kg de l'offre après paiement réussi
+                if (resId && window.ccSupabase) {
+                    try {
+                        const { data: reservation } = await window.ccSupabase
+                            .from("reservations")
+                            .select("kg, offer_id")
+                            .eq("id", resId)
+                            .maybeSingle();
+
+                        if (reservation?.kg > 0 && reservation?.offer_id) {
+                            const { data: offer } = await window.ccSupabase
+                                .from("offers")
+                                .select("available_kg")
+                                .eq("id", reservation.offer_id)
+                                .maybeSingle();
+
+                            const currentKg = offer?.available_kg || 0;
+                            const newKg = Math.max(0, currentKg - reservation.kg);
+
+                            await window.ccSupabase
+                                .from("offers")
+                                .update({ available_kg: newKg })
+                                .eq("id", reservation.offer_id);
+
+                            console.log(`✅ ${reservation.kg} kg déduits de l'offre ${reservation.offer_id}. Restant: ${newKg} kg`);
+                        }
+                    } catch (e) {
+                        console.warn("Impossible de déduire les kg:", e);
+                    }
+                }
+
+                showNotification(`✅ Paiement validé (${ref}) ! Vos kg ont été réservés.`, "success");
                 if (window.CCCommon.state.user) setTimeout(() => loadConversations(), 1000);
             }
         } catch (e) { console.error("Payment return handling error:", e); }
