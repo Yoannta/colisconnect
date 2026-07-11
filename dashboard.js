@@ -315,19 +315,26 @@
         if (!validated || !validated.length) {
             els.clientValidatedList.innerHTML = `
                 <div class="traveler-empty-requests">
-                    <p>Aucun trajet valide pour le moment.</p>
-                    <span>Vos trajets confirmes apparaitront ici.</span>
+                    <p>Aucun colis en cours.</p>
+                    <span>Vos reservations payees apparaitront ici.</span>
                 </div>`;
             return;
         }
-        els.clientValidatedList.innerHTML = validated.map((item) => `
-            <div class="client-discussion-item">
+        els.clientValidatedList.innerHTML = validated.map((item) => {
+            const origin = item.offers?.origin || item.offer_origin || "";
+            const dest = item.offers?.destination || item.offer_destination || "";
+            const status = item.status === "paid" ? "en_cours" : item.status;
+            const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
+            const isDelivered = status === "livre";
+            return `<div class="client-discussion-item" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}">
                 <div class="item-content">
-                    <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                    <div class="item-desc">${item.status || "Valide"}</div>
+                    <div class="item-name">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
+                    <div class="item-desc">${item.kg ? item.kg + " kg" : ""}${item.total_amount ? " - " + item.total_amount + " FCFA" : ""}</div>
                 </div>
-            </div>
-        `).join("");
+                <span class="pill-${isDelivered ? 'green' : 'yellow'}" style="font-size:10px;padding:2px 8px;border-radius:8px;">${statusLabel}</span>
+                ${!isDelivered ? `<button class="client-item-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}" style="margin-left:8px;">Livrer</button>` : ""}
+            </div>`;
+        }).join("");
     }
 
     function switchDashboardView(profileType) {
@@ -353,29 +360,35 @@
         const user = window.CCCommon.state.user;
         if (!user) return;
 
-        const [offersResp, conversationsResp, parcelResp] = await Promise.all([
+        const [offersResp, conversationsResp, parcelResp, reservationsResp] = await Promise.all([
             window.CCCommon.api("/api/offers?scope=all&pageSize=10"),
             window.CCCommon.api("/api/conversations"),
             window.ccSupabase ? window.ccSupabase.from("parcel_requests")
                 .select("*")
                 .eq("user_id", user.id)
-                .order("created_at", { ascending: false }) : Promise.resolve({ data: [] })
+                .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+            window.ccSupabase ? window.ccSupabase.from("reservations")
+                .select("*, offers!inner(origin, destination)")
+                .eq("user_id", user.id)
+                .in("status", ["paid", "en_cours", "livre"])
+                .order("updated_at", { ascending: false }) : Promise.resolve({ data: [] })
         ]);
 
         const compatibleOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
         const conversations = Array.isArray(conversationsResp) ? conversationsResp.filter(c => !c.isOfferOwner) : [];
         const parcelRequests = parcelResp?.data || [];
+        const paidReservations = reservationsResp?.data || [];
         state.parcelRequests = parcelRequests;
         state.clientConversations = conversations;
-        state.clientValidated = [];
+        state.clientValidated = paidReservations;
 
         if (els.clientStatOffers) els.clientStatOffers.textContent = `${compatibleOffers.length}`;
         if (els.clientStatDiscussions) els.clientStatDiscussions.textContent = `${conversations.length}`;
-        if (els.clientStatPayments) els.clientStatPayments.textContent = "0";
+        if (els.clientStatPayments) els.clientStatPayments.textContent = `${paidReservations.length}`;
 
         renderClientRequests(parcelRequests);
         renderClientDiscussions(conversations);
-        renderClientValidated([]);
+        renderClientValidated(paidReservations);
     }
 
     function openChatPage(threadId = "", offerId = "") {
@@ -734,6 +747,26 @@
             }
         });
 
+        // Bouton "Livrer" dans Gestion de mes colis
+        els.clientValidatedList?.addEventListener("click", async (event) => {
+            const livrerBtn = event.target.closest("[data-livrer]");
+            if (!livrerBtn) return;
+            const reservationId = livrerBtn.getAttribute("data-livrer");
+            if (!reservationId || !confirm("Marquer ce colis comme livre ?")) return;
+            try {
+                if (window.ccSupabase) {
+                    const { error } = await window.ccSupabase.from("reservations").update({
+                        status: "livre",
+                        updated_at: new Date().toISOString()
+                    }).eq("id", reservationId);
+                    if (error) throw error;
+                }
+                loadClientDashboard();
+            } catch (e) {
+                alert("Erreur: " + (e.message || "Impossible de mettre a jour."));
+            }
+        });
+
         function openVoirTousModal(title, kicker, items, renderItem) {
             if (!els.voirTousModal) return;
             if (els.voirTousKicker) els.voirTousKicker.textContent = kicker || "";
@@ -782,16 +815,21 @@
         // Client "Voir tous" colis
         document.getElementById("client-voir-tous-colis")?.addEventListener("click", () => {
             const items = state.clientValidated || [];
-            openVoirTousModal("Gestion de mes colis", "Colis", items, (item, i) => `
-                <div class="cargo-file-item" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}">
+            openVoirTousModal("Gestion de mes colis", "Colis", items, (item, i) => {
+                const origin = item.offers?.origin || item.offer_origin || "";
+                const dest = item.offers?.destination || item.offer_destination || "";
+                const status = item.status === "paid" ? "en_cours" : item.status;
+                const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
+                const isDelivered = status === "livre";
+                return `<div class="cargo-file-item" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}">
                     <div class="cargo-file-index">${i + 1}</div>
                     <div class="file-content">
-                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                        <div class="file-desc">${item.status || "Valide"}</div>
+                        <div class="file-title">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
+                        <div class="file-desc">${item.kg ? item.kg + " kg" : ""} - ${statusLabel}</div>
                     </div>
-                    <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.threadId || item.id)}">Suivre</button>
-                </div>
-            `);
+                    ${!isDelivered ? `<button class="cargo-file-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}">Livrer</button>` : `<span class="pill-green" style="font-size:10px;padding:2px 8px;border-radius:8px;">Livre</span>`}
+                </div>`;
+            });
         });
 
         // Cargo "Voir tous" trajets
