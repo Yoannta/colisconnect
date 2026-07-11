@@ -324,7 +324,9 @@
             const origin = item.offers?.origin || item.offer_origin || "";
             const dest = item.offers?.destination || item.offer_destination || "";
             const ownerName = item.offers?.owner_name || item.offer_owner_name || "Voyageur";
-            const threadId = item.chat_threads?.length ? item.chat_threads[0].id : null;
+            // Chercher le threadId dans les conversations chargees
+            const conv = (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id);
+            const threadId = conv?.id || item.thread_id || null;
             const status = item.status === "paid" ? "en_cours" : item.status;
             const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
             const isDelivered = status === "livre";
@@ -370,7 +372,7 @@
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
             window.ccSupabase ? window.ccSupabase.from("reservations")
-                .select("*, offers(origin, destination, owner_name), chat_threads!left(id)")
+                .select("*, offers(origin, destination, owner_name)")
                 .eq("user_id", user.id)
                 .in("status", ["paid", "en_cours", "livre"])
                 .order("updated_at", { ascending: false }) : Promise.resolve({ data: [] })
@@ -828,7 +830,8 @@
                 const origin = item.offers?.origin || item.offer_origin || "";
                 const dest = item.offers?.destination || item.offer_destination || "";
                 const ownerName = item.offers?.owner_name || item.offer_owner_name || "Voyageur";
-                const threadId = item.chat_threads?.length ? item.chat_threads[0].id : null;
+                const conv = (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id);
+                const threadId = conv?.id || item.thread_id || null;
                 const status = item.status === "paid" ? "en_cours" : item.status;
                 const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
                 const isDelivered = status === "livre";
