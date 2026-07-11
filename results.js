@@ -356,14 +356,12 @@
                 } else {
                     await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg, description, dateLimite } });
                 }
-                if (feedback) {
-                    feedback.textContent = "✅ Un voyageur vous contactera.";
-                    feedback.classList.remove("hidden");
-                }
-                if (submitBtn) submitBtn.classList.add("hidden");
+                    if (feedback) {
+                        feedback.classList.remove("hidden");
+                    }
+                    if (submitBtn) submitBtn.classList.add("hidden");
             } catch (err) {
                 alert(err.message || "Erreur lors de la soumission.");
-            } finally {
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
             }
         });
