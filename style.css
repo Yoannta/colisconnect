@@ -3845,6 +3845,19 @@ label {
 .dashboard-page .client-discussion-list,
 .dashboard-page .client-validated-list {
     min-height: 120px;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.dashboard-page .cargo-file-list {
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+/* Modale Voir tous : pas de limite max-height */
+.dashboard-page #voir-tous-list {
+    max-height: none;
+    overflow-y: visible;
 }
 
 /* ===== CLIENT RESPONSIVE ===== */

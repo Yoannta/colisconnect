@@ -66,6 +66,12 @@
         cargoLimitBadge: document.getElementById("cargo-limit-badge"),
         cargoProgressFill: document.getElementById("cargo-progress-fill"),
         cargoLimitNote: document.getElementById("cargo-limit-note"),
+        // Modale générique "Voir tous"
+        voirTousModal: document.getElementById("voir-tous-modal"),
+        voirTousKicker: document.getElementById("voir-tous-kicker"),
+        voirTousTitle: document.getElementById("voir-tous-title"),
+        voirTousCount: document.getElementById("voir-tous-count"),
+        voirTousList: document.getElementById("voir-tous-list"),
     };
 
     function getCurrencyCode(user, offer) {
@@ -360,6 +366,8 @@
         const conversations = Array.isArray(conversationsResp) ? conversationsResp.filter(c => !c.isOfferOwner) : [];
         const parcelRequests = parcelResp?.data || [];
         state.parcelRequests = parcelRequests;
+        state.clientConversations = conversations;
+        state.clientValidated = [];
 
         if (els.clientStatOffers) els.clientStatOffers.textContent = `${compatibleOffers.length}`;
         if (els.clientStatDiscussions) els.clientStatDiscussions.textContent = `${conversations.length}`;
@@ -726,12 +734,91 @@
             }
         });
 
+        function openVoirTousModal(title, kicker, items, renderItem) {
+            if (!els.voirTousModal) return;
+            if (els.voirTousKicker) els.voirTousKicker.textContent = kicker || "";
+            if (els.voirTousTitle) els.voirTousTitle.textContent = title;
+            if (els.voirTousCount) els.voirTousCount.textContent = `${items.length}`;
+            if (els.voirTousList) {
+                if (!items.length) {
+                    els.voirTousList.innerHTML = `<div class="traveler-empty-requests"><p>Aucun element.</p></div>`;
+                } else {
+                    els.voirTousList.innerHTML = items.map((item, i) => renderItem(item, i)).join("");
+                }
+            }
+            els.voirTousModal.classList.remove("hidden");
+        }
+
         // Client "Voir tous" propositions
         document.getElementById("client-voir-tous-propositions")?.addEventListener("click", () => {
-            if (els.clientRequestsList) {
-                const items = els.clientRequestsList.querySelectorAll("[data-thread-id]");
-                if (items.length) items[0]?.click();
-            }
+            const items = state.parcelRequests || [];
+            openVoirTousModal("Toutes les demandes", "Demandes", items, (item, i) => `
+                <div class="cargo-file-item" data-parcel-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="cargo-file-index">${i + 1}</div>
+                    <div class="file-content">
+                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
+                        <div class="file-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
+                    </div>
+                    <button class="cargo-file-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                </div>
+            `);
+        });
+
+        // Client "Voir tous" discussions
+        document.getElementById("client-voir-tous-discussions")?.addEventListener("click", () => {
+            const items = state.clientConversations || [];
+            openVoirTousModal("Toutes les discussions", "Discussions", items, (item, i) => `
+                <div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="cargo-file-index">${i + 1}</div>
+                    <div class="file-content">
+                        <div class="file-title">${window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client")}</div>
+                        <div class="file-desc">${window.CCCommon.escapeHtml(item.origin && item.destination ? item.origin + " -> " + item.destination : item.preview || "")}</div>
+                    </div>
+                    <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
+                </div>
+            `);
+        });
+
+        // Client "Voir tous" colis
+        document.getElementById("client-voir-tous-colis")?.addEventListener("click", () => {
+            const items = state.clientValidated || [];
+            openVoirTousModal("Gestion de mes colis", "Colis", items, (item, i) => `
+                <div class="cargo-file-item" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="cargo-file-index">${i + 1}</div>
+                    <div class="file-content">
+                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
+                        <div class="file-desc">${item.status || "Valide"}</div>
+                    </div>
+                    <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.threadId || item.id)}">Suivre</button>
+                </div>
+            `);
+        });
+
+        // Cargo "Voir tous" trajets
+        document.getElementById("cargo-voir-tous-trajets")?.addEventListener("click", () => {
+            const items = state.offers || [];
+            openVoirTousModal("Tous mes trajets", "Trajets", items, (item, i) => {
+                const mode = item.mode === "avion" ? "Avion" : item.mode === "bateau" ? "Bateau" : item.mode === "les_deux" ? "Les deux" : "-";
+                const isFull = (item.available_kg !== null && item.available_kg !== undefined) ? item.available_kg <= 0 : false;
+                const statusPill = isFull ? 'pill-pink' : 'pill-green';
+                const statusLabel = isFull ? 'Presque plein' : 'Active';
+                return `<div class="cargo-file-item" data-offer-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="cargo-file-index">${i + 1}</div>
+                    <div class="file-content">
+                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
+                        <div class="file-desc">Mode: ${mode} | <span class="${statusPill}" style="padding:1px 6px;border-radius:8px;font-size:10px;">${statusLabel}</span></div>
+                    </div>
+                    <button class="cargo-file-btn" data-action="modify-offer" data-offer-id="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                </div>`;
+            });
+        });
+
+        // Fermer la modale "Voir tous"
+        document.getElementById("close-voir-tous-modal")?.addEventListener("click", () => {
+            els.voirTousModal?.classList.add("hidden");
+        });
+        els.voirTousModal?.addEventListener("click", (event) => {
+            if (event.target === els.voirTousModal) els.voirTousModal.classList.add("hidden");
         });
 
         // Client cercle + nouvelle proposition
@@ -739,7 +826,7 @@
             window.location.href = "post_trip.html";
         });
 
-        // Cargo "Voir tous" -> ouvre la modale
+        // Cargo "Voir tous" demandes (conserve l'ancienne modale cargo)
         document.getElementById("cargo-see-all-requests")?.addEventListener("click", () => {
             if (els.cargoRequestsModal) {
                 els.cargoRequestsModal.classList.remove("hidden");
