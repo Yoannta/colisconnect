@@ -51,7 +51,6 @@
         clientStatDiscussions: document.getElementById("client-stat-discussions"),
         clientStatPayments: document.getElementById("client-stat-payments"),
         clientRequestsList: document.getElementById("client-requests-list"),
-        clientRequestsCount: document.getElementById("client-requests-count"),
         clientDiscussionsList: document.getElementById("client-discussions-list"),
         clientDiscussionsCount: document.getElementById("client-discussions-count"),
         clientValidatedList: document.getElementById("client-validated-list"),
@@ -254,7 +253,6 @@
 
     function renderClientRequests(requests) {
         if (!els.clientRequestsList) return;
-        if (els.clientRequestsCount) els.clientRequestsCount.textContent = `${requests.length}`;
 
         if (!requests.length) {
             els.clientRequestsList.innerHTML = `
@@ -689,6 +687,19 @@
                 const threadId = button.getAttribute("data-open-thread");
                 if (threadId) openChatPage(threadId);
             }
+        });
+
+        // Client "Voir tous" propositions
+        document.getElementById("client-voir-tous-propositions")?.addEventListener("click", () => {
+            if (els.clientRequestsList) {
+                const items = els.clientRequestsList.querySelectorAll("[data-thread-id]");
+                if (items.length) items[0]?.click();
+            }
+        });
+
+        // Client cercle + nouvelle proposition
+        document.querySelector(".client-plus-btn")?.addEventListener("click", () => {
+            window.location.href = "post_trip.html";
         });
 
         // Cargo "Voir tous" -> ouvre la modale

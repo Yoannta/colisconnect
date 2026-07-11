@@ -3714,6 +3714,32 @@ label {
     margin: 0;
 }
 
+.dashboard-page .client-grid .panel-head-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-page .client-plus-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(19, 236, 200, 0.12);
+    border: 1px solid rgba(19, 236, 200, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--emerald-bright);
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.dashboard-page .client-plus-btn:hover {
+    background: rgba(19, 236, 200, 0.25);
+    border-color: var(--emerald-bright);
+}
+
 .dashboard-page .client-discussion-item {
     display: flex;
     align-items: center;

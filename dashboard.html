@@ -181,7 +181,12 @@
                 <article class="dashboard-panel client-requests-panel">
                     <div class="panel-head">
                         <h3>Mes demandes de trajet</h3>
-                        <span class="count-badge" id="client-requests-count">0</span>
+                        <div class="panel-head-right">
+                            <button class="cargo-see-all-btn" id="client-voir-tous-propositions">Voir tous</button>
+                            <button class="client-plus-btn" title="Nouvelle proposition">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            </button>
+                        </div>
                     </div>
                     <div id="client-requests-list" class="client-request-list">
                         <div class="loading-state">Chargement...</div>
@@ -200,7 +205,7 @@
 
                 <article class="dashboard-panel client-validated-panel">
                     <div class="panel-head">
-                        <h3>Mes trajets valides</h3>
+                        <h3>Gestion de mes colis</h3>
                     </div>
                     <div id="client-validated-list" class="client-validated-list">
                         <div class="loading-state">Chargement...</div>
