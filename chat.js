@@ -855,6 +855,12 @@
                 // Déduire les kg de l'offre après paiement réussi
                 if (resId && window.ccSupabase) {
                     try {
+                        // Marquer la réservation comme payée
+                        await window.ccSupabase
+                            .from("reservations")
+                            .update({ status: "paid", updated_at: new Date().toISOString() })
+                            .eq("id", resId);
+
                         const { data: reservation } = await window.ccSupabase
                             .from("reservations")
                             .select("kg, offer_id")
@@ -884,6 +890,33 @@
                 }
 
                 showNotification(`✅ Paiement validé (${ref}) ! Vos kg ont été réservés.`, "success");
+
+                // Envoyer un message de reçu dans le chat
+                if (resId && window.ccSupabase) {
+                    try {
+                        const { data: thread } = await window.ccSupabase
+                            .from("chat_threads")
+                            .select("id")
+                            .eq("reservation_id", resId)
+                            .maybeSingle();
+                        if (thread) {
+                            const { data: reservation } = await window.ccSupabase
+                                .from("reservations")
+                                .select("kg, total_amount")
+                                .eq("id", resId)
+                                .maybeSingle();
+                            const kgInfo = reservation?.kg > 0 ? `\nKilos réservés : ${reservation.kg} kg` : "";
+                            const amountInfo = reservation?.total_amount > 0 ? `\nMontant : ${reservation.total_amount} FCFA` : "";
+                            await window.ccSupabase.from("chat_messages").insert({
+                                thread_id: thread.id,
+                                text: `✅ PAIEMENT VALIDÉ !\nRéférence : ${ref}${kgInfo}${amountInfo}\n\nLe paiement a été reçu avec succès.`,
+                                sender_type: "system",
+                                message_type: "text"
+                            });
+                        }
+                    } catch (e) { console.warn("Impossible d envoyer le recu chat:", e); }
+                }
+
                 if (window.CCCommon.state.user) setTimeout(() => loadConversations(), 1000);
             }
         } catch (e) { console.error("Payment return handling error:", e); }
