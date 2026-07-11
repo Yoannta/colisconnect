@@ -59,7 +59,18 @@
         });
 
         if (!filteredOffers.length) {
-            els.offersList.innerHTML = '<div class="empty-card">Aucune offre pour ce filtre.</div>';
+            els.offersList.innerHTML = `
+                <div class="empty-card">
+                    <p>Aucune offre pour ce trajet.</p>
+                    <p style="color:var(--muted);font-size:0.85rem;margin:8px 0;">Faite une demande, si un voyageur est interesse il vous contactera.</p>
+                    <button class="btn primary" id="btn-faire-demande-trajet" style="margin-top:12px;">Faire une demande de trajet</button>
+                </div>`;
+            // Attacher l'evenement pour ouvrir la modale
+            setTimeout(() => {
+                document.getElementById("btn-faire-demande-trajet")?.addEventListener("click", () => {
+                    document.getElementById("demande-trajet-modal")?.classList.remove("hidden");
+                });
+            }, 50);
             return;
         }
 
@@ -299,6 +310,63 @@
         }
 
         initCountryDatalist();
+        // Remplir le datalist des pays pour la modale
+        const demandeList = document.getElementById("demande-country-list");
+        const countryOptions = window.CCCommon.COUNTRY_OPTIONS || [];
+        if (demandeList && countryOptions.length) {
+            demandeList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
+        }
+        // Evenements de la modale demande
+        document.getElementById("close-demande-modal")?.addEventListener("click", () => {
+            document.getElementById("demande-trajet-modal")?.classList.add("hidden");
+        });
+        document.getElementById("demande-trajet-modal")?.addEventListener("click", (e) => {
+            if (e.target === document.getElementById("demande-trajet-modal")) {
+                document.getElementById("demande-trajet-modal")?.classList.add("hidden");
+            }
+        });
+        document.getElementById("demande-no-date-btn")?.addEventListener("click", () => {
+            document.getElementById("demande-date").value = "";
+        });
+        document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
+            const origin = document.getElementById("demande-origin")?.value?.trim();
+            const destination = document.getElementById("demande-destination")?.value?.trim();
+            const kg = parseInt(document.getElementById("demande-kg")?.value, 10);
+            const description = document.getElementById("demande-description")?.value?.trim();
+            const dateLimite = document.getElementById("demande-date")?.value || null;
+            if (!origin || !destination || !kg || !description) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
+            const feedback = document.getElementById("demande-feedback");
+            const submitBtn = document.getElementById("demande-submit-btn");
+            try {
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi..."; }
+                if (window.ccSupabase) {
+                    await window.ccSupabase.from("parcel_requests").insert({
+                        user_id: window.CCCommon.state?.user?.id,
+                        title: `Demande ${origin} -> ${destination}`,
+                        origin,
+                        destination,
+                        weight_kg: kg,
+                        needed_by_date: dateLimite,
+                        description,
+                        status: "pending"
+                    });
+                } else {
+                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg, description, dateLimite } });
+                }
+                if (feedback) {
+                    feedback.textContent = "✅ Un voyageur vous contactera.";
+                    feedback.classList.remove("hidden");
+                }
+                if (submitBtn) submitBtn.classList.add("hidden");
+            } catch (err) {
+                alert(err.message || "Erreur lors de la soumission.");
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+            }
+        });
         bindEvents();
         await loadOffers();
     }
