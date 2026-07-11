@@ -761,9 +761,10 @@
             const kgError = document.getElementById("kg-modal-error");
             if (kgModal && kgInput) {
                 kgInput.value = "";
-                kgInput.max = availableKg;
+                kgInput.max = availableKg || 999;
                 if (kgError) kgError.style.display = "none";
-                if (availableKg) kgInput.placeholder = `Max ${availableKg} kg`;
+                if (availableKg > 0) kgInput.placeholder = `Max ${availableKg} kg`;
+                else kgInput.placeholder = "Saisissez les kg souhaites";
                 kgModal.classList.remove("hidden");
             }
         });
@@ -776,8 +777,14 @@
             const thread = state.activeThreadData;
             const availableKg = thread?.offer?.available_kg || thread?.offer?.availableKg || 0;
 
-            if (!kg || kg < 1 || kg > availableKg) {
-                if (kgError) { kgError.style.display = "block"; kgError.textContent = `Veuillez saisir un nombre valide entre 1 et ${availableKg} kg.`; }
+            if (!kg || kg < 1 || (availableKg > 0 && kg > availableKg)) {
+                if (kgError) {
+                    kgError.style.display = "block";
+                    const msg = availableKg > 0
+                        ? `Veuillez saisir un nombre valide entre 1 et ${availableKg} kg.`
+                        : "Veuillez saisir un nombre valide (au moins 1 kg).";
+                    kgError.textContent = msg;
+                }
                 return;
             }
 
