@@ -52,7 +52,6 @@
         clientStatPayments: document.getElementById("client-stat-payments"),
         clientRequestsList: document.getElementById("client-requests-list"),
         clientDiscussionsList: document.getElementById("client-discussions-list"),
-        clientDiscussionsCount: document.getElementById("client-discussions-count"),
         clientValidatedList: document.getElementById("client-validated-list"),
         // Cargo dashboard elements
         cargoView: document.getElementById("cargo-dashboard-view"),
@@ -277,7 +276,6 @@
 
     function renderClientDiscussions(conversations) {
         if (!els.clientDiscussionsList) return;
-        if (els.clientDiscussionsCount) els.clientDiscussionsCount.textContent = `${conversations.length}`;
 
         if (!conversations.length) {
             els.clientDiscussionsList.innerHTML = `
