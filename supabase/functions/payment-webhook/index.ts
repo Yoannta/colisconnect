@@ -20,9 +20,9 @@ serve(async (req: Request) => {
 
         const metadata = payload.data?.metadata || payload.metadata || {};
         const reservationId = metadata.reservationId;
-        const status = payload.status || payload.data?.status;
+        const status = payload.data?.status || payload.status;  // GeniusPay V3: status dans data.status = "completed"
 
-        console.log(`[Webhook] Processing Reservation ID: ${reservationId}, Status: ${status}`);
+        console.log(`[Webhook] Processing Reservation ID: ${reservationId}, Status: ${status}, Event: ${payload.event}`);
 
         if (!reservationId) {
             console.error("[Webhook] Missing reservationId in metadata");
@@ -30,7 +30,7 @@ serve(async (req: Request) => {
         }
 
         // On ne traite que les paiements réussis
-        if (status === "success" || status === "COMPLETED" || payload.event === "payment.success") {
+        if (status === "success" || status === "completed" || status === "COMPLETED" || payload.event === "payment.success") {
             const txId = payload.data?.transaction_id || payload.transaction_id || "GENIUS_" + Date.now();
 
             // 1. Récupérer la réservation pour avoir les kg et l'offer_id
