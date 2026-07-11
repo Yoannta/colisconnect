@@ -376,4 +376,66 @@
     bootstrap().catch((error) => {
         alert(error.message || "Initialisation impossible.");
     });
+
+    // Evenements de la modale demande de trajet (toujours attachee, meme hors bootstrap)
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("close-demande-modal")?.addEventListener("click", () => {
+            document.getElementById("demande-trajet-modal")?.classList.add("hidden");
+        });
+        document.getElementById("demande-trajet-modal")?.addEventListener("click", (e) => {
+            if (e.target === document.getElementById("demande-trajet-modal")) {
+                document.getElementById("demande-trajet-modal")?.classList.add("hidden");
+            }
+        });
+        document.getElementById("demande-no-date-btn")?.addEventListener("click", () => {
+            document.getElementById("demande-date").value = "";
+        });
+        document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
+            const origin = document.getElementById("demande-origin")?.value?.trim();
+            const destination = document.getElementById("demande-destination")?.value?.trim();
+            const kg = parseInt(document.getElementById("demande-kg")?.value, 10);
+            const description = document.getElementById("demande-description")?.value?.trim();
+            const dateLimite = document.getElementById("demande-date")?.value || null;
+            if (!origin || !destination || !kg || !description) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
+            const feedback = document.getElementById("demande-feedback");
+            const submitBtn = document.getElementById("demande-submit-btn");
+            try {
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi..."; }
+                if (window.ccSupabase) {
+                    const userId = window.CCCommon.state?.user?.id;
+                    if (!userId) {
+                        alert("Vous devez etre connecte pour faire une demande.");
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+                        return;
+                    }
+                    const { error } = await window.ccSupabase.from("parcel_requests").insert({
+                        user_id: userId,
+                        title: `Demande ${origin} -> ${destination}`,
+                        origin,
+                        destination,
+                        weight_kg: kg,
+                        needed_by_date: dateLimite || null,
+                        description,
+                        status: "pending"
+                    });
+                    if (error) throw error;
+                } else {
+                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg, description, dateLimite } });
+                }
+                console.log("Demande de trajet inseree avec succes!");
+                if (feedback) feedback.classList.remove("hidden");
+                if (submitBtn) submitBtn.classList.add("hidden");
+                setTimeout(() => {
+                    document.getElementById("demande-trajet-modal")?.classList.add("hidden");
+                }, 1500);
+            } catch (err) {
+                console.error("Erreur soumission demande:", err);
+                alert("Erreur: " + (err.message || "Impossible de soumettre la demande."));
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+            }
+        });
+    });
 })();
