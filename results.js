@@ -360,6 +360,10 @@
                         feedback.classList.remove("hidden");
                     }
                     if (submitBtn) submitBtn.classList.add("hidden");
+                    // Fermer la modale apres 1.5s
+                    setTimeout(() => {
+                        document.getElementById("demande-trajet-modal")?.classList.add("hidden");
+                    }, 1500);
             } catch (err) {
                 alert(err.message || "Erreur lors de la soumission.");
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }

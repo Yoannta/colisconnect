@@ -251,9 +251,10 @@
     // ===== CLIENT DASHBOARD FUNCTIONS =====
 
     function renderClientRequests(requests) {
+    function renderClientRequests(parcelRequests) {
         if (!els.clientRequestsList) return;
 
-        if (!requests.length) {
+        if (!parcelRequests.length) {
             els.clientRequestsList.innerHTML = `
                 <div class="traveler-empty-requests">
                     <p>Aucune demande de trajet pour le moment.</p>
@@ -262,14 +263,14 @@
             return;
         }
 
-        els.clientRequestsList.innerHTML = requests.map((item, i) => `
-            <div class="client-discussion-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+        els.clientRequestsList.innerHTML = parcelRequests.map((item, i) => `
+            <div class="client-discussion-item" data-parcel-id="${window.CCCommon.escapeHtml(item.id)}">
                 <div class="client-item-index">${i + 1}</div>
                 <div class="item-content">
-                    <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "Origine")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "Destination")}</div>
-                    <div class="item-desc">${item.kg ? item.kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
+                    <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
+                    <div class="item-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
                 </div>
-                <button class="client-item-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
+                <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
             </div>
         `).join("");
     }
@@ -347,19 +348,25 @@
         const user = window.CCCommon.state.user;
         if (!user) return;
 
-        const [offersResp, conversationsResp] = await Promise.all([
+        const [offersResp, conversationsResp, parcelResp] = await Promise.all([
             window.CCCommon.api("/api/offers?scope=all&pageSize=10"),
-            window.CCCommon.api("/api/conversations")
+            window.CCCommon.api("/api/conversations"),
+            window.ccSupabase ? window.ccSupabase.from("parcel_requests")
+                .select("*")
+                .eq("user_id", user.id)
+                .order("created_at", { ascending: false }) : Promise.resolve({ data: [] })
         ]);
 
         const compatibleOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
         const conversations = Array.isArray(conversationsResp) ? conversationsResp.filter(c => !c.isOfferOwner) : [];
+        const parcelRequests = parcelResp?.data || [];
+        state.parcelRequests = parcelRequests;
 
         if (els.clientStatOffers) els.clientStatOffers.textContent = `${compatibleOffers.length}`;
         if (els.clientStatDiscussions) els.clientStatDiscussions.textContent = `${conversations.length}`;
         if (els.clientStatPayments) els.clientStatPayments.textContent = "0";
 
-        renderClientRequests([]);
+        renderClientRequests(parcelRequests);
         renderClientDiscussions(conversations);
         renderClientValidated([]);
     }
@@ -679,7 +686,40 @@
             }
         });
 
-        els.clientRequestsList?.addEventListener("click", (event) => {
+        els.clientRequestsList?.addEventListener("click", async (event) => {
+            const editBtn = event.target.closest("[data-edit-parcel]");
+            if (editBtn) {
+                const parcelId = editBtn.getAttribute("data-edit-parcel");
+                if (!parcelId) return;
+                const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId) ||
+                    (window.ccSupabase ? (await window.ccSupabase.from("parcel_requests").select("*").eq("id", parcelId).single()).data : null);
+                if (!parcel) return;
+                const newOrigin = prompt("Pays de depart:", parcel.origin || "");
+                if (!newOrigin) return;
+                const newDest = prompt("Pays d arrivee:", parcel.destination || "");
+                if (!newDest) return;
+                const newKg = prompt("Kilos:", parcel.weight_kg || "");
+                if (!newKg) return;
+                const newDesc = prompt("Description du colis:", parcel.description || "");
+                if (!newDesc) return;
+                const newDate = prompt("Date limite (YYYY-MM-DD) ou laisser vide:", parcel.needed_by_date || "");
+                try {
+                    if (window.ccSupabase) {
+                        await window.ccSupabase.from("parcel_requests").update({
+                            origin: newOrigin,
+                            destination: newDest,
+                            weight_kg: parseInt(newKg, 10),
+                            description: newDesc,
+                            needed_by_date: newDate || null,
+                            updated_at: new Date().toISOString()
+                        }).eq("id", parcelId);
+                    }
+                    loadClientDashboard();
+                } catch (e) {
+                    alert("Erreur lors de la modification.");
+                }
+                return;
+            }
             const button = event.target.closest("[data-open-thread]");
             if (button) {
                 const threadId = button.getAttribute("data-open-thread");
