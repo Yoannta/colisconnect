@@ -323,16 +323,18 @@
         els.clientValidatedList.innerHTML = validated.map((item) => {
             const origin = item.offers?.origin || item.offer_origin || "";
             const dest = item.offers?.destination || item.offer_destination || "";
+            const ownerName = item.offers?.owner_name || item.offer_owner_name || "Voyageur";
+            const threadId = item.chat_threads?.length ? item.chat_threads[0].id : null;
             const status = item.status === "paid" ? "en_cours" : item.status;
             const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
             const isDelivered = status === "livre";
-            return `<div class="client-discussion-item" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}">
+            return `<div class="client-discussion-item ${threadId ? 'clickable' : ''}" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}" ${threadId ? `data-thread-id="${window.CCCommon.escapeHtml(threadId)}"` : ""}>
                 <div class="item-content">
                     <div class="item-name">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
-                    <div class="item-desc">${item.kg ? item.kg + " kg" : ""}${item.total_amount ? " - " + item.total_amount + " FCFA" : ""}</div>
+                    <div class="item-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""}${item.total_amount ? " - " + item.total_amount + " FCFA" : ""} | ${statusLabel}</div>
                 </div>
-                <span class="pill-${isDelivered ? 'green' : 'yellow'}" style="font-size:10px;padding:2px 8px;border-radius:8px;">${statusLabel}</span>
-                ${!isDelivered ? `<button class="client-item-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}" style="margin-left:8px;">Livrer</button>` : ""}
+                <span class="pill-${isDelivered ? 'green' : 'yellow'}" style="font-size:10px;padding:2px 8px;border-radius:8px;flex-shrink:0;">${statusLabel}</span>
+                ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}" style="margin-left:8px;border-color:var(--line);color:var(--text);">Livrer</button>` : ""}
             </div>`;
         }).join("");
     }
@@ -368,7 +370,7 @@
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
             window.ccSupabase ? window.ccSupabase.from("reservations")
-                .select("*, offers!inner(origin, destination)")
+                .select("*, offers(origin, destination, owner_name), chat_threads!left(id)")
                 .eq("user_id", user.id)
                 .in("status", ["paid", "en_cours", "livre"])
                 .order("updated_at", { ascending: false }) : Promise.resolve({ data: [] })
@@ -750,20 +752,27 @@
         // Bouton "Livrer" dans Gestion de mes colis
         els.clientValidatedList?.addEventListener("click", async (event) => {
             const livrerBtn = event.target.closest("[data-livrer]");
-            if (!livrerBtn) return;
-            const reservationId = livrerBtn.getAttribute("data-livrer");
-            if (!reservationId || !confirm("Marquer ce colis comme livre ?")) return;
-            try {
-                if (window.ccSupabase) {
-                    const { error } = await window.ccSupabase.from("reservations").update({
-                        status: "livre",
-                        updated_at: new Date().toISOString()
-                    }).eq("id", reservationId);
-                    if (error) throw error;
+            if (livrerBtn) {
+                const reservationId = livrerBtn.getAttribute("data-livrer");
+                if (!reservationId || !confirm("Marquer ce colis comme livre ?")) return;
+                try {
+                    if (window.ccSupabase) {
+                        const { error } = await window.ccSupabase.from("reservations").update({
+                            status: "livre",
+                            updated_at: new Date().toISOString()
+                        }).eq("id", reservationId);
+                        if (error) throw error;
+                    }
+                    loadClientDashboard();
+                } catch (e) {
+                    alert("Erreur: " + (e.message || "Impossible de mettre a jour."));
                 }
-                loadClientDashboard();
-            } catch (e) {
-                alert("Erreur: " + (e.message || "Impossible de mettre a jour."));
+            }
+            // Clic sur la ligne → ouvrir la discussion
+            const itemRow = event.target.closest("[data-thread-id]");
+            if (itemRow) {
+                const threadId = itemRow.getAttribute("data-thread-id");
+                if (threadId) openChatPage(threadId);
             }
         });
 
@@ -818,16 +827,18 @@
             openVoirTousModal("Gestion de mes colis", "Colis", items, (item, i) => {
                 const origin = item.offers?.origin || item.offer_origin || "";
                 const dest = item.offers?.destination || item.offer_destination || "";
+                const ownerName = item.offers?.owner_name || item.offer_owner_name || "Voyageur";
+                const threadId = item.chat_threads?.length ? item.chat_threads[0].id : null;
                 const status = item.status === "paid" ? "en_cours" : item.status;
                 const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
                 const isDelivered = status === "livre";
-                return `<div class="cargo-file-item" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}">
+                return `<div class="cargo-file-item ${threadId ? 'clickable' : ''}" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}" ${threadId ? `data-thread-id="${window.CCCommon.escapeHtml(threadId)}"` : ""}>
                     <div class="cargo-file-index">${i + 1}</div>
                     <div class="file-content">
                         <div class="file-title">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
-                        <div class="file-desc">${item.kg ? item.kg + " kg" : ""} - ${statusLabel}</div>
+                        <div class="file-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""} | ${statusLabel}</div>
                     </div>
-                    ${!isDelivered ? `<button class="cargo-file-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}">Livrer</button>` : `<span class="pill-green" style="font-size:10px;padding:2px 8px;border-radius:8px;">Livre</span>`}
+                    ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}" style="border-color:var(--line);color:var(--text);flex-shrink:0;">Livrer</button>` : `<span class="pill-green" style="font-size:10px;padding:2px 8px;border-radius:8px;">Livre</span>`}
                 </div>`;
             });
         });
@@ -857,6 +868,25 @@
         });
         els.voirTousModal?.addEventListener("click", (event) => {
             if (event.target === els.voirTousModal) els.voirTousModal.classList.add("hidden");
+        });
+
+        // Clic sur ligne dans modale "Voir tous" vers discussion
+        els.voirTousList?.addEventListener("click", (event) => {
+            const livrerBtn = event.target.closest("[data-livrer]");
+            if (livrerBtn) {
+                // Delegue le Livrer au handler principal
+                document.querySelector("[data-livrer]")?.removeAttribute("data-trigger-livrer");
+                const threadRow = event.target.closest("[data-reservation-id]");
+                if (threadRow) threadRow.setAttribute("data-trigger-livrer", "1");
+            }
+            const itemRow = event.target.closest("[data-thread-id]");
+            if (itemRow && !event.target.closest("button")) {
+                const threadId = itemRow.getAttribute("data-thread-id");
+                if (threadId) {
+                    els.voirTousModal?.classList.add("hidden");
+                    openChatPage(threadId);
+                }
+            }
         });
 
         // Client cercle + nouvelle proposition

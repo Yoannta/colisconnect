@@ -3757,6 +3757,15 @@ label {
     background: rgba(255, 255, 255, 0.06);
 }
 
+.dashboard-page .client-discussion-item.clickable {
+    cursor: pointer;
+}
+
+.dashboard-page .client-discussion-item.clickable:hover {
+    background: rgba(19, 236, 200, 0.06);
+    border-color: rgba(19, 236, 200, 0.3);
+}
+
 .dashboard-page .client-discussion-item.is-new {
     border-color: var(--emerald-bright);
     box-shadow: 0 0 10px rgba(19, 236, 200, 0.08);
