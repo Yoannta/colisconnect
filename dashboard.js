@@ -250,7 +250,6 @@
 
     // ===== CLIENT DASHBOARD FUNCTIONS =====
 
-    function renderClientRequests(requests) {
     function renderClientRequests(parcelRequests) {
         if (!els.clientRequestsList) return;
 
