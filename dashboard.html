@@ -67,7 +67,7 @@
     <main class="app-shell">
 
         <!-- ===== SECTION VOYAGEUR ===== -->
-        <section class="view is-active traveler-dashboard-view hidden" data-view="traveler-dashboard" id="traveler-dashboard-view">
+        <section class="view is-active traveler-dashboard-view hidden" data-view="traveler_dashboard" id="traveler-dashboard-view">
             <div class="view-head traveler-head">
                 <div class="welcome-section traveler-welcome">
                     <div class="cargo-welcome-row">
@@ -83,13 +83,15 @@
                         </div>
                     </div>
                     <div class="traveler-actions">
-                        <button id="manage-offer-btn" class="btn primary btn-lg">Modifier mon offre</button>
                         <button class="btn identite-btn" id="traveler-identite-btn" onclick="window.location.href='verification.html'">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                             Verifier mon identite
                             <span class="identite-steps" id="traveler-identite-steps">0/2</span>
                         </button>
-                        <a href="chat.html" id="open-messages-btn" class="btn secondary btn-lg">Ouvrir messages</a>
+                        <div class="dashboard-toggles">
+                            <button class="dash-toggle" data-switch="client" id="toggle-v-client">Cote chercheur voyage</button>
+                            <button class="dash-toggle active" data-switch="traveler" id="toggle-v-traveler">Cote voyageur</button>
+                        </div>
                     </div>
                 </div>
 
@@ -151,7 +153,6 @@
                         </div>
                     </div>
                     <div class="client-actions">
-                        <a href="results.html" class="btn primary btn-lg">Chercher un trajet</a>
                         <button class="btn identite-btn" id="client-identite-btn" onclick="window.location.href='verification.html'">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                             Verifier mon identite
@@ -237,7 +238,11 @@
                             Verifier mon identite
                             <span class="identite-steps" id="cargo-identite-steps">0/2</span>
                         </button>
-                        <a href="chat.html" class="btn secondary">Messages</a>
+                        <div class="dashboard-toggles">
+                            <button class="dash-toggle" data-switch="client" id="toggle-c-client">Cote chercheur voyage</button>
+                            <button class="dash-toggle" data-switch="traveler" id="toggle-c-traveler">Cote voyageur</button>
+                            <button class="dash-toggle active" data-switch="cargo" id="toggle-c-cargo">Cote cargo</button>
+                        </div>
                     </div>
                 </div>
 

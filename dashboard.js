@@ -3,6 +3,7 @@
         offers: [],
         activeOffer: null,
         requests: [],
+        currentView: null,
         conversations: [],
         loading: false,
     };
@@ -343,8 +344,9 @@
 
     function switchDashboardView(profileType) {
         const isTraveler = profileType === "traveler";
-        const isCargo = profileType === "cargo";
-        const isClient = !isTraveler && !isCargo; // client ou null
+        const isCargo = viewType === "cargo";
+        const isClient = profileType === "client";
+        state.currentView = isCargo ? "cargo" : (isTraveler ? "traveler" : "client");
 
         if (els.travelerView) {
             els.travelerView.classList.toggle("is-active", isTraveler);
@@ -588,9 +590,9 @@
     async function loadDashboard() {
         if (!window.CCCommon.state.user) return;
         const user = window.CCCommon.state.user;
-        const profileType = String(user?.profile_type || "").toLowerCase();
+        const viewType = state.currentView || String(user?.profile_type || "").toLowerCase();
 
-        if (profileType === "traveler") {
+        if (viewType === "traveler") {
             const [offersResp, requestsResp] = await Promise.all([
                 window.CCCommon.api("/api/offers?scope=mine&pageSize=100"),
                 window.CCCommon.api("/api/conversations")
@@ -629,7 +631,7 @@
             } else if (els.quickSummaryText) {
                 els.quickSummaryText.textContent = "Aucune offre active pour le moment.";
             }
-        } else if (profileType === "cargo") {
+        } else if (viewType === "cargo") {
             await loadCargoDashboard();
         } else {
             await loadClientDashboard();
@@ -637,6 +639,19 @@
     }
 
     function bindEvents() {
+        // Dashboard toggles (Voyageur/Cargo)
+        document.querySelectorAll(".dash-toggle").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const target = btn.getAttribute("data-switch");
+                if (target) switchDashboardView(target);
+                // Mettre à jour l'etat actif sur tous les toggles
+                document.querySelectorAll(".dash-toggle").forEach(b => b.classList.remove("active"));
+                document.querySelectorAll(`.dash-toggle[data-switch="${target}"]`).forEach(b => b.classList.add("active"));
+                // Recharger le contenu du dashboard
+                loadDashboard();
+            });
+        });
+
         els.refreshBtn?.addEventListener("click", () => {
             loadDashboard().catch((error) => alert(error.message || "Rafraichissement impossible."));
         });
@@ -1102,6 +1117,10 @@
 
         // Basculer entre les vues traveler, client ou cargo
         switchDashboardView(profileType);
+
+        // Activer le toggle par défaut
+        const defaultToggle = document.querySelector(`.dash-toggle[data-switch="${profileType}"]`);
+        if (defaultToggle) defaultToggle.classList.add("active");
 
         if (els.dashboardUser) {
             els.dashboardUser.textContent = user?.fullName || "Voyageur";

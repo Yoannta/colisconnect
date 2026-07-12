@@ -4060,6 +4060,37 @@ label {
     color: var(--emerald-bright);
 }
 
+.dashboard-page .dashboard-toggles {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dashboard-page .dash-toggle {
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--muted);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.dashboard-page .dash-toggle:hover {
+    border-color: var(--emerald-bright);
+    color: var(--emerald-bright);
+}
+
+.dashboard-page .dash-toggle.active {
+    background: rgba(19, 236, 200, 0.15);
+    border-color: var(--emerald-bright);
+    color: var(--emerald-bright);
+    font-weight: 700;
+}
+
 .dashboard-page .btn-yellow {
     background: #ffd666;
     color: #050709;
