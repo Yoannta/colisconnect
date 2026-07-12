@@ -845,14 +845,16 @@
             });
         });
 
-        // Cargo "Voir tous" trajets
+        // Cargo "Voir tous" trajets (uniquement les non-archivés)
         document.getElementById("cargo-voir-tous-trajets")?.addEventListener("click", () => {
-            const items = state.offers || [];
+            const allItems = state.offers || [];
+            const items = allItems.filter(o => String(o.status || "").toLowerCase() !== "archived");
             openVoirTousModal("Tous mes trajets", "Trajets", items, (item, i) => {
                 const mode = item.mode === "avion" ? "Avion" : item.mode === "bateau" ? "Bateau" : item.mode === "les_deux" ? "Les deux" : "-";
-                const isFull = (item.available_kg !== null && item.available_kg !== undefined) ? item.available_kg <= 0 : false;
-                const statusPill = isFull ? 'pill-pink' : 'pill-green';
-                const statusLabel = isFull ? 'Presque plein' : 'Active';
+                const vraiStatut = String(item.status || "").toLowerCase();
+                const isFull = vraiStatut !== "active" || (item.available_kg !== null && item.available_kg !== undefined && item.available_kg <= 0);
+                const statusPill = vraiStatut !== "active" ? 'pill-yellow' : (isFull ? 'pill-pink' : 'pill-green');
+                const statusLabel = vraiStatut !== "active" ? vraiStatut.charAt(0).toUpperCase() + vraiStatut.slice(1) : (isFull ? 'Presque plein' : 'Active');
                 return `<div class="cargo-file-item" data-offer-id="${window.CCCommon.escapeHtml(item.id)}">
                     <div class="cargo-file-index">${i + 1}</div>
                     <div class="file-content">
