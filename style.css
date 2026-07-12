@@ -3119,9 +3119,9 @@ label {
 .dashboard-page .client-head,
 .dashboard-page .cargo-head {
     display: flex;
-    gap: 24px;
+    gap: 20px;
     align-items: stretch;
-    margin-top: 24px;
+    margin-top: 18px;
 }
 
 /* Bannière gauche rigide (commune aux 3 vues) */
@@ -3129,11 +3129,12 @@ label {
 .dashboard-page .client-hero,
 .dashboard-page .cargo-hero.card {
     flex: 0 0 55%;
-    min-height: 280px;
+    min-height: 212px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     box-sizing: border-box;
+    padding: 24px;
 }
 
 /* Colonne stats droite */
@@ -3143,7 +3144,7 @@ label {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
 }
 
 /* Titre bienvenue taille fixe */
@@ -3158,19 +3159,18 @@ label {
 .dashboard-page .traveler-actions,
 .dashboard-page .client-actions,
 .dashboard-page .cargo-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(208px, auto) minmax(0, 1fr);
     width: 100%;
-    gap: 8px;
-    flex-wrap: wrap;
+    gap: 12px;
     align-items: center;
 }
 
 /* Toggle dashboard - rigide, immuable */
 .dashboard-page .dash-toggle {
     flex: 1;
-    max-width: 140px;
-    min-width: 0;
-    height: 40px;
+    min-width: 84px;
+    height: 38px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -3178,7 +3178,7 @@ label {
     overflow: hidden;
     text-overflow: ellipsis;
     border: 2px solid transparent;
-    border-radius: 20px;
+    border-radius: 12px;
     padding: 0 12px;
     font-size: 12px;
     font-weight: 600;
@@ -3186,7 +3186,7 @@ label {
     background: transparent;
     color: var(--muted);
     cursor: pointer;
-    transition: none;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .dashboard-page .dash-toggle:hover {
@@ -3209,26 +3209,29 @@ label {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 8px;
-    padding: 22px;
+    gap: 10px;
+    padding: 18px 22px;
     border: 1px solid var(--line);
     border-radius: 12px;
     flex: 1;
-}
     background: rgba(255, 255, 255, 0.035);
-    min-height: 96px;
+    min-height: 84px;
 }
 
-.dashboard-page .traveler-stat-card strong {
+.dashboard-page .traveler-stat-card strong,
+.dashboard-page .client-stat-card strong,
+.dashboard-page .cargo-stat-card strong {
     font-family: var(--font-title);
-    font-size: 2rem;
+    font-size: 1.75rem;
     font-weight: 800;
     line-height: 1;
     color: var(--text);
 }
 
-.dashboard-page .traveler-stat-card span {
-    color: var(--muted);
+.dashboard-page .traveler-stat-card span,
+.dashboard-page .client-stat-card span,
+.dashboard-page .cargo-stat-card span {
+    color: rgba(232, 244, 241, 0.72);
     font-size: 0.86rem;
     font-weight: 600;
     text-transform: lowercase;
@@ -3238,11 +3241,11 @@ label {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 16px;
-    margin-top: 18px;
+    margin-top: 16px;
 }
 
 .dashboard-page .dashboard-panel {
-    min-height: 320px;
+    min-height: 280px;
     padding: 20px;
     border-radius: 12px;
     border: 1px solid var(--line);
@@ -3492,7 +3495,7 @@ label {
 
 .dashboard-page .traveler-empty-state,
 .dashboard-page .traveler-empty-requests {
-    min-height: 220px;
+    min-height: 170px;
     border-radius: 10px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.02);
@@ -3614,25 +3617,64 @@ label {
 
 @media (max-width: 1180px) {
     .dashboard-page .traveler-head,
+    .dashboard-page .client-head,
+    .dashboard-page .cargo-head {
+        flex-direction: column;
+    }
+
     .dashboard-page .traveler-grid {
         grid-template-columns: 1fr;
     }
 
-    .dashboard-page .traveler-stats {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        grid-template-rows: auto;
+    .dashboard-page .client-grid {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
-    .dashboard-page .traveler-welcome {
+    .dashboard-page .client-validated-panel {
+        grid-column: 1 / -1;
+    }
+
+    .dashboard-page .traveler-stats,
+    .dashboard-page .client-stats,
+    .dashboard-page .cargo-stats {
+        flex-direction: row;
+    }
+
+    .dashboard-page .traveler-welcome,
+    .dashboard-page .client-hero,
+    .dashboard-page .cargo-hero.card {
         min-height: 0;
+        flex-basis: auto;
     }
 }
 
 @media (max-width: 820px) {
     .dashboard-page .traveler-stats,
+    .dashboard-page .client-stats,
+    .dashboard-page .cargo-stats,
     .dashboard-page .form-grid,
     .dashboard-page .traveler-modal-actions {
+        flex-direction: column;
         grid-template-columns: 1fr;
+    }
+
+    .dashboard-page .traveler-actions,
+    .dashboard-page .client-actions,
+    .dashboard-page .cargo-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-page .dashboard-toggles {
+        overflow-x: auto;
+    }
+
+    .dashboard-page .avatar-circle {
+        width: 88px;
+        height: 88px;
+    }
+
+    .dashboard-page .cargo-welcome-row {
+        align-items: flex-start;
     }
 
     .dashboard-page .traveler-request-item {
@@ -3671,14 +3713,12 @@ label {
 }
 
 .dashboard-page .client-actions {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .dashboard-page .client-actions .btn {
-    padding: 12px 24px;
-    font-size: 14px;
+    padding: 10px 16px;
+    font-size: 13px;
 }
 
 .dashboard-page .client-stats {
@@ -3688,10 +3728,10 @@ label {
 }
 
 .dashboard-page .client-stat-card {
-    background: var(--surface-strong);
+    background: rgba(255, 255, 255, 0.035);
     border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 20px 24px;
+    padding: 18px 22px;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -3699,25 +3739,27 @@ label {
 }
 
 .dashboard-page .client-stat-card strong {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 4px 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
     color: var(--text);
 }
 
 .dashboard-page .client-stat-card span {
-    color: var(--muted);
-    font-size: 13px;
+    color: rgba(232, 244, 241, 0.72);
+    font-size: 0.86rem;
+    font-weight: 600;
 }
 
 .dashboard-page .client-grid {
     display: grid;
     grid-template-columns: 1fr 1.5fr 1fr;
-    gap: 24px;
+    gap: 16px;
+    margin-top: 16px;
 }
 
 .dashboard-page .client-grid .dashboard-panel {
-    background: var(--surface-strong);
+    background: rgba(10, 15, 20, 0.55);
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 20px;
@@ -3735,7 +3777,7 @@ label {
 .dashboard-page .client-grid .panel-head h3 {
     color: var(--emerald-bright);
     font-weight: 700;
-    font-size: 16px;
+    font-size: 1rem;
     margin: 0;
 }
 
@@ -3758,6 +3800,24 @@ label {
     cursor: pointer;
     transition: all 0.2s;
     padding: 0;
+}
+
+.dashboard-page .action-plus-btn {
+    width: auto;
+    min-width: 0;
+    height: 34px;
+    border-radius: 999px;
+    gap: 8px;
+    padding: 0 14px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.dashboard-page .action-plus-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
 }
 
 .dashboard-page .client-plus-btn:hover {
@@ -3879,12 +3939,12 @@ label {
 .dashboard-page .client-discussion-list,
 .dashboard-page .client-validated-list {
     min-height: 120px;
-    max-height: 280px;
+    max-height: 250px;
     overflow-y: auto;
 }
 
 .dashboard-page .cargo-file-list {
-    max-height: 260px;
+    max-height: 250px;
     overflow-y: auto;
 }
 
@@ -3937,8 +3997,8 @@ label {
 .dashboard-page .cargo-welcome-row {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
+    gap: 18px;
+    margin-bottom: 18px;
 }
 
 .dashboard-page .avatar-upload-label {
@@ -3954,8 +4014,8 @@ label {
 }
 
 .dashboard-page .avatar-circle {
-    width: 144px;
-    height: 144px;
+    width: 112px;
+    height: 112px;
     border-radius: 50%;
     background: rgba(19, 236, 200, 0.12);
     border: 3px dashed rgba(19, 236, 200, 0.4);
@@ -3979,8 +4039,8 @@ label {
 }
 
 .dashboard-page .avatar-circle svg {
-    width: 40px;
-    height: 40px;
+    width: 34px;
+    height: 34px;
 }
 
 .dashboard-page .avatar-circle.has-image svg {
@@ -4016,9 +4076,7 @@ label {
 }
 
 .dashboard-page .cargo-actions {
-    display: flex;
     gap: 12px;
-    flex-wrap: wrap;
 }
 
 .dashboard-page .identite-btn {
@@ -4035,6 +4093,8 @@ label {
     gap: 8px;
     transition: all 0.2s;
     text-decoration: none;
+    min-height: 40px;
+    justify-content: center;
 }
 
 .dashboard-page .identite-btn:hover {
@@ -4071,7 +4131,12 @@ label {
 .dashboard-page .dashboard-toggles {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    min-width: 0;
+    padding: 4px;
+    border: 1px solid rgba(19, 236, 200, 0.18);
+    border-radius: 16px;
+    background: rgba(5, 9, 10, 0.36);
 }
 
 .dashboard-page .btn-yellow {
@@ -4098,10 +4163,10 @@ label {
 }
 
 .dashboard-page .cargo-stat-card {
-    background: var(--surface-strong);
+    background: rgba(255, 255, 255, 0.035);
     border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 20px 24px;
+    padding: 18px 22px;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -4109,36 +4174,38 @@ label {
 }
 
 .dashboard-page .cargo-stat-card strong {
-    font-size: 28px;
-    font-weight: 700;
-    margin: 0 0 6px 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
     color: var(--text);
 }
 
 .dashboard-page .cargo-stat-card span {
-    color: var(--muted);
-    font-size: 13px;
+    color: rgba(232, 244, 241, 0.72);
+    font-size: 0.86rem;
+    font-weight: 600;
 }
 
 .dashboard-page .cargo-middle {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px;
+    gap: 16px;
+    margin-top: 16px;
+    margin-bottom: 16px;
 }
 
 .dashboard-page .cargo-bottom {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    gap: 24px;
+    gap: 16px;
 }
 
 .dashboard-page .cargo-middle .card,
 .dashboard-page .cargo-bottom .card {
-    background: var(--surface-strong);
+    background: rgba(10, 15, 20, 0.55);
     border: 1px solid var(--line);
     border-radius: 12px;
-    padding: 24px;
+    padding: 20px;
 }
 
 .dashboard-page .section-header {
@@ -4206,9 +4273,14 @@ label {
 
 .dashboard-page .cargo-ops-table {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    grid-template-columns: minmax(150px, 2fr) minmax(70px, 0.8fr) minmax(100px, 1fr) auto;
     column-gap: 16px;
     row-gap: 10px;
+}
+
+.dashboard-page .cargo-ops-table > .traveler-empty-requests,
+.dashboard-page .cargo-ops-table > .loading-state {
+    grid-column: 1 / -1;
 }
 
 .dashboard-page .cargo-ops-header > div {

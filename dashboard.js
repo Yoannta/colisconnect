@@ -164,9 +164,9 @@
         const potential = availableKg * pricePerKg;
 
         if (els.statRemainingKg) els.statRemainingKg.textContent = `${availableKg} kg`;
-        if (els.statRemainingLabel) els.statRemainingLabel.textContent = "capacite restante";
+        if (els.statRemainingLabel) els.statRemainingLabel.textContent = "capacite disponible";
         if (els.statInterested) els.statInterested.textContent = `${requests.length}`;
-        if (els.statInterestedLabel) els.statInterestedLabel.textContent = "clients interesses";
+        if (els.statInterestedLabel) els.statInterestedLabel.textContent = "demandes recues";
         if (els.statRevenue) els.statRevenue.textContent = formatAmount(potential, baseCurrency);
         if (els.statRevenueLabel) els.statRevenueLabel.textContent = "revenu potentiel restant";
     }
@@ -180,7 +180,7 @@
                         <span></span><span></span><span></span>
                     </div>
                     <p>Aucune offre active pour le moment.</p>
-                    <a href="post_trip.html" class="btn secondary btn-sm">Publier un trajet</a>
+                    <a href="post_trip.html" class="btn primary btn-sm">Publier un trajet</a>
                 </div>`;
             if (els.activeOfferBadge) els.activeOfferBadge.textContent = "En attente";
             return;
@@ -232,7 +232,7 @@
             els.requestsList.innerHTML = `
                 <div class="traveler-empty-requests">
                     <p>Aucune demande entrante pour le moment.</p>
-                    <span>Les personnes interessees apparaiteront ici.</span>
+                    <span>Les demandes apparaitront ici apres publication d'un trajet.</span>
                 </div>`;
             return;
         }
@@ -536,7 +536,7 @@
         // Table operations (4 colonnes: LIGNE | MODE | STATUT | [action])
         if (els.cargoOpsTable) {
             if (!activeOffers.length) {
-                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests"><p>Aucune ligne active.</p><span>Creez votre premiere offre cargo.</span></div>`;
+                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests"><p>Aucune ligne active.</p><span>Creez votre premiere offre cargo.</span><a href="post_trip.html" class="btn primary btn-sm">Nouvelle offre</a></div>`;
             } else {
                 els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>` + activeOffers.map(o => {
                     const kg = Number(o.availableKg || o.available_kg || 0);

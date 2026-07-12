@@ -89,9 +89,9 @@
                             <span class="identite-steps" id="traveler-identite-steps">0/2</span>
                         </button>
                         <div class="dashboard-toggles">
-                            <button class="dash-toggle" data-switch="client" id="toggle-v-client">Cote chercheur voyage</button>
-                            <button class="dash-toggle" data-switch="traveler" id="toggle-v-traveler">Cote voyageur</button>
-                            <button class="dash-toggle hidden" data-switch="cargo" id="toggle-v-cargo">Cote cargo</button>
+                            <button class="dash-toggle" data-switch="client" id="toggle-v-client">Chercheur</button>
+                            <button class="dash-toggle" data-switch="traveler" id="toggle-v-traveler">Voyageur</button>
+                            <button class="dash-toggle hidden" data-switch="cargo" id="toggle-v-cargo">Cargo</button>
                         </div>
                     </div>
                 </div>
@@ -99,11 +99,11 @@
                 <div class="traveler-stats">
                     <article class="traveler-stat-card">
                         <strong id="stat-remaining-kg">12 kg</strong>
-                        <span id="stat-remaining-label">capacite restante sur 20 kg</span>
+                        <span id="stat-remaining-label">capacite disponible</span>
                     </article>
                     <article class="traveler-stat-card">
                         <strong id="stat-interested">4</strong>
-                        <span id="stat-interested-label">clients interesses</span>
+                        <span id="stat-interested-label">demandes recues</span>
                     </article>
                     <article class="traveler-stat-card">
                         <strong id="stat-revenue">168 EUR</strong>
@@ -160,9 +160,9 @@
                             <span class="identite-steps" id="client-identite-steps">0/2</span>
                         </button>
                         <div class="dashboard-toggles">
-                            <button class="dash-toggle hidden" data-switch="client" id="toggle-c-client2">Cote chercheur voyage</button>
-                            <button class="dash-toggle hidden" data-switch="traveler" id="toggle-c-traveler2">Cote voyageur</button>
-                            <button class="dash-toggle hidden" data-switch="cargo" id="toggle-c-cargo2">Cote cargo</button>
+                            <button class="dash-toggle hidden" data-switch="client" id="toggle-c-client2">Chercheur</button>
+                            <button class="dash-toggle hidden" data-switch="traveler" id="toggle-c-traveler2">Voyageur</button>
+                            <button class="dash-toggle hidden" data-switch="cargo" id="toggle-c-cargo2">Cargo</button>
                         </div>
                     </div>
                 </div>
@@ -174,7 +174,7 @@
                     </article>
                     <article class="client-stat-card">
                         <strong id="client-stat-discussions">0</strong>
-                        <span>discussions en attente de decision</span>
+                        <span>discussions a traiter</span>
                     </article>
                     <article class="client-stat-card">
                         <strong id="client-stat-payments">0</strong>
@@ -189,8 +189,9 @@
                         <h3>Mes demandes de trajet</h3>
                         <div class="panel-head-right">
                             <button class="cargo-see-all-btn" id="client-voir-tous-propositions">Voir tous</button>
-                            <button class="client-plus-btn" title="Nouvelle proposition">
+                            <button class="client-plus-btn action-plus-btn" title="Nouvelle demande">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                <span>Nouvelle demande</span>
                             </button>
                         </div>
                     </div>
@@ -245,9 +246,9 @@
                             <span class="identite-steps" id="cargo-identite-steps">0/2</span>
                         </button>
                         <div class="dashboard-toggles">
-                            <button class="dash-toggle" data-switch="client" id="toggle-c-client">Cote chercheur voyage</button>
-                            <button class="dash-toggle" data-switch="traveler" id="toggle-c-traveler">Cote voyageur</button>
-                            <button class="dash-toggle" data-switch="cargo" id="toggle-c-cargo">Cote cargo</button>
+                            <button class="dash-toggle" data-switch="client" id="toggle-c-client">Chercheur</button>
+                            <button class="dash-toggle" data-switch="traveler" id="toggle-c-traveler">Voyageur</button>
+                            <button class="dash-toggle" data-switch="cargo" id="toggle-c-cargo">Cargo</button>
                         </div>
                     </div>
                 </div>
@@ -272,8 +273,9 @@
                         <h3 class="section-title">Gestion de mes trajets</h3>
                         <div class="panel-head-right">
                             <button class="cargo-see-all-btn" id="cargo-voir-tous-trajets">Voir tous</button>
-                            <button class="client-plus-btn" title="Nouveau trajet" onclick="window.location.href='post_trip.html'">
+                            <button class="client-plus-btn action-plus-btn" title="Nouvelle offre cargo" onclick="window.location.href='post_trip.html'">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                <span>Nouvelle offre</span>
                             </button>
                         </div>
                     </div>
@@ -281,8 +283,6 @@
                         <div class="cargo-ops-header">
                             <div>LIGNE</div>
                             <div>MODE</div>
-                            <div>CAPACITE</div>
-                            <div>CAPACITE RESTANTE</div>
                             <div>STATUT</div>
                             <div></div>
                         </div>
