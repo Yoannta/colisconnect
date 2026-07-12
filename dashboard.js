@@ -561,18 +561,17 @@
                 els.cargoFileList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
             } else {
                 els.cargoFileList.innerHTML = incoming.slice(0, 5).map((item, i) => {
-                    const userName = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
-                    const tripInfo = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "");
+                    var _userName_ = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
+                    var _tripInfo_ = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "Trajet non precise");
                     return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
                         <div class="cargo-file-index">${i + 1}</div>
                         <div class="file-content">
-                            <div class="file-title">${userName}</div>
-                            <div class="file-desc">${window.CCCommon.escapeHtml(tripInfo)}</div>
+                            <div class="file-title">${userName} | ${window.CCCommon.escapeHtml(tripInfo)}</div>
+                            <div class="file-desc">${item.preview ? window.CCCommon.escapeHtml(item.preview) : ""}</div>
                         </div>
                         <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
-                    </div>`;
-                }).join("");
-            }
+                    </div>`;}).join("");
+                    }
         }
 
         // Limite offres (progress bar)
@@ -909,13 +908,14 @@
                         els.cargoRequestsModalList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
                     } else {
                         els.cargoRequestsModalList.innerHTML = allItems.map((item, i) => {
-                            const userName = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
-                            const tripInfo = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "");
+                            var _userName_ = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
+                            var _userName_ = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
+                            var _tripInfo_ = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "Trajet non precise");
                             return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
                                 <div class="cargo-file-index">${i + 1}</div>
                                 <div class="file-content">
-                                    <div class="file-title">${userName}</div>
-                                    <div class="file-desc">${window.CCCommon.escapeHtml(tripInfo)}</div>
+                                    <div class="file-title">${userName} | ${window.CCCommon.escapeHtml(tripInfo)}</div>
+                                    <div class="file-desc">${item.preview ? window.CCCommon.escapeHtml(item.preview) : ""}</div>
                                 </div>
                                 <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
                             </div>`;
