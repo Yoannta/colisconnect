@@ -859,7 +859,10 @@
                         <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
                         <div class="file-desc">Mode: ${mode} | <span class="${statusPill}" style="padding:1px 6px;border-radius:8px;font-size:10px;">${statusLabel}</span></div>
                     </div>
-                    <button class="cargo-file-btn" data-action="modify-offer" data-offer-id="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                    <div style="display:flex;gap:6px;flex-shrink:0;">
+                        <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(item.id)}" data-action="modify-offer">Modifier</button>
+                        <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(item.id)}" data-action="delete">Supprimer</button>
+                    </div>
                 </div>`;
             });
         });
@@ -872,15 +875,57 @@
             if (event.target === els.voirTousModal) els.voirTousModal.classList.add("hidden");
         });
 
-        // Clic sur ligne dans modale "Voir tous" vers discussion
-        els.voirTousList?.addEventListener("click", (event) => {
+        // Clic sur ligne dans modale "Voir tous"
+        els.voirTousList?.addEventListener("click", async (event) => {
             const livrerBtn = event.target.closest("[data-livrer]");
             if (livrerBtn) {
-                // Delegue le Livrer au handler principal
-                document.querySelector("[data-livrer]")?.removeAttribute("data-trigger-livrer");
-                const threadRow = event.target.closest("[data-reservation-id]");
-                if (threadRow) threadRow.setAttribute("data-trigger-livrer", "1");
+                const reservationId = livrerBtn.getAttribute("data-livrer");
+                if (!reservationId || !confirm("Marquer ce colis comme livre ?")) return;
+                try {
+                    if (window.ccSupabase) {
+                        await window.ccSupabase.from("reservations").update({
+                            status: "livre", updated_at: new Date().toISOString()
+                        }).eq("id", reservationId);
+                    }
+                    loadClientDashboard();
+                    els.voirTousModal?.classList.add("hidden");
+                } catch (e) { alert("Erreur: " + (e.message || "")); }
+                return;
             }
+            // Modifier offre depuis la popup
+            const modifyBtn = event.target.closest("[data-action='modify-offer']");
+            if (modifyBtn) {
+                const offerId = modifyBtn.getAttribute("data-offer-id");
+                if (offerId) {
+                    const offer = state.offers?.find(o => String(o.id) === offerId);
+                    if (offer) {
+                        state.activeOffer = offer;
+                        els.voirTousModal?.classList.add("hidden");
+                        openOfferModal();
+                    }
+                }
+                return;
+            }
+            // Supprimer offre depuis la popup
+            const deleteBtn = event.target.closest("[data-action='delete']");
+            if (deleteBtn) {
+                const offerId = deleteBtn.getAttribute("data-offer-id");
+                if (offerId && confirm("Supprimer cette offre ? Cette action est irreversible.")) {
+                    try {
+                        if (window.ccSupabase) {
+                            await window.ccSupabase.from("offers").update({
+                                status: "archived", updated_at: new Date().toISOString()
+                            }).eq("id", offerId).eq("user_id", window.CCCommon.state?.user?.id);
+                        } else {
+                            await window.CCCommon.api(`/api/offers/${offerId}`, { method: "DELETE" });
+                        }
+                        els.voirTousModal?.classList.add("hidden");
+                        loadCargoDashboard();
+                    } catch (e) { alert("Erreur: " + (e.message || "")); }
+                }
+                return;
+            }
+            // Clic sur ligne → ouvrir discussion (si applicable)
             const itemRow = event.target.closest("[data-thread-id]");
             if (itemRow && !event.target.closest("button")) {
                 const threadId = itemRow.getAttribute("data-thread-id");
