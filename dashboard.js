@@ -566,7 +566,7 @@
                     return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
                         <div class="cargo-file-index">${i + 1}</div>
                         <div class="file-content">
-                            <div class="file-title">${_userName_} | ${window.CCCommon.escapeHtml(tripInfo)}</div>
+                            <div class="file-title">${_userName_} | ${window.CCCommon.escapeHtml(_tripInfo_)}</div>
                             <div class="file-desc">${item.preview ? window.CCCommon.escapeHtml(item.preview) : ""}</div>
                         </div>
                         <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
@@ -914,7 +914,7 @@
                             return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
                                 <div class="cargo-file-index">${i + 1}</div>
                                 <div class="file-content">
-                                    <div class="file-title">${_userName_} | ${window.CCCommon.escapeHtml(tripInfo)}</div>
+                                    <div class="file-title">${_userName_} | ${window.CCCommon.escapeHtml(_tripInfo_)}</div>
                                     <div class="file-desc">${item.preview ? window.CCCommon.escapeHtml(item.preview) : ""}</div>
                                 </div>
                                 <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
