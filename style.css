@@ -3261,6 +3261,14 @@ label {
     margin-bottom: 16px;
 }
 
+.dashboard-page .panel-head-right {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: nowrap;
+}
+
 .dashboard-page .panel-head h3 {
     margin: 0;
     font-family: var(--font-title);
