@@ -1826,9 +1826,8 @@
     }
 
     function startNotifPolling() {
-        if (_notifPollingTimer) return; // already running
-        syncNotificationBadges();
-        _notifPollingTimer = setInterval(syncNotificationBadges, 120000);
+        // Désactivé : le polling retournait toujours {chatUnread:0, adminUnread:0}
+        // Réactiver quand le système de notifications sera implémenté
     }
 
     function stopNotifPolling() {
