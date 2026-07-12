@@ -3115,49 +3115,71 @@ label {
     padding-top: 10px;
 }
 
-.dashboard-page .traveler-head {
-    display: grid;
-    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.95fr);
-    gap: 20px;
+.dashboard-page .traveler-head,
+.dashboard-page .client-head,
+.dashboard-page .cargo-head {
+    display: flex;
+    gap: 24px;
     align-items: stretch;
     margin-top: 24px;
 }
 
-.dashboard-page .traveler-welcome {
+/* Bannière gauche rigide (commune aux 3 vues) */
+.dashboard-page .traveler-welcome,
+.dashboard-page .client-hero,
+.dashboard-page .cargo-hero.card {
+    flex: 0 0 55%;
+    min-height: 280px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 280px;
+    box-sizing: border-box;
 }
 
-.dashboard-page .traveler-summary {
-    max-width: 720px;
-    margin-top: 16px;
-    color: var(--muted);
-    line-height: 1.55;
-    font-size: 1rem;
-}
-
-.dashboard-page .traveler-actions {
+/* Colonne stats droite */
+.dashboard-page .traveler-stats,
+.dashboard-page .client-stats,
+.dashboard-page .cargo-stats {
+    flex: 1;
     display: flex;
+    flex-direction: column;
     gap: 12px;
+}
+
+/* Titre bienvenue taille fixe */
+.dashboard-page .welcome-title {
+    font-size: 26px !important;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    line-height: 1.2;
+}
+
+/* Boutons row en bas */
+.dashboard-page .traveler-actions,
+.dashboard-page .client-actions,
+.dashboard-page .cargo-actions {
+    display: flex;
+    width: 100%;
+    gap: 8px;
     flex-wrap: wrap;
-    margin-top: 24px;
+    align-items: center;
 }
 
-.dashboard-page .btn-lg {
-    padding: 14px 18px;
-    min-height: 48px;
-    font-size: 0.98rem;
+/* Toggle dashboard */
+.dashboard-page .dash-toggle {
+    flex: 1;
+    max-width: 130px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.dashboard-page .traveler-stats {
-    display: grid;
-    grid-template-rows: repeat(3, minmax(0, 1fr));
-    gap: 12px;
-}
-
-.dashboard-page .traveler-stat-card {
+/* Stats cards uniformisées */
+.dashboard-page .traveler-stat-card,
+.dashboard-page .client-stat-card,
+.dashboard-page .cargo-stat-card,
+.dashboard-page .cargo-stat-card.card {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -3165,6 +3187,8 @@ label {
     padding: 22px;
     border: 1px solid var(--line);
     border-radius: 12px;
+    flex: 1;
+}
     background: rgba(255, 255, 255, 0.035);
     min-height: 96px;
 }
@@ -3604,31 +3628,6 @@ label {
 }
 
 /* ===== CLIENT DASHBOARD ===== */
-.dashboard-page .client-head {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px;
-}
-
-.dashboard-page .client-hero {
-    background: var(--surface-strong);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 32px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.dashboard-page .client-hero .kicker {
-    color: var(--emerald-bright);
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-}
 
 .dashboard-page .client-hero .welcome-title {
     font-size: 28px;
@@ -3893,23 +3892,6 @@ label {
 }
 
 /* ===== CARGO DASHBOARD ===== */
-.dashboard-page .cargo-head {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 24px;
-    margin-bottom: 24px;
-}
-
-.dashboard-page .cargo-hero.card {
-    background: var(--surface-strong);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 32px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
 .dashboard-page .cargo-hero .kicker {
     color: var(--emerald-bright);
     text-transform: uppercase;
