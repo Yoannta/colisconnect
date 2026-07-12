@@ -605,7 +605,13 @@
                     return data[0];
                 }
                 // GET WITH JOIN
-                let query = window.ccSupabase.from('offers').select('*, profiles!offers_user_id_fkey(full_name, is_verified, profile_type)');
+                let query;
+                // Si scope=mine, pas besoin de jointure (l'utilisateur voit ses propres offres)
+                if (p.includes("scope=mine")) {
+                    query = window.ccSupabase.from('offers').select('*');
+                } else {
+                    query = window.ccSupabase.from('offers').select('*, profiles!offers_user_id_fkey(full_name, is_verified, profile_type)');
+                }
                 if (p.includes("scope=mine")) {
                     query = query.eq('user_id', state.user?.id);
                 } else {

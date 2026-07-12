@@ -513,18 +513,19 @@
         const user = window.CCCommon.state.user;
         if (!user) return;
 
-        // Charger les offres du cargo
-        const offersResp = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
+        // Charger les offres ET conversations en parallèle
+        const [offersResp, convResp] = await Promise.all([
+            window.CCCommon.api("/api/offers?scope=mine&pageSize=20"),
+            window.CCCommon.api("/api/conversations")
+        ]);
         const myOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
-        state.offers = myOffers; // Stocker pour le bouton Modifier
+        state.offers = myOffers;
         const activeOffers = myOffers.filter(o => String(o.status || "").toLowerCase() === "active");
         const allOffers = myOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
         const activeCount = activeOffers.length;
 
-        // Charger les conversations (pour le compteur demandes)
-        const convResp = await window.CCCommon.api("/api/conversations");
         const incoming = Array.isArray(convResp) ? convResp.filter(c => !c.isOfferOwner) : [];
-        state.incomingRequests = incoming; // Stocker pour la modale "Voir tous"
+        state.incomingRequests = incoming;
 
         // Stats
         if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
