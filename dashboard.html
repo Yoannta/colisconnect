@@ -473,6 +473,45 @@
             </div>
         </div>
     </div>
+
+    <!-- MODALE MODIFICATION DEMANDE DE TRAJET -->
+    <div id="edit-parcel-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card demande-modal-card">
+            <button class="close-modal" id="close-edit-parcel-modal">x</button>
+            <div>
+                <h2 style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Modifier ma demande</h2>
+                <p class="demande-subtitle">Modifiez les informations de votre demande de trajet.</p>
+                <div class="demande-form">
+                    <div class="demande-field">
+                        <label for="edit-parcel-origin">Pays de depart</label>
+                        <input type="text" id="edit-parcel-origin" class="demande-input" list="edit-parcel-country-list" placeholder="Ex: France" autocomplete="off">
+                    </div>
+                    <div class="demande-field">
+                        <label for="edit-parcel-destination">Pays d arrivee</label>
+                        <input type="text" id="edit-parcel-destination" class="demande-input" list="edit-parcel-country-list" placeholder="Ex: Senegal" autocomplete="off">
+                    </div>
+                    <datalist id="edit-parcel-country-list"></datalist>
+                    <div class="demande-field">
+                        <label>Date limite</label>
+                        <div class="demande-date-row">
+                            <input type="date" id="edit-parcel-date" class="demande-input" style="flex:1;">
+                            <button type="button" class="demande-date-alt" id="edit-parcel-no-date-btn">Pas de date limite</button>
+                        </div>
+                    </div>
+                    <div class="demande-field">
+                        <label for="edit-parcel-kg">Environ combien de kilos ?</label>
+                        <input type="number" id="edit-parcel-kg" class="demande-input" placeholder="Ex: 10" min="1">
+                    </div>
+                    <div class="demande-field">
+                        <label for="edit-parcel-description">Decrivez le colis</label>
+                        <textarea id="edit-parcel-description" class="demande-input demande-textarea" rows="3" placeholder="Ex: Electronique, vetements..."></textarea>
+                    </div>
+                    <button type="button" class="demande-submit" id="edit-parcel-save-btn">Enregistrer</button>
+                    <p id="edit-parcel-feedback" class="hidden demande-feedback">✅ Demande mise a jour.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

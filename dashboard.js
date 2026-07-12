@@ -715,33 +715,7 @@
             if (editBtn) {
                 const parcelId = editBtn.getAttribute("data-edit-parcel");
                 if (!parcelId) return;
-                const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId) ||
-                    (window.ccSupabase ? (await window.ccSupabase.from("parcel_requests").select("*").eq("id", parcelId).single()).data : null);
-                if (!parcel) return;
-                const newOrigin = prompt("Pays de depart:", parcel.origin || "");
-                if (!newOrigin) return;
-                const newDest = prompt("Pays d arrivee:", parcel.destination || "");
-                if (!newDest) return;
-                const newKg = prompt("Kilos:", parcel.weight_kg || "");
-                if (!newKg) return;
-                const newDesc = prompt("Description du colis:", parcel.description || "");
-                if (!newDesc) return;
-                const newDate = prompt("Date limite (YYYY-MM-DD) ou laisser vide:", parcel.needed_by_date || "");
-                try {
-                    if (window.ccSupabase) {
-                        await window.ccSupabase.from("parcel_requests").update({
-                            origin: newOrigin,
-                            destination: newDest,
-                            weight_kg: parseInt(newKg, 10),
-                            description: newDesc,
-                            needed_by_date: newDate || null,
-                            updated_at: new Date().toISOString()
-                        }).eq("id", parcelId);
-                    }
-                    loadClientDashboard();
-                } catch (e) {
-                    alert("Erreur lors de la modification.");
-                }
+                openEditParcelModal(parcelId);
                 return;
             }
             const button = event.target.closest("[data-open-thread]");
@@ -791,6 +765,24 @@
                 }
             }
             els.voirTousModal.classList.remove("hidden");
+        }
+
+        // Modale de modification de demande
+        let _editParcelId = null;
+        async function openEditParcelModal(parcelId) {
+            _editParcelId = parcelId;
+            const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId);
+            if (!parcel) return;
+            document.getElementById("edit-parcel-origin").value = parcel.origin || "";
+            document.getElementById("edit-parcel-destination").value = parcel.destination || "";
+            document.getElementById("edit-parcel-date").value = parcel.needed_by_date || "";
+            document.getElementById("edit-parcel-kg").value = parcel.weight_kg || "";
+            document.getElementById("edit-parcel-description").value = parcel.description || "";
+            const fb = document.getElementById("edit-parcel-feedback");
+            if (fb) fb.classList.add("hidden");
+            const saveBtn = document.getElementById("edit-parcel-save-btn");
+            if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("hidden"); saveBtn.textContent = "Enregistrer"; }
+            document.getElementById("edit-parcel-modal")?.classList.remove("hidden");
         }
 
         // Client "Voir tous" propositions -> ouvre la modale de demande
@@ -941,34 +933,8 @@
             if (editParcelBtn) {
                 const parcelId = editParcelBtn.getAttribute("data-edit-parcel");
                 if (!parcelId) return;
-                const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId) ||
-                    (window.ccSupabase ? (await window.ccSupabase.from("parcel_requests").select("*").eq("id", parcelId).single()).data : null);
-                if (!parcel) return;
                 els.voirTousModal?.classList.add("hidden");
-                const newOrigin = prompt("Pays de depart:", parcel.origin || "");
-                if (!newOrigin) return;
-                const newDest = prompt("Pays d arrivee:", parcel.destination || "");
-                if (!newDest) return;
-                const newKg = prompt("Kilos:", parcel.weight_kg || "");
-                if (!newKg) return;
-                const newDesc = prompt("Description du colis:", parcel.description || "");
-                if (!newDesc) return;
-                const newDate = prompt("Date limite (YYYY-MM-DD) ou laisser vide:", parcel.needed_by_date || "");
-                try {
-                    if (window.ccSupabase) {
-                        await window.ccSupabase.from("parcel_requests").update({
-                            origin: newOrigin,
-                            destination: newDest,
-                            weight_kg: parseInt(newKg, 10),
-                            description: newDesc,
-                            needed_by_date: newDate || null,
-                            updated_at: new Date().toISOString()
-                        }).eq("id", parcelId);
-                    }
-                    loadClientDashboard();
-                } catch (e) {
-                    alert("Erreur lors de la modification.");
-                }
+                openEditParcelModal(parcelId);
                 return;
             }
             // Bouton "Voir" ou "Repondre" dans la popup → ouvre la discussion
@@ -1264,6 +1230,61 @@
                 console.error("Erreur:", err);
                 alert("Erreur: " + (err.message || "Impossible de soumettre."));
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+            }
+        });
+
+        // Evenements modale de modification de demande
+        document.getElementById("close-edit-parcel-modal")?.addEventListener("click", () => {
+            document.getElementById("edit-parcel-modal")?.classList.add("hidden");
+        });
+        document.getElementById("edit-parcel-modal")?.addEventListener("click", (e) => {
+            if (e.target === document.getElementById("edit-parcel-modal")) {
+                document.getElementById("edit-parcel-modal")?.classList.add("hidden");
+            }
+        });
+        document.getElementById("edit-parcel-no-date-btn")?.addEventListener("click", () => {
+            document.getElementById("edit-parcel-date").value = "";
+        });
+        // Remplir le datalist
+        const editList = document.getElementById("edit-parcel-country-list");
+        if (editList && countryOptions.length) {
+            editList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
+        }
+        document.getElementById("edit-parcel-save-btn")?.addEventListener("click", async () => {
+            if (!_editParcelId) return;
+            const origin = document.getElementById("edit-parcel-origin")?.value?.trim();
+            const destination = document.getElementById("edit-parcel-destination")?.value?.trim();
+            const kg = parseInt(document.getElementById("edit-parcel-kg")?.value, 10);
+            const description = document.getElementById("edit-parcel-description")?.value?.trim();
+            const dateLimite = document.getElementById("edit-parcel-date")?.value || null;
+            if (!origin || !destination || !kg || !description) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
+            const feedback = document.getElementById("edit-parcel-feedback");
+            const saveBtn = document.getElementById("edit-parcel-save-btn");
+            try {
+                if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Enregistrement..."; }
+                if (window.ccSupabase) {
+                    const { error } = await window.ccSupabase.from("parcel_requests").update({
+                        origin,
+                        destination,
+                        weight_kg: kg,
+                        description,
+                        needed_by_date: dateLimite || null,
+                        updated_at: new Date().toISOString()
+                    }).eq("id", _editParcelId);
+                    if (error) throw error;
+                }
+                if (feedback) feedback.classList.remove("hidden");
+                if (saveBtn) saveBtn.classList.add("hidden");
+                setTimeout(() => {
+                    document.getElementById("edit-parcel-modal")?.classList.add("hidden");
+                    loadClientDashboard();
+                }, 1200);
+            } catch (err) {
+                alert("Erreur: " + (err.message || "Impossible de modifier."));
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Enregistrer"; }
             }
         });
 
