@@ -1235,10 +1235,121 @@
         openAuthModal();
     }
 
+    function isGoogleUser(user) {
+        if (!user) return false;
+        // Check various places where Supabase stores the provider info
+        return user?.app_metadata?.provider === 'google' ||
+               user?.user_metadata?.provider === 'google' ||
+               (user?.identities && Array.isArray(user.identities) && user.identities[0]?.provider === 'google');
+    }
+
+    /**
+     * Returns false if user already has country info (no popup needed),
+     * or an object describing what fields to ask for: { needsName: true/false }
+     */
+    function needsCountryInfo(user) {
+        if (!user) return false;
+        const hasCountry = Boolean(user?.country || user?.user_metadata?.country);
+        if (hasCountry) return false;
+        const isGoogle = isGoogleUser(user);
+        const hasName = Boolean(user?.fullName || user?.full_name || user?.user_metadata?.full_name);
+        return { needsName: !isGoogle && !hasName };
+    }
+
+    function openCountryInfoPopup(needs) {
+        const modal = document.getElementById("cc-country-modal");
+        if (!modal) return;
+
+        const nameFields = document.getElementById("cc-country-name-fields");
+        if (nameFields) {
+            nameFields.classList.toggle("hidden", !needs?.needsName);
+            // Remove required attribute when hidden
+            const fn = document.getElementById("cc-country-firstname");
+            const ln = document.getElementById("cc-country-lastname");
+            if (fn) fn.required = !!needs?.needsName;
+            if (ln) ln.required = !!needs?.needsName;
+        }
+
+        const feedback = document.getElementById("cc-country-feedback");
+        if (feedback) feedback.textContent = "";
+
+        modal.classList.remove("hidden");
+    }
+
+    function closeCountryInfoPopup() {
+        const modal = document.getElementById("cc-country-modal");
+        if (modal) modal.classList.add("hidden");
+    }
+
+    async function submitCountryInfo() {
+        const firstName = String(document.getElementById("cc-country-firstname")?.value || "").trim();
+        const lastName = String(document.getElementById("cc-country-lastname")?.value || "").trim();
+        const country = String(document.getElementById("cc-country-input")?.value || "").trim();
+
+        if (!country) {
+            throw new Error("Veuillez sélectionner votre pays de résidence.");
+        }
+
+        // Validate country is in the official list
+        const normalize = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        const valid = (COUNTRY_OPTIONS || []).map(c => normalize(c));
+        if (!valid.includes(normalize(country))) {
+            throw new Error("Veuillez choisir un pays valide dans la liste.");
+        }
+
+        const body = { country };
+
+        // If name fields were shown (non-Google users), combine and save
+        const nameFields = document.getElementById("cc-country-name-fields");
+        if (nameFields && !nameFields.classList.contains("hidden")) {
+            if (!firstName || !lastName) {
+                throw new Error("Veuillez saisir votre prénom et votre nom.");
+            }
+            body.fullName = `${firstName} ${lastName}`;
+        }
+
+        // Save to Supabase profiles table directly
+        if (window.ccSupabase) {
+            const userId = state.user?.id;
+            if (!userId) throw new Error("Utilisateur non connecté.");
+
+            const updateData = { country };
+            if (body.fullName) updateData.full_name = body.fullName;
+
+            const { error } = await window.ccSupabase
+                .from("profiles")
+                .update(updateData)
+                .eq("id", userId);
+            if (error) throw error;
+
+            // Also update the local user state
+            if (state.user) {
+                state.user.country = country;
+                if (body.fullName) {
+                    state.user.fullName = body.fullName;
+                    state.user.full_name = body.fullName;
+                }
+            }
+        } else {
+            // Fallback: use the API
+            await api("/api/users/me/profile", {
+                method: "PATCH",
+                body
+            });
+        }
+    }
+
     function onModalAuthSuccess(payload) {
         setSession(payload.token, payload.user);
         updateHeaderUi();
         closeAuthModal(false);
+
+        // Check if we need to ask for country info first
+        const needsCountry = needsCountryInfo(payload.user);
+        if (needsCountry) {
+            openCountryInfoPopup(needsCountry);
+            return;
+        }
 
         const target = state.pendingNavigation || nextPath("dashboard.html");
         state.pendingNavigation = "";
@@ -1404,6 +1515,42 @@
                 <button id="cc-profile-complete" class="btn primary">Completer maintenant</button>
                 <button id="cc-profile-later" class="btn ghost">Plus tard</button>
             </div>
+        </section>
+    </div>
+</div>
+
+<!-- COUNTRY INFO MODAL - Appears after registration or login if country is missing -->
+<div id="cc-country-modal" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card" style="max-width: 480px;">
+        <section class="modal-panel">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #4c82ff, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </div>
+                <h3 style="margin: 0 0 0.5rem; font-size: 1.3rem;">Informations requises</h3>
+                <p style="color: var(--muted); font-size: 0.9rem; margin: 0;">Pour finaliser votre inscription, veuillez compléter ces informations.</p>
+            </div>
+            <form id="cc-country-form" class="auth-form">
+                <!-- Name fields (hidden for Google users) -->
+                <div id="cc-country-name-fields">
+                    <label>Prénom<input type="text" id="cc-country-firstname" class="auth-input" placeholder="Jean" required></label>
+                    <label>Nom<input type="text" id="cc-country-lastname" class="auth-input" placeholder="Dupont" required></label>
+                </div>
+                <label>Pays de résidence
+                    <input type="text" id="cc-country-input" class="auth-input" list="cc-country-datalist" placeholder="Ex: France" required>
+                </label>
+                <datalist id="cc-country-datalist">
+                    ${COUNTRY_OPTIONS.map(c => `<option value="${c}">`).join("")}
+                </datalist>
+                <button type="submit" id="cc-country-submit-btn" class="btn primary" style="width:100%; margin-top: 1.5rem; padding: 14px; font-size: 1.05rem;">
+                    Enregistrer
+                </button>
+            </form>
+            <p id="cc-country-feedback" class="auth-feedback" style="margin-top: 0.8rem;"></p>
         </section>
     </div>
 </div>`;
@@ -1598,6 +1745,43 @@
             window.location.href = "dashboard.html";
         });
         ui.profileModal.querySelector("#cc-profile-later").addEventListener("click", () => closeProfileModal(true));
+
+        // Country info form submit
+        const countryForm = document.getElementById("cc-country-form");
+        if (countryForm) {
+            countryForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                const feedback = document.getElementById("cc-country-feedback");
+                const submitBtn = document.getElementById("cc-country-submit-btn");
+                try {
+                    if (feedback) {
+                        feedback.textContent = "Enregistrement...";
+                        feedback.style.color = "#aef6d2";
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = "Enregistrement...";
+                    }
+                    await submitCountryInfo();
+                    closeCountryInfoPopup();
+                    // After saving, redirect normally
+                    // If pendingNavigation is set (from registration/login flow), use it
+                    // Otherwise stay on current page
+                    const target = state.pendingNavigation || currentTarget();
+                    state.pendingNavigation = "";
+                    window.location.href = target;
+                } catch (err) {
+                    if (feedback) {
+                        feedback.textContent = err.message || "Erreur lors de l'enregistrement.";
+                        feedback.style.color = "#ffc8b7";
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = "Enregistrer";
+                    }
+                }
+            });
+        }
 
         ui.initialized = true;
     }
@@ -1924,6 +2108,18 @@
             openProfileCompletionGate(currentTarget());
         }
 
+        // Check if user needs to provide country info (for existing users logging in)
+        if (state.user && state.token) {
+            const needs = needsCountryInfo(state.user);
+            if (needs) {
+                const currentFileLower = currentFile();
+                // Don't show on auth.html or verification.html to avoid conflicts
+                if (currentFileLower !== "auth.html" && currentFileLower !== "verification.html") {
+                    openCountryInfoPopup(needs);
+                }
+            }
+        }
+
         if (activePage) {
             const links = Array.from(document.querySelectorAll(".main-nav .nav-link"));
             for (const link of links) {
@@ -1972,7 +2168,13 @@
         EXCHANGE_RATES,
         COUNTRY_CURRENCIES,
         COUNTRY_CALLING_CODES,
-        COUNTRY_OPTIONS
+        COUNTRY_OPTIONS,
+        // Country info popup helpers
+        isGoogleUser,
+        needsCountryInfo,
+        openCountryInfoPopup,
+        closeCountryInfoPopup,
+        submitCountryInfo
     };
 
     // Auto-init on DOMContentLoaded if not already done manually

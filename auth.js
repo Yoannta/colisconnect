@@ -9,6 +9,22 @@
         feedback.style.color = isError ? "#ffc8b7" : "#aef6d2";
     }
 
+    function afterAuthRedirect(user) {
+        // Check if user needs to provide country info first
+        const needs = window.CCCommon.needsCountryInfo(user);
+        if (needs) {
+            window.CCCommon.openCountryInfoPopup(needs);
+            return;
+        }
+
+        const completion = window.CCCommon.getProfileCompletion(user);
+        if (completion.percent < 75 && user?.role !== 'admin') {
+            window.location.href = window.CCCommon.nextPath("verification.html");
+        } else {
+            window.location.href = window.CCCommon.nextPath("dashboard.html");
+        }
+    }
+
     async function submitLogin(event) {
         event.preventDefault();
         const email = String(document.getElementById("login-email")?.value || "").trim();
@@ -23,12 +39,7 @@
         window.CCCommon.setSession(payload.token, payload.user);
         setFeedback("Connexion reussie.", false);
 
-        const completion = window.CCCommon.getProfileCompletion(payload.user);
-        if (completion.percent < 75 && payload.user?.role !== 'admin') {
-            window.location.href = window.CCCommon.nextPath("verification.html");
-        } else {
-            window.location.href = window.CCCommon.nextPath("dashboard.html");
-        }
+        afterAuthRedirect(payload.user);
     }
 
     async function submitRegister(event) {
@@ -49,12 +60,7 @@
         window.CCCommon.setSession(payload.token, payload.user);
         setFeedback("Inscription reussie.", false);
 
-        const completion = window.CCCommon.getProfileCompletion(payload.user);
-        if (completion.percent < 75 && role !== 'admin') {
-            window.location.href = window.CCCommon.nextPath("verification.html");
-        } else {
-            window.location.href = window.CCCommon.nextPath("dashboard.html");
-        }
+        afterAuthRedirect(payload.user);
     }
 
     function resetRegisterView() {
@@ -69,6 +75,12 @@
         await window.CCCommon.init();
 
         if (window.CCCommon.state.user && window.CCCommon.state.token) {
+            // Check if user needs to provide country info first
+            const needs = window.CCCommon.needsCountryInfo(window.CCCommon.state.user);
+            if (needs) {
+                window.CCCommon.openCountryInfoPopup(needs);
+                return;
+            }
             const completion = window.CCCommon.getProfileCompletion(window.CCCommon.state.user);
             if (completion.percent < 75 && window.CCCommon.state.user?.role !== 'admin') {
                 window.location.href = window.CCCommon.nextPath("verification.html");
