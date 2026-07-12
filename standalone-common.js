@@ -1053,17 +1053,9 @@
             const payload = await api("/api/auth/me");
             let userData = payload?.user || null;
 
-            // [FIX CRITIQUE] Si on a un utilisateur, on va chercher son profil complet chez Supabase
-            if (userData && userData.id && window.ccSupabase) {
-                const { data: profile } = await window.ccSupabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userData.id)
-                    .single();
-
-                if (profile) {
-                    userData = { ...userData, ...profile };
-                }
+            // [FIX CRITIQUE] Mise à jour du profil silencieuse (pas de blocage, pas de requête supplémentaire)
+            if (state.user && state.user.id && window.ccSupabase) {
+                // Ne pas re-fetch le profil ici, déjà fait dans /api/auth/me
             }
 
             setSession(state.token, userData);
