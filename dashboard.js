@@ -795,8 +795,17 @@
 
         // Client "Voir tous" propositions -> ouvre la modale de demande
         document.getElementById("client-voir-tous-propositions")?.addEventListener("click", () => {
-            const modal = document.getElementById("dashboard-demande-modal");
-            if (modal) modal.classList.remove("hidden");
+            const items = state.parcelRequests || [];
+            openVoirTousModal("Toutes les demandes", "Demandes", items, (item, i) => `
+                <div class="cargo-file-item" data-parcel-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="cargo-file-index">${i + 1}</div>
+                    <div class="file-content">
+                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
+                        <div class="file-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
+                    </div>
+                    <button class="cargo-file-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                </div>
+            `);
         });
 
 
@@ -924,6 +933,51 @@
                         els.voirTousModal?.classList.add("hidden");
                         loadCargoDashboard();
                     } catch (e) { alert("Erreur: " + (e.message || "")); }
+                }
+                return;
+            }
+            // Modifier demande de trajet depuis la popup
+            const editParcelBtn = event.target.closest("[data-edit-parcel]");
+            if (editParcelBtn) {
+                const parcelId = editParcelBtn.getAttribute("data-edit-parcel");
+                if (!parcelId) return;
+                const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId) ||
+                    (window.ccSupabase ? (await window.ccSupabase.from("parcel_requests").select("*").eq("id", parcelId).single()).data : null);
+                if (!parcel) return;
+                els.voirTousModal?.classList.add("hidden");
+                const newOrigin = prompt("Pays de depart:", parcel.origin || "");
+                if (!newOrigin) return;
+                const newDest = prompt("Pays d arrivee:", parcel.destination || "");
+                if (!newDest) return;
+                const newKg = prompt("Kilos:", parcel.weight_kg || "");
+                if (!newKg) return;
+                const newDesc = prompt("Description du colis:", parcel.description || "");
+                if (!newDesc) return;
+                const newDate = prompt("Date limite (YYYY-MM-DD) ou laisser vide:", parcel.needed_by_date || "");
+                try {
+                    if (window.ccSupabase) {
+                        await window.ccSupabase.from("parcel_requests").update({
+                            origin: newOrigin,
+                            destination: newDest,
+                            weight_kg: parseInt(newKg, 10),
+                            description: newDesc,
+                            needed_by_date: newDate || null,
+                            updated_at: new Date().toISOString()
+                        }).eq("id", parcelId);
+                    }
+                    loadClientDashboard();
+                } catch (e) {
+                    alert("Erreur lors de la modification.");
+                }
+                return;
+            }
+            // Bouton "Voir" ou "Repondre" dans la popup → ouvre la discussion
+            const openThreadBtn = event.target.closest("[data-open-thread]");
+            if (openThreadBtn) {
+                const threadId = openThreadBtn.getAttribute("data-open-thread");
+                if (threadId) {
+                    els.voirTousModal?.classList.add("hidden");
+                    openChatPage(threadId);
                 }
                 return;
             }
