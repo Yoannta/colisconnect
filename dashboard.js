@@ -1119,8 +1119,21 @@
         switchDashboardView(profileType);
 
         // Activer le toggle par défaut
+        document.querySelectorAll(".dash-toggle").forEach(b => b.classList.remove("active"));
         const defaultToggle = document.querySelector(`.dash-toggle[data-switch="${profileType}"]`);
         if (defaultToggle) defaultToggle.classList.add("active");
+
+        // Afficher/masquer les toggles selon le profile_type reel
+        document.querySelectorAll(".dash-toggle").forEach(b => {
+            const sw = b.getAttribute("data-switch");
+            if (profileType === "cargo") {
+                b.classList.remove("hidden"); // Tous visibles
+            } else if (profileType === "traveler") {
+                b.classList.toggle("hidden", sw === "cargo"); // Masquer cargo seulement
+            } else {
+                b.classList.add("hidden"); // Client: masquer tout
+            }
+        });
 
         if (els.dashboardUser) {
             els.dashboardUser.textContent = user?.fullName || "Voyageur";
