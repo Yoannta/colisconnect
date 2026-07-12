@@ -1492,6 +1492,15 @@ label {
     box-shadow: 0 0 15px rgba(19, 236, 200, 0.2);
 }
 
+input[data-country-select="true"] {
+    cursor: pointer;
+    caret-color: transparent;
+}
+
+input[data-country-select="true"]::placeholder {
+    color: rgba(232, 244, 241, 0.58);
+}
+
 .auth-divider {
     display: flex;
     align-items: center;

@@ -610,6 +610,7 @@
                 if (p.includes("scope=mine")) {
                     query = window.ccSupabase.from('offers').select('*');
                 } else {
+                    // Jointure profiles seulement si l'utilisateur est connecté (sinon RLS bloque)
                     query = window.ccSupabase.from('offers').select('*, profiles!offers_user_id_fkey(full_name, is_verified, profile_type)');
                 }
                 if (p.includes("scope=mine")) {

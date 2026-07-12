@@ -54,21 +54,42 @@
         return String(text || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     }
 
+    function isCountrySelect(input) {
+        const listId = String(input.getAttribute("list") || "");
+        const id = String(input.id || "");
+        const name = String(input.name || "");
+        const placeholder = String(input.getAttribute("placeholder") || "");
+        const labelText = String(input.closest("label")?.textContent || "");
+        const explicit = input.dataset.countrySelect === "true" || input.classList.contains("country-select-input");
+        const countryList = /country|pays|destination-list|demande-country|offer-country/i.test(listId);
+        const countryField = /country|origin|destination|departure|dest|est-origin|est-dest|demande/i.test(`${id} ${name}`);
+        const countryCopy = /pays|destination|arriv|depart|départ|choisir un pays/i.test(`${placeholder} ${labelText}`);
+        return explicit || (countryList && (countryField || countryCopy));
+    }
+
     function attach(input) {
         const listId = input.getAttribute("list");
         if (!listId || input.dataset.ccAutoAttached === "true") return;
 
         const datalist = document.getElementById(listId);
         if (!datalist) return;
+        const countrySelect = isCountrySelect(input);
 
         // Détachement du système natif pour éviter les conflits
         input.removeAttribute("list");
         input.setAttribute("autocomplete", "off");
         input.dataset.ccAutoAttached = "true";
+        if (countrySelect) {
+            input.dataset.countrySelect = "true";
+            input.readOnly = true;
+            input.setAttribute("aria-haspopup", "listbox");
+            input.setAttribute("role", "combobox");
+        }
 
         let container = null;
         let originalOptions = [];
         let selectedIndex = -1;
+        let isSelecting = false;
 
         const syncOptions = () => {
             const current = Array.from(datalist.options).map(o => o.value);
@@ -86,9 +107,11 @@
         };
 
         const selectItem = (val) => {
+            isSelecting = true;
             input.value = val;
             input.dispatchEvent(new Event('input', { bubbles: true }));
             input.dispatchEvent(new Event('change', { bubbles: true }));
+            isSelecting = false;
             closeMenu();
         };
 
@@ -137,13 +160,25 @@
         };
 
         input.addEventListener('input', (e) => {
+            if (countrySelect && !isSelecting) {
+                input.value = "";
+                selectedIndex = -1;
+                renderItems("");
+                return;
+            }
             selectedIndex = -1;
             renderItems(e.target.value);
         });
 
         input.addEventListener('focus', () => {
             syncOptions();
-            renderItems(input.value);
+            renderItems(countrySelect ? "" : input.value);
+        });
+
+        input.addEventListener('click', () => {
+            if (!countrySelect) return;
+            syncOptions();
+            renderItems("");
         });
 
         input.addEventListener('blur', () => {
@@ -152,8 +187,16 @@
         });
 
         input.addEventListener('keydown', (e) => {
+            if (countrySelect && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                renderItems("");
+                return;
+            }
             if (!container) {
-                if (e.key === "ArrowDown" || e.key === "ArrowUp") renderItems(input.value);
+                if (e.key === "ArrowDown" || e.key === "ArrowUp" || e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    renderItems(countrySelect ? "" : input.value);
+                }
                 return;
             }
             const items = container.querySelectorAll('.cc-autocomplete-item');
@@ -161,11 +204,11 @@
             if (e.key === "ArrowDown") {
                 e.preventDefault();
                 selectedIndex = (selectedIndex + 1) % items.length;
-                renderItems(input.value);
+                renderItems(countrySelect ? "" : input.value);
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
                 selectedIndex = (selectedIndex - 1 + items.length) % items.length;
-                renderItems(input.value);
+                renderItems(countrySelect ? "" : input.value);
             } else if (e.key === "Enter") {
                 if (selectedIndex > -1 && items[selectedIndex]) {
                     e.preventDefault();
