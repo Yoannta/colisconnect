@@ -344,7 +344,7 @@
 
     function switchDashboardView(profileType) {
         const isTraveler = profileType === "traveler";
-        const isCargo = viewType === "cargo";
+        const isCargo = profileType === "cargo";
         const isClient = profileType === "client";
         state.currentView = isCargo ? "cargo" : (isTraveler ? "traveler" : "client");
 
