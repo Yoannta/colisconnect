@@ -1194,3 +1194,68 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 4. Paiements - volume mensuel, reversements
 5. Confiance/SLA - taux de réponse aux messages
 6. Progression d'offres - barre liée au nombre d'offres actives / 5
+
+---
+
+## 📋 Modifications récentes (10-12 Juillet 2026)
+
+### 🔐 Sécurité
+- RLS `profiles` : restreint aux utilisateurs connectés (les emails ne sont plus publics)
+- RLS `parcel_requests` : corrigé `status IN ('open','pending')` car le code utilise `pending`
+- Audit complet des politiques RLS sur toutes les tables — tout est sécurisé
+
+### ⚡ Performance
+- **10 indexes** créés sur `offers`, `reservations`, `chat_threads` (user_id, status, departure_date)
+- `loadCargoDashboard()` : appels API parallélisés avec `Promise.all()`
+- Jointure `profiles` ignorée quand `scope=mine` (pas besoin du nom du propriétaire pour ses propres offres)
+- Requête `profiles` dupliquée supprimée dans `restoreSession()` (-1 appel Supabase par page)
+- Polling notifications inutile désactivé (`startNotifPolling` retournait toujours `{chatUnread:0}`)
+- **Cold start Supabase** identifié comme cause principale de lenteur (free tier, ~25s au réveil)
+
+### 🧹 Nettoyage
+- **11 fichiers orphelins supprimés** : `avancement.html`, `miracle.html`, `dashboard-concepts.html`, `approvals.html`, `messages.html`, `result.html`, `proposer.html`, `main.js`, `script.js`, `playwright-report/` (~700 KB)
+- Fonctions de modération IA conservées pour utilisation future
+
+### 🎛️ Système de Toggle Universel
+- **3 boutons de bascule** dans le héros pour cargo : `[Côté chercheur voyage]` `[Côté voyageur]` `[Côté cargo]`
+- **2 boutons** pour voyageur (cargo masqué), **aucun** pour client
+- Visibilité liée au `profile_type` réel (persiste même en changeant de vue)
+- CSS rigide : `flex: 0 0 55%`, `min-height: 280px`, tailles fixes en px, `transition: none`
+
+### 📊 Dashboard Cargo
+- Section "Gestion de mes trajets" avec popup "Voir tous" (filtre les archivés)
+- Statut basé sur le vrai `status` de l'offre (pas seulement `available_kg`)
+- Boutons Modifier/Supprimer fonctionnels dans la popup
+- Demande cargo : affiche le nom du client ET le trajet (`Yao | Cameroun → France`)
+- Cercle "+" redirige vers `post_trip.html`
+
+### 📦 Dashboard Client
+- Section "Gestion de mes colis" : réservations `paid/en_cours/livre` avec statut et bouton "Livrer"
+- Clic sur une ligne → ouvre la discussion liée
+- Nom du voyageur affiché, trouvé via `state.clientConversations`
+- "Mes demandes de trajet" : popup avec liste complète et bouton "Modifier"
+- Modale de modification avec formulaire (plus de `prompt()`)
+- Modale de création de demande (pays, date, kg, description) → insertion `parcel_requests`
+
+### 💬 Chat & Paiement
+- Webhook `payment-webhook` corrigé : accepte `status: "completed"` (GeniusPay V3)
+- Handler `payment=success` dans `bootstrap` met à jour le statut "paid" + envoie reçu dans le chat
+- Validation kg assouplie si `available_kg` inconnu (permet de payer même si offre non chargée)
+
+### 🎨 UI/UX
+- Photo de profil persistante via Supabase (`profile_photo` dans `profiles`)
+- Cercle avatar 144px, upload via `FileReader` + sauvegarde dans Supabase
+- "Bienvenue, NOM" affiche `full_name` (plus l'email)
+- Formulaire `post_trip.html` : boutons "Voyageur simple" / "Entreprise cargo" avant les champs
+- Kilos masqués pour les entreprises cargo
+- Titres renommés : "Gestion de mes trajets", "Gestion de mes colis"
+- Boutons "Voir tous" dans toutes les sections avec popup modale générique
+- Listes limitées en hauteur (`max-height: 280px`) avec scroll
+
+### 🛠️ Corrections de bugs
+- Colonnes tableau opérations cargo alignées avec `display: contents` + grid
+- Fonction `renderClientRequests` dupliquée supprimée (causait "viewType is not defined")
+- Nom du user : fallback `full_name` (pas `email`)
+- Colonne `needed_by_date` rendue nullable (bloquait l'insertion de demandes sans date)
+- Syntaxe TypeScript `as any` nettoyée dans `chat.js`
+
