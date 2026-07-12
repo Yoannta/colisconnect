@@ -3168,6 +3168,8 @@ label {
 
 /* Toggle dashboard - rigide, immuable */
 .dashboard-page .dash-toggle {
+    position: relative;
+    z-index: 1;
     flex: 1;
     min-width: 84px;
     height: 38px;
@@ -3195,10 +3197,11 @@ label {
 }
 
 .dashboard-page .dash-toggle.active {
-    background: rgba(19, 236, 200, 0.15);
-    border-color: var(--emerald-bright);
+    background: transparent;
+    border-color: rgba(19, 236, 200, 0.72);
     color: var(--emerald-bright);
     font-weight: 700;
+    text-shadow: 0 0 10px rgba(19, 236, 200, 0.42);
 }
 
 /* Stats cards uniformisées */
@@ -4145,6 +4148,51 @@ label {
     border: 1px solid rgba(19, 236, 200, 0.18);
     border-radius: 16px;
     background: rgba(5, 9, 10, 0.36);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-page .dashboard-toggles::before {
+    content: "";
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(100% - 8px);
+    border-radius: 12px;
+    background:
+        radial-gradient(circle at 50% 50%, rgba(19, 236, 200, 0.32), transparent 70%),
+        linear-gradient(135deg, rgba(19, 236, 200, 0.28), rgba(107, 200, 255, 0.16));
+    border: 1px solid rgba(19, 236, 200, 0.55);
+    box-shadow: 0 0 18px rgba(19, 236, 200, 0.28), inset 0 0 12px rgba(19, 236, 200, 0.12);
+    opacity: 0;
+    transform: translateZ(0);
+    transition: left 0.28s ease, width 0.28s ease, opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.dashboard-page .dashboard-toggles.has-active-toggle::before {
+    opacity: 1;
+}
+
+.dashboard-page .dashboard-toggles.toggle-count-2::before {
+    width: calc((100% - 8px) / 2);
+}
+
+.dashboard-page .dashboard-toggles.toggle-count-3::before {
+    width: calc((100% - 8px) / 3);
+}
+
+.dashboard-page .dashboard-toggles.toggle-count-2.toggle-index-1::before {
+    left: calc(4px + (100% - 8px) / 2);
+}
+
+.dashboard-page .dashboard-toggles.toggle-count-3.toggle-index-1::before {
+    left: calc(4px + (100% - 8px) / 3);
+}
+
+.dashboard-page .dashboard-toggles.toggle-count-3.toggle-index-2::before {
+    left: calc(4px + (100% - 8px) / 3 + (100% - 8px) / 3);
 }
 
 .dashboard-page .btn-yellow {
@@ -4803,7 +4851,7 @@ label {
         grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 4px;
         padding: 4px;
-        overflow: visible;
+        overflow: hidden;
     }
 
     .mobile-mode .dashboard-page .dash-toggle {

@@ -360,6 +360,23 @@
             els.cargoView.classList.toggle("is-active", isCargo);
             els.cargoView.classList.toggle("hidden", !isCargo);
         }
+        updateDashboardToggleState(state.currentView);
+    }
+
+    function updateDashboardToggleState(viewType) {
+        const activeView = viewType || state.currentView || "client";
+        document.querySelectorAll(".dash-toggle").forEach((button) => {
+            button.classList.toggle("active", button.getAttribute("data-switch") === activeView);
+        });
+
+        document.querySelectorAll(".dashboard-toggles").forEach((group) => {
+            const visibleButtons = Array.from(group.querySelectorAll(".dash-toggle")).filter((button) => !button.classList.contains("hidden"));
+            const activeIndex = visibleButtons.findIndex((button) => button.getAttribute("data-switch") === activeView);
+            group.classList.remove("toggle-count-1", "toggle-count-2", "toggle-count-3", "toggle-index-0", "toggle-index-1", "toggle-index-2");
+            group.classList.add(`toggle-count-${Math.min(Math.max(visibleButtons.length, 1), 3)}`);
+            group.classList.add(`toggle-index-${Math.min(Math.max(activeIndex, 0), 2)}`);
+            group.classList.toggle("has-active-toggle", activeIndex >= 0 && visibleButtons.length > 0);
+        });
     }
 
     async function loadClientDashboard() {
@@ -645,8 +662,6 @@
                 const target = btn.getAttribute("data-switch");
                 if (target) switchDashboardView(target);
                 // Mettre à jour l'etat actif sur tous les toggles
-                document.querySelectorAll(".dash-toggle").forEach(b => b.classList.remove("active"));
-                document.querySelectorAll(`.dash-toggle[data-switch="${target}"]`).forEach(b => b.classList.add("active"));
                 // Recharger le contenu du dashboard
                 loadDashboard();
             });
@@ -1134,6 +1149,7 @@
                 b.classList.add("hidden"); // Client: masquer tout
             }
         });
+        updateDashboardToggleState(state.currentView);
 
         if (els.dashboardUser) {
             els.dashboardUser.textContent = user?.fullName || "Voyageur";
