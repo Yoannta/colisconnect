@@ -793,20 +793,18 @@
             els.voirTousModal.classList.remove("hidden");
         }
 
-        // Client "Voir tous" propositions
+        // Client "Voir tous" propositions -> ouvre la modale de demande
         document.getElementById("client-voir-tous-propositions")?.addEventListener("click", () => {
-            const items = state.parcelRequests || [];
-            openVoirTousModal("Toutes les demandes", "Demandes", items, (item, i) => `
-                <div class="cargo-file-item" data-parcel-id="${window.CCCommon.escapeHtml(item.id)}">
-                    <div class="cargo-file-index">${i + 1}</div>
-                    <div class="file-content">
-                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                        <div class="file-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
-                    </div>
-                    <button class="cargo-file-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
-                </div>
-            `);
+            const modal = document.getElementById("dashboard-demande-modal");
+            if (modal) modal.classList.remove("hidden");
         });
+
+
+
+
+
+
+
 
         // Client "Voir tous" discussions
         document.getElementById("client-voir-tous-discussions")?.addEventListener("click", () => {
@@ -895,7 +893,8 @@
 
         // Client cercle + nouvelle proposition
         document.querySelector(".client-plus-btn")?.addEventListener("click", () => {
-            window.location.href = "post_trip.html";
+            const modal = document.getElementById("dashboard-demande-modal");
+            if (modal) modal.classList.remove("hidden");
         });
 
         // Cargo "Voir tous" demandes (conserve l'ancienne modale cargo)
@@ -1100,6 +1099,71 @@
         if (countryDatalist && countryOptions.length) {
             countryDatalist.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
+
+        // Remplir le datalist des pays pour la modale demande de trajet
+        const dashDemandeList = document.getElementById("dash-demande-country-list");
+        if (dashDemandeList && countryOptions.length) {
+            dashDemandeList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
+        }
+
+        // Evenements modale demande de trajet dashboard
+        document.getElementById("close-dashboard-demande-modal")?.addEventListener("click", () => {
+            document.getElementById("dashboard-demande-modal")?.classList.add("hidden");
+        });
+        document.getElementById("dashboard-demande-modal")?.addEventListener("click", (e) => {
+            if (e.target === document.getElementById("dashboard-demande-modal")) {
+                document.getElementById("dashboard-demande-modal")?.classList.add("hidden");
+            }
+        });
+        document.getElementById("dash-demande-no-date-btn")?.addEventListener("click", () => {
+            document.getElementById("dash-demande-date").value = "";
+        });
+        document.getElementById("dash-demande-submit-btn")?.addEventListener("click", async () => {
+            const origin = document.getElementById("dash-demande-origin")?.value?.trim();
+            const destination = document.getElementById("dash-demande-destination")?.value?.trim();
+            const kg = parseInt(document.getElementById("dash-demande-kg")?.value, 10);
+            const description = document.getElementById("dash-demande-description")?.value?.trim();
+            const dateLimite = document.getElementById("dash-demande-date")?.value || null;
+            if (!origin || !destination || !kg || !description) {
+                alert("Veuillez remplir tous les champs.");
+                return;
+            }
+            const feedback = document.getElementById("dash-demande-feedback");
+            const submitBtn = document.getElementById("dash-demande-submit-btn");
+            try {
+                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi..."; }
+                if (window.ccSupabase) {
+                    const userId = window.CCCommon.state?.user?.id;
+                    if (!userId) {
+                        alert("Vous devez etre connecte.");
+                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+                        return;
+                    }
+                    const { error } = await window.ccSupabase.from("parcel_requests").insert({
+                        user_id: userId,
+                        title: `Demande ${origin} -> ${destination}`,
+                        origin,
+                        destination,
+                        weight_kg: kg,
+                        needed_by_date: dateLimite || null,
+                        description,
+                        status: "pending"
+                    });
+                    if (error) throw error;
+                }
+                if (feedback) feedback.classList.remove("hidden");
+                if (submitBtn) submitBtn.classList.add("hidden");
+                setTimeout(() => {
+                    document.getElementById("dashboard-demande-modal")?.classList.add("hidden");
+                    // Recharger le dashboard pour afficher la nouvelle demande
+                    loadClientDashboard();
+                }, 1500);
+            } catch (err) {
+                console.error("Erreur:", err);
+                alert("Erreur: " + (err.message || "Impossible de soumettre."));
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+            }
+        });
 
         await loadDashboard();
     }

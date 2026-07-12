@@ -157,7 +157,6 @@
                             Verifier mon identite
                             <span class="identite-steps" id="client-identite-steps">0/2</span>
                         </button>
-                        <a href="post_trip.html" class="btn secondary btn-lg">Lancer un appel</a>
                     </div>
                 </div>
 
@@ -431,6 +430,45 @@
                 </div>
                 <div id="voir-tous-list" class="cargo-file-list">
                     <div class="loading-state">Chargement...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE DEMANDE DE TRAJET (dashboard client) -->
+    <div id="dashboard-demande-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card demande-modal-card">
+            <button class="close-modal" id="close-dashboard-demande-modal">x</button>
+            <div>
+                <h2 style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Demande de trajet</h2>
+                <p class="demande-subtitle">Un voyageur vous contactera si votre demande l interesse.</p>
+                <div class="demande-form">
+                    <div class="demande-field">
+                        <label for="dash-demande-origin">Pays de depart</label>
+                        <input type="text" id="dash-demande-origin" class="demande-input" list="dash-demande-country-list" placeholder="Ex: France" autocomplete="off">
+                    </div>
+                    <div class="demande-field">
+                        <label for="dash-demande-destination">Pays d arrivee</label>
+                        <input type="text" id="dash-demande-destination" class="demande-input" list="dash-demande-country-list" placeholder="Ex: Senegal" autocomplete="off">
+                    </div>
+                    <datalist id="dash-demande-country-list"></datalist>
+                    <div class="demande-field">
+                        <label>Date limite</label>
+                        <div class="demande-date-row">
+                            <input type="date" id="dash-demande-date" class="demande-input" style="flex:1;">
+                            <button type="button" class="demande-date-alt" id="dash-demande-no-date-btn">Pas de date limite</button>
+                        </div>
+                    </div>
+                    <div class="demande-field">
+                        <label for="dash-demande-kg">Environ combien de kilos ?</label>
+                        <input type="number" id="dash-demande-kg" class="demande-input" placeholder="Ex: 10" min="1">
+                    </div>
+                    <div class="demande-field">
+                        <label for="dash-demande-description">Decrivez le colis (nom, categorie, type)</label>
+                        <textarea id="dash-demande-description" class="demande-input demande-textarea" rows="3" placeholder="Ex: Electronique, vetements, documents..."></textarea>
+                    </div>
+                    <button type="button" class="demande-submit" id="dash-demande-submit-btn">Faire la demande</button>
+                    <p id="dash-demande-feedback" class="hidden demande-feedback">✅ Un voyageur vous contactera.</p>
                 </div>
             </div>
         </div>
