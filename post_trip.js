@@ -629,11 +629,10 @@
             document.getElementById("btn-cargo-choice")?.classList.remove("selected");
             selectedTransportMode = null;
 
-            // Afficher les champs additionnels + cacher le groupe kilos si cargo
             document.getElementById("trip-extra-fields")?.classList.remove("hidden");
             document.getElementById("kilos-group")?.classList.remove("hidden");
-
-            // Le profil sera mis à jour APRÈS la publication réussie
+            document.getElementById("transport-mode-section").style.display = "none";
+            document.querySelectorAll(".transport-mode-btn").forEach(b => b.classList.remove("selected"));
         });
 
         document.getElementById("btn-cargo-choice")?.addEventListener("click", () => {
@@ -641,11 +640,9 @@
             document.getElementById("btn-cargo-choice").classList.add("selected");
             document.getElementById("btn-traveler-choice")?.classList.remove("selected");
 
-            // Afficher les champs additionnels + cacher le groupe kilos
             document.getElementById("trip-extra-fields")?.classList.remove("hidden");
             document.getElementById("kilos-group")?.classList.add("hidden");
-
-            // Le profil sera mis à jour APRÈS la publication réussie
+            document.getElementById("transport-mode-section").style.display = "block";
         });
 
         els.choiceCargo?.addEventListener("click", () => {
@@ -661,6 +658,15 @@
         els.modalTransportBtns?.forEach(btn => {
             btn.addEventListener("click", () => {
                 els.modalTransportBtns.forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+                selectedTransportMode = btn.dataset.mode;
+            });
+        });
+
+        // Sélection du mode de transport (inline dans le formulaire)
+        document.querySelectorAll(".transport-mode-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                document.querySelectorAll(".transport-mode-btn").forEach(b => b.classList.remove("selected"));
                 btn.classList.add("selected");
                 selectedTransportMode = btn.dataset.mode;
             });
