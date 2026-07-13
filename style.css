@@ -8297,6 +8297,14 @@ input[data-country-select="true"]::placeholder {
     position: relative;
     display: flex;
     align-items: center;
+    border: 1px solid #0f3838;
+    border-radius: 10px;
+    background: #031414;
+    transition: border-color 0.2s;
+}
+
+.cc-input-wrapper:focus-within {
+    border-color: #00a3a3;
 }
 
 .cc-autocomplete-input {
@@ -8305,8 +8313,8 @@ input[data-country-select="true"]::placeholder {
     box-sizing: border-box;
     cursor: text !important;
     background: transparent !important;
-    border: none !important;
-    outline: none !important;
+    border: none;
+    outline: none;
 }
 
 .cc-autocomplete-input::-webkit-calendar-picker-indicator {
