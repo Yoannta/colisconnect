@@ -2587,7 +2587,9 @@
         setupAllCountryInputs,
         // Location fields generator (pays + ville)
         initLocationFields,
-        addCityAfterCountry
+        addCityAfterCountry,
+        // Diagnostic
+        _getCountryCode
     };
 
     // Auto-init on DOMContentLoaded if not already done manually
