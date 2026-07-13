@@ -88,7 +88,18 @@
                 </article>
 
                 <form id="verification-form" class="form-card">
-                    <h3>Informations de verification</h3>
+                    <h3>Informations personnelles</h3>
+                    <label>Prénom
+                        <input id="verification-firstname" type="text" placeholder="Jean">
+                    </label>
+                    <label>Nom
+                        <input id="verification-lastname" type="text" placeholder="Dupont">
+                    </label>
+                    <label>Pays de résidence
+                        <input id="verification-country" type="text" list="verification-country-list" placeholder="Ex: France">
+                    </label>
+                    <datalist id="verification-country-list"></datalist>
+                    <h3 style="margin-top: 24px;">Verification</h3>
                     <label>Numero de telephone
                         <input id="verification-phone" type="tel" placeholder="+33 6 00 00 00 00"
                             list="verification-phone-codes">
@@ -96,11 +107,8 @@
                     <label>Piece justificative (photo CNI/Passeport)
                         <input id="verification-id-document" type="file" accept="image/png,image/jpeg,image/webp">
                     </label>
-                    <label>Photo de profil
-                        <input id="verification-photo" type="file" accept="image/png,image/jpeg,image/webp">
-                    </label>
                     <p id="verification-feedback" class="auth-feedback"></p>
-                    <button type="submit" class="btn primary">Enregistrer</button>
+                    <button type="submit" class="btn primary" style="margin-top: 8px;">Enregistrer les modifications</button>
                     <div style="margin-top: 1rem; text-align: center;">
                         <button type="button"
                             onclick="window.CCCommon.setSession(null, null); window.location.href='index.html';"

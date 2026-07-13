@@ -1,9 +1,11 @@
 (() => {
     const els = {
         form: document.getElementById("verification-form"),
+        firstname: document.getElementById("verification-firstname"),
+        lastname: document.getElementById("verification-lastname"),
+        country: document.getElementById("verification-country"),
         phone: document.getElementById("verification-phone"),
         idDocument: document.getElementById("verification-id-document"),
-        photo: document.getElementById("verification-photo"),
         feedback: document.getElementById("verification-feedback"),
         progressValue: document.getElementById("verification-progress-value"),
         progressLabel: document.getElementById("verification-progress-label"),
@@ -25,7 +27,6 @@
         const labels = [];
         if (missing.includes("phoneNumber")) labels.push("numero de telephone");
         if (missing.includes("identityDocument")) labels.push("piece justificative");
-        if (missing.includes("profilePhoto")) labels.push("photo de profil");
         return labels;
     }
 
@@ -52,6 +53,18 @@
                     : `Il manque: ${missing.join(", ")}.`;
         }
 
+        // Pre-fill fields with existing user data
+        const fullName = user?.fullName || user?.full_name || "";
+        const spaceIdx = fullName.lastIndexOf(" ");
+        if (els.firstname && !els.firstname.value) {
+            els.firstname.value = spaceIdx > 0 ? fullName.substring(0, spaceIdx) : fullName;
+        }
+        if (els.lastname && !els.lastname.value) {
+            els.lastname.value = spaceIdx > 0 ? fullName.substring(spaceIdx + 1) : "";
+        }
+        if (els.country && !els.country.value) {
+            els.country.value = user?.country || user?.user_metadata?.country || "";
+        }
         if (els.phone && !els.phone.value) {
             els.phone.value = String(user?.phoneNumber || "");
         }
@@ -96,6 +109,29 @@
         if (!window.CCCommon.requireAuth("verification.html")) return;
 
         const body = {};
+
+        // Prénom + Nom → fullName
+        const firstname = String(els.firstname?.value || "").trim();
+        const lastname = String(els.lastname?.value || "").trim();
+        if (firstname && lastname) {
+            body.fullName = `${firstname} ${lastname}`;
+        } else if (firstname) {
+            body.fullName = firstname;
+        }
+
+        // Pays de résidence
+        const country = String(els.country?.value || "").trim();
+        if (country) {
+            // Valider que le pays est dans la liste officielle
+            const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const isValid = (window.CCCommon.COUNTRY_OPTIONS || []).some(c => norm(c) === norm(country));
+            if (!isValid) {
+                setFeedback("Veuillez choisir un pays valide dans la liste.");
+                return;
+            }
+            body.country = country;
+        }
+
         const phone = String(els.phone?.value || "").trim();
         if (phone) body.phoneNumber = phone;
 
@@ -103,12 +139,6 @@
         if (idFile) {
             if (idFile.size > 2_500_000) throw new Error("Piece justificative trop lourde (max 2.5MB).");
             body.identityDocumentData = await fileToDataUrl(idFile);
-        }
-
-        const photoFile = els.photo?.files?.[0];
-        if (photoFile) {
-            if (photoFile.size > 2_500_000) throw new Error("Photo trop lourde (max 2.5MB).");
-            body.profilePhotoData = await fileToDataUrl(photoFile);
         }
 
         if (!Object.keys(body).length) {
@@ -119,7 +149,7 @@
         const submitBtn = els.form.querySelector('button[type="submit"]');
         const originalText = submitBtn.textContent;
         submitBtn.disabled = true;
-        submitBtn.textContent = "Transmission...";
+        submitBtn.textContent = "Enregistrement...";
 
         try {
             const payload = await window.CCCommon.api("/api/users/me/profile", {
@@ -132,7 +162,7 @@
             renderProgress(payload?.user || null);
             const completion = window.CCCommon.getProfileCompletion(payload?.user || null);
 
-            if (idFile || photoFile) {
+            if (idFile) {
                 if (els.waitModal) {
                     els.waitModal.classList.remove("hidden");
                     els.waitModalBtn.onclick = () => {
@@ -188,6 +218,14 @@
         if (!window.CCCommon.requireAuth("verification.html")) return;
         renderProgress(window.CCCommon.state.user);
         await loadAdminMessages();
+
+        // Populate country datalist
+        const countryList = document.getElementById("verification-country-list");
+        const countryOptions = window.CCCommon.COUNTRY_OPTIONS || [];
+        if (countryList && countryOptions.length) {
+            countryList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
+        }
+
         bindEvents();
     }
 
