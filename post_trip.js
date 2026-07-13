@@ -61,19 +61,9 @@
     let selectedProfileTypeChoice = null;
     let selectedTransportMode = null;
 
+    // Ne fait plus rien immédiatement — le profil est mis à jour APRÈS publication
     async function updateProfileType(type) {
-        if (!type) return;
-        try {
-            const response = await window.CCCommon.api('/users/me/profile', {
-                method: 'PATCH',
-                body: { profileType: type }
-            });
-            if (response.success && window.CCCommon.state?.user) {
-                window.CCCommon.state.user.profile_type = type;
-            }
-        } catch (err) {
-            console.warn("Impossible de mettre à jour le profil:", err);
-        }
+        // Inutilisé : la mise à jour se fait dans proceedSubmitTrip()
     }
 
     // Initialisation dynamique des réseaux via API
@@ -437,6 +427,22 @@
         try {
             const created = await window.CCCommon.api("/api/offers", { method: "POST", body: payload });
             alert(`Offre publiee vers ${created?.destination || payload.destination}.`);
+
+            // Mise à jour du profil APRÈS publication réussie
+            if (selectedProfileTypeChoice) {
+                try {
+                    await window.CCCommon.api('/users/me/profile', {
+                        method: 'PATCH',
+                        body: { profileType: selectedProfileTypeChoice }
+                    });
+                    if (window.CCCommon.state?.user) {
+                        window.CCCommon.state.user.profile_type = selectedProfileTypeChoice;
+                    }
+                } catch (e) {
+                    console.warn("Profil non mis à jour:", e);
+                }
+            }
+
             els.form?.reset();
             localStorage.removeItem("cc_trip_draft");
             paymentState.selectedMethod = null;
@@ -557,8 +563,7 @@
             document.getElementById("trip-extra-fields")?.classList.remove("hidden");
             document.getElementById("kilos-group")?.classList.remove("hidden");
 
-            // Mettre à jour le profil via API
-            updateProfileType("traveler");
+            // Le profil sera mis à jour APRÈS la publication réussie
         });
 
         document.getElementById("btn-cargo-choice")?.addEventListener("click", () => {
@@ -570,8 +575,7 @@
             document.getElementById("trip-extra-fields")?.classList.remove("hidden");
             document.getElementById("kilos-group")?.classList.add("hidden");
 
-            // Mettre à jour le profil via API
-            updateProfileType("cargo");
+            // Le profil sera mis à jour APRÈS la publication réussie
         });
 
         els.choiceCargo?.addEventListener("click", () => {
@@ -594,36 +598,9 @@
 
         els.confirmProfileTypeBtn?.addEventListener("click", async () => {
             if (!selectedProfileTypeChoice) return;
-
-            if (els.confirmProfileTypeBtn) {
-                els.confirmProfileTypeBtn.disabled = true;
-                els.confirmProfileTypeBtn.textContent = "Configuration...";
-            }
-
-            try {
-                const response = await window.CCCommon.api('/users/me/profile', {
-                    method: 'PATCH',
-                    body: { profileType: selectedProfileTypeChoice }
-                });
-
-                if (response.success) {
-                    if (window.CCCommon.state?.user) {
-                        window.CCCommon.state.user.profile_type = selectedProfileTypeChoice;
-                    }
-                    els.profileTypeModal?.classList.add("hidden");
-                    // Relancer la soumission
-                    await proceedSubmitTrip();
-                } else {
-                    alert("Erreur lors de la configuration du profil.");
-                }
-            } catch (err) {
-                alert(err.message || "Erreur lors de la configuration du profil. Veuillez réessayer.");
-            } finally {
-                if (els.confirmProfileTypeBtn) {
-                    els.confirmProfileTypeBtn.disabled = false;
-                    els.confirmProfileTypeBtn.textContent = "Confirmer mon choix";
-                }
-            }
+            els.profileTypeModal?.classList.add("hidden");
+            // Plus de mise à jour immédiate du profil — se fait après publication
+            await proceedSubmitTrip();
         });
     }
 

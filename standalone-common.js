@@ -531,18 +531,23 @@
                 const mappedBody = {};
                 for (const k in options.body) { mappedBody[mapping[k] || k] = options.body[k]; }
 
-                // Validation & règles de transition de profil type
+                // Validation & règles de transition de profil type (non-regression)
                 if (mappedBody.profile_type !== undefined) {
                     const currentType = state.user?.profile_type || null;
                     const nextType = mappedBody.profile_type;
 
-                    if (nextType === 'client') {
-                        // Impossible de repasser à un grade inférieur (qui est déjà classé client, traveler, cargo)
-                        if (currentType !== null) {
-                            delete mappedBody.profile_type;
-                        }
+                    // client → traveler/cargo : OK (upgrade)
+                    // traveler → client : NON (downgrade interdit)
+                    // traveler → cargo : OK (upgrade latéral autorisé)
+                    // cargo → client ou traveler : NON (downgrade interdit)
+                    const regression =
+                        (currentType === 'traveler' && nextType === 'client') ||
+                        (currentType === 'cargo' && (nextType === 'client' || nextType === 'traveler'));
+
+                    if (regression) {
+                        console.warn(`Non-regression: passage de ${currentType} vers ${nextType} interdit`);
+                        delete mappedBody.profile_type;
                     }
-                    // Les transitions de client -> traveler / client -> cargo et traveler <-> cargo sont entièrement autorisées.
                 }
 
                 let data = [];
