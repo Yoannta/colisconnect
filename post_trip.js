@@ -7,6 +7,8 @@
         form: document.getElementById("trip-form"),
         departure: document.getElementById("departure"),
         destination: document.getElementById("destination"),
+        cityDeparture: document.getElementById("city-departure"),
+        cityDestination: document.getElementById("city-destination"),
         dateDepart: document.getElementById("date-depart"),
         kilos: document.getElementById("kilos"),
         price: document.getElementById("price"),
