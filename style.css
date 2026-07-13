@@ -8412,3 +8412,56 @@ input[data-country-select="true"]::placeholder {
     color: var(--emerald-bright);
     font-size: 15px;
 }
+
+/* ===== CORRECTION GLOBALE MOBILE 13 JUILLET 2026 ===== */
+
+/* 1. Forcer la page à rester dans l'écran */
+html, body {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* 2. Conteneurs principaux : largeur flexible */
+.app-shell, .admin-wrapper, .admin-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 3. Formulaires et cartes */
+.form-card, .card, .admin-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* 4. Éléments décoratifs d'arrière-plan (ne doivent pas dépasser) */
+.ambient, .noise-layer, .bg-glow {
+    max-width: 100vw !important;
+    overflow: hidden !important;
+}
+
+/* 5. Tous les champs de formulaire à 100% */
+input, select, textarea {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* 6. Grille responsive */
+.forms-grid {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+/* 7. Mobile-mode : override max-width du shell */
+.mobile-mode .app-shell {
+    max-width: 100% !important;
+}
+/* ===== FIN CORRECTION MOBILE ===== */
