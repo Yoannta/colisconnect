@@ -217,7 +217,7 @@
             try { parsed = JSON.parse(msg.text || "{}"); } catch { }
             const commission = Number(parsed.commission || 0).toFixed(2);
             const amountPaid = Number(parsed.amountPaid || 0).toFixed(2);
-            const cur = parsed.currency || 'EUR';
+            const cur = parsed.currency || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : 'EUR');
             return `<div class="chat-msg-row chat-msg-system">
     <div class="chat-bubble-reversal">
         <div class="reversal-header">💰 Reversement de commission</div>

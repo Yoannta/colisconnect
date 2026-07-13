@@ -75,13 +75,17 @@
         voirTousList: document.getElementById("voir-tous-list"),
     };
 
+    function getUserCurrency() {
+        return window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR";
+    }
+
     function getCurrencyCode(user, offer) {
         const country = user?.country || user?.location || "";
-        return window.CCCommon.COUNTRY_CURRENCIES[country] || offer?.baseCurrency || "EUR";
+        return window.CCCommon.COUNTRY_CURRENCIES[country] || offer?.baseCurrency || getUserCurrency();
     }
 
     function formatAmount(value, currency) {
-        return window.CCCommon.formatAmount(Number(value || 0), currency || "EUR");
+        return window.CCCommon.formatAmount(Number(value || 0), currency || getUserCurrency());
     }
 
     function formatDateShort(value) {
@@ -160,7 +164,7 @@
     function renderStats(offer, requests) {
         const availableKg = Number(offer?.availableKg || offer?.available_kg || 0);
         const pricePerKg = Number(offer?.pricePerKg || offer?.price_per_kg || 0);
-        const baseCurrency = offer?.baseCurrency || offer?.base_currency || "EUR";
+        const baseCurrency = offer?.baseCurrency || offer?.base_currency || getUserCurrency();
         const potential = availableKg * pricePerKg;
 
         if (els.statRemainingKg) els.statRemainingKg.textContent = `${availableKg} kg`;
@@ -186,7 +190,7 @@
             return;
         }
 
-        const baseCurrency = offer.baseCurrency || offer.base_currency || "EUR";
+        const baseCurrency = offer.baseCurrency || offer.base_currency || getUserCurrency();
         const requestsCount = requests.length;
         const remainingKg = Number(offer.availableKg || offer.available_kg || 0);
         const pricePerKg = Number(offer.pricePerKg || offer.price_per_kg || 0);
@@ -450,7 +454,7 @@
         if (els.offerDepartureDate) els.offerDepartureDate.value = String(offer.departureDate || offer.departure_date || "");
         if (els.offerAvailableKg) els.offerAvailableKg.value = String(offer.availableKg ?? offer.available_kg ?? "");
         if (els.offerPricePerKg) els.offerPricePerKg.value = String(offer.pricePerKg ?? offer.price_per_kg ?? "");
-        if (els.offerBaseCurrency) els.offerBaseCurrency.value = String(offer.baseCurrency || offer.base_currency || "EUR").toUpperCase();
+        if (els.offerBaseCurrency) els.offerBaseCurrency.value = String(offer.baseCurrency || offer.base_currency || getUserCurrency()).toUpperCase();
 
         setFeedback("");
         modal.classList.remove("hidden");
@@ -476,7 +480,7 @@
             departure_date: String(els.offerDepartureDate?.value || "").trim(),
             available_kg: Number(els.offerAvailableKg?.value || 0),
             price_per_kg: Number(els.offerPricePerKg?.value || 0),
-            base_currency: String(els.offerBaseCurrency?.value || "EUR").trim().toUpperCase(),
+            base_currency: String(els.offerBaseCurrency?.value || getUserCurrency()).trim().toUpperCase(),
             title: `Trajet ${String(els.offerOrigin?.value || "").trim()} -> ${String(els.offerDestination?.value || "").trim()}`
         };
 
@@ -997,7 +1001,7 @@
             if (currencyBadge) {
                 const user = window.CCCommon.state?.user;
                 const userCountry = user?.country || user?.user_metadata?.country || "";
-                const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
+                const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || getUserCurrency();
                 currencyBadge.textContent = currency;
             }
         });
@@ -1255,7 +1259,7 @@
             }
             const user = window.CCCommon.state?.user;
             const userCountry = user?.country || user?.user_metadata?.country || "";
-            const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
+            const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || getUserCurrency();
             const feedback = document.getElementById("dash-demande-feedback");
             const submitBtn = document.getElementById("dash-demande-submit-btn");
             try {

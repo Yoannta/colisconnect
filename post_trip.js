@@ -432,7 +432,7 @@
             departureDate: String(els.dateDepart?.value || ""),
             availableKg: Number(els.kilos?.value || 0),
             pricePerKg: Number(els.price?.value || 0),
-            baseCurrency: els.priceCurrencyInput?.value || "EUR",  // [MULTI-CURRENCY]
+            baseCurrency: els.priceCurrencyInput?.value || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR"),  // [MULTI-CURRENCY]
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
             referralCode: String(document.getElementById("referral-code")?.value || "").trim(),

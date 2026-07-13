@@ -357,6 +357,17 @@
         return `${formatted}${sym}`;
     }
 
+    /**
+     * Retourne la devise du pays de résidence de l'utilisateur connecté.
+     * Utilise COUNTRY_CURRENCIES pour la correspondance pays → devise.
+     * Fallback: EUR si l'utilisateur n'a pas de pays défini.
+     */
+    function getUserCurrency() {
+        const user = state.user;
+        const country = user?.country || user?.user_metadata?.country || "";
+        return COUNTRY_CURRENCIES[country] || "EUR";
+    }
+
     function convertCurrency(amount, fromCur, toCur) {
         if (fromCur === toCur) return amount;
         const fromRate = EXCHANGE_RATES[fromCur] || 1;
@@ -2369,6 +2380,7 @@
         formatAmount,
         convertCurrency,
         getSmartRoundedAmount,
+        getUserCurrency,
         EXCHANGE_RATES,
         COUNTRY_CURRENCIES,
         COUNTRY_CALLING_CODES,
