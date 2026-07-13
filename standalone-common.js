@@ -2140,74 +2140,207 @@
     }
 
     /**
-     * Setup a country input so user can ONLY pick from the official country list.
-     * - User clicks → can type to filter the datalist
-     * - On blur → if value is NOT a valid country name, field is cleared
-     * - Prevents free text submission
+     * Transforme un champ pays en autocomplete mobile-friendly (2026).
+     * - Liste JS personnalisée (pas de datalist natif)
+     * - Une seule flèche ▼
+     * - Filtrage temps réel
+     * - Sélection par clic uniquement
+     * - Navigation clavier (↑↓ + Entrée)
      */
     function setupCountryInput(input) {
         if (!input || input.dataset.ccCountrySetup === "true") return;
+        if (input.closest(".cc-autocomplete-ctn")) return;
         input.dataset.ccCountrySetup = "true";
-        input.classList.add("cc-country-select");
 
-        // Ensure country-datalist exists
-        const listId = input.getAttribute("list");
-        const hasDatalist = listId && document.getElementById(listId);
+        const $input = input;
+        const origPlaceholder = $input.getAttribute("placeholder") || "Ex: France";
+        const origValue = $input.value || "";
+        const parent = $input.parentNode;
+        const sibling = $input.nextSibling;
 
-        input.addEventListener("blur", function () {
-            const val = this.value.trim();
-            if (!val) return; // empty is OK
+        // 1. Container principal
+        const ctn = document.createElement("div");
+        ctn.className = "cc-autocomplete-ctn";
 
-            // Normalize both the value and all country options for comparison
-            const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const inputNorm = norm(val);
+        // 2. Wrapper input + flèche
+        const wrapper = document.createElement("div");
+        wrapper.className = "cc-input-wrapper";
 
-            const isValid = (COUNTRY_OPTIONS || []).some(c => norm(c) === inputNorm);
+        // Déplacer l'input dans le wrapper
+        wrapper.appendChild($input);
 
-            if (!isValid) {
-                // Invalid country text — reset the field
-                this.value = "";
-                this.classList.remove("cc-country-valid");
+        // Nettoyer et paramétrer l'input
+        $input.removeAttribute("list");
+        $input.className = ($input.className || "") + " cc-autocomplete-input";
+        $input.setAttribute("autocomplete", "off");
+        $input.placeholder = origPlaceholder;
+
+        // 3. Flèche personnalisée unique
+        const arrow = document.createElement("span");
+        arrow.className = "cc-custom-arrow";
+        arrow.textContent = "▼";
+        wrapper.appendChild(arrow);
+
+        ctn.appendChild(wrapper);
+
+        // 4. Liste de suggestions
+        const list = document.createElement("ul");
+        list.className = "cc-suggestions-list";
+        ctn.appendChild(list);
+
+        // Insérer le container dans le DOM
+        if (sibling) {
+            parent.insertBefore(ctn, sibling);
+        } else {
+            parent.appendChild(ctn);
+        }
+
+        // Restaurer la valeur existante
+        if (origValue) $input.value = origValue;
+
+        // --- LOGIQUE MOTEUR DE RECHERCHE ---
+
+        function normaliser(t) {
+            return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        }
+
+        function filtrerPays(texte) {
+            const t = normaliser(texte);
+            if (!t) return [];
+            return (COUNTRY_OPTIONS || []).filter(pays =>
+                normaliser(pays).includes(t)
+            );
+        }
+
+        function afficherSuggestions(pays) {
+            list.innerHTML = "";
+            if (!pays.length) {
+                list.style.display = "none";
+                return;
+            }
+            pays.forEach(p => {
+                const li = document.createElement("li");
+                li.textContent = p;
+                li.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    $input.value = p;
+                    list.style.display = "none";
+                    $input.dispatchEvent(new Event("change", { bubbles: true }));
+                });
+                li.addEventListener("mouseenter", function () {
+                    list.querySelectorAll("li").forEach(l => l.classList.remove("active"));
+                    this.classList.add("active");
+                });
+                list.appendChild(li);
+            });
+            list.style.display = "block";
+        }
+
+        // Sur frappe → filtrer et afficher
+        $input.addEventListener("input", function () {
+            const texte = this.value;
+            const pays = filtrerPays(texte);
+            afficherSuggestions(pays);
+            if (texte && !pays.length) {
                 this.classList.add("cc-country-invalid");
             } else {
-                // Normalize the display value to match the official country name
-                const match = (COUNTRY_OPTIONS || []).find(c => norm(c) === inputNorm);
-                if (match) this.value = match;
-                this.classList.add("cc-country-valid");
                 this.classList.remove("cc-country-invalid");
             }
         });
 
-        // Remove invalid styling on focus so user can try again
-        input.addEventListener("focus", function () {
+        // Au focus → montrer la liste si déjà du texte
+        $input.addEventListener("focus", function () {
             this.classList.remove("cc-country-invalid");
-        });
-    }
-
-    /**
-     * Automatically setup all country inputs on the page.
-     * Call this after DOM is ready.
-     */
-    function setupAllCountryInputs() {
-        // Find all inputs that have a 'list' attribute pointing to a country datalist
-        const countryListIds = new Set();
-        document.querySelectorAll("datalist[id]").forEach(dl => {
-            const id = dl.id || "";
-            if (id.includes("country") || id.includes("Country") || id.includes("destination") || id.includes("Destination")) {
-                countryListIds.add(id);
+            if (this.value.trim()) {
+                const pays = filtrerPays(this.value);
+                afficherSuggestions(pays);
             }
         });
 
-        countryListIds.forEach(listId => {
-            document.querySelectorAll(`input[list="${listId}"]`).forEach(input => {
-                setupCountryInput(input);
-            });
+        // À la perte de focus → valider et nettoyer
+        $input.addEventListener("blur", function () {
+            setTimeout(() => {
+                const val = this.value.trim();
+                const isValid = val ? (COUNTRY_OPTIONS || []).some(c => normaliser(c) === normaliser(val)) : true;
+                if (!isValid) {
+                    this.value = "";
+                    this.classList.add("cc-country-invalid");
+                } else if (val) {
+                    const match = (COUNTRY_OPTIONS || []).find(c => normaliser(c) === normaliser(val));
+                    if (match) this.value = match;
+                    this.classList.remove("cc-country-invalid");
+                }
+                list.style.display = "none";
+            }, 200);
         });
+
+        // Navigation clavier ↑↓ + Entrée
+        $input.addEventListener("keydown", function (e) {
+            const items = list.querySelectorAll("li");
+            if (!items.length) return;
+            const active = list.querySelector("li.active");
+            let idx = active ? Array.from(items).indexOf(active) : -1;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                idx = Math.min(idx + 1, items.length - 1);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                idx = Math.max(idx - 1, 0);
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (active) {
+                    $input.value = active.textContent;
+                    list.style.display = "none";
+                    $input.dispatchEvent(new Event("change", { bubbles: true }));
+                }
+                return;
+            } else return;
+
+            items.forEach(l => l.classList.remove("active"));
+            items[idx].classList.add("active");
+            items[idx].scrollIntoView({ block: "nearest" });
+        });
+
+        // Fermer la liste en cliquant ailleurs
+        document.addEventListener("click", function (e) {
+            if (!e.target.closest(".cc-autocomplete-ctn")) {
+                list.style.display = "none";
+            }
+        }, { passive: true });
     }
 
-    // Auto-run on DOMContentLoaded for dynamic inputs
+    /**
+     * Configure automatiquement tous les champs pays du site.
+     */
+    function setupAllCountryInputs() {
+        const selecteurs = [
+            "input[list*='country' i]",
+            "input[list*='destination' i]",
+            "input#register-country",
+            "input#cc-country-input",
+            "input#dash-demande-origin",
+            "input#dash-demande-destination",
+            "input#edit-parcel-origin",
+            "input#edit-parcel-destination",
+            "input#offer-origin",
+            "input#offer-destination",
+            "input#demande-origin",
+            "input#demande-destination",
+            "input#cc-inline-country",
+            "input#est-origin",
+            "input#est-destination"
+        ];
+        selecteurs.forEach(sel => {
+            document.querySelectorAll(sel).forEach(input => setupCountryInput(input));
+        });
+        // Fallback : les inputs dont le name est "country"
+        document.querySelectorAll('input[name="country"]').forEach(input => setupCountryInput(input));
+    }
+
+    // Auto-exécution
     document.addEventListener("DOMContentLoaded", () => {
-        setTimeout(setupAllCountryInputs, 200);
+        setTimeout(setupAllCountryInputs, 150);
     });
 
     window.CCCommon = {
