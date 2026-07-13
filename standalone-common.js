@@ -2177,13 +2177,34 @@
 
     async function _getCountryCode(paysName) {
         if (!_countryCodeMap) _countryCodeMap = {};
+        if (!paysName) return null;
         if (_countryCodeMap[paysName]) return _countryCodeMap[paysName];
         if (!window.ccSupabase) return null;
         try {
-            const { data } = await window.ccSupabase
-                .from('countries').select('code').eq('name', paysName).maybeSingle();
-            if (data) _countryCodeMap[paysName] = data.code;
-            return data?.code || null;
+            // Normaliser pour la recherche (ignorer accents, casses)
+            const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const inputNorm = norm(paysName);
+            
+            // Chercher d'abord par nom exact (rapide)
+            let { data } = await window.ccSupabase
+                .from('countries').select('code,name').eq('name', paysName).maybeSingle();
+            
+            // Si pas trouvé, chercher par correspondance normalisée
+            if (!data) {
+                const { data: all } = await window.ccSupabase
+                    .from('countries').select('code,name');
+                if (all) {
+                    data = all.find(c => norm(c.name) === inputNorm) || null;
+                }
+            }
+            
+            if (data) {
+                _countryCodeMap[paysName] = data.code;
+                _countryCodeMap[data.name] = data.code;
+                return data.code;
+            }
+            _countryCodeMap[paysName] = null; // cache even misses
+            return null;
         } catch { return null; }
     }
 
