@@ -407,8 +407,21 @@
         }
 
         // Validation : si cargo, le mode de transport est requis (stocke dans le state)
-        if (selectedProfileTypeChoice === "cargo" && !selectedTransportMode) {
+        if (isCargoMode && !selectedTransportMode) {
             alert("Veuillez choisir un mode de transport (Avion, Bateau ou Les deux).");
+            return;
+        }
+
+        const isCargoMode = selectedProfileTypeChoice === "cargo";
+        const availableKg = isCargoMode ? 99999 : Number(els.kilos?.value || 0);
+        const pricePerKg = Number(els.price?.value || 0);
+
+        if (!isCargoMode && availableKg < 1) {
+            alert("Veuillez saisir les kilos disponibles.");
+            return;
+        }
+        if (pricePerKg < 1) {
+            alert("Veuillez saisir un prix par kilo valide.");
             return;
         }
 
@@ -417,12 +430,12 @@
             origin: departureCountry,
             destination: destinationCountry,
             departureDate: String(els.dateDepart?.value || ""),
-            availableKg: Number(els.kilos?.value || 0),
-            pricePerKg: Number(els.price?.value || 0),
+            availableKg: availableKg,
+            pricePerKg: pricePerKg,
             baseCurrency: els.priceCurrencyInput?.value || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR"),  // [MULTI-CURRENCY]
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
-            mode: (selectedProfileTypeChoice === "cargo") ? (selectedTransportMode || "") : "",
+            mode: isCargoMode ? (selectedTransportMode || "") : "",
             colis_types: window.colisSelections ? window.colisSelections.join(", ") : "",
             refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : ""
         };
