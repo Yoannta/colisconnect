@@ -316,10 +316,19 @@
         if (demandeList && countryOptions.length) {
             demandeList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
-        // Ajouter les champs ville
-        if (window.CCCommon.addCityAfterCountry) {
-            window.CCCommon.addCityAfterCountry("demande-origin", "city-demande-origin", "Paris");
-            window.CCCommon.addCityAfterCountry("demande-destination", "city-demande-destination", "Dakar");
+        // Setup autocomplete ville pour les champs ville déjà présents dans le HTML
+        if (window.CCCommon.setupAllCountryInputs) {
+            // Les champs ville sont déjà dans le HTML, on configure leur autocomplete
+            const cityOrig = document.getElementById("city-demande-origin");
+            const countryOrig = document.getElementById("demande-origin");
+            if (cityOrig && countryOrig && window.CCCommon.setupCityAutocomplete) {
+                window.CCCommon.setupCityAutocomplete(cityOrig, countryOrig);
+            }
+            const cityDest = document.getElementById("city-demande-destination");
+            const countryDest = document.getElementById("demande-destination");
+            if (cityDest && countryDest && window.CCCommon.setupCityAutocomplete) {
+                window.CCCommon.setupCityAutocomplete(cityDest, countryDest);
+            }
         }
         // Evenements de la modale demande
         document.getElementById("close-demande-modal")?.addEventListener("click", () => {

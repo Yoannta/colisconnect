@@ -94,11 +94,15 @@
                     <h2 class="estimator-title">Faire une estimation rapide</h2>
                     <div class="estimator-form" id="estimator-form">
                         <div class="estimator-row">
-                            <input type="text" id="est-origin" placeholder="Pays de départ" class="estimator-input"
-                                autocomplete="off" list="destination-list">
+                            <div class="estimator-field-group">
+                                <input type="text" id="est-origin" placeholder="Pays de départ" class="estimator-input" autocomplete="off" list="country-options-trip">
+                                <input type="text" id="est-city-origin" placeholder="Ville de départ" class="estimator-input" autocomplete="off">
+                            </div>
                             <span class="est-arrow">→</span>
-                            <input type="text" id="est-dest" placeholder="Pays d'arrivée" class="estimator-input"
-                                autocomplete="off" list="destination-list">
+                            <div class="estimator-field-group">
+                                <input type="text" id="est-dest" placeholder="Pays d'arrivée" class="estimator-input" autocomplete="off" list="country-options-trip">
+                                <input type="text" id="est-city-dest" placeholder="Ville d'arrivée" class="estimator-input" autocomplete="off">
+                            </div>
                         </div>
                         <div class="estimator-row">
                             <input type="number" id="est-kg" placeholder="Poids (kg)" min="1" max="999"
@@ -115,38 +119,8 @@
                     </div>
                 </div>
 
-                <datalist id="destination-list">
-                    <option value="France"></option>
-                    <option value="Belgique"></option>
-                    <option value="Suisse"></option>
-                    <option value="Espagne"></option>
-                    <option value="Italie"></option>
-                    <option value="Portugal"></option>
-                    <option value="Allemagne"></option>
-                    <option value="Royaume-Uni"></option>
-                    <option value="Pays-Bas"></option>
-                    <option value="Luxembourg"></option>
-                    <option value="Cote d'Ivoire"></option>
-                    <option value="Senegal"></option>
-                    <option value="Mali"></option>
-                    <option value="Burkina Faso"></option>
-                    <option value="Niger"></option>
-                    <option value="Togo"></option>
-                    <option value="Benin"></option>
-                    <option value="Cameroun"></option>
-                    <option value="Gabon"></option>
-                    <option value="Congo"></option>
-                    <option value="Republique Democratique du Congo"></option>
-                    <option value="Ghana"></option>
-                    <option value="Guinee"></option>
-                    <option value="Maroc"></option>
-                    <option value="Algerie"></option>
-                    <option value="Tunisie"></option>
-                    <option value="Egypte"></option>
-                    <option value="Etats-Unis"></option>
-                    <option value="Canada"></option>
-                    <option value="Emirats Arabes Unis"></option>
-                </datalist>
+                <datalist id="destination-list"></datalist>
+                <datalist id="country-options-trip"></datalist>
 
             </div>
 

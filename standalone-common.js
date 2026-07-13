@@ -2531,7 +2531,7 @@
             "input#demande-destination",
             "input#cc-inline-country",
             "input#est-origin",
-            "input#est-destination"
+            "input#est-dest"
         ];
         selecteurs.forEach(sel => {
             document.querySelectorAll(sel).forEach(input => setupCountryInput(input));
@@ -2539,6 +2539,9 @@
         // Fallback : les inputs dont le name est "country"
         document.querySelectorAll('input[name="country"]').forEach(input => setupCountryInput(input));
     }
+
+    // Exposer setupCityAutocomplete pour les pages qui en ont besoin
+    window.CCCommon.setupCityAutocomplete = setupCityAutocomplete;
 
     // Auto-exécution
     document.addEventListener("DOMContentLoaded", () => {

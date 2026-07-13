@@ -475,6 +475,7 @@ input, select, textarea, button {
     font-size: 1.2rem;
     color: var(--muted);
     font-weight: bold;
+    flex-shrink: 0;
 }
 
 .est-kg-input {
@@ -484,6 +485,17 @@ input, select, textarea, button {
 .estimator-btn {
     flex: 1.5;
     white-space: nowrap;
+}
+
+.estimator-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+}
+
+.estimator-field-group .estimator-input {
+    width: 100%;
 }
 
 .estimator-result {
