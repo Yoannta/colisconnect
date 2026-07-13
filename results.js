@@ -47,13 +47,13 @@
     function renderOffers() {
         if (!els.offersList) return;
 
-        // Filtrer les offres selon l'onglet actif
+        // Filtrer les offres selon l'onglet actif (par mode, pas par profile_type)
         const filteredOffers = state.offers.filter(offer => {
-            const pType = offer.ownerProfileType;
+            const mode = String(offer.mode || "").trim();
             if (state.filterProfileType === 'traveler') {
-                return pType === 'traveler' || !pType || pType === 'client'; // Par défaut ou vide = voyageur
+                return mode === ""; // mode vide = offre voyageur
             } else if (state.filterProfileType === 'cargo') {
-                return pType === 'cargo';
+                return mode !== ""; // mode non vide = offre cargo
             }
             return true;
         });
@@ -101,11 +101,11 @@
                 const priceDisplay = formatAmount(convertedPrice, userCur);
                 const originalDisplay = baseCur !== userCur ? `<span class="price-original">(${formatAmount(pricePerKgRaw, baseCur)})</span>` : '';
 
-                const pType = offer.ownerProfileType;
+                const offerMode = String(offer.mode || "").trim();
                 let profileTypeBadge = "";
-                if (pType === "traveler") {
+                if (offerMode === "") {
                     profileTypeBadge = `<span style="font-size: 0.7rem; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; text-transform: uppercase;">✈️ Voyageur</span>`;
-                } else if (pType === "cargo") {
+                } else {
                     profileTypeBadge = `<span style="font-size: 0.7rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; text-transform: uppercase;">📦 Cargo</span>`;
                 }
 
