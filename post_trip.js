@@ -183,8 +183,12 @@
     }
 
     // ---- Payment Modal logic ----
+    function _getDeparture() { return document.getElementById("departure"); }
+    function _getDestination() { return document.getElementById("destination"); }
+
     function openModal() {
-        if (!els.departure?.value) {
+        const dep = _getDeparture();
+        if (!dep?.value) {
             alert("Veuillez d'abord choisir un pays de départ.");
             return;
         }
@@ -636,6 +640,9 @@
         if (window.CCCommon.initLocationFields) {
             window.CCCommon.initLocationFields("#trip-form");
         }
+        // Réassigner les références car les champs sont créés dynamiquement
+        els.departure = document.getElementById("departure");
+        els.destination = document.getElementById("destination");
         bindModalEvents();
         bindEvents();
     }

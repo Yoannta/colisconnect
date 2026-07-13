@@ -2172,23 +2172,24 @@
      * - Sélection par clic uniquement
      * - Navigation clavier (↑↓ + Entrée)
      */
-    // Cache des villes (chargé depuis cities.json)
-    let _citiesCache = null;
+    // Cache pour la correspondance pays → code (requête Supabase légère)
+    let _countryCodeMap = null;
 
-    async function _loadCities() {
-        if (_citiesCache) return _citiesCache;
+    async function _getCountryCode(paysName) {
+        if (!_countryCodeMap) _countryCodeMap = {};
+        if (_countryCodeMap[paysName]) return _countryCodeMap[paysName];
+        if (!window.ccSupabase) return null;
         try {
-            const resp = await fetch("cities.json");
-            _citiesCache = await resp.json();
-        } catch {
-            _citiesCache = {};
-        }
-        return _citiesCache;
+            const { data } = await window.ccSupabase
+                .from('countries').select('code').eq('name', paysName).maybeSingle();
+            if (data) _countryCodeMap[paysName] = data.code;
+            return data?.code || null;
+        } catch { return null; }
     }
 
     /**
-     * Configure l'autocomplete ville lié au champ pays.
-     * Quand l'utilisateur tape dans la ville, seules les villes du pays sélectionné s'affichent.
+     * Autocomplete ville lié au pays — requête Supabase légère.
+     * Seules les villes du pays sélectionné sont chargées.
      */
     function setupCityAutocomplete(cityInput, countryInput) {
         if (!cityInput || !countryInput || cityInput.dataset.ccCityDone === "true") return;
@@ -2206,14 +2207,18 @@
         list.className = "cc-suggestions-list";
         container.appendChild(list);
 
-        function getVilles(pays, texte) {
-            if (!_citiesCache || !pays || !texte) return [];
-            const villes = _citiesCache[pays] || [];
+        let _lastQuery = "";
+
+        async function rechercherVilles(pays, texte) {
+            if (!pays || !texte || !window.ccSupabase) return [];
             const t = texte.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            if (!t) return villes.slice(0, 10);
-            return villes.filter(v =>
-                v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(t)
-            ).slice(0, 10);
+            if (!t) return [];
+            const code = await _getCountryCode(pays);
+            if (!code) return [];
+            const { data } = await window.ccSupabase
+                .from('cities').select('name').eq('country_code', code)
+                .ilike('name', `%${t}%`).limit(10);
+            return (data || []).map(r => r.name);
         }
 
         function showVilles(villes) {
@@ -2231,18 +2236,14 @@
             list.style.display = "block";
         }
 
-        cityInput.addEventListener("focus", async () => {
-            await _loadCities();
-            const pays = countryInput.value.trim();
-            if (pays && cityInput.value.trim()) {
-                showVilles(getVilles(pays, cityInput.value));
-            }
-        });
-
         cityInput.addEventListener("input", async () => {
-            await _loadCities();
             const pays = countryInput.value.trim();
-            showVilles(getVilles(pays, cityInput.value));
+            const texte = cityInput.value;
+            const key = pays + "|" + texte;
+            if (key === _lastQuery) return;
+            _lastQuery = key;
+            const villes = await rechercherVilles(pays, texte);
+            showVilles(villes);
         });
 
         cityInput.addEventListener("blur", () => {
