@@ -2540,9 +2540,6 @@
         document.querySelectorAll('input[name="country"]').forEach(input => setupCountryInput(input));
     }
 
-    // Exposer setupCityAutocomplete pour les pages qui en ont besoin
-    window.CCCommon.setupCityAutocomplete = setupCityAutocomplete;
-
     // Auto-exécution
     document.addEventListener("DOMContentLoaded", () => {
         setTimeout(setupAllCountryInputs, 150);
@@ -2588,6 +2585,7 @@
         // Country input validation (selection only from datalist)
         setupCountryInput,
         setupAllCountryInputs,
+        setupCityAutocomplete,
         // Location fields generator (pays + ville)
         initLocationFields,
         addCityAfterCountry,
