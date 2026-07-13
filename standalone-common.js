@@ -1541,9 +1541,9 @@
                     <label>Nom<input type="text" id="cc-country-lastname" class="auth-input" placeholder="Dupont" required></label>
                 </div>
                 <label>Pays de résidence
-                    <input type="text" id="cc-country-input" class="auth-input" list="cc-country-datalist" placeholder="Ex: France" required>
+                    <input type="text" id="cc-country-input" class="auth-input" list="cc-country-list-modal" placeholder="Ex: France" required>
                 </label>
-                <datalist id="cc-country-datalist">
+                <datalist id="cc-country-list-modal">
                     ${COUNTRY_OPTIONS.map(c => `<option value="${c}">`).join("")}
                 </datalist>
                 <button type="submit" id="cc-country-submit-btn" class="btn primary" style="width:100%; margin-top: 1.5rem; padding: 14px; font-size: 1.05rem;">
@@ -2139,6 +2139,77 @@
         return state.user;
     }
 
+    /**
+     * Setup a country input so user can ONLY pick from the official country list.
+     * - User clicks → can type to filter the datalist
+     * - On blur → if value is NOT a valid country name, field is cleared
+     * - Prevents free text submission
+     */
+    function setupCountryInput(input) {
+        if (!input || input.dataset.ccCountrySetup === "true") return;
+        input.dataset.ccCountrySetup = "true";
+        input.classList.add("cc-country-select");
+
+        // Ensure country-datalist exists
+        const listId = input.getAttribute("list");
+        const hasDatalist = listId && document.getElementById(listId);
+
+        input.addEventListener("blur", function () {
+            const val = this.value.trim();
+            if (!val) return; // empty is OK
+
+            // Normalize both the value and all country options for comparison
+            const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const inputNorm = norm(val);
+
+            const isValid = (COUNTRY_OPTIONS || []).some(c => norm(c) === inputNorm);
+
+            if (!isValid) {
+                // Invalid country text — reset the field
+                this.value = "";
+                this.classList.remove("cc-country-valid");
+                this.classList.add("cc-country-invalid");
+            } else {
+                // Normalize the display value to match the official country name
+                const match = (COUNTRY_OPTIONS || []).find(c => norm(c) === inputNorm);
+                if (match) this.value = match;
+                this.classList.add("cc-country-valid");
+                this.classList.remove("cc-country-invalid");
+            }
+        });
+
+        // Remove invalid styling on focus so user can try again
+        input.addEventListener("focus", function () {
+            this.classList.remove("cc-country-invalid");
+        });
+    }
+
+    /**
+     * Automatically setup all country inputs on the page.
+     * Call this after DOM is ready.
+     */
+    function setupAllCountryInputs() {
+        // Find all inputs that have a 'list' attribute pointing to a country datalist
+        const countryListIds = new Set();
+        document.querySelectorAll("datalist[id]").forEach(dl => {
+            const id = dl.id || "";
+            if (id.includes("country") || id.includes("Country") || id.includes("destination") || id.includes("Destination")) {
+                countryListIds.add(id);
+            }
+        });
+
+        countryListIds.forEach(listId => {
+            document.querySelectorAll(`input[list="${listId}"]`).forEach(input => {
+                setupCountryInput(input);
+            });
+        });
+    }
+
+    // Auto-run on DOMContentLoaded for dynamic inputs
+    document.addEventListener("DOMContentLoaded", () => {
+        setTimeout(setupAllCountryInputs, 200);
+    });
+
     window.CCCommon = {
         state,
         api,
@@ -2174,7 +2245,10 @@
         needsCountryInfo,
         openCountryInfoPopup,
         closeCountryInfoPopup,
-        submitCountryInfo
+        submitCountryInfo,
+        // Country input validation (selection only from datalist)
+        setupCountryInput,
+        setupAllCountryInputs
     };
 
     // Auto-init on DOMContentLoaded if not already done manually

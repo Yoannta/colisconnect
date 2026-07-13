@@ -8225,6 +8225,40 @@ input[data-country-select="true"]::placeholder {
     border-color: var(--emerald-bright);
 }
 
+/* ===== Country Select Indicator (▼ dropdown arrow) ===== */
+.cc-country-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 14px;
+    padding-right: 40px !important;
+    cursor: default;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.cc-country-select:focus {
+    cursor: text;
+    user-select: text;
+    -webkit-user-select: text;
+}
+
+.cc-country-valid {
+    border-color: var(--emerald-bright) !important;
+}
+
+.cc-country-invalid {
+    border-color: #ff6b6b !important;
+    animation: ccShake 0.3s ease-in-out;
+}
+
+@keyframes ccShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+}
+/* ===== End Country Select ===== */
+
 .demande-textarea {
     resize: none;
     height: 100px;
