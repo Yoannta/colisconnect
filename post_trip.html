@@ -466,6 +466,13 @@
                                     <span>▼</span>
                                 </button>
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Types de colis refusés</label>
+                                <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
+                                    <span id="selectedRefusedText">Choisir les types refusés</span>
+                                    <span>▼</span>
+                                </button>
+                            </div>
                             <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
                         </div>
                     </form>
@@ -516,6 +523,30 @@
                 </div>
             </div>
             <button type="button" class="btn-validate" id="validateColisBtn">Valider la sélection</button>
+        </div>
+    </div>
+
+    <!-- ===== MODALE TYPES DE COLIS REFUSÉS ===== -->
+    <div class="popup-overlay" id="refusedPopupOverlay">
+        <div class="popup-content">
+            <div class="popup-title">🚫 Types de colis refusés</div>
+            <div class="options-grid" id="refusedOptionsGrid">
+                <div class="option-card" data-value="Documents"><span class="option-circle"></span><span class="option-text">Documents</span></div>
+                <div class="option-card" data-value="Électronique"><span class="option-circle"></span><span class="option-text">Électronique</span></div>
+                <div class="option-card" data-value="Vêtements"><span class="option-circle"></span><span class="option-text">Vêtements</span></div>
+                <div class="option-card" data-value="Nourriture"><span class="option-circle"></span><span class="option-text">Nourriture</span></div>
+                <div class="option-card" data-value="Cosmétiques"><span class="option-circle"></span><span class="option-text">Cosmétiques</span></div>
+                <div class="option-card" data-value="Médicaments"><span class="option-circle"></span><span class="option-text">Médicaments</span></div>
+                <div class="option-card" data-value="Autres"><span class="option-circle"></span><span class="option-text">Autres</span></div>
+            </div>
+            <div class="add-custom-section">
+                <button type="button" class="btn-add-trigger" id="toggleCustomRefusedBtn">+ Ajouter un type personnalisé</button>
+                <div class="custom-input-group" id="customRefusedGroup">
+                    <input type="text" class="custom-input" id="newRefusedTypeInput" placeholder="Entrer le nom du type...">
+                    <button type="button" class="btn-save-custom" id="saveCustomRefusedBtn">Enregistrer</button>
+                </div>
+            </div>
+            <button type="button" class="btn-validate" id="validateRefusedBtn">Valider la sélection</button>
         </div>
     </div>
 

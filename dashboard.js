@@ -543,11 +543,19 @@
         ]);
         const myOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
         state.offers = myOffers;
-        const activeOffers = myOffers.filter(o => String(o.status || "").toLowerCase() === "active");
+        // Cargo dashboard : uniquement les offres avec un mode non vide (cargo)
+        const cargoOffers = myOffers.filter(o => String(o.mode || "").trim() !== "");
+        const activeOffers = cargoOffers.filter(o => String(o.status || "").toLowerCase() === "active");
         const allOffers = myOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
         const activeCount = activeOffers.length;
 
-        const incoming = Array.isArray(convResp) ? convResp.filter(c => !c.isOfferOwner) : [];
+        // Filtrer les conversations pour n'afficher que celles liées aux offres cargo
+        const cargoOfferIds = new Set(cargoOffers.map(o => String(o.id)));
+        const incoming = Array.isArray(convResp) ? convResp.filter(c => {
+            if (c.isOfferOwner) return false; // seulement les demandes entrantes
+            // Ne garder que les conversations liées à une offre cargo
+            return cargoOfferIds.has(String(c.offer_id || c.offerId || ""));
+        }) : [];
         state.incomingRequests = incoming;
 
         // Stats
@@ -619,7 +627,8 @@
                 window.CCCommon.api("/api/conversations")
             ]);
 
-            state.offers = Array.isArray(offersResp?.items) ? offersResp.items : [];
+            state.offers = (Array.isArray(offersResp?.items) ? offersResp.items : [])
+                .filter(o => String(o.mode || "").trim() === ""); // mode vide = offre voyageur
             state.activeOffer = getActiveOffer();
             state.requests = (Array.isArray(requestsResp) ? requestsResp : []).filter((item) => item.isOfferOwner);
 
@@ -883,7 +892,10 @@
         // Cargo "Voir tous" trajets (uniquement les non-archivés)
         document.getElementById("cargo-voir-tous-trajets")?.addEventListener("click", () => {
             const allItems = state.offers || [];
-            const items = allItems.filter(o => String(o.status || "").toLowerCase() !== "archived");
+            const items = allItems.filter(o =>
+                String(o.status || "").toLowerCase() !== "archived" &&
+                String(o.mode || "").trim() !== "" // uniquement les offres cargo
+            );
             openVoirTousModal("Tous mes trajets", "Trajets", items, (item, i) => {
                 const mode = item.mode === "avion" ? "Avion" : item.mode === "bateau" ? "Bateau" : item.mode === "les_deux" ? "Les deux" : "-";
                 const vraiStatut = String(item.status || "").toLowerCase();

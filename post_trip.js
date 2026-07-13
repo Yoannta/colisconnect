@@ -384,23 +384,25 @@
         const departureCountry = String(els.departure?.value || "").trim();
         const destinationCountry = String(els.destination?.value || "").trim();
 
-        // Verifier la limite de publication selon le type choisi
-        const profileType = selectedProfileTypeChoice || window.CCCommon.state?.user?.profile_type;
+        // Verifier la limite de publication par type (mode="" pour voyageur, mode!=="" pour cargo)
+        const isCargo = selectedProfileTypeChoice === "cargo";
         try {
             const myOffers = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
             const activeOffers = (myOffers?.items || []).filter(o => String(o.status || "").toLowerCase() === "active");
-            const activeCount = activeOffers.length;
+            // Filtrer par mode : voyageur = mode vide, cargo = mode non vide
+            const offersOfType = activeOffers.filter(o => {
+                const m = String(o.mode || "").trim();
+                return isCargo ? m !== "" : m === "";
+            });
+            const activeCount = offersOfType.length;
+            const limit = isCargo ? 5 : 1;
 
-            if (profileType === "traveler" && activeCount >= 1) {
-                alert("Limite de trajet depassee : En tant que voyageur simple, vous ne pouvez publier qu'un seul trajet actif a la fois.");
-                return;
-            }
-            if (profileType === "cargo" && activeCount >= 5) {
-                alert("Limite de trajet depassee : En tant qu'entreprise cargo, vous ne pouvez publier que 5 trajets actifs au maximum.");
+            if (activeCount >= limit) {
+                const label = isCargo ? "entreprise cargo" : "voyageur simple";
+                alert(`Limite de trajet depassee : En tant que ${label}, vous ne pouvez publier que ${limit} trajet${limit > 1 ? 's' : ''} actif${limit > 1 ? 's' : ''} à la fois.`);
                 return;
             }
         } catch (e) {
-            // Si l'API des offres echoue, on continue (la validation backend fera le refus)
             console.warn("Impossible de verifier le nombre d'offres actives.", e);
         }
 
@@ -421,7 +423,8 @@
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
             mode: (selectedProfileTypeChoice === "cargo") ? (selectedTransportMode || "") : "",
-            colis_types: window.colisSelections ? window.colisSelections.join(", ") : ""
+            colis_types: window.colisSelections ? window.colisSelections.join(", ") : "",
+            refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : ""
         };
 
         const submitBtn = els.form?.querySelector("button[type='submit']");
@@ -544,6 +547,65 @@
 
         colisOverlay?.addEventListener("click", (e) => {
             if (e.target === colisOverlay) colisOverlay.style.display = "none";
+        });
+
+        // ===== POPUP TYPES DE COLIS REFUSÉS =====
+        const refusedOverlay = document.getElementById("refusedPopupOverlay");
+        const refusedGrid = document.getElementById("refusedOptionsGrid");
+        const refusedText = document.getElementById("selectedRefusedText");
+        const validateRefusedBtn = document.getElementById("validateRefusedBtn");
+        const toggleRefusedBtn = document.getElementById("toggleCustomRefusedBtn");
+        const refusedGroup = document.getElementById("customRefusedGroup");
+        const newRefusedInput = document.getElementById("newRefusedTypeInput");
+        const saveRefusedBtn = document.getElementById("saveCustomRefusedBtn");
+        let refusedSelections = [];
+        window.refusedSelections = refusedSelections;
+
+        document.getElementById("openRefusedColisBtn")?.addEventListener("click", () => {
+            if (refusedOverlay) refusedOverlay.style.display = "flex";
+        });
+
+        refusedGrid?.addEventListener("click", (e) => {
+            const card = e.target.closest(".option-card");
+            if (!card) return;
+            const value = card.getAttribute("data-value");
+            card.classList.toggle("selected");
+            if (card.classList.contains("selected")) {
+                refusedSelections.push(value);
+            } else {
+                refusedSelections = refusedSelections.filter(item => item !== value);
+            }
+        });
+
+        toggleRefusedBtn?.addEventListener("click", () => {
+            if (refusedGroup) {
+                refusedGroup.style.display = refusedGroup.style.display === "flex" ? "none" : "flex";
+                newRefusedInput?.focus();
+            }
+        });
+
+        saveRefusedBtn?.addEventListener("click", () => {
+            const val = newRefusedInput?.value?.trim();
+            if (!val) return;
+            const newCard = document.createElement("div");
+            newCard.className = "option-card selected";
+            newCard.setAttribute("data-value", val);
+            newCard.innerHTML = `<span class="option-circle"></span><span class="option-text">${val}</span>`;
+            refusedGrid?.appendChild(newCard);
+            refusedSelections.push(val);
+            if (newRefusedInput) newRefusedInput.value = "";
+            if (refusedGroup) refusedGroup.style.display = "none";
+        });
+
+        validateRefusedBtn?.addEventListener("click", () => {
+            if (refusedOverlay) refusedOverlay.style.display = "none";
+            if (refusedText) {
+                refusedText.textContent = refusedSelections.length > 0 ? refusedSelections.join(", ") : "Choisir les types refusés";
+            }
+        });
+
+        refusedOverlay?.addEventListener("click", (e) => {
+            if (e.target === refusedOverlay) refusedOverlay.style.display = "none";
         });
 
         els.form?.addEventListener("submit", (event) => {
