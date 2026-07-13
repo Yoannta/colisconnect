@@ -95,13 +95,13 @@
                     <div class="estimator-form" id="estimator-form">
                         <div class="estimator-row">
                             <div class="estimator-field-group">
-                                <input type="text" id="est-origin" placeholder="Pays de départ" class="estimator-input" autocomplete="off" list="country-options-trip">
-                                <input type="text" id="est-city-origin" placeholder="Ville de départ" class="estimator-input" autocomplete="off">
+                                <input type="text" id="est-pays-depart" placeholder="Pays de départ" class="estimator-input" autocomplete="off" list="est-pays-list">
+                                <input type="text" id="est-ville-depart" placeholder="Ville de départ" class="estimator-input" autocomplete="off">
                             </div>
                             <span class="est-arrow">→</span>
                             <div class="estimator-field-group">
-                                <input type="text" id="est-dest" placeholder="Pays d'arrivée" class="estimator-input" autocomplete="off" list="country-options-trip">
-                                <input type="text" id="est-city-dest" placeholder="Ville d'arrivée" class="estimator-input" autocomplete="off">
+                                <input type="text" id="est-pays-arrivee" placeholder="Pays d'arrivée" class="estimator-input" autocomplete="off" list="est-pays-list">
+                                <input type="text" id="est-ville-arrivee" placeholder="Ville d'arrivée" class="estimator-input" autocomplete="off">
                             </div>
                         </div>
                         <div class="estimator-row">
@@ -119,8 +119,7 @@
                     </div>
                 </div>
 
-                <datalist id="destination-list"></datalist>
-                <datalist id="country-options-trip"></datalist>
+                <datalist id="est-pays-list"></datalist>
 
             </div>
 
@@ -233,6 +232,26 @@
             document.body.classList.add('is-calm');
         }
 
+        // --- Initialiser les champs estimation au chargement ---
+        document.addEventListener("DOMContentLoaded", () => {
+            // 1. Remplir la datalist des pays
+            const paysList = document.getElementById("est-pays-list");
+            const cc = window.CCCommon;
+            if (paysList && cc && cc.COUNTRY_OPTIONS) {
+                paysList.innerHTML = cc.COUNTRY_OPTIONS.map(c => `<option value="${c}">`).join("");
+            }
+            // 2. Setup autocomplete ville
+            const setupVille = (paysId, villeId) => {
+                const pays = document.getElementById(paysId);
+                const ville = document.getElementById(villeId);
+                if (pays && ville && cc && cc.setupCityAutocomplete) {
+                    setTimeout(() => cc.setupCityAutocomplete(ville, pays), 300);
+                }
+            };
+            setupVille("est-pays-depart", "est-ville-depart");
+            setupVille("est-pays-arrivee", "est-ville-arrivee");
+        });
+
         // --- Estimator Logic ---
         document.addEventListener("DOMContentLoaded", () => {
             const btn = document.getElementById("est-submit-btn");
@@ -242,8 +261,8 @@
 
             if (btn) {
                 btn.addEventListener("click", async () => {
-                    const origin = document.getElementById("est-origin").value.trim();
-                    const dest = document.getElementById("est-dest").value.trim();
+                    const origin = document.getElementById("est-pays-depart").value.trim();
+                    const dest = document.getElementById("est-pays-arrivee").value.trim();
                     const kg = parseInt(document.getElementById("est-kg").value, 10) || 1;
 
                     if (!origin || !dest) {
