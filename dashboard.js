@@ -1274,6 +1274,7 @@
                         destination,
                         weight_kg: kg,
                         max_price_per_kg: budget > 0 ? budget : null,
+                        currency: currency,
                         needed_by_date: dateLimite || null,
                         description,
                         status: "pending"
