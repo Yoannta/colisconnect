@@ -8303,6 +8303,10 @@ input[data-country-select="true"]::placeholder {
     width: 100%;
     padding: 12px 40px 12px 15px !important;
     box-sizing: border-box;
+    cursor: text !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
 }
 
 .cc-autocomplete-input::-webkit-calendar-picker-indicator {
