@@ -8627,3 +8627,91 @@ input, select, textarea {
     align-items: center;
 }
 /* ===== FIN POPUP TYPES DE COLIS ===== */
+
+/* ===== SECTION TÉLÉPHONE (indicatif + numéro) ===== */
+.phone-section-container {
+    margin: 20px 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.phone-label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    color: #ffffff;
+}
+
+.phone-input-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    width: 100%;
+}
+
+.phone-prefix-select {
+    width: 110px;
+    padding: 12px;
+    background-color: #031414;
+    border: 1px solid #0f3838;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 16px;
+    outline: none;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.phone-main-input {
+    flex: 1;
+    padding: 12px;
+    background-color: #031414;
+    border: 1px solid #0f3838;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 16px;
+    outline: none;
+    min-width: 0;
+}
+
+.phone-main-input:focus,
+.phone-prefix-select:focus {
+    border-color: #00a3a3;
+}
+
+.phone-verify-btn {
+    background: none;
+    border: 1px solid #00c49f;
+    color: #00c49f;
+    padding: 11px 18px;
+    border-radius: 20px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.phone-verify-btn:hover {
+    background-color: rgba(0, 196, 159, 0.1);
+}
+
+.phone-help-text {
+    font-size: 13px;
+    color: #667680;
+    margin-top: 8px;
+    margin-bottom: 0;
+}
+
+@media (max-width: 400px) {
+    .phone-input-row {
+        flex-wrap: wrap;
+    }
+    .phone-verify-btn {
+        width: 100%;
+        text-align: center;
+        margin-top: 5px;
+    }
+}
+/* ===== FIN SECTION TÉLÉPHONE ===== */

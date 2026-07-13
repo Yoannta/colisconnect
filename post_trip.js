@@ -28,8 +28,8 @@
         choicesContainer: document.getElementById("pm-choices-container"),
         backBtn: document.getElementById("pm-back-btn"),
         uploadTitle: document.getElementById("pm-upload-title"),
-        indicatifInput: document.getElementById("pm-indicatif"),
-        localNumberInput: document.getElementById("pm-local-number"),
+        indicatifInput: document.getElementById("phonePrefix"),
+        localNumberInput: document.getElementById("phoneMainNumber"),
         confirmBtn: document.getElementById("pm-confirm-btn"),
         // SMS Verification
         verifySmsBtn: document.getElementById("pm-verify-sms-btn"),
@@ -238,14 +238,14 @@
 
         if (els.indicatifInput) {
             els.indicatifInput.disabled = false;
-            els.indicatifInput.value = "+";
+            els.indicatifInput.selectedIndex = 0;
         }
         if (els.localNumberInput) {
             els.localNumberInput.disabled = false;
             els.localNumberInput.value = "";
         }
 
-        setTimeout(() => els.indicatifInput?.focus(), 100);
+        setTimeout(() => els.localNumberInput?.focus(), 100);
 
         if (els.confirmBtn) {
             els.confirmBtn.disabled = true;
@@ -279,29 +279,16 @@
         });
         els.backBtn?.addEventListener("click", () => showStep("choose"));
 
-        // Protection de l'indicatif (Fixe '+')
-        els.indicatifInput?.addEventListener("keydown", (e) => {
-            if (e.key === "Backspace" && els.indicatifInput.selectionStart <= 1) e.preventDefault();
-            if (e.key === "Delete" && els.indicatifInput.selectionStart < 1) e.preventDefault();
-        });
-
-        els.indicatifInput?.addEventListener("input", () => {
-            if (!els.indicatifInput.value.startsWith("+")) {
-                els.indicatifInput.value = "+" + els.indicatifInput.value.replace("+", "");
-            }
-        });
-
-        // Validation combinée
+        // Validation combinée : sélection indicatif + numéro local
         const updateVerifyButton = () => {
-            const ind = els.indicatifInput?.value.trim() || "";
+            const ind = els.indicatifInput?.value || "";
             const loc = els.localNumberInput?.value.trim() || "";
             if (els.verifySmsBtn) {
-                // Indicatif (+X) + numéro local (>4)
-                els.verifySmsBtn.disabled = (ind.length < 2 || loc.length < 5);
+                els.verifySmsBtn.disabled = !ind || loc.length < 5;
             }
         };
 
-        els.indicatifInput?.addEventListener("input", updateVerifyButton);
+        els.indicatifInput?.addEventListener("change", updateVerifyButton);
         els.localNumberInput?.addEventListener("input", (e) => {
             updateVerifyButton();
             // Si on change après avoir vérifié, on réinitialise

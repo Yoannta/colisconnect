@@ -542,23 +542,40 @@
                 <h3 class="pm-title" id="pm-upload-title">Votre numéro de contact</h3>
                 <p class="pm-subtitle">Ce numéro sera révélé au client après validation.</p>
 
-                <div class="form-group" style="text-align: left; margin-top: 20px;">
-                    <label>Votre numéro de contact</label>
-                    <div class="phone-split-wrap"
-                        style="display: flex; align-items: center; border-bottom: 2px solid rgba(19, 236, 200, 0.4); margin-top: 10px; padding-bottom: 4px;">
-                        <input type="text" id="pm-indicatif" value="+"
-                            style="width: 48px; background: transparent; border: none; color: #13ecc8; font-family: monospace; font-size: 1.2rem; font-weight: 800; outline: none; padding: 0; margin: 0;"
-                            maxlength="5">
-
-                        <input type="text" id="pm-local-number" placeholder="Numéro local"
-                            style="flex: 1; background: transparent; border: none; color: white; font-size: 1.1rem; outline: none; padding: 0 8px; margin: 0;">
-
-                        <button type="button" id="pm-verify-sms-btn" class="btn btn-verify"
-                            style="background: transparent; border: 1px solid #13ecc8; color: #13ecc8; padding: 4px 12px; font-size: 0.8rem; border-radius: 20px; transition: all 0.3s;"
-                            disabled>Vérifier</button>
+                <div class="phone-section-container">
+                    <label class="phone-label">Votre numéro de contact</label>
+                    <div class="phone-input-row">
+                        <select class="phone-prefix-select" id="phonePrefix">
+                            <option value="+33">🇫🇷 +33</option>
+                            <option value="+225">🇨🇮 +225</option>
+                            <option value="+221">🇸🇳 +221</option>
+                            <option value="+229">🇧🇯 +229</option>
+                            <option value="+223">🇲🇱 +223</option>
+                            <option value="+226">🇧🇫 +226</option>
+                            <option value="+228">🇹🇬 +228</option>
+                            <option value="+227">🇳🇪 +227</option>
+                            <option value="+237">🇨🇲 +237</option>
+                            <option value="+242">🇨🇬 +242</option>
+                            <option value="+243">🇨🇩 +243</option>
+                            <option value="+241">🇬🇦 +241</option>
+                            <option value="+224">🇬🇳 +224</option>
+                            <option value="+245">🇬🇼 +245</option>
+                            <option value="+240">🇬🇶 +240</option>
+                            <option value="+244">🇦🇴 +244</option>
+                            <option value="+238">🇨🇻 +238</option>
+                            <option value="+239">🇸🇹 +239</option>
+                            <option value="+222">🇲🇷 +222</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+86">🇨🇳 +86</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+49">🇩🇪 +49</option>
+                            <option value="+32">🇧🇪 +32</option>
+                            <option value="+41">🇨🇭 +41</option>
+                        </select>
+                        <input type="tel" class="phone-main-input" id="phoneMainNumber" placeholder="07 00 00 00 00" autocomplete="off">
+                        <button type="button" class="phone-verify-btn" id="pm-verify-sms-btn">Vérifier</button>
                     </div>
-                    <p id="pm-phone-hint" class="pm-hint">Ce numéro sera révélé au client dès qu'il aura validé sa
-                        réservation.</p>
+                    <p class="phone-help-text">Ce numéro sera révélé au client dès qu'il aura validé sa réservation.</p>
                 </div>
 
                 <!-- Section OTP (cachée par défaut) -->
