@@ -1246,17 +1246,22 @@
             dashDemandeList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
 
-        // Ajouter les champs ville après chaque champ pays
-        if (window.CCCommon.addCityAfterCountry) {
+        // Setup autocomplete ville pour les champs ville dans le HTML
+        if (window.CCCommon.setupCityAutocomplete) {
+            const setup = (paysId, villeId) => {
+                const pays = document.getElementById(paysId);
+                const ville = document.getElementById(villeId);
+                if (pays && ville) window.CCCommon.setupCityAutocomplete(ville, pays);
+            };
             // Modale demande de trajet
-            window.CCCommon.addCityAfterCountry("dash-demande-origin", "city-dash-demande-origin", "Paris");
-            window.CCCommon.addCityAfterCountry("dash-demande-destination", "city-dash-demande-destination", "Dakar");
+            setup("dash-demande-origin", "city-dash-demande-origin");
+            setup("dash-demande-destination", "city-dash-demande-destination");
             // Modale modification demande
-            window.CCCommon.addCityAfterCountry("edit-parcel-origin", "city-edit-parcel-origin", "Paris");
-            window.CCCommon.addCityAfterCountry("edit-parcel-destination", "city-edit-parcel-destination", "Dakar");
+            setup("edit-parcel-origin", "city-edit-parcel-origin");
+            setup("edit-parcel-destination", "city-edit-parcel-destination");
             // Modale offre
-            window.CCCommon.addCityAfterCountry("offer-origin", "city-offer-origin", "Paris");
-            window.CCCommon.addCityAfterCountry("offer-destination", "city-offer-destination", "Dakar");
+            setup("offer-origin", "city-offer-origin");
+            setup("offer-destination", "city-offer-destination");
         }
 
         // Evenements modale demande de trajet dashboard
