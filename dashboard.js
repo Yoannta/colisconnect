@@ -992,6 +992,14 @@
         document.querySelector(".client-plus-btn")?.addEventListener("click", () => {
             const modal = document.getElementById("dashboard-demande-modal");
             if (modal) modal.classList.remove("hidden");
+            // Set the currency badge based on user's country of residence
+            const currencyBadge = document.getElementById("dash-demande-currency-badge");
+            if (currencyBadge) {
+                const user = window.CCCommon.state?.user;
+                const userCountry = user?.country || user?.user_metadata?.country || "";
+                const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
+                currencyBadge.textContent = currency;
+            }
         });
 
         // Cargo "Voir tous" demandes (conserve l'ancienne modale cargo)
@@ -1238,12 +1246,16 @@
             const origin = document.getElementById("dash-demande-origin")?.value?.trim();
             const destination = document.getElementById("dash-demande-destination")?.value?.trim();
             const kg = parseInt(document.getElementById("dash-demande-kg")?.value, 10);
+            const budget = parseFloat(document.getElementById("dash-demande-budget")?.value) || 0;
             const description = document.getElementById("dash-demande-description")?.value?.trim();
             const dateLimite = document.getElementById("dash-demande-date")?.value || null;
             if (!origin || !destination || !kg || !description) {
                 alert("Veuillez remplir tous les champs.");
                 return;
             }
+            const user = window.CCCommon.state?.user;
+            const userCountry = user?.country || user?.user_metadata?.country || "";
+            const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || "EUR";
             const feedback = document.getElementById("dash-demande-feedback");
             const submitBtn = document.getElementById("dash-demande-submit-btn");
             try {
@@ -1261,6 +1273,7 @@
                         origin,
                         destination,
                         weight_kg: kg,
+                        max_price_per_kg: budget > 0 ? budget : null,
                         needed_by_date: dateLimite || null,
                         description,
                         status: "pending"
