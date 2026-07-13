@@ -406,15 +406,15 @@
             console.warn("Impossible de verifier le nombre d'offres actives.", e);
         }
 
-        // Validation : si cargo, le mode de transport est requis (stocke dans le state)
+        const isCargoMode = selectedProfileTypeChoice === "cargo";
+        const availableKg = isCargoMode ? 99999 : Number(els.kilos?.value || 0);
+        const pricePerKg = Number(els.price?.value || 0);
+
+        // Validation : si cargo, le mode de transport est requis
         if (isCargoMode && !selectedTransportMode) {
             alert("Veuillez choisir un mode de transport (Avion, Bateau ou Les deux).");
             return;
         }
-
-        const isCargoMode = selectedProfileTypeChoice === "cargo";
-        const availableKg = isCargoMode ? 99999 : Number(els.kilos?.value || 0);
-        const pricePerKg = Number(els.price?.value || 0);
 
         if (!isCargoMode && availableKg < 1) {
             alert("Veuillez saisir les kilos disponibles.");
