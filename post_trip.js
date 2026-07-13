@@ -435,8 +435,8 @@
             baseCurrency: els.priceCurrencyInput?.value || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR"),  // [MULTI-CURRENCY]
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
-            referralCode: String(document.getElementById("referral-code")?.value || "").trim(),
-            mode: (selectedProfileTypeChoice === "cargo") ? (selectedTransportMode || "") : ""
+            mode: (selectedProfileTypeChoice === "cargo") ? (selectedTransportMode || "") : "",
+            colis_types: window.colisSelections ? window.colisSelections.join(", ") : ""
         };
 
         const submitBtn = els.form?.querySelector("button[type='submit']");
@@ -484,6 +484,65 @@
 
         document.addEventListener("click", () => {
             els.currencyPopover?.classList.add("hidden");
+        });
+
+        // ===== POPUP TYPES DE COLIS =====
+        const colisOverlay = document.getElementById("colisPopupOverlay");
+        const colisGrid = document.getElementById("colisOptionsGrid");
+        const colisText = document.getElementById("selectedColisText");
+        const validateColisBtn = document.getElementById("validateColisBtn");
+        const toggleCustomBtn = document.getElementById("toggleCustomColisBtn");
+        const customGroup = document.getElementById("customColisGroup");
+        const newTypeInput = document.getElementById("newColisTypeInput");
+        const saveCustomBtn = document.getElementById("saveCustomColisBtn");
+        let colisSelections = [];
+        window.colisSelections = colisSelections; // expose for payload
+
+        document.getElementById("openColisPopupBtn")?.addEventListener("click", () => {
+            if (colisOverlay) colisOverlay.style.display = "flex";
+        });
+
+        colisGrid?.addEventListener("click", (e) => {
+            const card = e.target.closest(".option-card");
+            if (!card) return;
+            const value = card.getAttribute("data-value");
+            card.classList.toggle("selected");
+            if (card.classList.contains("selected")) {
+                colisSelections.push(value);
+            } else {
+                colisSelections = colisSelections.filter(item => item !== value);
+            }
+        });
+
+        toggleCustomBtn?.addEventListener("click", () => {
+            if (customGroup) {
+                customGroup.style.display = customGroup.style.display === "flex" ? "none" : "flex";
+                newTypeInput?.focus();
+            }
+        });
+
+        saveCustomBtn?.addEventListener("click", () => {
+            const val = newTypeInput?.value?.trim();
+            if (!val) return;
+            const newCard = document.createElement("div");
+            newCard.className = "option-card selected";
+            newCard.setAttribute("data-value", val);
+            newCard.innerHTML = `<span class="option-circle"></span><span class="option-text">${val}</span>`;
+            colisGrid?.appendChild(newCard);
+            colisSelections.push(val);
+            if (newTypeInput) newTypeInput.value = "";
+            if (customGroup) customGroup.style.display = "none";
+        });
+
+        validateColisBtn?.addEventListener("click", () => {
+            if (colisOverlay) colisOverlay.style.display = "none";
+            if (colisText) {
+                colisText.textContent = colisSelections.length > 0 ? colisSelections.join(", ") : "Choisir les types de colis";
+            }
+        });
+
+        colisOverlay?.addEventListener("click", (e) => {
+            if (e.target === colisOverlay) colisOverlay.style.display = "none";
         });
 
         els.form?.addEventListener("submit", (event) => {

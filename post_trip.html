@@ -469,9 +469,11 @@
                                 <input type="hidden" id="payment-qr" name="paymentQr">
                             </div>
                             <div class="form-group">
-                                <label for="referral-code">Code Promo / Parrainage (optionnel)</label>
-                                <input type="text" id="referral-code" class="form-input" placeholder="Ex: PARTNER123" autocomplete="off">
-                                <small class="form-help">Saisissez un code si vous avez ete parraine par un partenaire.</small>
+                                <label class="form-label">Types de colis acceptés</label>
+                                <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
+                                    <span id="selectedColisText">Choisir les types de colis</span>
+                                    <span>▼</span>
+                                </button>
                             </div>
                             <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
                         </div>
@@ -480,6 +482,51 @@
             </section>
         </div>
     </main>
+
+    <!-- ===== MODALE TYPES DE COLIS ===== -->
+    <div class="popup-overlay" id="colisPopupOverlay">
+        <div class="popup-content">
+            <div class="popup-title">📦 Types de colis acceptés</div>
+            <div class="options-grid" id="colisOptionsGrid">
+                <div class="option-card" data-value="Documents">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Documents</span>
+                </div>
+                <div class="option-card" data-value="Électronique">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Électronique</span>
+                </div>
+                <div class="option-card" data-value="Vêtements">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Vêtements</span>
+                </div>
+                <div class="option-card" data-value="Nourriture">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Nourriture</span>
+                </div>
+                <div class="option-card" data-value="Cosmétiques">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Cosmétiques</span>
+                </div>
+                <div class="option-card" data-value="Médicaments">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Médicaments</span>
+                </div>
+                <div class="option-card" data-value="Autres">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Autres</span>
+                </div>
+            </div>
+            <div class="add-custom-section">
+                <button type="button" class="btn-add-trigger" id="toggleCustomColisBtn">+ Ajouter un type personnalisé</button>
+                <div class="custom-input-group" id="customColisGroup">
+                    <input type="text" class="custom-input" id="newColisTypeInput" placeholder="Entrer le nom du type...">
+                    <button type="button" class="btn-save-custom" id="saveCustomColisBtn">Enregistrer</button>
+                </div>
+            </div>
+            <button type="button" class="btn-validate" id="validateColisBtn">Valider la sélection</button>
+        </div>
+    </div>
 
     <!-- ===== MODALE MOYEN DE PAIEMENT ===== -->
     <div id="payment-method-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true"
