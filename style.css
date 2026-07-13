@@ -8651,7 +8651,7 @@ input, select, textarea {
 }
 
 .phone-prefix-select {
-    width: 120px;
+    width: 65px;
     padding: 12px 30px 12px 12px;
     background-color: #031414;
     border: 1px solid #0f3838;
