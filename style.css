@@ -8645,13 +8645,13 @@ input, select, textarea {
 
 .phone-input-row {
     display: flex;
-    gap: 10px;
-    align-items: center;
+    flex-direction: column;
+    gap: 15px;
     width: 100%;
 }
 
 .phone-prefix-select {
-    width: 65px;
+    width: 100%;
     padding: 12px 30px 12px 12px;
     background-color: #031414;
     border: 1px solid #0f3838;
@@ -8660,7 +8660,7 @@ input, select, textarea {
     font-size: 16px;
     outline: none;
     cursor: pointer;
-    flex-shrink: 0;
+    box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
@@ -8671,7 +8671,7 @@ input, select, textarea {
 }
 
 .phone-main-input {
-    flex: 1;
+    width: 100%;
     padding: 12px;
     background-color: #031414;
     border: 1px solid #0f3838;
@@ -8679,6 +8679,7 @@ input, select, textarea {
     color: #ffffff;
     font-size: 16px;
     outline: none;
+    box-sizing: border-box;
     min-width: 0;
 }
 
@@ -8697,7 +8698,6 @@ input, select, textarea {
     font-weight: bold;
     cursor: pointer;
     transition: all 0.2s;
-    flex-shrink: 0;
 }
 
 .phone-verify-btn:hover {
@@ -8711,14 +8711,23 @@ input, select, textarea {
     margin-bottom: 0;
 }
 
-@media (max-width: 400px) {
+/* Desktop : les 3 éléments côte à côte */
+@media (min-width: 768px) {
     .phone-input-row {
-        flex-wrap: wrap;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+    }
+    .phone-prefix-select {
+        width: 150px !important;
+        flex-shrink: 0;
+    }
+    .phone-main-input {
+        flex: 1 !important;
+        width: auto !important;
     }
     .phone-verify-btn {
-        width: 100%;
-        text-align: center;
-        margin-top: 5px;
+        flex-shrink: 0;
     }
 }
 /* ===== FIN SECTION TÉLÉPHONE ===== */
