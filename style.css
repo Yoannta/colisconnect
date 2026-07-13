@@ -77,6 +77,8 @@ html,
 body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    overflow-x: hidden;
     min-height: 100%;
 }
 
@@ -89,6 +91,11 @@ body {
         radial-gradient(circle at 100% 100%, #0c1a16 0%, transparent 40%);
     min-height: 100vh;
     overflow-x: hidden;
+}
+
+/* Bloque le zoom auto iOS sur les champs de formulaire */
+input, select, textarea, button {
+    font-size: 16px !important;
 }
 
 .noise-layer {

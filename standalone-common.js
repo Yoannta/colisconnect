@@ -1005,29 +1005,38 @@
             };
         }
 
+        const hasFullName = Boolean(user?.fullName || user?.full_name || user?.user_metadata?.full_name);
         const hasPhone = String(user?.phoneNumber || user?.phone || "").trim().length >= 8;
         const hasIdentityDocument = Boolean(user?.hasIdentityDocument || user?.identity_document);
-        const hasProfilePhoto = Boolean(user?.hasProfilePhoto || user?.profile_photo);
         // [FIX] On vérifie aussi le champ metadata au cas oà¹
         const userCountry = user?.country || user?.user_metadata?.country || user?.location;
         const hasCountry = Boolean(userCountry);
         const hasPaymentQrCode = Boolean(user?.hasPaymentQrCode || user?.alipay_qr || user?.wechat_qr);
 
-        console.log("ðŸ“ Pays détecté:", userCountry, "-> hasCountry:", hasCountry);
+        // Poids : fullName=15%, country=15%, phone=35%, identity=35%
+        const WEIGHTS = { fullName: 15, country: 15, phone: 35, identity: 35 };
+        let percent = 0;
         const missingFields = [];
-        if (!hasPhone) missingFields.push("phoneNumber");
-        if (!hasIdentityDocument) missingFields.push("identityDocument");
-        if (!hasProfilePhoto) missingFields.push("profilePhoto");
-        if (!hasCountry) missingFields.push("country");
 
-        const completedSteps = (hasPhone ? 1 : 0) + (hasIdentityDocument ? 1 : 0) + (hasProfilePhoto ? 1 : 0) + (hasCountry ? 1 : 0);
+        if (hasFullName) { percent += WEIGHTS.fullName; }
+        else { missingFields.push("fullName"); }
+
+        if (hasCountry) { percent += WEIGHTS.country; }
+        else { missingFields.push("country"); }
+
+        if (hasPhone) { percent += WEIGHTS.phone; }
+        else { missingFields.push("phoneNumber"); }
+
+        if (hasIdentityDocument) { percent += WEIGHTS.identity; }
+        else { missingFields.push("identityDocument"); }
 
         return {
-            percent: Math.round((completedSteps / 4) * 100),
+            percent: Math.round(percent),
             isComplete: missingFields.length === 0,
+            hasFullName,
             hasPhone,
             hasIdentityDocument,
-            hasProfilePhoto,
+            hasCountry,
             hasPaymentQrCode,
             missingFields
         };
@@ -1188,9 +1197,9 @@
 
     function formatMissingProfileFields(missingFields = []) {
         const labels = [];
+        if (missingFields.includes("fullName")) labels.push("prenom et nom");
         if (missingFields.includes("phoneNumber")) labels.push("numero de telephone");
         if (missingFields.includes("identityDocument")) labels.push("piece justificative");
-        if (missingFields.includes("profilePhoto")) labels.push("photo de profil");
         if (missingFields.includes("country")) labels.push("pays de residence");
         return labels;
     }
