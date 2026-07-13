@@ -316,6 +316,11 @@
         if (demandeList && countryOptions.length) {
             demandeList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
+        // Ajouter les champs ville
+        if (window.CCCommon.addCityAfterCountry) {
+            window.CCCommon.addCityAfterCountry("demande-origin", "city-demande-origin", "Paris");
+            window.CCCommon.addCityAfterCountry("demande-destination", "city-demande-destination", "Dakar");
+        }
         // Evenements de la modale demande
         document.getElementById("close-demande-modal")?.addEventListener("click", () => {
             document.getElementById("demande-trajet-modal")?.classList.add("hidden");

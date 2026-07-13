@@ -400,27 +400,8 @@
 
                 <section class="trip-form-card glass-panel" data-animate>
                     <form class="trip-form" id="trip-form">
-                        <div class="form-group">
-                            <label for="city-departure">Ville de depart</label>
-                            <input type="text" id="city-departure" class="form-input" placeholder="Ex: Paris" autocomplete="off">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="departure">Pays de depart</label>
-                            <input type="text" id="departure" class="form-input" list="country-options-trip"
-                                placeholder="Choisir un pays" autocomplete="off" required>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="city-destination">Ville d'arrivee</label>
-                            <input type="text" id="city-destination" class="form-input" placeholder="Ex: Abidjan" autocomplete="off">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="destination">Pays d'arrivee</label>
-                            <input type="text" id="destination" class="form-input" list="country-options-trip"
-                                placeholder="Choisir un pays" autocomplete="off" required>
-                        </div>
+                        <div class="location-group" data-type="departure"></div>
+                        <div class="location-group" data-type="destination"></div>
                         <datalist id="country-options-trip" data-country-list></datalist>
 
                         <div class="form-group">

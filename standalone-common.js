@@ -2172,6 +2172,161 @@
      * - Sélection par clic uniquement
      * - Navigation clavier (↑↓ + Entrée)
      */
+    // Cache des villes (chargé depuis cities.json)
+    let _citiesCache = null;
+
+    async function _loadCities() {
+        if (_citiesCache) return _citiesCache;
+        try {
+            const resp = await fetch("cities.json");
+            _citiesCache = await resp.json();
+        } catch {
+            _citiesCache = {};
+        }
+        return _citiesCache;
+    }
+
+    /**
+     * Configure l'autocomplete ville lié au champ pays.
+     * Quand l'utilisateur tape dans la ville, seules les villes du pays sélectionné s'affichent.
+     */
+    function setupCityAutocomplete(cityInput, countryInput) {
+        if (!cityInput || !countryInput || cityInput.dataset.ccCityDone === "true") return;
+        cityInput.dataset.ccCityDone = "true";
+
+        const container = document.createElement("div");
+        container.className = "cc-autocomplete-ctn";
+        const wrapper = document.createElement("div");
+        wrapper.className = "cc-input-wrapper";
+        cityInput.parentNode.insertBefore(container, cityInput);
+        wrapper.appendChild(cityInput);
+        container.appendChild(wrapper);
+
+        const list = document.createElement("ul");
+        list.className = "cc-suggestions-list";
+        container.appendChild(list);
+
+        function getVilles(pays, texte) {
+            if (!_citiesCache || !pays || !texte) return [];
+            const villes = _citiesCache[pays] || [];
+            const t = texte.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            if (!t) return villes.slice(0, 10);
+            return villes.filter(v =>
+                v.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(t)
+            ).slice(0, 10);
+        }
+
+        function showVilles(villes) {
+            list.innerHTML = "";
+            if (!villes.length) { list.style.display = "none"; return; }
+            villes.forEach(v => {
+                const li = document.createElement("li");
+                li.textContent = v;
+                li.addEventListener("click", () => {
+                    cityInput.value = v;
+                    list.style.display = "none";
+                });
+                list.appendChild(li);
+            });
+            list.style.display = "block";
+        }
+
+        cityInput.addEventListener("focus", async () => {
+            await _loadCities();
+            const pays = countryInput.value.trim();
+            if (pays && cityInput.value.trim()) {
+                showVilles(getVilles(pays, cityInput.value));
+            }
+        });
+
+        cityInput.addEventListener("input", async () => {
+            await _loadCities();
+            const pays = countryInput.value.trim();
+            showVilles(getVilles(pays, cityInput.value));
+        });
+
+        cityInput.addEventListener("blur", () => {
+            setTimeout(() => { list.style.display = "none"; }, 200);
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".cc-autocomplete-ctn")) list.style.display = "none";
+        }, { passive: true });
+    }
+
+    /**
+     * Génère les champs Pays + Ville pour un type (departure/destination).
+     */
+    function initLocationFields(selector) {
+        document.querySelectorAll(selector + " .location-group").forEach(container => {
+            if (container.dataset.ccLocationDone === "true") return;
+            container.dataset.ccLocationDone = "true";
+
+            const type = container.dataset.type; // "departure" ou "destination"
+            if (!type) return;
+
+            const prefix = container.dataset.prefix || ""; // préfixe optionnel pour IDs uniques
+            const label = type === "departure" ? "départ" : "arrivée";
+            const countryPlaceholder = type === "departure" ? "France" : "Sénégal";
+            const cityPlaceholder = type === "departure" ? "Paris" : "Dakar";
+            const sep = prefix ? "-" : "";
+            const countryId = prefix + sep + type;
+            const cityId = "city-" + prefix + sep + type;
+            const datalistId = container.dataset.listId || "country-options-trip";
+
+            container.innerHTML = `
+                <div class="form-group">
+                    <label for="${countryId}">Pays de ${label}</label>
+                    <input type="text" id="${countryId}" class="form-input" list="${datalistId}"
+                        placeholder="Ex: ${countryPlaceholder}" autocomplete="off" required>
+                </div>
+                <div class="form-group">
+                    <label for="${cityId}">Ville de ${label}</label>
+                    <input type="text" id="${cityId}" class="form-input" placeholder="Ex: ${cityPlaceholder}" autocomplete="off">
+                </div>
+            `;
+
+            // Setup autocomplete pays
+            const countryInput = document.getElementById(countryId);
+            if (countryInput) setupCountryInput(countryInput);
+
+            // Setup autocomplete ville liée au pays
+            const cityInput = document.getElementById(cityId);
+            if (cityInput && countryInput) {
+                setupCityAutocomplete(cityInput, countryInput);
+            }
+        });
+    }
+
+    /**
+     * Ajoute un champ ville après un champ pays existant (sans casser les IDs).
+     * @param {string} countryId - ID du champ pays existant
+     * @param {string} cityId - ID souhaité pour le champ ville
+     * @param {string} placeholder - Placeholder (ex: "Paris")
+     */
+    function addCityAfterCountry(countryId, cityId, placeholder) {
+        const countryInput = document.getElementById(countryId);
+        if (!countryInput || document.getElementById(cityId)) return;
+
+        const formGroup = countryInput.closest(".form-group");
+        if (!formGroup) return;
+
+        const label = formGroup.querySelector("label");
+        const labelText = label ? label.textContent.replace("Pays", "Ville") : "Ville";
+
+        const cityGroup = document.createElement("div");
+        cityGroup.className = "form-group";
+        cityGroup.innerHTML = `
+            <label for="${cityId}">${labelText}</label>
+            <input type="text" id="${cityId}" class="form-input" placeholder="Ex: ${placeholder || ''}" autocomplete="off">
+        `;
+
+        formGroup.parentNode.insertBefore(cityGroup, formGroup.nextSibling);
+
+        const cityInput = document.getElementById(cityId);
+        if (cityInput) setupCityAutocomplete(cityInput, countryInput);
+    }
+
     function setupCountryInput(input) {
         if (!input || input.dataset.ccCountrySetup === "true") return;
         if (input.closest(".cc-autocomplete-ctn")) return;
@@ -2407,7 +2562,10 @@
         submitCountryInfo,
         // Country input validation (selection only from datalist)
         setupCountryInput,
-        setupAllCountryInputs
+        setupAllCountryInputs,
+        // Location fields generator (pays + ville)
+        initLocationFields,
+        addCityAfterCountry
     };
 
     // Auto-init on DOMContentLoaded if not already done manually

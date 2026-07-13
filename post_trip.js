@@ -632,6 +632,10 @@
         initCountryDatalist();
         initDateMin();
         initReveal();
+        // Génère les champs pays+ville depuis les conteneurs .location-group
+        if (window.CCCommon.initLocationFields) {
+            window.CCCommon.initLocationFields("#trip-form");
+        }
         bindModalEvents();
         bindEvents();
     }
