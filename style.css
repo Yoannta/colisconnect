@@ -492,10 +492,31 @@ input, select, textarea, button {
     flex-direction: column;
     gap: 6px;
     flex: 1;
+    min-width: 0;
 }
 
-.estimator-field-group .estimator-input {
+.estimator-field-group .estimator-input,
+.estimator-field-group .cc-autocomplete-ctn,
+.estimator-field-group .cc-input-wrapper {
     width: 100%;
+    min-width: 0;
+}
+
+.estimator-field-group .cc-autocomplete-ctn .cc-autocomplete-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.4);
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.estimator-field-group .cc-autocomplete-ctn .cc-autocomplete-input:focus {
+    border-color: var(--emerald-bright);
+    box-shadow: 0 0 0 2px rgba(19, 236, 200, 0.2);
+    outline: none;
 }
 
 .estimator-result {
