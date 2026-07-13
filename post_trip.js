@@ -359,13 +359,15 @@
             return;
         }
 
-        // Les champs supplementaires et le bouton submit sont dans trip-extra-fields
-        // Si l'utilisateur n'a pas encore choisi son profil, afficher les champs n'est pas suffisant
-        // On vérifie qu'un choix a ete fait
-        const hasChoice = !!selectedProfileTypeChoice;
-        if (!hasChoice) {
-            alert("Veuillez d'abord choisir votre type de profil (Voyageur simple ou Entreprise cargo).");
-            return;
+        // Si l'utilisateur n'a pas cliqué sur un bouton, on regarde son profil existant
+        if (!selectedProfileTypeChoice) {
+            const currentProfile = window.CCCommon.state?.user?.profile_type;
+            if (currentProfile === "traveler" || currentProfile === "cargo") {
+                selectedProfileTypeChoice = currentProfile;
+            } else {
+                alert("Veuillez d'abord choisir votre type de profil (Voyageur simple ou Entreprise cargo).");
+                return;
+            }
         }
 
         // Soumettre directement (les champs sont visibles)
