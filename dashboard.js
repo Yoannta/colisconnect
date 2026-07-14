@@ -461,7 +461,40 @@
         if (els.offerDepartureDate) els.offerDepartureDate.value = String(offer.departureDate || offer.departure_date || "");
         if (els.offerAvailableKg) els.offerAvailableKg.value = String(offer.availableKg ?? offer.available_kg ?? "");
         if (els.offerPricePerKg) els.offerPricePerKg.value = String(offer.pricePerKg ?? offer.price_per_kg ?? "");
-        if (els.offerBaseCurrency) els.offerBaseCurrency.value = String(offer.baseCurrency || offer.base_currency || getUserCurrency()).toUpperCase();
+
+        // === Devise intelligente : proposer uniquement les devises des pays de l'offre ===
+        const datalist = document.getElementById("offer-currency-list");
+        const currencyInput = els.offerBaseCurrency;
+        const COUNTRY_CURRENCIES = window.CCCommon?.COUNTRY_CURRENCIES || {};
+
+        const originCur = COUNTRY_CURRENCIES[offer.origin] || "";
+        const destCur = COUNTRY_CURRENCIES[offer.destination] || "";
+        const userCur = getUserCurrency();
+
+        // Ensemble des devises pertinentes (origine, destination, + EUR neutre si absent)
+        const relevantSet = new Set();
+        if (originCur) relevantSet.add(originCur);
+        if (destCur) relevantSet.add(destCur);
+        if (originCur !== "EUR" && destCur !== "EUR") relevantSet.add("EUR"); // neutre
+
+        // Si pas de devise trouvée, fallback vers EUR
+        if (relevantSet.size === 0) relevantSet.add(userCur);
+
+        // Premier choix : devise de l'origine (ou destination si origine inconnue)
+        const preferred = originCur || destCur || userCur;
+
+        // Remplir le datalist
+        if (datalist) {
+            datalist.innerHTML = Array.from(relevantSet)
+                .map(code => `<option value="${code}">${code}</option>`)
+                .join("");
+        }
+
+        // Pré-sélectionner la valeur existante ou la devise préférée
+        if (currencyInput) {
+            const existing = String(offer.baseCurrency || offer.base_currency || "").toUpperCase();
+            currencyInput.value = existing || preferred;
+        }
 
         setFeedback("");
         modal.classList.remove("hidden");
