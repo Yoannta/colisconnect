@@ -173,77 +173,12 @@
     }
 
     function bindEvents() {
-        if (els.offerFilterForm) {
-            els.offerFilterForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                loadOffers().catch(err => console.error(err));
-            });
-        }
-
-        // [CURRENCY] Seamless Toggle logic
-        const btnChange = document.getElementById("cc-btn-change-currency");
-        const searchWrapper = document.getElementById("cc-search-wrapper");
-        const countryInput = document.getElementById("cc-inline-country");
-        const btnCancel = document.getElementById("cc-cancel-search");
-        const btnLabel = document.getElementById("cc-btn-label");
-
-        if (btnChange && searchWrapper && countryInput) {
-            btnChange.addEventListener("click", () => {
-                btnChange.style.display = "none";
-                searchWrapper.style.display = "flex";
-                countryInput.value = "";
-                countryInput.focus();
-            });
-
-            if (btnCancel) {
-                btnCancel.addEventListener("click", () => {
-                    searchWrapper.style.display = "none";
-                    btnChange.style.display = "flex";
-                });
+        // Devise
+        document.getElementById("currency-header-select")?.addEventListener("change", function() {
+            if (this.value) {
+                state.userCurrency = this.value;
+                renderOffers();
             }
-
-            countryInput.addEventListener("change", async () => {
-                const val = countryInput.value.trim();
-                const VALID_COUNTRIES = window.CCCommon.COUNTRY_OPTIONS;
-
-                if (val && VALID_COUNTRIES.includes(val)) {
-                    searchWrapper.style.display = "none";
-                    btnChange.style.display = "flex";
-                    if (btnLabel) btnLabel.textContent = "...";
-
-                    try {
-                        if (window.CCCommon.state?.user?.id) {
-                            await window.ccSupabase
-                                .from('profiles')
-                                .update({ country: val })
-                                .eq('id', window.CCCommon.state.user.id);
-
-                            window.CCCommon.state.user.country = val;
-                        }
-
-                        const newCur = COUNTRY_CURRENCIES[val] || 'EUR';
-                        state.userCurrency = newCur;
-                        if (btnLabel) btnLabel.textContent = newCur;
-
-                        await loadOffers();
-                    } catch (err) {
-                        console.error("Currency swap error:", err);
-                        if (btnLabel) btnLabel.textContent = "Erreur";
-                    }
-                }
-            });
-        }
-
-        // Quick city filters
-        document.querySelectorAll('.city-badge').forEach(badge => {
-            badge.addEventListener("click", (e) => {
-                const city = e.target.dataset.city || e.target.textContent.trim();
-                const destInp = document.getElementById('dest-input');
-                if (destInp && city) {
-                    destInp.value = city;
-                    loadOffers().catch(err => console.warn(err));
-                }
-            });
         });
 
         if (els.offersList) {
@@ -302,9 +237,9 @@
         const userCountry = user?.country || user?.location;
         if (userCountry) {
             state.userCurrency = COUNTRY_CURRENCIES[userCountry] || 'EUR';
-            const btnLabel = document.getElementById("cc-btn-label");
-            if (btnLabel) {
-                btnLabel.textContent = state.userCurrency;
+            const curSelect = document.getElementById("currency-header-select");
+            if (curSelect) {
+                curSelect.value = state.userCurrency;
             }
         }
 

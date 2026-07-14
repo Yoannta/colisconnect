@@ -8815,33 +8815,48 @@ input, select, textarea {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto 20px;
-    box-sizing: border-box;
 }
 
+/* DEVISE */
+.currency-header {
+    text-align: right;
+    color: var(--emerald-bright);
+    font-size: 13px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    padding-right: 10px;
+}
+.currency-select-clean {
+    background: transparent;
+    color: var(--emerald-bright);
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    outline: none;
+}
+
+/* CARTE */
 .search-main-card {
-    background-color: #13222e;
-    border: 1px solid #1e3547;
-    border-radius: 16px;
+    background-color: var(--surface-strong);
+    border: 1px solid var(--line-glow);
+    border-radius: 12px;
     padding: 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 15px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 .search-group {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-width: 0;
 }
 
 .group-label {
-    color: #a0f0ff;
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 1px;
+    color: var(--emerald-bright);
+    font-size: 11px;
+    font-weight: bold;
     margin-bottom: 8px;
     text-transform: uppercase;
 }
@@ -8853,105 +8868,79 @@ input, select, textarea {
 }
 
 .input-box {
-    background-color: #0a1218;
-    border: 1px solid #1c3040;
-    border-radius: 10px;
+    background-color: #050a0e;
+    border: 1px solid var(--line-glow);
+    border-radius: 8px;
     padding: 0 12px;
     display: flex;
     align-items: center;
+    height: 45px;
     flex: 1;
-    height: 48px;
-    transition: border-color 0.2s;
 }
 
-.input-box:hover, .input-box:focus-within {
-    border-color: #00d0d0;
-}
-
-.input-box .icon {
-    font-size: 16px;
-    margin-right: 8px;
+.icon {
+    font-size: 14px;
+    color: var(--emerald-bright);
     flex-shrink: 0;
 }
 
 .custom-select {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    font-size: 14px;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text);
     width: 100%;
+    height: 100%;
     outline: none;
+    font-size: 14px;
+    margin-left: 8px;
     cursor: text;
-    height: 46px;
 }
 
 .custom-select::placeholder {
-    color: #6a8ba0;
+    color: var(--muted);
 }
 
 .search-separator {
+    color: var(--emerald-bright);
+    background: #0a2222;
+    width: 35px;
+    height: 35px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #1a2f3f;
-    color: #00d0d0;
-    width: 38px;
-    height: 38px;
     border-radius: 50%;
     flex-shrink: 0;
-    margin-top: 20px;
+    margin-top: 18px;
 }
 
 .search-btn-container {
-    margin-top: 20px;
+    margin-top: 18px;
     flex-shrink: 0;
 }
 
 .search-submit-btn {
-    background: linear-gradient(135deg, #00d0d0, #00a3a3);
-    color: #000000;
-    font-weight: 800;
-    font-size: 16px;
+    background-color: var(--emerald-bright);
+    color: #000;
+    font-weight: bold;
+    font-size: 15px;
     border: none;
-    border-radius: 12px;
-    padding: 0 28px;
-    height: 48px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    border-radius: 8px;
+    height: 45px;
+    padding: 0 25px;
     cursor: pointer;
-    box-shadow: 0 0 15px rgba(0, 208, 208, 0.4);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: opacity 0.2s;
     white-space: nowrap;
 }
 
 .search-submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 0 25px rgba(0, 208, 208, 0.7);
+    opacity: 0.8;
 }
 
 @media (max-width: 900px) {
-    .search-main-card {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 15px;
-    }
-    .inputs-row {
-        flex-direction: column;
-    }
-    .search-separator {
-        align-self: center;
-        margin: 5px 0;
-        transform: rotate(90deg);
-    }
-    .search-btn-container {
-        margin-top: 10px;
-        width: 100%;
-    }
-    .search-submit-btn {
-        width: 100%;
-        justify-content: center;
-        height: 52px;
-    }
+    .search-main-card { flex-direction: column; align-items: stretch; }
+    .inputs-row { flex-direction: column; }
+    .search-separator { align-self: center; margin: 5px auto; transform: rotate(90deg); }
+    .search-btn-container { width: 100%; }
+    .search-submit-btn { width: 100%; justify-content: center; margin-top: 0; }
 }
 /* ===== FIN BARRE DE RECHERCHE VOYAGE ===== */
