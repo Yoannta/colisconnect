@@ -130,168 +130,61 @@
 
         <section class="view is-active" data-view="search" id="search-view">
 
-            </div>
+            <!-- ===== BARRE DE RECHERCHE VOYAGE ===== -->
+            <div class="search-section-wrapper">
 
-            <div class="view-head"
-                style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 24px;">
-
-                <div>
-
-                    <h2 class="welcome-title" id="results-headline">Voyageurs disponibles pour vos transferts urgents ou
-                        petites quantités</h2>
-
-                    <p class="kicker">Recherchez par destination</p>
-
-                </div>
-
-                <div class="profile-type-filters" style="display: flex; gap: 12px; margin-left: auto;">
-                    <button type="button" id="filter-traveler-btn" class="filter-tab active">Voyageur simple</button>
-                    <button type="button" id="filter-cargo-btn" class="filter-tab">Entreprise cargo</button>
-                </div>
-
-            </div>
-
-            <form id="offer-filter-form" class="filter-grid DeepGlass">
-
-                <div class="dest-label"><label for="dest-input">Destination</label></div>
-
-                <div class="dest-input-wrap">
-
-                    <input type="text" name="destination" placeholder="O envoyez-vous ?" list="destination-list"
-                        id="dest-input">
-
-                </div>
-
-                <div class="dest-shortcuts proactive-shortcuts">
-
-                    <button type="button" class="TrustTag"
-                        onclick="document.getElementById('dest-input').value='Paris'">Paris</button>
-
-                    <button type="button" class="TrustTag"
-                        onclick="document.getElementById('dest-input').value='Abidjan'">Abidjan</button>
-
-                    <button type="button" class="TrustTag"
-                        onclick="document.getElementById('dest-input').value='Dakar'">Dakar</button>
-
-                </div>
-
-                <div class="weight-label"><label for="weight-input">Poids (kg)</label></div>
-
-                <div class="weight-input-wrap">
-
-                    <input type="number" min="1" name="minKg" id="weight-input" placeholder="Combien de kilos ?">
-
-                </div>
-
-                <div class="action-col">
-
-                    <button type="submit" class="btn primary">
-
-                        <svg viewBox="0 0 24 24" fill="none" class="icon-sm" xmlns="http://www.w3.org/2000/svg">
-
-                            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
-
-                            <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" />
-
-                        </svg>
-
-                        Rechercher
-
-                    </button>
-
-                </div>
-
-                <div class="xai-col" style="position:relative; overflow:visible;">
-                    <div id="currency-selector-container" style="display: flex; align-items: center;">
-                        <!-- Bouton Principal -->
-                        <button type="button" id="cc-btn-change-currency" class="currency-toggle"
-                            style="display: flex;">
-                            <span id="cc-btn-label">Mettre la monnaie de mon pays</span>
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-                                stroke-width="2" style="margin-left: 8px;">
-                                <path d="M6 9l6 6 6-6" />
-                            </svg>
-                        </button>
-
-                        <!-- Champ de Recherche (Remplace le bouton lors du clic) -->
-                        <div id="cc-search-wrapper" style="display: none; align-items: center; gap: 8px;">
-                            <input type="text" id="cc-inline-country" list="destination-list"
-                                placeholder="Cliquer & choisir pays..." autocomplete="off" style="width: 200px; background: rgba(52, 211, 153, 0.05); border: 1px solid rgba(52, 211, 153, 0.3);
-                                       color: white; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem;
-                                       outline: none; box-shadow: 0 0 15px rgba(52, 211, 153, 0.1);">
-                            <button type="button" id="cc-cancel-search"
-                                style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.5rem; line-height: 1;">&times;</button>
-                        </div>
+                <div class="view-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                    <div>
+                        <h2 class="welcome-title" id="results-headline">Voyageurs disponibles pour vos transferts urgents ou petites quantités</h2>
+                        <p class="kicker">Recherchez par destination</p>
+                    </div>
+                    <div class="profile-type-filters" style="display: flex; gap: 12px;">
+                        <button type="button" id="filter-traveler-btn" class="filter-tab active">Voyageur simple</button>
+                        <button type="button" id="filter-cargo-btn" class="filter-tab">Entreprise cargo</button>
                     </div>
                 </div>
+
+                <div class="search-main-card">
+                    <!-- GROUPE 1 : DÉPART -->
+                    <div class="search-group">
+                        <label class="group-label">DÉPART</label>
+                        <div class="inputs-row">
+                            <div class="input-box">
+                                <span class="icon">🌐</span>
+                                <input type="text" class="custom-select" id="res-origin-country" placeholder="Pays de départ" autocomplete="off">
+                            </div>
+                            <div class="input-box">
+                                <span class="icon">📍</span>
+                                <input type="text" class="custom-select" id="res-origin-city" placeholder="Ville de départ" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="search-separator"><span class="arrow-icon">➔</span></div>
+
+                    <!-- GROUPE 2 : DESTINATION -->
+                    <div class="search-group">
+                        <label class="group-label">DESTINATION</label>
+                        <div class="inputs-row">
+                            <div class="input-box">
+                                <span class="icon">🌐</span>
+                                <input type="text" class="custom-select" id="res-dest-country" placeholder="Pays d'arrivée" autocomplete="off">
+                            </div>
+                            <div class="input-box">
+                                <span class="icon">📍</span>
+                                <input type="text" class="custom-select" id="res-dest-city" placeholder="Ville d'arrivée" autocomplete="off">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="search-btn-container">
+                        <button type="button" class="search-submit-btn" id="new-search-btn">
+                            <span class="search-icon">🔍</span>
+                            <span class="btn-text">Rechercher</span>
+                        </button>
+                    </div>
                 </div>
-                </div>
-            </form>
-
-            <datalist id="destination-list">
-
-                <option value="France"></option>
-
-                <option value="Belgique"></option>
-
-                <option value="Suisse"></option>
-
-                <option value="Espagne"></option>
-
-                <option value="Italie"></option>
-
-                <option value="Portugal"></option>
-
-                <option value="Allemagne"></option>
-
-                <option value="Royaume-Uni"></option>
-
-                <option value="Pays-Bas"></option>
-
-                <option value="Luxembourg"></option>
-
-                <option value="Cote d'Ivoire"></option>
-
-                <option value="Senegal"></option>
-
-                <option value="Mali"></option>
-
-                <option value="Burkina Faso"></option>
-
-                <option value="Niger"></option>
-
-                <option value="Togo"></option>
-
-                <option value="Benin"></option>
-
-                <option value="Cameroun"></option>
-
-                <option value="Gabon"></option>
-
-                <option value="Congo"></option>
-
-                <option value="Republique Democratique du Congo"></option>
-
-                <option value="Ghana"></option>
-
-                <option value="Guinee"></option>
-
-                <option value="Maroc"></option>
-
-                <option value="Algerie"></option>
-
-                <option value="Tunisie"></option>
-
-                <option value="Egypte"></option>
-
-                <option value="Etats-Unis"></option>
-
-                <option value="Canada"></option>
-
-                <option value="Emirats Arabes Unis"></option>
-
-            </datalist>
+            </div>
 
             <div id="offers-list" class="cards-list offers-stream">
 

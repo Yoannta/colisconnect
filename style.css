@@ -8809,3 +8809,149 @@ input, select, textarea {
     box-shadow: 0 0 12px rgba(0, 163, 163, 0.2);
 }
 /* ===== FIN MOYEN DE TRANSPORT ===== */
+
+/* ===== BARRE DE RECHERCHE VOYAGE ===== */
+.search-section-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    box-sizing: border-box;
+}
+
+.search-main-card {
+    background-color: #13222e;
+    border: 1px solid #1e3547;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.search-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.group-label {
+    color: #a0f0ff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.inputs-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+.input-box {
+    background-color: #0a1218;
+    border: 1px solid #1c3040;
+    border-radius: 10px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    flex: 1;
+    height: 48px;
+    transition: border-color 0.2s;
+}
+
+.input-box:hover, .input-box:focus-within {
+    border-color: #00d0d0;
+}
+
+.input-box .icon {
+    font-size: 16px;
+    margin-right: 8px;
+    flex-shrink: 0;
+}
+
+.custom-select {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 14px;
+    width: 100%;
+    outline: none;
+    cursor: text;
+    height: 46px;
+}
+
+.custom-select::placeholder {
+    color: #6a8ba0;
+}
+
+.search-separator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #1a2f3f;
+    color: #00d0d0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 20px;
+}
+
+.search-btn-container {
+    margin-top: 20px;
+    flex-shrink: 0;
+}
+
+.search-submit-btn {
+    background: linear-gradient(135deg, #00d0d0, #00a3a3);
+    color: #000000;
+    font-weight: 800;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    padding: 0 28px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(0, 208, 208, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+    white-space: nowrap;
+}
+
+.search-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 25px rgba(0, 208, 208, 0.7);
+}
+
+@media (max-width: 900px) {
+    .search-main-card {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 15px;
+    }
+    .inputs-row {
+        flex-direction: column;
+    }
+    .search-separator {
+        align-self: center;
+        margin: 5px 0;
+        transform: rotate(90deg);
+    }
+    .search-btn-container {
+        margin-top: 10px;
+        width: 100%;
+    }
+    .search-submit-btn {
+        width: 100%;
+        justify-content: center;
+        height: 52px;
+    }
+}
+/* ===== FIN BARRE DE RECHERCHE VOYAGE ===== */

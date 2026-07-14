@@ -10,7 +10,6 @@
     const COUNTRY_CURRENCIES = window.CCCommon.COUNTRY_CURRENCIES;
 
     const els = {
-        offerFilterForm: document.getElementById("offer-filter-form"),
         offersList: document.getElementById("offers-list")
     };
 
@@ -22,10 +21,13 @@
     }
 
     function queryOfferFilters() {
-        const data = new FormData(els.offerFilterForm);
-        const destination = String(data.get("destination") || "").trim();
-        const minKg = Math.max(1, Number(data.get("minKg") || 1));
-        return { destination, minKg };
+        const destCountry = document.getElementById("res-dest-country")?.value?.trim() || "";
+        const destCity = document.getElementById("res-dest-city")?.value?.trim() || "";
+        const originCountry = document.getElementById("res-origin-country")?.value?.trim() || "";
+        const originCity = document.getElementById("res-origin-city")?.value?.trim() || "";
+        const destination = destCity || destCountry;
+        const origin = originCity || originCountry;
+        return { destination, origin, minKg: 1 };
     }
 
     async function loadOffers() {
@@ -285,14 +287,11 @@
                 renderOffers();
             });
         }
-    }
 
-    function initCountryDatalist() {
-        const datalist = document.getElementById("destination-list");
-        const options = window.CCCommon.COUNTRY_OPTIONS;
-        if (datalist && options) {
-            datalist.innerHTML = options.map(c => `<option value="${c}">`).join("");
-        }
+        // Bouton Rechercher de la nouvelle barre
+        document.getElementById("new-search-btn")?.addEventListener("click", () => {
+            loadOffers().catch(err => console.warn(err));
+        });
     }
 
     async function bootstrap() {
@@ -309,13 +308,30 @@
             }
         }
 
-        initCountryDatalist();
         // Remplir le datalist des pays pour la modale
         const demandeList = document.getElementById("demande-country-list");
         const countryOptions = window.CCCommon.COUNTRY_OPTIONS || [];
         if (demandeList && countryOptions.length) {
             demandeList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
+        // Setup autocomplete pays pour la barre de recherche
+        if (window.CCCommon.setupCountryInput) {
+            ["res-origin-country", "res-dest-country"].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) window.CCCommon.setupCountryInput(el);
+            });
+        }
+        // Setup autocomplete ville pour la barre de recherche
+        if (window.CCCommon.setupCityAutocomplete) {
+            const setup = (paysId, villeId) => {
+                const pays = document.getElementById(paysId);
+                const ville = document.getElementById(villeId);
+                if (pays && ville) window.CCCommon.setupCityAutocomplete(ville, pays);
+            };
+            setup("res-origin-country", "res-origin-city");
+            setup("res-dest-country", "res-dest-city");
+        }
+
         // Setup autocomplete ville pour les champs ville déjà présents dans le HTML
         if (window.CCCommon.setupAllCountryInputs) {
             // Les champs ville sont déjà dans le HTML, on configure leur autocomplete
