@@ -4,7 +4,8 @@
         firstname: document.getElementById("verification-firstname"),
         lastname: document.getElementById("verification-lastname"),
         country: document.getElementById("verification-country"),
-        phone: document.getElementById("verification-phone"),
+        phonePrefix: document.getElementById("verification-phone-prefix"),
+        phoneNumber: document.getElementById("verification-phone-number"),
         idDocument: document.getElementById("verification-id-document"),
         feedback: document.getElementById("verification-feedback"),
         progressValue: document.getElementById("verification-progress-value"),
@@ -65,8 +66,17 @@
         if (els.country && !els.country.value) {
             els.country.value = user?.country || user?.user_metadata?.country || "";
         }
-        if (els.phone && !els.phone.value) {
-            els.phone.value = String(user?.phoneNumber || "");
+        if (els.phonePrefix && els.phoneNumber) {
+            const savedPhone = String(user?.phoneNumber || "").trim();
+            if (savedPhone && !els.phoneNumber.value) {
+                const parts = savedPhone.split(" ");
+                const prefix = parts[0] || "";
+                const number = parts.slice(1).join(" ");
+                // Sélectionner le bon prefix dans le select
+                const opt = Array.from(els.phonePrefix.options).find(o => o.value === prefix);
+                if (opt) els.phonePrefix.value = prefix;
+                if (number) els.phoneNumber.value = number;
+            }
         }
     }
 
@@ -132,8 +142,9 @@
             body.country = country;
         }
 
-        const phone = String(els.phone?.value || "").trim();
-        if (phone) body.phoneNumber = phone;
+        const prefix = String(els.phonePrefix?.value || "+33").trim();
+        const number = String(els.phoneNumber?.value || "").trim();
+        if (number) body.phoneNumber = `${prefix} ${number}`;
 
         const idFile = els.idDocument?.files?.[0];
         if (idFile) {
@@ -192,23 +203,6 @@
         els.form?.addEventListener("submit", (event) => {
             submitVerification(event).catch((error) => {
                 setFeedback(error.message || "Enregistrement impossible.");
-            });
-        });
-        attachPhoneDatalist();
-    }
-
-    function attachPhoneDatalist() {
-        const datalist = document.getElementById("verification-phone-codes");
-        if (!els.phone || !datalist) return;
-        const codes = Array.from(datalist.options).map((option) => String(option.value || "").trim()).filter(Boolean);
-        els.phone.addEventListener("input", () => {
-            const current = String(els.phone.value || "").trim();
-            const match = codes.find((code) => current === code);
-            if (!match) return;
-            const value = `${match} `;
-            els.phone.value = value;
-            window.requestAnimationFrame(() => {
-                els.phone.setSelectionRange(value.length, value.length);
             });
         });
     }

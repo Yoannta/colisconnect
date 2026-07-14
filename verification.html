@@ -100,10 +100,39 @@
                     </label>
                     <datalist id="verification-country-list"></datalist>
                     <h3 style="margin-top: 24px;">Verification</h3>
-                    <label>Numero de telephone
-                        <input id="verification-phone" type="tel" placeholder="+33 6 00 00 00 00"
-                            list="verification-phone-codes">
-                    </label>
+                    <div class="phone-section-container" style="margin-top:24px;">
+                        <label class="phone-label">Numero de telephone</label>
+                        <div class="phone-input-row">
+                            <select class="phone-prefix-select" id="verification-phone-prefix">
+                                <option value="+33">🇫🇷 +33</option>
+                                <option value="+225">🇨🇮 +225</option>
+                                <option value="+221">🇸🇳 +221</option>
+                                <option value="+229">🇧🇯 +229</option>
+                                <option value="+223">🇲🇱 +223</option>
+                                <option value="+226">🇧🇫 +226</option>
+                                <option value="+228">🇹🇬 +228</option>
+                                <option value="+227">🇳🇪 +227</option>
+                                <option value="+237">🇨🇲 +237</option>
+                                <option value="+242">🇨🇬 +242</option>
+                                <option value="+243">🇨🇩 +243</option>
+                                <option value="+241">🇬🇦 +241</option>
+                                <option value="+224">🇬🇳 +224</option>
+                                <option value="+245">🇬🇼 +245</option>
+                                <option value="+240">🇬🇶 +240</option>
+                                <option value="+244">🇦🇴 +244</option>
+                                <option value="+238">🇨🇻 +238</option>
+                                <option value="+239">🇸🇹 +239</option>
+                                <option value="+222">🇲🇷 +222</option>
+                                <option value="+1">🇺🇸 +1</option>
+                                <option value="+86">🇨🇳 +86</option>
+                                <option value="+44">🇬🇧 +44</option>
+                                <option value="+49">🇩🇪 +49</option>
+                                <option value="+32">🇧🇪 +32</option>
+                                <option value="+41">🇨🇭 +41</option>
+                            </select>
+                            <input type="tel" class="phone-main-input" id="verification-phone-number" placeholder="07 00 00 00 00" autocomplete="off">
+                        </div>
+                    </div>
                     <label>Piece justificative (photo CNI/Passeport)
                         <input id="verification-id-document" type="file" accept="image/png,image/jpeg,image/webp">
                     </label>
