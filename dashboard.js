@@ -221,6 +221,10 @@
                     <span class="traveler-route-meter-fill" style="width:${Math.min(90, Math.max(18, requestsCount * 18 + 12))}%"></span>
                 </div>
                 <p>${remainingKg} kg disponibles et ${formatAmount(pricePerKg * remainingKg, baseCurrency)} de revenu potentiel restant.</p>
+                <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+                    <button class="btn secondary btn-xs" data-edit-offer="${window.CCCommon.escapeHtml(offer.id)}">Modifier</button>
+                    <button class="btn secondary btn-xs" data-delete-offer="${window.CCCommon.escapeHtml(offer.id)}" style="color:#ef4444;border-color:#ef4444;">Supprimer</button>
+                </div>
             </div>`;
 
         if (els.quickSummaryText) {
@@ -280,7 +284,10 @@
                     <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
                     <div class="item-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
                 </div>
-                <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                    <button class="client-item-btn client-item-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}" style="color:#ef4444;border-color:#ef4444;">Supprimer</button>
+                </div>
             </div>
         `).join("");
     }
@@ -718,6 +725,26 @@
             openChatPage("", state.activeOffer.id);
         });
 
+        // Supprimer / Modifier l'offre active (voyageur)
+        els.activeOfferCard?.addEventListener("click", async (event) => {
+            const editBtn = event.target.closest("[data-edit-offer]");
+            if (editBtn) {
+                const offerId = editBtn.getAttribute("data-edit-offer");
+                const offer = state.offers?.find(o => String(o.id) === offerId);
+                if (offer) {
+                    state.activeOffer = offer;
+                    openOfferModal();
+                }
+                return;
+            }
+            const deleteBtn = event.target.closest("[data-delete-offer]");
+            if (deleteBtn) {
+                const offerId = deleteBtn.getAttribute("data-delete-offer");
+                if (offerId) await deleteOffer(offerId);
+                return;
+            }
+        });
+
         els.logoutBtn?.addEventListener("click", () => {
             window.CCCommon.logout();
         });
@@ -759,6 +786,12 @@
                 const parcelId = editBtn.getAttribute("data-edit-parcel");
                 if (!parcelId) return;
                 openEditParcelModal(parcelId);
+                return;
+            }
+            const deleteBtn = event.target.closest("[data-delete-parcel]");
+            if (deleteBtn) {
+                const parcelId = deleteBtn.getAttribute("data-delete-parcel");
+                if (parcelId) await deleteParcelRequest(parcelId);
                 return;
             }
             const button = event.target.closest("[data-open-thread]");
@@ -828,6 +861,82 @@
             document.getElementById("edit-parcel-modal")?.classList.remove("hidden");
         }
 
+        async function deleteParcelRequest(parcelId) {
+            if (!window.ccSupabase) { alert("Connexion indisponible."); return; }
+            if (!confirm("Supprimer cette demande de trajet ? Les réservations et discussions liées seront également supprimées.")) return;
+            try {
+                const supabase = window.ccSupabase;
+                // 1. Trouver les réservations liées à cette demande
+                const { data: reservations } = await supabase.from("reservations").select("id").eq("parcel_request_id", parcelId);
+                if (reservations && reservations.length > 0) {
+                    const resIds = reservations.map(r => r.id);
+                    // 2. Trouver les threads de discussion liés à ces réservations
+                    const { data: threads } = await supabase.from("chat_threads").select("id").in("reservation_id", resIds);
+                    if (threads && threads.length > 0) {
+                        const threadIds = threads.map(t => t.id);
+                        // 3. Supprimer les messages
+                        await supabase.from("chat_messages").delete().in("thread_id", threadIds);
+                        // 4. Supprimer les threads
+                        await supabase.from("chat_threads").delete().in("id", threadIds);
+                    }
+                    // 5. Supprimer les réservations
+                    await supabase.from("reservations").delete().in("id", resIds);
+                }
+                // 6. Supprimer la demande
+                await supabase.from("parcel_requests").delete().eq("id", parcelId);
+                // 7. Recharger le dashboard
+                const viewType = state.currentView || "";
+                if (viewType === "client") loadClientDashboard();
+            } catch (e) {
+                alert("Erreur lors de la suppression: " + (e.message || ""));
+            }
+        }
+
+        async function deleteOffer(offerId) {
+            if (!window.ccSupabase) { alert("Connexion indisponible."); return; }
+            if (!confirm("Supprimer cette offre ? Les réservations et discussions liées seront également supprimées.")) return;
+            try {
+                const supabase = window.ccSupabase;
+                // 1. Trouver les réservations liées à cette offre
+                const { data: reservations } = await supabase.from("reservations").select("id").eq("offer_id", offerId);
+                if (reservations && reservations.length > 0) {
+                    const resIds = reservations.map(r => r.id);
+                    // Vérifier s'il y a des réservations actives (payées)
+                    const { data: activeRes } = await supabase.from("reservations").select("id").in("id", resIds).in("status", ["paid", "en_cours", "livre"]);
+                    if (activeRes && activeRes.length > 0) {
+                        alert("Impossible de supprimer : cette offre a des réservations en cours (payées ou en livraison).");
+                        return;
+                    }
+                    // 2. Trouver les threads liés aux réservations
+                    const { data: threads } = await supabase.from("chat_threads").select("id").in("reservation_id", resIds);
+                    if (threads && threads.length > 0) {
+                        const threadIds = threads.map(t => t.id);
+                        // 3. Supprimer les messages
+                        await supabase.from("chat_messages").delete().in("thread_id", threadIds);
+                        // 4. Supprimer les threads
+                        await supabase.from("chat_threads").delete().in("id", threadIds);
+                    }
+                    // 5. Supprimer les réservations
+                    await supabase.from("reservations").delete().in("id", resIds);
+                }
+                // 6. Chercher aussi les threads liés directement à l'offre (sans réservation)
+                const { data: directThreads } = await supabase.from("chat_threads").select("id").eq("offer_id", offerId);
+                if (directThreads && directThreads.length > 0) {
+                    const threadIds = directThreads.map(t => t.id);
+                    await supabase.from("chat_messages").delete().in("thread_id", threadIds);
+                    await supabase.from("chat_threads").delete().in("id", threadIds);
+                }
+                // 7. Supprimer l'offre
+                await supabase.from("offers").delete().eq("id", offerId);
+                // 8. Recharger
+                const viewType = state.currentView || "";
+                if (viewType === "traveler") loadTravelerDashboard();
+                else if (viewType === "cargo") loadCargoDashboard();
+            } catch (e) {
+                alert("Erreur lors de la suppression: " + (e.message || ""));
+            }
+        }
+
         // Client "Voir tous" propositions -> ouvre la modale de demande
         document.getElementById("client-voir-tous-propositions")?.addEventListener("click", () => {
             const items = state.parcelRequests || [];
@@ -838,7 +947,10 @@
                         <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
                         <div class="file-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
                     </div>
-                    <button class="cargo-file-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                    <div style="display:flex;gap:6px;flex-shrink:0;">
+                        <button class="cargo-file-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                        <button class="cargo-ops-btn cargo-ops-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}">Supprimer</button>
+                    </div>
                 </div>
             `);
         });
@@ -955,22 +1067,13 @@
                 }
                 return;
             }
-            // Supprimer offre depuis la popup
+            // Supprimer offre depuis la popup (cargo)
             const deleteBtn = event.target.closest("[data-action='delete']");
             if (deleteBtn) {
                 const offerId = deleteBtn.getAttribute("data-offer-id");
-                if (offerId && confirm("Supprimer cette offre ? Cette action est irreversible.")) {
-                    try {
-                        if (window.ccSupabase) {
-                            await window.ccSupabase.from("offers").update({
-                                status: "archived", updated_at: new Date().toISOString()
-                            }).eq("id", offerId).eq("user_id", window.CCCommon.state?.user?.id);
-                        } else {
-                            await window.CCCommon.api(`/api/offers/${offerId}`, { method: "DELETE" });
-                        }
-                        els.voirTousModal?.classList.add("hidden");
-                        loadCargoDashboard();
-                    } catch (e) { alert("Erreur: " + (e.message || "")); }
+                if (offerId) {
+                    els.voirTousModal?.classList.add("hidden");
+                    await deleteOffer(offerId);
                 }
                 return;
             }
@@ -981,6 +1084,16 @@
                 if (!parcelId) return;
                 els.voirTousModal?.classList.add("hidden");
                 openEditParcelModal(parcelId);
+                return;
+            }
+            // Supprimer demande de trajet depuis la popup
+            const deleteParcelBtn = event.target.closest("[data-delete-parcel]");
+            if (deleteParcelBtn) {
+                const parcelId = deleteParcelBtn.getAttribute("data-delete-parcel");
+                if (parcelId) {
+                    els.voirTousModal?.classList.add("hidden");
+                    await deleteParcelRequest(parcelId);
+                }
                 return;
             }
             // Bouton "Voir" ou "Repondre" dans la popup → ouvre la discussion
