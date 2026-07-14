@@ -133,25 +133,39 @@
             <!-- ===== BARRE DE RECHERCHE VOYAGE ===== -->
             <div class="search-section-wrapper">
 
-                <div class="view-head" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+                <div class="view-head"
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
                     <div>
-                        <h2 class="welcome-title" id="results-headline">Voyageurs disponibles pour vos transferts urgents ou petites quantités</h2>
+                        <h2 class="welcome-title" id="results-headline">Voyageurs disponibles pour vos transferts
+                            urgents ou petites quantités</h2>
                         <p class="kicker">Recherchez par destination</p>
                     </div>
                     <div class="profile-type-filters" style="display: flex; gap: 12px;">
-                        <button type="button" id="filter-traveler-btn" class="filter-tab active">Voyageur simple</button>
+                        <button type="button" id="filter-traveler-btn" class="filter-tab active">Voyageur
+                            simple</button>
                         <button type="button" id="filter-cargo-btn" class="filter-tab">Entreprise cargo</button>
                     </div>
                 </div>
 
-                <!-- DEVISE -->
-                <div class="currency-header">
-                    DEVISE ACTUELLE :
-                    <select class="currency-select-clean" id="currency-header-select">
-                        <option value="EUR">EUR ▼</option>
-                        <option value="XOF">XOF ▼</option>
-                        <option value="USD">USD ▼</option>
-                    </select>
+                <!-- DEVISE MODERNE -->
+                <div class="currency-header-container">
+                    <span class="currency-header-label">DEVISE ACTUELLE :</span>
+                    <div class="custom-currency-dropdown" id="custom-currency-dropdown">
+                        <button type="button" class="currency-trigger-btn" id="currency-trigger-btn">
+                            <span class="currency-bracket">[</span><span id="current-currency-val"
+                                class="currency-val">XOF</span><span class="currency-bracket">]</span> <span
+                                class="currency-arrow">▼</span>
+                        </button>
+                        <div class="currency-dropdown-menu hidden" id="currency-dropdown-menu">
+                            <div class="currency-search-container">
+                                <input type="text" id="currency-search-input" placeholder="Rechercher une devise..."
+                                    autocomplete="off">
+                            </div>
+                            <ul class="currency-options-list" id="currency-options-list">
+                                <!-- Rempli dynamiquement -->
+                            </ul>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="search-main-card">
@@ -159,36 +173,57 @@
                     <div class="search-group">
                         <label class="group-label">DÉPART</label>
                         <div class="inputs-row">
-                            <div class="input-box">
+                            <div class="input-box autocomplete-field">
                                 <span class="icon">🌐</span>
-                                <input type="text" class="custom-select" id="res-origin-country" placeholder="Pays de départ" autocomplete="off">
+                                <input type="text" class="custom-select" id="res-origin-country"
+                                    placeholder="Pays de départ" autocomplete="off">
+                                <span class="dropdown-chevron">↕</span>
                             </div>
-                            <div class="input-box">
+                            <div class="input-box autocomplete-field">
                                 <span class="icon">📍</span>
-                                <input type="text" class="custom-select" id="res-origin-city" placeholder="Ville de départ" autocomplete="off">
+                                <input type="text" class="custom-select" id="res-origin-city"
+                                    placeholder="Ville de départ" autocomplete="off">
+                                <span class="dropdown-chevron">↕</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="search-separator">➔</div>
+                    <div class="search-separator">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                        </svg>
+                    </div>
 
                     <!-- GROUPE DESTINATION -->
                     <div class="search-group">
                         <label class="group-label">DESTINATION</label>
                         <div class="inputs-row">
-                            <div class="input-box">
+                            <div class="input-box autocomplete-field">
                                 <span class="icon">🌐</span>
-                                <input type="text" class="custom-select" id="res-dest-country" placeholder="Pays d'arrivée" autocomplete="off">
+                                <input type="text" class="custom-select" id="res-dest-country"
+                                    placeholder="Pays d'arrivée" autocomplete="off">
+                                <span class="dropdown-chevron">↕</span>
                             </div>
-                            <div class="input-box">
+                            <div class="input-box autocomplete-field">
                                 <span class="icon">📍</span>
-                                <input type="text" class="custom-select" id="res-dest-city" placeholder="Ville d'arrivée" autocomplete="off">
+                                <input type="text" class="custom-select" id="res-dest-city"
+                                    placeholder="Ville d'arrivée" autocomplete="off">
+                                <span class="dropdown-chevron">↕</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="search-btn-container">
-                        <button type="button" class="search-submit-btn" id="new-search-btn">Rechercher</button>
+                        <button type="button" class="search-submit-btn" id="new-search-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round" class="search-btn-icon">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                            Rechercher
+                        </button>
                     </div>
                 </div>
             </div>
@@ -333,26 +368,31 @@
                 <div class="demande-form">
                     <div class="demande-field">
                         <label for="demande-origin">Pays de depart</label>
-                        <input type="text" id="demande-origin" class="demande-input" list="demande-country-list" placeholder="Ex: France" autocomplete="off">
+                        <input type="text" id="demande-origin" class="demande-input" list="demande-country-list"
+                            placeholder="Ex: France" autocomplete="off">
                     </div>
                     <div class="demande-field">
                         <label for="city-demande-origin">Ville de depart</label>
-                        <input type="text" id="city-demande-origin" class="demande-input" placeholder="Ex: Paris" autocomplete="off">
+                        <input type="text" id="city-demande-origin" class="demande-input" placeholder="Ex: Paris"
+                            autocomplete="off">
                     </div>
                     <div class="demande-field">
                         <label for="demande-destination">Pays d arrivee</label>
-                        <input type="text" id="demande-destination" class="demande-input" list="demande-country-list" placeholder="Ex: Senegal" autocomplete="off">
+                        <input type="text" id="demande-destination" class="demande-input" list="demande-country-list"
+                            placeholder="Ex: Senegal" autocomplete="off">
                     </div>
                     <div class="demande-field">
                         <label for="city-demande-destination">Ville d'arrivee</label>
-                        <input type="text" id="city-demande-destination" class="demande-input" placeholder="Ex: Dakar" autocomplete="off">
+                        <input type="text" id="city-demande-destination" class="demande-input" placeholder="Ex: Dakar"
+                            autocomplete="off">
                     </div>
                     <datalist id="demande-country-list"></datalist>
                     <div class="demande-field">
                         <label>Date limite</label>
                         <div class="demande-date-row">
                             <input type="date" id="demande-date" class="demande-input" style="flex:1;">
-                            <button type="button" class="demande-date-alt" id="demande-no-date-btn">Pas de date limite</button>
+                            <button type="button" class="demande-date-alt" id="demande-no-date-btn">Pas de date
+                                limite</button>
                         </div>
                     </div>
                     <div class="demande-field">
@@ -361,7 +401,8 @@
                     </div>
                     <div class="demande-field">
                         <label for="demande-description">Decrivez le colis (nom, categorie, type)</label>
-                        <textarea id="demande-description" class="demande-input demande-textarea" rows="3" placeholder="Ex: Electronique, vetements, documents..."></textarea>
+                        <textarea id="demande-description" class="demande-input demande-textarea" rows="3"
+                            placeholder="Ex: Electronique, vetements, documents..."></textarea>
                     </div>
                     <button type="button" class="demande-submit" id="demande-submit-btn">Faire la demande</button>
                     <p id="demande-feedback" class="hidden demande-feedback">✅ Un voyageur vous contactera.</p>

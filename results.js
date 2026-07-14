@@ -37,9 +37,10 @@
         const filters = queryOfferFilters();
         const params = new URLSearchParams({
             pageSize: "100",
-            destination: filters.destination,
             minKg: String(filters.minKg)
         });
+        if (filters.destination) params.set("destination", filters.destination);
+        if (filters.origin) params.set("origin", filters.origin);
 
         const payload = await window.CCCommon.api(`/api/offers?${params.toString()}`, { auth: false });
         state.offers = Array.isArray(payload?.items) ? payload.items : [];
@@ -172,14 +173,120 @@
         window.location.href = target;
     }
 
-    function bindEvents() {
-        // Devise
-        document.getElementById("currency-header-select")?.addEventListener("change", function() {
-            if (this.value) {
-                state.userCurrency = this.value;
+    function initCustomCurrencyDropdown() {
+        const currencyListEl = document.getElementById("currency-options-list");
+        const searchInput = document.getElementById("currency-search-input");
+        const triggerBtn = document.getElementById("currency-trigger-btn");
+        const valSpan = document.getElementById("current-currency-val");
+        const menuEl = document.getElementById("currency-dropdown-menu");
+
+        if (!triggerBtn || !menuEl) return;
+
+        const exchangeRates = window.CCCommon?.EXCHANGE_RATES || {};
+        const sortedCurrencies = Object.keys(exchangeRates).sort();
+
+        const CUR_DETAILS = {
+            EUR: { symbol: '€', name: 'Euro' },
+            XOF: { symbol: 'FCFA', name: 'Franc CFA (BCEAO)' },
+            USD: { symbol: '$', name: 'Dollar US' },
+            CAD: { symbol: '$', name: 'Dollar Canadien' },
+            GBP: { symbol: '£', name: 'Livre Sterling' },
+            CHF: { symbol: 'CHF', name: 'Franc Suisse' },
+            CNY: { symbol: '¥', name: 'Yuan Chinois' },
+            JPY: { symbol: '¥', name: 'Yen Japonais' },
+            XAF: { symbol: 'FCFA', name: 'Franc CFA (BEAC)' },
+            MAD: { symbol: 'DH', name: 'Dirham Marocain' },
+            DZD: { symbol: 'DA', name: 'Dinar Algérien' },
+            TND: { symbol: 'DT', name: 'Dinar Tunisien' },
+            NGN: { symbol: '₦', name: 'Naira Nigérian' },
+            GHS: { symbol: 'GH₵', name: 'Cedi Ghanéen' },
+            ZAR: { symbol: 'R', name: 'Rand Sud-Africain' },
+            INR: { symbol: '₹', name: 'Roupie Indienne' },
+            BRL: { symbol: 'R$', name: 'Réal Brésilien' },
+            MXN: { symbol: '$', name: 'Peso Mexicain' },
+            TRY: { symbol: '₺', name: 'Lire Turque' },
+            RUB: { symbol: '₽', name: 'Rouble Russe' }
+        };
+
+        function renderCurrencyList(filterText = "") {
+            if (!currencyListEl) return;
+            const normalizedFilter = filterText.toLowerCase().trim();
+
+            const matchedCurrencies = sortedCurrencies.filter(cur => {
+                if (!normalizedFilter) return true;
+                const detail = CUR_DETAILS[cur];
+                const name = detail ? detail.name.toLowerCase() : "";
+                return cur.toLowerCase().includes(normalizedFilter) || name.includes(normalizedFilter);
+            });
+
+            if (matchedCurrencies.length === 0) {
+                currencyListEl.innerHTML = `<li style="padding: 10px 16px; color: var(--muted); font-size: 13px; text-align: center;">Aucun résultat</li>`;
+                return;
+            }
+
+            currencyListEl.innerHTML = matchedCurrencies
+                .map(cur => {
+                    const detail = CUR_DETAILS[cur];
+                    const activeClass = state.userCurrency === cur ? "active" : "";
+                    const nameLabel = detail ? detail.name : `Devise ${cur}`;
+                    return `<li class="currency-dropdown-item ${activeClass}" data-value="${cur}">
+                        <span class="currency-item-code">${cur}</span>
+                        <span class="currency-item-name">${nameLabel}</span>
+                    </li>`;
+                })
+                .join("\n");
+        }
+
+        // Toggle dropdown open/close
+        triggerBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            menuEl.classList.toggle("hidden");
+            if (!menuEl.classList.contains("hidden")) {
+                if (searchInput) {
+                    searchInput.value = "";
+                    searchInput.focus();
+                }
+                renderCurrencyList("");
+            }
+        });
+
+        // Prevent closing dropdown when clicking inside search input or search container
+        searchInput?.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+
+        searchInput?.addEventListener("input", (e) => {
+            renderCurrencyList(e.target.value);
+        });
+
+        // Choice selection handler
+        currencyListEl?.addEventListener("click", (e) => {
+            const item = e.target.closest(".currency-dropdown-item");
+            if (!item) return;
+            const val = item.getAttribute("data-value");
+            if (val) {
+                state.userCurrency = val;
+                if (valSpan) valSpan.textContent = val;
+                menuEl.classList.add("hidden");
                 renderOffers();
             }
         });
+
+        // Close on click outside
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest("#custom-currency-dropdown")) {
+                menuEl.classList.add("hidden");
+            }
+        });
+
+        // Initialize display value
+        if (state.userCurrency && valSpan) {
+            valSpan.textContent = state.userCurrency;
+        }
+    }
+
+    function bindEvents() {
+        initCustomCurrencyDropdown();
 
         if (els.offersList) {
             els.offersList.addEventListener("click", (event) => {
@@ -237,10 +344,10 @@
         const userCountry = user?.country || user?.location;
         if (userCountry) {
             state.userCurrency = COUNTRY_CURRENCIES[userCountry] || 'EUR';
-            const curSelect = document.getElementById("currency-header-select");
-            if (curSelect) {
-                curSelect.value = state.userCurrency;
-            }
+        }
+        const valSpan = document.getElementById("current-currency-val");
+        if (valSpan) {
+            valSpan.textContent = state.userCurrency;
         }
 
         // Remplir le datalist des pays pour la modale
@@ -321,14 +428,14 @@
                 } else {
                     await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg, description, dateLimite } });
                 }
-                    if (feedback) {
-                        feedback.classList.remove("hidden");
-                    }
-                    if (submitBtn) submitBtn.classList.add("hidden");
-                    // Fermer la modale apres 1.5s
-                    setTimeout(() => {
-                        document.getElementById("demande-trajet-modal")?.classList.add("hidden");
-                    }, 1500);
+                if (feedback) {
+                    feedback.classList.remove("hidden");
+                }
+                if (submitBtn) submitBtn.classList.add("hidden");
+                // Fermer la modale apres 1.5s
+                setTimeout(() => {
+                    document.getElementById("demande-trajet-modal")?.classList.add("hidden");
+                }, 1500);
             } catch (err) {
                 alert(err.message || "Erreur lors de la soumission.");
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }

@@ -637,6 +637,7 @@
                     query = query.eq('status', 'active');
                     query = query.gte('departure_date', today); // Exclure automatiquement les offres expirées
                     if (params.get("destination")) query = query.ilike('destination', `%${params.get("destination")}%`);
+                    if (params.get("origin")) query = query.ilike('origin', `%${params.get("origin")}%`);
                     if (params.get("minKg")) query = query.gte('available_kg', parseInt(params.get("minKg")));
                 }
                 const { data, error } = await query.order('created_at', { ascending: false });
@@ -1264,8 +1265,8 @@
         if (!user) return false;
         // Check various places where Supabase stores the provider info
         return user?.app_metadata?.provider === 'google' ||
-               user?.user_metadata?.provider === 'google' ||
-               (user?.identities && Array.isArray(user.identities) && user.identities[0]?.provider === 'google');
+            user?.user_metadata?.provider === 'google' ||
+            (user?.identities && Array.isArray(user.identities) && user.identities[0]?.provider === 'google');
     }
 
     /**
@@ -2184,11 +2185,11 @@
             // Normaliser pour la recherche (ignorer accents, casses)
             const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
             const inputNorm = norm(paysName);
-            
+
             // Chercher d'abord par nom exact (rapide)
             let { data } = await window.ccSupabase
                 .from('countries').select('code,name').eq('name', paysName).maybeSingle();
-            
+
             // Si pas trouvé, chercher par correspondance normalisée
             if (!data) {
                 const { data: all } = await window.ccSupabase
@@ -2197,7 +2198,7 @@
                     data = all.find(c => norm(c.name) === inputNorm) || null;
                 }
             }
-            
+
             if (data) {
                 _countryCodeMap[paysName] = data.code;
                 _countryCodeMap[data.name] = data.code;
