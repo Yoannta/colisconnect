@@ -16,20 +16,11 @@
         "proposer.html"
     ]);
 
-    // [MULTI-CURRENCY] Global Config Exhaustive (150+ Pays)
-    // Ces taux sont des valeurs par défaut. Au démarrage, loadExchangeRates()
-    // les remplace par les taux du jour depuis Supabase (table exchange_rates).
+    // [MULTI-CURRENCY] Taux de change — chargés depuis Supabase au démarrage
+    // Objet vide initial, loadExchangeRates() le remplit depuis la table exchange_rates
+    // Fallback minimal si Supabase est indisponible (défini dans loadExchangeRates)
     const EXCHANGE_RATES = {
-        // Pivot EUR = 1
-        EUR: 1, USD: 1.08, GBP: 0.85, CHF: 0.95, CAD: 1.45, AUD: 1.63, JPY: 162.5, CNY: 7.82,
-        XOF: 655.957, XAF: 655.957, NGN: 1530, GHS: 14.2, GNF: 9300, CDF: 2800, RWF: 1380,
-        MAD: 10.8, DZD: 145, TND: 3.4, EGP: 51, KES: 140, ZAR: 20, ETB: 62, MUR: 49,
-        TRY: 35, SEK: 11.3, NOK: 11.5, DKK: 7.45, PLN: 4.3, CZK: 25.2, HUF: 395, RON: 4.97, BGN: 1.95,
-        INR: 90, BRL: 5.4, MXN: 18.2, ARS: 930, COP: 4200, CLP: 1020, PEN: 4, UYU: 42,
-        AED: 3.96, SAR: 4.05, QAR: 3.93, KWD: 0.33, BHD: 0.41, OMR: 0.42, JOD: 0.77,
-        ILS: 4.05, SGD: 1.45, HKD: 8.45, TWD: 34, KRW: 1450, THB: 39, IDR: 17000, MYR: 5.1, PHP: 60, VND: 27000,
-        NZD: 1.78, RUB: 100, PKR: 300, BDT: 118, LKR: 325, KZT: 480, UZS: 13500, GEL: 2.9, AMD: 425,
-        MGA: 4800, MWK: 1850, MZN: 70, NAD: 20, SCR: 15, SLL: 24000, SOS: 620, SDG: 650, TZS: 2800, UGX: 4100, ZMW: 28
+        EUR: 1  // Pivot : toutes les devises sont exprimées en EUR
     };
 
     const COUNTRY_CURRENCIES = {
@@ -402,8 +393,17 @@
             }
             console.log(`[CCCommon] Taux de change mis à jour depuis Supabase: ${updated} devises`);
         } catch (err) {
-            // Fallback silencieux : on garde les taux hardcodés
-            console.warn('[CCCommon] Impossible de charger les taux depuis Supabase, utilisation des taux par défaut:', err.message);
+            // Fallback : taux minimaux pour que le site reste utilisable
+            console.warn('[CCCommon] Supabase indisponible, fallback taux minimaux:', err.message);
+            if (Object.keys(EXCHANGE_RATES).length <= 1) { // seulement EUR présent
+                EXCHANGE_RATES['USD'] = 1.08;
+                EXCHANGE_RATES['XOF'] = 655.957;
+                EXCHANGE_RATES['XAF'] = 655.957;
+                EXCHANGE_RATES['NGN'] = 1530;
+                EXCHANGE_RATES['GBP'] = 0.85;
+                EXCHANGE_RATES['MAD'] = 10.8;
+                EXCHANGE_RATES['CNY'] = 7.82;
+            }
         }
     }
 
@@ -680,6 +680,7 @@
                     ...o,
                     availableKg: o.available_kg,
                     pricePerKg: o.price_per_kg,
+                    baseCurrency: o.base_currency,
                     departureDate: o.departure_date,
                     ownerName: o.profiles?.full_name || "Voyageur",
                     ownerIsVerified: o.profiles?.is_verified,
