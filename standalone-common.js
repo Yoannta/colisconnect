@@ -682,6 +682,8 @@
                     pricePerKg: o.price_per_kg,
                     baseCurrency: o.base_currency,
                     departureDate: o.departure_date,
+                    colisTypes: o.colis_types,
+                    refusedColisTypes: o.refused_colis_types,
                     ownerName: o.profiles?.full_name || "Voyageur",
                     ownerIsVerified: o.profiles?.is_verified,
                     ownerProfileType: o.profiles?.profile_type

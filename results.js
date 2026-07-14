@@ -50,25 +50,24 @@
     function renderOffers() {
         if (!els.offersList) return;
 
-        // Filtrer les offres selon l'onglet actif (par mode, pas par profile_type)
+        // Filtrer les offres selon l'onglet actif
         const filteredOffers = state.offers.filter(offer => {
             const mode = String(offer.mode || "").trim();
             if (state.filterProfileType === 'traveler') {
-                return mode === ""; // mode vide = offre voyageur
+                return mode === "";
             } else if (state.filterProfileType === 'cargo') {
-                return mode !== ""; // mode non vide = offre cargo
+                return mode !== "";
             }
             return true;
         });
 
         if (!filteredOffers.length) {
             els.offersList.innerHTML = `
-                <div class="empty-card">
+                <div class="empty-card" style="grid-column:1/-1;">
                     <p>Aucune offre pour ce trajet.</p>
                     <p style="color:var(--muted);font-size:0.85rem;margin:8px 0;">Faite une demande, si un voyageur est interesse il vous contactera.</p>
                     <button class="btn primary" id="btn-faire-demande-trajet" style="margin-top:12px;">Faire une demande de trajet</button>
                 </div>`;
-            // Attacher l'evenement pour ouvrir la modale
             setTimeout(() => {
                 document.getElementById("btn-faire-demande-trajet")?.addEventListener("click", () => {
                     document.getElementById("demande-trajet-modal")?.classList.remove("hidden");
@@ -81,19 +80,18 @@
             .map((offer) => {
                 const initials = getInitials(offer.ownerName);
                 const isVerified = Boolean(offer.ownerIsVerified);
-                const verificationBadge = isVerified ? `
-                    <span class="verification-badge mini" title="Profil certifié">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
-                        </svg>
-                    </span>
-                ` : "";
+                const verificationBadge = isVerified ? `<span class="verification-badge mini" title="Profil certifié"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg></span>` : "";
 
-                const originCity = offer.origin || "Origine";
-                const destCity = offer.destination || "Arrivée";
-                const originCode = originCity.substring(0, 3).toUpperCase();
-                const destCode = destCity.substring(0, 3).toUpperCase();
+                const originCountry = offer.origin || "Origine";
+                const destCountry = offer.destination || "Arrivée";
                 const departureDate = String(offer.departureDate || "-");
+                let formattedDate = departureDate;
+                try {
+                    const d = new Date(departureDate);
+                    if (!isNaN(d.getTime())) {
+                        formattedDate = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+                    }
+                } catch(e) { /* fallback */ }
 
                 const pricePerKgRaw = Number(offer.pricePerKg || 0);
                 const baseCur = offer.baseCurrency || 'EUR';
@@ -106,20 +104,29 @@
 
                 const offerMode = String(offer.mode || "").trim();
                 let profileTypeBadge = "";
+                let cargoModeLabel = "";
                 if (offerMode === "") {
-                    profileTypeBadge = `<span style="font-size: 0.7rem; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.25); padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; text-transform: uppercase;">✈️ Voyageur</span>`;
+                    profileTypeBadge = `<span class="offer-type-badge type-voyageur">Voyageur</span>`;
                 } else {
-                    profileTypeBadge = `<span style="font-size: 0.7rem; background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.25); padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: bold; text-transform: uppercase;">📦 Cargo</span>`;
+                    profileTypeBadge = `<span class="offer-type-badge type-cargo">Cargo</span>`;
+                    if (offerMode === "avion") cargoModeLabel = "Avion";
+                    else if (offerMode === "bateau") cargoModeLabel = "Bateau";
+                    else if (offerMode === "les_deux") cargoModeLabel = "Avion + Bateau";
                 }
+
+                // Colis acceptés / refusés
+                const colisAcceptes = String(offer.colis_types || offer.colisTypes || "").trim();
+                const colisRefuses = String(offer.refused_colis_types || offer.refusedColisTypes || "").trim();
+                const hasColisInfo = colisAcceptes || colisRefuses;
 
                 return `
 <article class="offer-compact-card">
+    <!-- Ligne 1 : Trajet + Prix -->
     <div class="compact-row compact-row-top">
         <div class="compact-route">
-            <span class="compact-code">${originCode}</span>
-            <span class="compact-arrow">-></span>
-            <span class="compact-code">${destCode}</span>
-            <span class="compact-cityline">${window.CCCommon.escapeHtml(originCity)} - ${window.CCCommon.escapeHtml(destCity)}</span>
+            <span class="compact-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+            <span class="compact-arrow">&rarr;</span>
+            <span class="compact-country">${window.CCCommon.escapeHtml(destCountry)}</span>
         </div>
         <div class="compact-price-box">
             <span class="compact-price">${priceDisplay}</span>
@@ -128,16 +135,35 @@
         </div>
     </div>
 
-    <div class="compact-row compact-row-mid">
+    <!-- Ligne 2 : Date + Kilos -->
+    <div class="compact-row compact-row-icons">
+        <span class="compact-icon-label">
+            <span class="compact-icon">&#128197;</span> ${window.CCCommon.escapeHtml(formattedDate)}
+        </span>
+        <span class="compact-icon-label">
+            <span class="compact-icon">&#128230;</span> ${availableKg} kg
+        </span>
+        ${cargoModeLabel ? `<span class="compact-icon-label"><span class="compact-icon">&#9992;</span> ${cargoModeLabel}</span>` : ""}
+    </div>
+
+    <!-- Ligne 3 : Colis acceptés / refusés (si renseigné) -->
+    ${hasColisInfo ? `
+    <div class="compact-row compact-row-colis">
+        ${colisAcceptes ? `<div class="compact-colis-block"><span class="compact-colis-title">Accepte :</span> <span class="compact-colis-list">${window.CCCommon.escapeHtml(colisAcceptes)}</span></div>` : ""}
+        ${colisRefuses ? `<div class="compact-colis-block"><span class="compact-colis-title compact-colis-refuse">Refuse :</span> <span class="compact-colis-list">${window.CCCommon.escapeHtml(colisRefuses)}</span></div>` : ""}
+    </div>` : ""}
+
+    <!-- Ligne 4 : Avatar + Nom + Badge + Bouton -->
+    <div class="compact-row compact-row-footer">
         <div class="compact-owner">
             <span class="compact-avatar">${initials}</span>
-            <span class="compact-owner-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
-            ${verificationBadge}
-            ${profileTypeBadge}
-        </div>
-        <div class="compact-meta">
-            <span class="compact-meta-chip">${availableKg}kg</span>
-            <span class="compact-meta-chip">${window.CCCommon.escapeHtml(departureDate)}</span>
+            <div class="compact-owner-info">
+                <span class="compact-owner-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
+                <div class="compact-owner-badges">
+                    ${verificationBadge}
+                    ${profileTypeBadge}
+                </div>
+            </div>
         </div>
         <button class="btn primary btn-xs compact-contact-btn" data-reserve-offer="${offer.id}">
             Contacter

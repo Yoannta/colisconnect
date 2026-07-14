@@ -7685,7 +7685,9 @@ input[data-country-select="true"]::placeholder {
    ========================================================================== */
 
 .offers-stream {
-    gap: 4px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 20px;
 }
 
 .offers-stream>.offer-compact-card {
@@ -7842,9 +7844,236 @@ input[data-country-select="true"]::placeholder {
     flex-shrink: 0;
 }
 
+/* === Nouveau design carte compact === */
+.offer-compact-card {
+    border: 1px solid rgba(65, 213, 170, 0.22);
+    border-radius: 12px;
+    background: linear-gradient(130deg, rgba(9, 16, 23, 0.95), rgba(12, 24, 33, 0.88));
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.16);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.offer-compact-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+.compact-row {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+}
+.compact-row-top {
+    justify-content: space-between;
+    padding-bottom: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding-bottom: 8px;
+}
+
+.compact-route {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+.compact-country {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #f4fffd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+}
+.compact-arrow {
+    font-size: 1rem;
+    color: #44dfb0;
+    flex-shrink: 0;
+}
+
+.compact-price-box {
+    line-height: 1;
+    text-align: right;
+    flex-shrink: 0;
+}
+.compact-price {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #f8fffd;
+}
+.price-original {
+    display: block;
+    font-size: 0.6rem;
+    color: rgba(224, 239, 250, 0.45);
+    text-decoration: line-through;
+}
+.compact-price-unit {
+    display: block;
+    font-size: 0.55rem;
+    color: rgba(224, 239, 250, 0.55);
+    text-align: right;
+}
+
+/* Ligne icônes (date, kg, mode) */
+.compact-row-icons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.compact-icon-label {
+    font-size: 0.78rem;
+    color: rgba(214, 232, 246, 0.8);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.compact-icon {
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+/* Ligne colis */
+.compact-row-colis {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.compact-colis-block {
+    font-size: 0.72rem;
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+}
+.compact-colis-title {
+    font-weight: 600;
+    color: #1fe0a3;
+    flex-shrink: 0;
+}
+.compact-colis-title.compact-colis-refuse {
+    color: #f87171;
+}
+.compact-colis-list {
+    color: rgba(214, 232, 246, 0.7);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* Footer */
+.compact-row-footer {
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 2px;
+}
+.compact-owner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+.compact-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #f2fffb;
+    background: linear-gradient(140deg, #12ba86, #3b82f6);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    flex-shrink: 0;
+}
+.compact-owner-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.compact-owner-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: rgba(245, 252, 255, 0.94);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.compact-owner-badges {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.verification-badge.mini svg {
+    width: 14px;
+    height: 14px;
+    display: block;
+}
+
+/* Badge type utilisateur */
+.offer-type-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+}
+.offer-type-badge.type-voyageur {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+}
+.offer-type-badge.type-cargo {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+}
+
+.compact-contact-btn {
+    min-width: 100px;
+    padding: 8px 18px !important;
+    font-size: 0.82rem !important;
+    line-height: 1 !important;
+    height: 32px !important;
+    border-radius: 8px !important;
+    flex-shrink: 0;
+    font-weight: 700;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+    .offers-stream {
+        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+        gap: 16px;
+    }
+}
 @media (max-width: 800px) {
-    .offers-stream>.offer-compact-card {
-        padding: 5px;
+    .offers-stream {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+    .offer-compact-card {
+        padding: 12px 14px;
+    }
+    .compact-country {
+        font-size: 0.8rem;
+        max-width: 120px;
+    }
+    .compact-price {
+        font-size: 1rem;
+    }
+}
+
     }
 
     .compact-cityline {
