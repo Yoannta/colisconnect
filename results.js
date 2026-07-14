@@ -120,8 +120,8 @@
 
                 return `
 <article class="offer-compact-card">
-    <!-- Ligne 1 : Trajet + Prix -->
-    <div class="compact-row compact-row-top">
+    <!-- Trajet + Prix -->
+    <div class="compact-row-top">
         <div class="compact-route">
             <span class="compact-country">${window.CCCommon.escapeHtml(originCountry)}</span>
             <span class="compact-arrow">&rarr;</span>
@@ -129,30 +129,29 @@
         </div>
         <div class="compact-price-box">
             <span class="compact-price">${priceDisplay}</span>
-            <span class="compact-price-unit">/kg</span>
         </div>
     </div>
 
-    <!-- Ligne 2 : Date + Kilos -->
-    <div class="compact-row compact-row-icons">
+    <!-- Date + Kilos -->
+    <div class="compact-row-icons">
         <span class="compact-icon-label">
             <span class="compact-icon">&#128197;</span> ${window.CCCommon.escapeHtml(formattedDate)}
         </span>
         <span class="compact-icon-label">
             <span class="compact-icon">&#128230;</span> ${availableKg} kg
         </span>
-        ${cargoModeLabel ? `<span class="compact-icon-label"><span class="compact-icon">&#9992;</span> ${cargoModeLabel}</span>` : ""}
+        ${cargoModeLabel ? `<span class="compact-icon-label">&#9992; ${cargoModeLabel}</span>` : ""}
     </div>
 
-    <!-- Ligne 3 : Colis acceptés / refusés (si renseigné) -->
+    <!-- Colis acceptés / refusés -->
     ${hasColisInfo ? `
-    <div class="compact-row compact-row-colis">
+    <div class="compact-row-colis">
         ${colisAcceptes ? `<div class="compact-colis-block"><span class="compact-colis-title">Accepte :</span> <span class="compact-colis-list">${window.CCCommon.escapeHtml(colisAcceptes)}</span></div>` : ""}
         ${colisRefuses ? `<div class="compact-colis-block"><span class="compact-colis-title compact-colis-refuse">Refuse :</span> <span class="compact-colis-list">${window.CCCommon.escapeHtml(colisRefuses)}</span></div>` : ""}
     </div>` : ""}
 
-    <!-- Ligne 4 : Avatar + Nom + Badge + Bouton -->
-    <div class="compact-row compact-row-footer">
+    <!-- Footer -->
+    <div class="compact-row-footer">
         <div class="compact-owner">
             <span class="compact-avatar">${initials}</span>
             <div class="compact-owner-info">
@@ -163,9 +162,7 @@
                 </div>
             </div>
         </div>
-        <button class="btn primary btn-xs compact-contact-btn" data-reserve-offer="${offer.id}">
-            Contacter
-        </button>
+        <button class="btn primary btn-xs compact-contact-btn" data-reserve-offer="${offer.id}">Contacter</button>
     </div>
 </article>`;
             })

@@ -7686,8 +7686,21 @@ input[data-country-select="true"]::placeholder {
 
 .offers-stream {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+}
+
+@media (max-width: 1600px) {
+    .offers-stream { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 1200px) {
+    .offers-stream { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 800px) {
+    .offers-stream { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+}
+@media (max-width: 480px) {
+    .offers-stream { grid-template-columns: 1fr; }
 }
 
 .offers-stream>.offer-compact-card {
@@ -7834,118 +7847,121 @@ input[data-country-select="true"]::placeholder {
     white-space: nowrap;
 }
 
-.compact-contact-btn {
-    min-width: 88px;
-    padding: 6px 14px !important;
-    font-size: 0.8rem !important;
-    line-height: 1 !important;
-    height: 24px !important;
-    border-radius: 8px !important;
-    flex-shrink: 0;
-}
-
-/* === Nouveau design carte compact === */
+/* === Carte compacte (marketplace style) === */
 .offer-compact-card {
-    border: 1px solid rgba(65, 213, 170, 0.22);
-    border-radius: 10px;
+    border: 1px solid rgba(65, 213, 170, 0.18);
+    border-radius: 8px;
     background: linear-gradient(130deg, rgba(9, 16, 23, 0.95), rgba(12, 24, 33, 0.88));
-    padding: 7px 10px;
+    padding: 10px 12px;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.14);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    gap: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    max-height: 250px;
 }
 .offer-compact-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
-.compact-row {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-}
+/* === Rangée 1 : Trajet + Prix === */
 .compact-row-top {
+    display: flex;
     justify-content: space-between;
-    padding-bottom: 0;
+    align-items: flex-start;
+    padding-bottom: 4px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding-bottom: 8px;
 }
-
 .compact-route {
     display: flex;
     align-items: center;
-    gap: 6px;
-    flex-wrap: wrap;
+    gap: 4px;
     min-width: 0;
+    flex: 1;
 }
 .compact-country {
-    font-size: 0.85rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #f4fffd;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 160px;
+    max-width: 100px;
 }
 .compact-arrow {
-    font-size: 1rem;
+    font-size: 0.75rem;
     color: #44dfb0;
     flex-shrink: 0;
 }
-
 .compact-price-box {
-    line-height: 1;
     text-align: right;
     flex-shrink: 0;
+    margin-left: 6px;
 }
 .compact-price {
-    font-size: 1.15rem;
+    font-size: 0.9rem;
     font-weight: 800;
     color: #f8fffd;
+    white-space: nowrap;
 }
-/* price-original supprimé */
 .compact-price-unit {
-    display: block;
-    font-size: 0.55rem;
-    color: rgba(224, 239, 250, 0.55);
-    text-align: right;
+    display: none;
 }
 
-/* Ligne icônes (date, kg, mode) */
+/* === Rangée 2 : Villes === */
+.compact-row-cities {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: rgba(214, 232, 246, 0.55);
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.compact-city {
+    max-width: 45%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* === Rangée 3 : Date + Kilos === */
 .compact-row-icons {
     display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    padding-bottom: 6px;
+    gap: 10px;
+    padding-bottom: 3px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .compact-icon-label {
-    font-size: 1.15rem;
-    color: rgba(214, 232, 246, 0.8);
+    font-size: 0.72rem;
+    color: rgba(214, 232, 246, 0.7);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
 }
 .compact-icon {
-    font-size: 1rem;
+    font-size: 0.7rem;
     flex-shrink: 0;
 }
 
-/* Ligne colis */
+/* === Rangée 4 : Colis acceptés/refusés (1 ligne max) === */
 .compact-row-colis {
     display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding-bottom: 6px;
+    flex-wrap: wrap;
+    gap: 2px 10px;
+    padding-bottom: 3px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    max-height: 28px;
+    overflow: hidden;
 }
 .compact-colis-block {
-    font-size: 0.72rem;
+    font-size: 0.62rem;
     display: flex;
     align-items: baseline;
-    gap: 4px;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+    max-width: 50%;
 }
 .compact-colis-title {
     font-weight: 600;
@@ -7956,101 +7972,109 @@ input[data-country-select="true"]::placeholder {
     color: #f87171;
 }
 .compact-colis-list {
-    color: rgba(214, 232, 246, 0.7);
+    color: rgba(214, 232, 246, 0.6);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: 100%;
 }
 
-/* Footer */
+/* === Footer === */
 .compact-row-footer {
+    display: flex;
     justify-content: space-between;
     align-items: center;
     padding-top: 2px;
+    flex: 1;
+    min-height: 0;
 }
 .compact-owner {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 5px;
     min-width: 0;
     flex: 1;
 }
 .compact-avatar {
-    width: 28px;
-    height: 28px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 0.7rem;
+    font-size: 0.55rem;
     font-weight: 800;
     color: #f2fffb;
     background: linear-gradient(140deg, #12ba86, #3b82f6);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     flex-shrink: 0;
 }
 .compact-owner-info {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: center;
+    gap: 4px;
     min-width: 0;
 }
 .compact-owner-name {
-    font-size: 0.85rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    color: rgba(245, 252, 255, 0.94);
+    color: rgba(245, 252, 255, 0.9);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 80px;
 }
 .compact-owner-badges {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
 }
 .verification-badge.mini svg {
-    width: 14px;
-    height: 14px;
+    width: 10px;
+    height: 10px;
     display: block;
 }
-
-/* Badge type utilisateur */
 .offer-type-badge {
-    font-size: 0.6rem;
+    font-size: 0.5rem;
     font-weight: 700;
     text-transform: uppercase;
-    padding: 1px 6px;
-    border-radius: 4px;
-    letter-spacing: 0.04em;
+    padding: 1px 4px;
+    border-radius: 3px;
+    letter-spacing: 0.03em;
+    line-height: 1.2;
 }
 .offer-type-badge.type-voyageur {
     color: #10b981;
     background: rgba(16, 185, 129, 0.15);
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    border: 1px solid rgba(16, 185, 129, 0.2);
 }
 .offer-type-badge.type-cargo {
     color: #f59e0b;
     background: rgba(245, 158, 11, 0.15);
-    border: 1px solid rgba(245, 158, 11, 0.25);
+    border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 .compact-contact-btn {
-    min-width: 100px;
-    padding: 8px 18px !important;
-    font-size: 0.82rem !important;
-    line-height: 1 !important;
-    height: 32px !important;
-    border-radius: 8px !important;
+    min-width: 70px;
+    padding: 4px 10px !important;
+    font-size: 0.65rem !important;
+    line-height: 1.2 !important;
+    height: 22px !important;
+    border-radius: 6px !important;
     flex-shrink: 0;
     font-weight: 700;
 }
 
-/* Responsive */
-@media (max-width: 1100px) {
-    .offers-stream {
-        grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-        gap: 16px;
+/* === Responsive : adaptation mobile === */
+@media (max-width: 800px) {
+    .offer-compact-card {
+        padding: 8px 10px;
+        gap: 3px;
     }
+    .compact-country { font-size: 0.68rem; max-width: 80px; }
+    .compact-price { font-size: 0.82rem; }
+    .compact-icon-label { font-size: 0.65rem; }
+    .compact-avatar { width: 18px; height: 18px; font-size: 0.5rem; }
+    .compact-owner-name { font-size: 0.62rem; max-width: 65px; }
+    .compact-contact-btn { min-width: 60px; font-size: 0.6rem !important; height: 20px !important; padding: 3px 8px !important; }
 }
 @media (max-width: 800px) {
     .offers-stream {
