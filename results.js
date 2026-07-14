@@ -100,7 +100,6 @@
                 const availableKg = offer.availableKg || 0;
 
                 const priceDisplay = formatAmount(convertedPrice, userCur);
-                const originalDisplay = baseCur !== userCur ? `<span class="price-original">(${formatAmount(pricePerKgRaw, baseCur)})</span>` : '';
 
                 const offerMode = String(offer.mode || "").trim();
                 let profileTypeBadge = "";
@@ -130,7 +129,6 @@
         </div>
         <div class="compact-price-box">
             <span class="compact-price">${priceDisplay}</span>
-            ${originalDisplay}
             <span class="compact-price-unit">/kg</span>
         </div>
     </div>

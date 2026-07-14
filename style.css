@@ -7847,13 +7847,13 @@ input[data-country-select="true"]::placeholder {
 /* === Nouveau design carte compact === */
 .offer-compact-card {
     border: 1px solid rgba(65, 213, 170, 0.22);
-    border-radius: 12px;
+    border-radius: 10px;
     background: linear-gradient(130deg, rgba(9, 16, 23, 0.95), rgba(12, 24, 33, 0.88));
-    padding: 14px 16px;
+    padding: 7px 10px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.16);
+    gap: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.14);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .offer-compact-card:hover {
@@ -7905,12 +7905,7 @@ input[data-country-select="true"]::placeholder {
     font-weight: 800;
     color: #f8fffd;
 }
-.price-original {
-    display: block;
-    font-size: 0.6rem;
-    color: rgba(224, 239, 250, 0.45);
-    text-decoration: line-through;
-}
+/* price-original supprimé */
 .compact-price-unit {
     display: block;
     font-size: 0.55rem;
@@ -7927,14 +7922,14 @@ input[data-country-select="true"]::placeholder {
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .compact-icon-label {
-    font-size: 0.78rem;
+    font-size: 1.15rem;
     color: rgba(214, 232, 246, 0.8);
     display: flex;
     align-items: center;
     gap: 4px;
 }
 .compact-icon {
-    font-size: 0.85rem;
+    font-size: 1rem;
     flex-shrink: 0;
 }
 
@@ -8063,7 +8058,8 @@ input[data-country-select="true"]::placeholder {
         gap: 14px;
     }
     .offer-compact-card {
-        padding: 12px 14px;
+        padding: 5px 8px;
+        gap: 4px;
     }
     .compact-country {
         font-size: 0.8rem;
@@ -8325,15 +8321,6 @@ input[data-country-select="true"]::placeholder {
 /* ===================================================
    MULTI-CURRENCY SYSTEM — ColisConnect 2026
    =================================================== */
-
-/* Prix original en référence discrète */
-.price-original {
-    display: block;
-    font-size: 0.62rem;
-    color: rgba(200, 220, 240, 0.5);
-    font-weight: 400;
-    margin-top: 1px;
-}
 
 /* Sélecteur de monnaie dans le formulaire de publication (SaaS Premium 2025) */
 .input-with-select {
