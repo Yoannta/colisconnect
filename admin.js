@@ -330,7 +330,7 @@ ${verifyBtn}
 <td>${escapeHtml(o.ownerName)}</td>
 <td>${escapeHtml(o.origin)} -> ${escapeHtml(o.destination)}</td>
 <td>${escapeHtml(fmtDate(o.departureDate))}</td>
-<td>${escapeHtml(o.pricePerKg)} ${escapeHtml(o.baseCurrency || "EUR")}</td>
+<td>${escapeHtml(o.pricePerKg)} ${escapeHtml(o.baseCurrency || o.base_currency || "EUR")}</td>
 <td>${statusBadge(status)}</td>
 <td>${isVerified ? statusBadge("verified") : '<button class="btn ghost sm" data-offer-verify="' + escapeHtml(o.id) + '">Verifier</button>'}</td>
 <td><div class="admin-actions">
@@ -454,8 +454,8 @@ ${agreementBtn}
     let revenueChart = null;
     function renderFinancials(data) {
         if (!data) return;
-        if (els.totalCommission) els.totalCommission.textContent = `${data.monthly?.reduce((a, b) => a + (b.commission || 0), 0) || 0} ¥`;
-        if (els.totalVolume) els.totalVolume.textContent = `${data.monthly?.reduce((a, b) => a + (b.volume || 0), 0) || 0} ¥`;
+        if (els.totalCommission) els.totalCommission.textContent = `${data.monthly?.reduce((a, b) => a + (b.commission || 0), 0) || 0} €`;
+        if (els.totalVolume) els.totalVolume.textContent = `${data.monthly?.reduce((a, b) => a + (b.volume || 0), 0) || 0} €`;
 
         if (els.transactionsList) {
             const txs = Array.isArray(data.recent) ? data.recent : [];
@@ -467,7 +467,7 @@ ${agreementBtn}
                         <td style="padding: 10px;">${fmtDate(t.created_at)}</td>
                         <td style="padding: 10px;">${statusBadge(t.type === 'commission' ? 'commission' : 'P2P')}</td>
                         <td style="padding: 10px;">${escapeHtml(t.requesterName || 'Inconnu')}</td>
-                        <td style="padding: 10px; font-weight: bold;">${t.amount} ¥</td>
+                        <td style="padding: 10px; font-weight: bold;">${t.amount} €</td>
                     </tr>
                 `).join("");
             }

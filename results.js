@@ -183,12 +183,6 @@
         if (!triggerBtn || !menuEl) return;
 
         const exchangeRates = window.CCCommon?.EXCHANGE_RATES || {};
-        // Si les taux Supabase ne sont pas encore chargés, utiliser CUR_DETAILS comme fallback
-        const rateKeys = Object.keys(exchangeRates);
-        const hasRealRates = rateKeys.length > 2; // EUR + au moins 2 autres devises = chargé
-        const sortedCurrencies = hasRealRates
-            ? rateKeys.sort()
-            : Object.keys(CUR_DETAILS).sort();
 
         const CUR_DETAILS = {
             EUR: { symbol: '€', name: 'Euro' },
@@ -212,6 +206,13 @@
             TRY: { symbol: '₺', name: 'Lire Turque' },
             RUB: { symbol: '₽', name: 'Rouble Russe' }
         };
+
+        // Si les taux Supabase ne sont pas encore chargés, utiliser CUR_DETAILS comme fallback
+        const rateKeys = Object.keys(exchangeRates);
+        const hasRealRates = rateKeys.length > 2;
+        const sortedCurrencies = hasRealRates
+            ? rateKeys.sort()
+            : Object.keys(CUR_DETAILS).sort();
 
         function renderCurrencyList(filterText = "") {
             if (!currencyListEl) return;
