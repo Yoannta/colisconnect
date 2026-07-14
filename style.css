@@ -9184,4 +9184,89 @@ textarea {
     }
 }
 
+/* ===== TOGGLE FILTRE MOBILE ===== */
+
+/* Barre visible uniquement sur mobile */
+.mobile-filter-bar {
+    display: none;
+    /* masquée sur desktop */
+}
+
+@media (max-width: 950px) {
+
+    /* Afficher la barre toggle sur mobile */
+    .mobile-filter-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(10, 20, 24, 0.7);
+        border: 1px solid var(--line-glow);
+        border-radius: 14px;
+        padding: 14px 18px;
+        margin-bottom: 0;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .mobile-filter-label {
+        font-family: var(--font-title);
+        font-weight: 700;
+        font-size: 16px;
+        color: var(--text);
+        letter-spacing: -0.01em;
+    }
+
+    .mobile-filter-toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(19, 236, 200, 0.12);
+        border: 1px solid rgba(19, 236, 200, 0.3);
+        border-radius: 10px;
+        padding: 10px 18px;
+        color: var(--emerald-bright);
+        font-family: var(--font-body);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .mobile-filter-toggle-btn:hover {
+        background: rgba(19, 236, 200, 0.22);
+        box-shadow: 0 0 12px rgba(19, 236, 200, 0.2);
+    }
+
+    .mobile-filter-icon {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+    }
+
+    /* Panneau filtre : caché par défaut sur mobile */
+    .search-filter-panel {
+        display: none;
+        overflow: hidden;
+        animation: filterSlideDown 0.28s ease-out;
+        margin-top: 12px;
+    }
+
+    /* Panneau ouvert */
+    .search-filter-panel.is-open {
+        display: block;
+    }
+}
+
+@keyframes filterSlideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* ===== FIN BARRE DE RECHERCHE VOYAGE ===== */

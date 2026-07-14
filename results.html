@@ -147,85 +147,102 @@
                     </div>
                 </div>
 
-                <!-- DEVISE MODERNE -->
-                <div class="currency-header-container">
-                    <span class="currency-header-label">DEVISE ACTUELLE :</span>
-                    <div class="custom-currency-dropdown" id="custom-currency-dropdown">
-                        <button type="button" class="currency-trigger-btn" id="currency-trigger-btn">
-                            <span class="currency-bracket">[</span><span id="current-currency-val"
-                                class="currency-val">XOF</span><span class="currency-bracket">]</span> <span
-                                class="currency-arrow">▼</span>
-                        </button>
-                        <div class="currency-dropdown-menu hidden" id="currency-dropdown-menu">
-                            <div class="currency-search-container">
-                                <input type="text" id="currency-search-input" placeholder="Rechercher une devise..."
-                                    autocomplete="off">
-                            </div>
-                            <ul class="currency-options-list" id="currency-options-list">
-                                <!-- Rempli dynamiquement -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="search-main-card">
-                    <!-- GROUPE DÉPART -->
-                    <div class="search-group">
-                        <label class="group-label">DÉPART</label>
-                        <div class="inputs-row">
-                            <div class="input-box autocomplete-field">
-                                <span class="icon">🌐</span>
-                                <input type="text" class="custom-select" id="res-origin-country"
-                                    placeholder="Pays de départ" autocomplete="off">
-                                <span class="dropdown-chevron">↕</span>
-                            </div>
-                            <div class="input-box autocomplete-field">
-                                <span class="icon">📍</span>
-                                <input type="text" class="custom-select" id="res-origin-city"
-                                    placeholder="Ville de départ" autocomplete="off">
-                                <span class="dropdown-chevron">↕</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="search-separator">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                            <polyline points="12 5 19 12 12 19"></polyline>
+                <!-- BARRE MOBILE "Filtres / Afficher" (cachée sur desktop) -->
+                <div class="mobile-filter-bar" id="mobile-filter-bar">
+                    <span class="mobile-filter-label">Filtres</span>
+                    <button type="button" class="mobile-filter-toggle-btn" id="mobile-filter-toggle-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round" class="mobile-filter-icon">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                         </svg>
-                    </div>
+                        <span id="mobile-filter-toggle-label">Afficher</span>
+                    </button>
+                </div>
 
-                    <!-- GROUPE DESTINATION -->
-                    <div class="search-group">
-                        <label class="group-label">DESTINATION</label>
-                        <div class="inputs-row">
-                            <div class="input-box autocomplete-field">
-                                <span class="icon">🌐</span>
-                                <input type="text" class="custom-select" id="res-dest-country"
-                                    placeholder="Pays d'arrivée" autocomplete="off">
-                                <span class="dropdown-chevron">↕</span>
-                            </div>
-                            <div class="input-box autocomplete-field">
-                                <span class="icon">📍</span>
-                                <input type="text" class="custom-select" id="res-dest-city"
-                                    placeholder="Ville d'arrivée" autocomplete="off">
-                                <span class="dropdown-chevron">↕</span>
+                <!-- PANNEAU FILTRE (caché par défaut sur mobile) -->
+                <div class="search-filter-panel" id="search-filter-panel">
+
+                    <!-- DEVISE MODERNE -->
+                    <div class="currency-header-container">
+                        <span class="currency-header-label">DEVISE ACTUELLE :</span>
+                        <div class="custom-currency-dropdown" id="custom-currency-dropdown">
+                            <button type="button" class="currency-trigger-btn" id="currency-trigger-btn">
+                                <span class="currency-bracket">[</span><span id="current-currency-val"
+                                    class="currency-val">XOF</span><span class="currency-bracket">]</span> <span
+                                    class="currency-arrow">▼</span>
+                            </button>
+                            <div class="currency-dropdown-menu hidden" id="currency-dropdown-menu">
+                                <div class="currency-search-container">
+                                    <input type="text" id="currency-search-input" placeholder="Rechercher une devise..."
+                                        autocomplete="off">
+                                </div>
+                                <ul class="currency-options-list" id="currency-options-list">
+                                    <!-- Rempli dynamiquement -->
+                                </ul>
                             </div>
                         </div>
                     </div>
 
-                    <div class="search-btn-container">
-                        <button type="button" class="search-submit-btn" id="new-search-btn">
+                    <div class="search-main-card">
+                        <!-- GROUPE DÉPART -->
+                        <div class="search-group">
+                            <label class="group-label">DÉPART</label>
+                            <div class="inputs-row">
+                                <div class="input-box autocomplete-field">
+                                    <span class="icon">🌐</span>
+                                    <input type="text" class="custom-select" id="res-origin-country"
+                                        placeholder="Pays de départ" autocomplete="off">
+                                    <span class="dropdown-chevron">↕</span>
+                                </div>
+                                <div class="input-box autocomplete-field">
+                                    <span class="icon">📍</span>
+                                    <input type="text" class="custom-select" id="res-origin-city"
+                                        placeholder="Ville de départ" autocomplete="off">
+                                    <span class="dropdown-chevron">↕</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-separator">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round" class="search-btn-icon">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
                             </svg>
-                            Rechercher
-                        </button>
+                        </div>
+
+                        <!-- GROUPE DESTINATION -->
+                        <div class="search-group">
+                            <label class="group-label">DESTINATION</label>
+                            <div class="inputs-row">
+                                <div class="input-box autocomplete-field">
+                                    <span class="icon">🌐</span>
+                                    <input type="text" class="custom-select" id="res-dest-country"
+                                        placeholder="Pays d'arrivée" autocomplete="off">
+                                    <span class="dropdown-chevron">↕</span>
+                                </div>
+                                <div class="input-box autocomplete-field">
+                                    <span class="icon">📍</span>
+                                    <input type="text" class="custom-select" id="res-dest-city"
+                                        placeholder="Ville d'arrivée" autocomplete="off">
+                                    <span class="dropdown-chevron">↕</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="search-btn-container">
+                            <button type="button" class="search-submit-btn" id="new-search-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                    stroke-linecap="round" stroke-linejoin="round" class="search-btn-icon">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                Rechercher
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                </div><!-- fin .search-filter-panel -->
             </div>
 
             <div id="offers-list" class="cards-list offers-stream">
