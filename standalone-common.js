@@ -17,6 +17,8 @@
     ]);
 
     // [MULTI-CURRENCY] Global Config Exhaustive (150+ Pays)
+    // Ces taux sont des valeurs par défaut. Au démarrage, loadExchangeRates()
+    // les remplace par les taux du jour depuis Supabase (table exchange_rates).
     const EXCHANGE_RATES = {
         // Pivot EUR = 1
         EUR: 1, USD: 1.08, GBP: 0.85, CHF: 0.95, CAD: 1.45, AUD: 1.63, JPY: 162.5, CNY: 7.82,
@@ -373,6 +375,36 @@
         const fromRate = EXCHANGE_RATES[fromCur] || 1;
         const toRate = EXCHANGE_RATES[toCur] || 1;
         return amount * (toRate / fromRate);
+    }
+
+    /**
+     * Charge les taux de change depuis Supabase (table exchange_rates)
+     * et met à jour l'objet EXCHANGE_RATES dynamiquement.
+     * Les taux hardcodés servent de fallback si Supabase est indisponible.
+     * Appelé automatiquement au démarrage de l'application (non-bloquant).
+     */
+    async function loadExchangeRates() {
+        if (!window.ccSupabase) return;
+        try {
+            const { data, error } = await window.ccSupabase
+                .from('exchange_rates')
+                .select('currency_code, rate_to_eur')
+                .order('currency_code', { ascending: true });
+            if (error) throw error;
+            if (!data || !data.length) return;
+            let updated = 0;
+            for (const row of data) {
+                const code = String(row.currency_code || '').toUpperCase();
+                if (code && typeof row.rate_to_eur === 'number' && row.rate_to_eur > 0) {
+                    EXCHANGE_RATES[code] = row.rate_to_eur;
+                    updated++;
+                }
+            }
+            console.log(`[CCCommon] Taux de change mis à jour depuis Supabase: ${updated} devises`);
+        } catch (err) {
+            // Fallback silencieux : on garde les taux hardcodés
+            console.warn('[CCCommon] Impossible de charger les taux depuis Supabase, utilisation des taux par défaut:', err.message);
+        }
     }
 
     function buildApiCandidates(path) {
@@ -2126,6 +2158,9 @@
         // Purge silencieuse des offres expirées (arrière-plan, sans bloquer)
         purgeExpiredOffers().catch(() => { });
 
+        // Chargement des taux de change depuis Supabase (non-bloquant, silencieux)
+        loadExchangeRates().catch(() => { });
+
         if (!state.user && requiresAuthTarget(currentTarget())) {
             openAuthGate(currentTarget());
         }
@@ -2573,6 +2608,7 @@
         convertCurrency,
         getSmartRoundedAmount,
         getUserCurrency,
+        loadExchangeRates,
         EXCHANGE_RATES,
         COUNTRY_CURRENCIES,
         COUNTRY_CALLING_CODES,

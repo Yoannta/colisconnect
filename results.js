@@ -443,6 +443,7 @@
                         destination,
                         weight_kg: kg,
                         needed_by_date: dateLimite,
+                        currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
                         description,
                         status: "pending"
                     });
@@ -511,6 +512,7 @@
                         destination,
                         weight_kg: kg,
                         needed_by_date: dateLimite || null,
+                        currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
                         description,
                         status: "pending"
                     });
