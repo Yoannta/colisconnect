@@ -120,50 +120,42 @@
 
                 return `
 <article class="offer-compact-card">
-    <!-- Trajet + Prix -->
-    <div class="compact-row-top">
-        <div class="compact-route">
-            <span class="compact-country">${window.CCCommon.escapeHtml(originCountry)}</span>
-            <span class="compact-arrow">&rarr;</span>
-            <span class="compact-country">${window.CCCommon.escapeHtml(destCountry)}</span>
-        </div>
-        <div class="compact-price-box">
-            <span class="compact-price">${priceDisplay}</span>
-        </div>
+  <!-- ZONE 1 : Trajet + Prix -->
+  <div class="oc-header">
+    <div class="oc-route">
+      <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+      <span class="oc-arrow">&rarr;</span>
+      <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
     </div>
-
-    <!-- Date + Kilos -->
-    <div class="compact-row-icons">
-        <span class="compact-icon-label">
-            <span class="compact-icon">&#128197;</span> ${window.CCCommon.escapeHtml(formattedDate)}
-        </span>
-        <span class="compact-icon-label">
-            <span class="compact-icon">&#128230;</span> ${availableKg} kg
-        </span>
-        ${cargoModeLabel ? `<span class="compact-icon-label">&#9992; ${cargoModeLabel}</span>` : ""}
+    <div class="oc-price-box">
+      <span class="oc-price">${priceDisplay}</span>
+      <span class="oc-price-unit">/kg</span>
     </div>
+  </div>
 
-    <!-- Colis acceptés / refusés -->
-    ${hasColisInfo ? `
-    <div class="compact-row-colis">
-        ${colisAcceptes ? `<div class="compact-colis-block"><span class="compact-colis-title">Accepte :</span> <span class="compact-colis-list">${window.CCCommon.escapeHtml(colisAcceptes)}</span></div>` : ""}
-        ${colisRefuses ? `<div class="compact-colis-block"><span class="compact-colis-title compact-colis-refuse">Refuse :</span> <span class="compact-colis-list">${window.CCCommon.escapeHtml(colisRefuses)}</span></div>` : ""}
+  <!-- ZONE 2 : Infos (date, kg, type + colis) -->
+  <div class="oc-infos">
+    <div class="oc-infos-row">
+      <span class="oc-info-chip">&#128197; ${window.CCCommon.escapeHtml(formattedDate)}</span>
+      <span class="oc-info-chip">&#128230; ${availableKg} kg</span>
+      ${cargoModeLabel ? `<span class="oc-info-chip">&#9992; ${cargoModeLabel}</span>` : ""}
+      <span class="oc-info-chip oc-type-chip">${profileTypeBadge}</span>
+    </div>
+    ${hasColisInfo ? `<div class="oc-colis-row">
+      ${colisAcceptes ? `<span class="oc-colis-item oc-colis-ok">✓ ${window.CCCommon.escapeHtml(colisAcceptes)}</span>` : ""}
+      ${colisRefuses ? `<span class="oc-colis-item oc-colis-no">✕ ${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}
     </div>` : ""}
+  </div>
 
-    <!-- Footer -->
-    <div class="compact-row-footer">
-        <div class="compact-owner">
-            <span class="compact-avatar">${initials}</span>
-            <div class="compact-owner-info">
-                <span class="compact-owner-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
-                <div class="compact-owner-badges">
-                    ${verificationBadge}
-                    ${profileTypeBadge}
-                </div>
-            </div>
-        </div>
-        <button class="btn primary btn-xs compact-contact-btn" data-reserve-offer="${offer.id}">Contacter</button>
+  <!-- ZONE 3 : Footer (avatar, nom, bouton) -->
+  <div class="oc-footer">
+    <div class="oc-user">
+      <span class="oc-avatar">${initials}</span>
+      <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
+      ${verificationBadge}
     </div>
+    <button class="btn primary btn-xs oc-contact-btn" data-reserve-offer="${offer.id}">Contacter</button>
+  </div>
 </article>`;
             })
             .join("\n");

@@ -7847,199 +7847,151 @@ input[data-country-select="true"]::placeholder {
     white-space: nowrap;
 }
 
-/* === Carte compacte (marketplace style) === */
+/* === OFFER CARD — Design compact 3 zones === */
 .offer-compact-card {
     border: 1px solid rgba(65, 213, 170, 0.18);
     border-radius: 8px;
     background: linear-gradient(130deg, rgba(9, 16, 23, 0.95), rgba(12, 24, 33, 0.88));
-    padding: 10px 12px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     transition: transform 0.12s ease, box-shadow 0.12s ease;
-    max-height: 250px;
+    max-height: 180px;
 }
 .offer-compact-card:hover {
     transform: translateY(-1px);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
-
-/* === Rangée 1 : Trajet + Prix === */
-.compact-row-top {
+.oc-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 8px;
 }
-.compact-route {
+.oc-route {
     display: flex;
     align-items: center;
     gap: 4px;
     min-width: 0;
     flex: 1;
 }
-.compact-country {
-    font-size: 0.72rem;
+.oc-country {
+    font-size: 0.75rem;
     font-weight: 700;
     color: #f4fffd;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100px;
+    max-width: 110px;
 }
-.compact-arrow {
+.oc-arrow {
     font-size: 0.75rem;
     color: #44dfb0;
     flex-shrink: 0;
 }
-.compact-price-box {
+.oc-price-box {
     text-align: right;
     flex-shrink: 0;
-    margin-left: 6px;
+    line-height: 1.1;
 }
-.compact-price {
-    font-size: 0.9rem;
+.oc-price {
+    font-size: 0.95rem;
     font-weight: 800;
     color: #f8fffd;
     white-space: nowrap;
 }
-.compact-price-unit {
-    display: none;
+.oc-price-unit {
+    display: block;
+    font-size: 0.55rem;
+    color: rgba(224, 239, 250, 0.5);
 }
-
-/* === Rangée 2 : Villes === */
-.compact-row-cities {
+.oc-infos {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 3px;
+}
+.oc-infos-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.oc-info-chip {
     font-size: 0.65rem;
-    color: rgba(214, 232, 246, 0.55);
-    padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.compact-city {
-    max-width: 45%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* === Rangée 3 : Date + Kilos === */
-.compact-row-icons {
-    display: flex;
-    gap: 10px;
-    padding-bottom: 3px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-.compact-icon-label {
-    font-size: 0.72rem;
     color: rgba(214, 232, 246, 0.7);
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 2px;
 }
-.compact-icon {
-    font-size: 0.7rem;
-    flex-shrink: 0;
+.oc-type-chip {
+    margin-left: auto;
 }
-
-/* === Rangée 4 : Colis acceptés/refusés (1 ligne max) === */
-.compact-row-colis {
+.oc-colis-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 2px 10px;
-    padding-bottom: 3px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    max-height: 28px;
+    gap: 10px;
     overflow: hidden;
+    max-height: 18px;
 }
-.compact-colis-block {
-    font-size: 0.62rem;
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
-    min-width: 0;
-    flex: 1;
-    max-width: 50%;
-}
-.compact-colis-title {
-    font-weight: 600;
-    color: #1fe0a3;
-    flex-shrink: 0;
-}
-.compact-colis-title.compact-colis-refuse {
-    color: #f87171;
-}
-.compact-colis-list {
-    color: rgba(214, 232, 246, 0.6);
-    overflow: hidden;
+.oc-colis-item {
+    font-size: 0.6rem;
     white-space: nowrap;
+    overflow: hidden;
     text-overflow: ellipsis;
+    color: rgba(214, 232, 246, 0.6);
 }
-
-/* === Footer === */
-.compact-row-footer {
+.oc-colis-ok { color: #1fe0a3; }
+.oc-colis-no { color: #f87171; }
+.oc-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-top: 2px;
     flex: 1;
     min-height: 0;
 }
-.compact-owner {
+.oc-user {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     min-width: 0;
     flex: 1;
 }
-.compact-avatar {
-    width: 20px;
-    height: 20px;
+.oc-avatar {
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 0.55rem;
+    font-size: 0.6rem;
     font-weight: 800;
     color: #f2fffb;
     background: linear-gradient(140deg, #12ba86, #3b82f6);
     border: 1px solid rgba(255, 255, 255, 0.18);
     flex-shrink: 0;
 }
-.compact-owner-info {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    min-width: 0;
-}
-.compact-owner-name {
-    font-size: 0.68rem;
+.oc-name {
+    font-size: 0.7rem;
     font-weight: 700;
     color: rgba(245, 252, 255, 0.9);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80px;
-}
-.compact-owner-badges {
-    display: flex;
-    align-items: center;
-    gap: 3px;
+    max-width: 90px;
 }
 .verification-badge.mini svg {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     display: block;
 }
 .offer-type-badge {
     font-size: 0.5rem;
     font-weight: 700;
     text-transform: uppercase;
-    padding: 1px 4px;
+    padding: 1px 5px;
     border-radius: 3px;
     letter-spacing: 0.03em;
-    line-height: 1.2;
+    line-height: 1.3;
 }
 .offer-type-badge.type-voyageur {
     color: #10b981;
@@ -8051,44 +8003,29 @@ input[data-country-select="true"]::placeholder {
     background: rgba(245, 158, 11, 0.15);
     border: 1px solid rgba(245, 158, 11, 0.2);
 }
-
-.compact-contact-btn {
-    min-width: 70px;
-    padding: 4px 10px !important;
-    font-size: 0.65rem !important;
+.oc-contact-btn {
+    min-width: 76px;
+    padding: 5px 12px !important;
+    font-size: 0.68rem !important;
     line-height: 1.2 !important;
-    height: 22px !important;
+    height: 28px !important;
     border-radius: 6px !important;
     flex-shrink: 0;
     font-weight: 700;
 }
-
-/* === Responsive : adaptation mobile === */
 @media (max-width: 800px) {
     .offer-compact-card {
-        padding: 8px 10px;
-        gap: 3px;
+        padding: 8px;
+        gap: 5px;
+        max-height: 170px;
     }
-    .compact-country { font-size: 0.68rem; max-width: 80px; }
-    .compact-price { font-size: 0.82rem; }
-    .compact-icon-label { font-size: 0.65rem; }
-    .compact-avatar { width: 18px; height: 18px; font-size: 0.5rem; }
-    .compact-owner-name { font-size: 0.62rem; max-width: 65px; }
-    .compact-contact-btn { min-width: 60px; font-size: 0.6rem !important; height: 20px !important; padding: 3px 8px !important; }
-}
-@media (max-width: 800px) {
-    .offers-stream {
-        grid-template-columns: 1fr;
-        gap: 14px;
-    }
-    .offer-compact-card {
-        padding: 5px 8px;
-        gap: 4px;
-    }
-    .compact-country {
-        font-size: 0.8rem;
-        max-width: 120px;
-    }
+    .oc-country { font-size: 0.7rem; max-width: 85px; }
+    .oc-price { font-size: 0.85rem; }
+    .oc-info-chip { font-size: 0.6rem; }
+    .oc-avatar { width: 20px; height: 20px; font-size: 0.55rem; }
+    .oc-name { font-size: 0.65rem; max-width: 70px; }
+    .oc-contact-btn { min-width: 64px; font-size: 0.62rem !important; height: 24px !important; padding: 4px 10px !important; }
+}    }
     .compact-price {
         font-size: 1rem;
     }
