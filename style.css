@@ -7691,16 +7691,28 @@ input[data-country-select="true"]::placeholder {
 }
 
 @media (max-width: 1600px) {
-    .offers-stream { grid-template-columns: repeat(4, 1fr); }
+    .offers-stream {
+        grid-template-columns: repeat(4, 1fr);
+    }
 }
+
 @media (max-width: 1200px) {
-    .offers-stream { grid-template-columns: repeat(3, 1fr); }
+    .offers-stream {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
+
 @media (max-width: 800px) {
-    .offers-stream { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .offers-stream {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
 }
+
 @media (max-width: 480px) {
-    .offers-stream { grid-template-columns: 1fr; }
+    .offers-stream {
+        grid-template-columns: 1fr;
+    }
 }
 
 .offers-stream>.offer-compact-card {
@@ -7847,29 +7859,61 @@ input[data-country-select="true"]::placeholder {
     white-space: nowrap;
 }
 
-/* === OFFER CARD — Design compact 3 zones === */
+/* === OFFER CARD — Nouveau design Tailwind (legacy .oc-* conservé pour compat) === */
+/* Reset de l'ancienne carte pour laisser Tailwind piloter */
 .offer-compact-card {
-    border: 1px solid rgba(65, 213, 170, 0.18);
-    border-radius: 8px;
-    background: linear-gradient(130deg, rgba(9, 16, 23, 0.95), rgba(12, 24, 33, 0.88));
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-    max-height: 180px;
+    /* ⚠️ Pas de max-height, pas de background imposé : Tailwind gère tout */
+    max-height: none !important;
+    background: none;
+    border: none;
+    padding: 0;
+    display: block;
+    /* Tailwind override via flex flex-col */
+    gap: 0;
+    box-shadow: none;
+    transition: none;
 }
+
 .offer-compact-card:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    transform: none;
+    box-shadow: none;
 }
+
+/* Keyframe animation pour l'apparition des cartes */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fadeInUp 0.4s ease both;
+}
+
+/* Scrollbar cachée pour les pills */
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* Legacy classes conservées pour éventuelle compat ailleurs */
 .oc-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     gap: 8px;
 }
+
 .oc-route {
     display: flex;
     align-items: center;
@@ -7877,6 +7921,7 @@ input[data-country-select="true"]::placeholder {
     min-width: 0;
     flex: 1;
 }
+
 .oc-country {
     font-size: 0.75rem;
     font-weight: 700;
@@ -7886,38 +7931,45 @@ input[data-country-select="true"]::placeholder {
     text-overflow: ellipsis;
     max-width: 110px;
 }
+
 .oc-arrow {
     font-size: 0.75rem;
     color: #44dfb0;
     flex-shrink: 0;
 }
+
 .oc-price-box {
     text-align: right;
     flex-shrink: 0;
     line-height: 1.1;
 }
+
 .oc-price {
     font-size: 0.95rem;
     font-weight: 800;
     color: #f8fffd;
     white-space: nowrap;
 }
+
 .oc-price-unit {
     display: block;
     font-size: 0.55rem;
     color: rgba(224, 239, 250, 0.5);
 }
+
 .oc-infos {
     display: flex;
     flex-direction: column;
     gap: 3px;
 }
+
 .oc-infos-row {
     display: flex;
     align-items: center;
     gap: 8px;
     flex-wrap: wrap;
 }
+
 .oc-info-chip {
     font-size: 0.65rem;
     color: rgba(214, 232, 246, 0.7);
@@ -7925,15 +7977,17 @@ input[data-country-select="true"]::placeholder {
     align-items: center;
     gap: 2px;
 }
+
 .oc-type-chip {
     margin-left: auto;
 }
+
 .oc-colis-row {
     display: flex;
     gap: 10px;
     overflow: hidden;
-    max-height: 18px;
 }
+
 .oc-colis-item {
     font-size: 0.6rem;
     white-space: nowrap;
@@ -7941,15 +7995,21 @@ input[data-country-select="true"]::placeholder {
     text-overflow: ellipsis;
     color: rgba(214, 232, 246, 0.6);
 }
-.oc-colis-ok { color: #1fe0a3; }
-.oc-colis-no { color: #f87171; }
+
+.oc-colis-ok {
+    color: #1fe0a3;
+}
+
+.oc-colis-no {
+    color: #f87171;
+}
+
 .oc-footer {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex: 1;
-    min-height: 0;
 }
+
 .oc-user {
     display: flex;
     align-items: center;
@@ -7957,6 +8017,7 @@ input[data-country-select="true"]::placeholder {
     min-width: 0;
     flex: 1;
 }
+
 .oc-avatar {
     width: 22px;
     height: 22px;
@@ -7970,6 +8031,7 @@ input[data-country-select="true"]::placeholder {
     border: 1px solid rgba(255, 255, 255, 0.18);
     flex-shrink: 0;
 }
+
 .oc-name {
     font-size: 0.7rem;
     font-weight: 700;
@@ -7979,11 +8041,13 @@ input[data-country-select="true"]::placeholder {
     text-overflow: ellipsis;
     max-width: 90px;
 }
+
 .verification-badge.mini svg {
     width: 12px;
     height: 12px;
     display: block;
 }
+
 .offer-type-badge {
     font-size: 0.5rem;
     font-weight: 700;
@@ -7993,16 +8057,19 @@ input[data-country-select="true"]::placeholder {
     letter-spacing: 0.03em;
     line-height: 1.3;
 }
+
 .offer-type-badge.type-voyageur {
     color: #10b981;
     background: rgba(16, 185, 129, 0.15);
     border: 1px solid rgba(16, 185, 129, 0.2);
 }
+
 .offer-type-badge.type-cargo {
     color: #f59e0b;
     background: rgba(245, 158, 11, 0.15);
     border: 1px solid rgba(245, 158, 11, 0.2);
 }
+
 .oc-contact-btn {
     min-width: 76px;
     padding: 5px 12px !important;
@@ -8013,38 +8080,26 @@ input[data-country-select="true"]::placeholder {
     flex-shrink: 0;
     font-weight: 700;
 }
-@media (max-width: 800px) {
-    .offer-compact-card {
-        padding: 8px;
-        gap: 5px;
-        max-height: 170px;
-    }
-    .oc-country { font-size: 0.7rem; max-width: 85px; }
-    .oc-price { font-size: 0.85rem; }
-    .oc-info-chip { font-size: 0.6rem; }
-    .oc-avatar { width: 20px; height: 20px; font-size: 0.55rem; }
-    .oc-name { font-size: 0.65rem; max-width: 70px; }
-    .oc-contact-btn { min-width: 64px; font-size: 0.62rem !important; height: 24px !important; padding: 4px 10px !important; }
-}    }
-    .compact-price {
-        font-size: 1rem;
-    }
+
+.compact-price {
+    font-size: 1rem;
+}
 }
 
-    }
+}
 
-    .compact-cityline {
-        max-width: 120px;
-    }
+.compact-cityline {
+    max-width: 120px;
+}
 
-    .compact-owner-name {
-        max-width: 76px;
-    }
+.compact-owner-name {
+    max-width: 76px;
+}
 
-    .compact-contact-btn {
-        min-width: 92px;
-        height: 25px !important;
-    }
+.compact-contact-btn {
+    min-width: 92px;
+    height: 25px !important;
+}
 }
 
 @media (max-width: 560px) {

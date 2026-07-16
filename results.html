@@ -196,6 +196,99 @@
         .delay-300 {
             animation-delay: 300ms;
         }
+
+        /* ── Offer Card: reset legacy CSS, Tailwind takes over ── */
+        article.offer-compact-card {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+            padding: 20px !important;
+            border-radius: 12px !important;
+            background: #1A1B1E !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: none !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease !important;
+            max-height: none !important;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        article.offer-compact-card:hover {
+            transform: translateY(-4px) !important;
+            box-shadow: 0 10px 30px rgba(167, 255, 231, 0.08) !important;
+            border-color: rgba(167, 255, 231, 0.4) !important;
+        }
+
+        article.offer-compact-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(167, 255, 231, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        article.offer-compact-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Cards grid */
+        .cards-list.offers-stream {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+            gap: 20px !important;
+        }
+
+        /* Price */
+        article.offer-compact-card .font-price-xl {
+            font-size: 28px !important;
+            font-weight: 700 !important;
+            font-family: 'Space Grotesk', sans-serif !important;
+            color: #a7ffe7 !important;
+            line-height: 1 !important;
+        }
+
+        /* Route stops */
+        article.offer-compact-card .font-route-stop {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            font-family: 'Space Grotesk', sans-serif !important;
+            color: #fff !important;
+        }
+
+        /* Muted text */
+        article.offer-compact-card .text-on-surface-variant {
+            color: #b9cac4 !important;
+        }
+
+        /* Contact arrow button */
+        article.offer-compact-card button[data-reserve-offer] {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 50% !important;
+            background: rgba(167, 255, 231, 0.08) !important;
+            border: 1px solid rgba(167, 255, 231, 0.15) !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+        }
+
+        article.offer-compact-card:hover button[data-reserve-offer] {
+            background: rgba(167, 255, 231, 0.18) !important;
+            border-color: rgba(167, 255, 231, 0.5) !important;
+        }
+
+        article.offer-compact-card button[data-reserve-offer] .material-symbols-outlined {
+            color: #a7ffe7 !important;
+            font-size: 20px !important;
+        }
     </style>
 
     <link rel="stylesheet" href="style.css"> <!-- Supabase Core & Init -->
