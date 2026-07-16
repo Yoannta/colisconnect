@@ -14,14 +14,14 @@
  *      "env": { "STITCH_API_KEY": "<VOTRE_CLE_API>" }
  *    }
  * 
- * 2. Clé API actuelle : <VOTRE_CLE_API>
- *    (Obtenue depuis https://stitch.withgoogle.com/settings)
+ * 2. Obtenir une clé API sur https://stitch.withgoogle.com/settings
+ *    La clé est stockée uniquement dans ~/.deepcode/settings.json (env: STITCH_API_KEY)
  * 
  * 3. Projet Stitch associé : 6051810808823554313
  *    Lien : https://stitch.withgoogle.com/projects/6051810808823554313
  * 
  * 4. Tester le serveur :
- *    STITCH_API_KEY="AQ.xxx..." node stitch-mcp-simple.js --http 3099
+ *    STITCH_API_KEY="<VOTRE_CLE>" node stitch-mcp-simple.js --http 3099
  *    curl -X POST http://localhost:3099 -H "Content-Type: application/json" \
  *      -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
  * 
