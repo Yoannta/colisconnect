@@ -659,7 +659,7 @@
                     query = window.ccSupabase.from('offers').select('*');
                 } else {
                     // Jointure profiles seulement si l'utilisateur est connecté (sinon RLS bloque)
-                    query = window.ccSupabase.from('offers').select('*, profiles!offers_user_id_fkey(full_name, is_verified, profile_type)');
+                    query = window.ccSupabase.from('offers').select('*, profiles!offers_user_id_fkey(full_name, is_verified, profile_type, profile_photo)');
                 }
                 if (p.includes("scope=mine")) {
                     query = query.eq('user_id', state.user?.id);
@@ -686,7 +686,8 @@
                     refusedColisTypes: o.refused_colis_types,
                     ownerName: o.profiles?.full_name || "Voyageur",
                     ownerIsVerified: o.profiles?.is_verified,
-                    ownerProfileType: o.profiles?.profile_type
+                    ownerProfileType: o.profiles?.profile_type,
+                    ownerProfilePhoto: o.profiles?.profile_photo
                 }));
                 return { items };
             }

@@ -2,7 +2,11 @@
     const state = {
         offers: [],
         userCurrency: 'EUR',
-        filterProfileType: 'traveler'
+        filterProfileType: 'traveler',
+        filterVerified: false,
+        filterWeight10: false,
+        filterUrgent: false,
+        sortBy: 'date'
     };
 
     const convertCurrency = window.CCCommon.convertCurrency;
@@ -21,13 +25,10 @@
     }
 
     function queryOfferFilters() {
-        const destCountry = document.getElementById("res-dest-country")?.value?.trim() || "";
-        const destCity = document.getElementById("res-dest-city")?.value?.trim() || "";
-        const originCountry = document.getElementById("res-origin-country")?.value?.trim() || "";
-        const originCity = document.getElementById("res-origin-city")?.value?.trim() || "";
-        const destination = destCity || destCountry;
-        const origin = originCity || originCountry;
-        return { destination, origin, minKg: 1 };
+        const origin = document.getElementById("res-origin")?.value?.trim() || "";
+        const destination = document.getElementById("res-dest")?.value?.trim() || "";
+        const minKg = parseInt(document.getElementById("res-weight")?.value || "1", 10);
+        return { destination, origin, minKg };
     }
 
     async function loadOffers() {
@@ -50,23 +51,70 @@
     function renderOffers() {
         if (!els.offersList) return;
 
-        // Filtrer les offres selon l'onglet actif
-        const filteredOffers = state.offers.filter(offer => {
+        // 1. Filtrer les offres selon l'onglet actif et les filtres optionnels
+        let filteredOffers = state.offers.filter(offer => {
             const mode = String(offer.mode || "").trim();
             if (state.filterProfileType === 'traveler') {
-                return mode === "";
+                if (mode !== "") return false;
             } else if (state.filterProfileType === 'cargo') {
-                return mode !== "";
+                if (mode === "") return false;
             }
+
+            // Filtre : Voyageurs vérifiés
+            if (state.filterVerified && !offer.ownerIsVerified) {
+                return false;
+            }
+
+            // Filtre : > 10 kg
+            if (state.filterWeight10 && (offer.availableKg || 0) <= 10) {
+                return false;
+            }
+
+            // Filtre : Départ proche (dans les 7 prochains jours)
+            if (state.filterUrgent) {
+                const depart = new Date(offer.departureDate);
+                const today = new Date();
+                const diffTime = depart - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays < 0 || diffDays > 7) {
+                    return false;
+                }
+            }
+
+            // Filtre : Date limite (le départ doit être inférieur ou égal à la date choisie)
+            const dateLimitStr = document.getElementById("res-date")?.value || "";
+            if (dateLimitStr) {
+                const limitDate = new Date(dateLimitStr);
+                const departDate = new Date(offer.departureDate);
+                if (!isNaN(limitDate.getTime()) && !isNaN(departDate.getTime())) {
+                    if (departDate > limitDate) return false;
+                }
+            }
+
             return true;
         });
 
+        // 2. Trier les offres
+        const isSort = document.getElementById("sort-select")?.value || state.sortBy;
+        filteredOffers.sort((a, b) => {
+            if (isSort === 'price') {
+                const priceA = convertCurrency(Number(a.pricePerKg || 0), a.baseCurrency || 'EUR', state.userCurrency);
+                const priceB = convertCurrency(Number(b.pricePerKg || 0), b.baseCurrency || 'EUR', state.userCurrency);
+                return priceA - priceB;
+            } else {
+                const dateA = new Date(a.departureDate || 0);
+                const dateB = new Date(b.departureDate || 0);
+                return dateA - dateB;
+            }
+        });
+
+        // 3. Rendu
         if (!filteredOffers.length) {
             els.offersList.innerHTML = `
-                <div class="empty-card" style="grid-column:1/-1;">
-                    <p>Aucune offre pour ce trajet.</p>
-                    <p style="color:var(--muted);font-size:0.85rem;margin:8px 0;">Faite une demande, si un voyageur est interesse il vous contactera.</p>
-                    <button class="btn primary" id="btn-faire-demande-trajet" style="margin-top:12px;">Faire une demande de trajet</button>
+                <div class="empty-card" style="grid-column:1/-1; background-color: var(--surface); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 12px; text-align: center;">
+                    <p style="margin: 0; color: #fff; font-size: 1.1rem; font-weight: 500;">Aucune offre correspondante.</p>
+                    <p style="color:var(--text-muted);font-size:0.85rem;margin:8px 0 16px;">Créez une demande de transport, si un voyageur est intéressé il vous contactera.</p>
+                    <button class="btn primary" id="btn-faire-demande-trajet" style="margin-top:12px; padding: 10px 20px; border-radius: 8px; cursor: pointer; border: 0; background-color: var(--emerald-bright); color: #000; font-weight: bold;">Faire une demande de trajet</button>
                 </div>`;
             setTimeout(() => {
                 document.getElementById("btn-faire-demande-trajet")?.addEventListener("click", () => {
@@ -77,10 +125,9 @@
         }
 
         els.offersList.innerHTML = filteredOffers
-            .map((offer) => {
+            .map((offer, index) => {
                 const initials = getInitials(offer.ownerName);
                 const isVerified = Boolean(offer.ownerIsVerified);
-                const verificationBadge = isVerified ? `<span class="verification-badge mini" title="Profil certifié"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg></span>` : "";
 
                 const originCountry = offer.origin || "Origine";
                 const destCountry = offer.destination || "Arrivée";
@@ -89,9 +136,9 @@
                 try {
                     const d = new Date(departureDate);
                     if (!isNaN(d.getTime())) {
-                        formattedDate = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+                        formattedDate = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
                     }
-                } catch(e) { /* fallback */ }
+                } catch (e) { /* fallback */ }
 
                 const pricePerKgRaw = Number(offer.pricePerKg || 0);
                 const baseCur = offer.baseCurrency || 'EUR';
@@ -100,61 +147,112 @@
                 const availableKg = offer.availableKg || 0;
 
                 const priceDisplay = formatAmount(convertedPrice, userCur);
-
                 const offerMode = String(offer.mode || "").trim();
-                let profileTypeBadge = "";
-                let cargoModeLabel = "";
-                if (offerMode === "") {
-                    profileTypeBadge = `<span class="offer-type-badge type-voyageur">Voyageur</span>`;
-                } else {
-                    profileTypeBadge = `<span class="offer-type-badge type-cargo">Cargo</span>`;
-                    if (offerMode === "avion") cargoModeLabel = "Avion";
-                    else if (offerMode === "bateau") cargoModeLabel = "Bateau";
-                    else if (offerMode === "les_deux") cargoModeLabel = "Avion + Bateau";
-                }
 
                 // Colis acceptés / refusés
                 const colisAcceptes = String(offer.colis_types || offer.colisTypes || "").trim();
                 const colisRefuses = String(offer.refused_colis_types || offer.refusedColisTypes || "").trim();
                 const hasColisInfo = colisAcceptes || colisRefuses;
 
+                const animDelay = (index % 5) * 100 + 100;
+
                 return `
-<article class="offer-compact-card">
-  <!-- ZONE 1 : Trajet + Prix -->
-  <div class="oc-header">
-    <div class="oc-route">
-      <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
-      <span class="oc-arrow">&rarr;</span>
-      <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
+<article class="bg-surface-card rounded-xl border border-white/10 p-5 flex flex-col gap-5 hover:border-primary/50 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 cursor-pointer group relative overflow-hidden animate-fade-in-up offer-compact-card" style="animation-delay: ${animDelay}ms;">
+  <!-- Glowing accent line top -->
+  <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+  
+  <!-- Zone 1: Route & Price -->
+  <div class="flex justify-between items-start w-full">
+    <div class="flex-1">
+      <div class="flex items-center gap-3">
+        <div class="flex flex-col items-center">
+          <div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_rgba(178,197,255,0.8)] transition-all duration-300 group-hover:shadow-[0_0_12px_rgba(178,197,255,1)] group-hover:scale-110"></div>
+          <div class="w-[2px] h-6 bg-secondary/30"></div>
+          <div class="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(167,255,231,0.8)] transition-all duration-300 group-hover:shadow-[0_0_12px_rgba(167,255,231,1)] group-hover:scale-110"></div>
+        </div>
+        <div class="flex flex-col justify-between py-0.5 gap-3" style="gap: 12px;">
+          <div class="font-route-stop text-route-stop text-text-primary" style="margin:0; line-height: 20px;">${window.CCCommon.escapeHtml(originCountry)}</div>
+          <div class="font-route-stop text-route-stop text-text-primary" style="margin:0; line-height: 20px;">${window.CCCommon.escapeHtml(destCountry)}</div>
+        </div>
+      </div>
     </div>
-    <div class="oc-price-box">
-      <span class="oc-price">${priceDisplay}</span>
-      <span class="oc-price-unit">/kg</span>
+    <div class="text-right">
+      <div class="font-price-xl text-price-xl text-primary transition-transform duration-300 group-hover:scale-105 origin-right">${priceDisplay}</div>
+      <div class="text-xs text-on-surface-variant mt-1" style="margin-top: 4px;">/ kg</div>
     </div>
   </div>
-
-  <!-- ZONE 2 : Infos (date, kg, type + colis) -->
-  <div class="oc-infos">
-    <div class="oc-infos-row">
-      <span class="oc-info-chip">&#128197; ${window.CCCommon.escapeHtml(formattedDate)}</span>
-      <span class="oc-info-chip">&#128230; ${availableKg} kg</span>
-      ${cargoModeLabel ? `<span class="oc-info-chip">&#9992; ${cargoModeLabel}</span>` : ""}
-      <span class="oc-info-chip oc-type-chip">${profileTypeBadge}</span>
+  
+  <hr class="border-white/5 transition-colors duration-300 group-hover:border-primary/20" style="margin:0; border:0; border-top:1px solid rgba(255,255,255,0.05);"/>
+  
+  <!-- Zone 2: Trip Info -->
+  <div class="grid grid-cols-2 gap-4 w-full">
+    <div class="flex items-center gap-2 group/info">
+      <span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover/info:text-primary transition-colors duration-200">event</span>
+      <div class="flex flex-col">
+        <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Départ</span>
+        <span class="text-sm text-text-primary" style="font-weight:500;">${window.CCCommon.escapeHtml(formattedDate)}</span>
+      </div>
     </div>
-    ${hasColisInfo ? `<div class="oc-colis-row">
-      ${colisAcceptes ? `<span class="oc-colis-item oc-colis-ok">✓ ${window.CCCommon.escapeHtml(colisAcceptes)}</span>` : ""}
-      ${colisRefuses ? `<span class="oc-colis-item oc-colis-no">✕ ${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}
-    </div>` : ""}
+    <div class="flex items-center gap-2 group/info">
+      <span class="material-symbols-outlined text-on-surface-variant text-[20px] group-hover/info:text-primary transition-colors duration-200">${offerMode === '' ? 'luggage' : 'inventory_2'}</span>
+      <div class="flex flex-col">
+        <span class="text-[10px] text-on-surface-variant uppercase tracking-wider">Dispo</span>
+        <span class="text-sm text-text-primary font-bold">${availableKg} kg</span>
+      </div>
+    </div>
   </div>
-
-  <!-- ZONE 3 : Footer (avatar, nom, bouton) -->
-  <div class="oc-footer">
-    <div class="oc-user">
-      <span class="oc-avatar">${initials}</span>
-      <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
-      ${verificationBadge}
+  
+  <!-- Zone 3: Items (Accepted/Refused) -->
+  ${hasColisInfo ? `
+  <div class="bg-background/50 rounded-lg p-3 text-xs flex flex-col gap-2 border border-white/5 transition-colors duration-300 group-hover:border-white/10 group-hover:bg-background/80 w-full" style="box-sizing: border-box;">
+    ${colisAcceptes ? `
+    <div class="flex items-start gap-2">
+      <span class="material-symbols-outlined text-status-success text-[16px] shrink-0 mt-0.5" style="color: #13ecc8; font-size:16px;">check_circle</span>
+      <span class="text-on-surface-variant leading-tight">${window.CCCommon.escapeHtml(colisAcceptes)}</span>
     </div>
-    <button class="btn primary btn-xs oc-contact-btn" data-reserve-offer="${offer.id}">Contacter</button>
+    ` : ''}
+    ${colisRefuses ? `
+    <div class="flex items-start gap-2">
+      <span class="material-symbols-outlined text-error text-[16px] shrink-0 mt-0.5" style="color: #ffb4ab; font-size:16px;">cancel</span>
+      <span class="text-on-surface-variant opacity-70 leading-tight">${window.CCCommon.escapeHtml(colisRefuses)}</span>
+    </div>
+    ` : ''}
+  </div>
+  ` : `
+  <div class="h-[68px] flex items-center justify-center opacity-50 border border-dashed border-white/10 rounded-lg transition-colors duration-300 group-hover:border-primary/30 group-hover:opacity-80 w-full">
+    <span class="text-xs text-on-surface-variant italic group-hover:text-primary/80 transition-colors duration-300">Détails colis sur demande</span>
+  </div>
+  `}
+  
+  <!-- Zone 4: User Info -->
+  <div class="mt-auto pt-2 flex items-center justify-between w-full">
+    <div class="flex items-center gap-3">
+      ${offerMode === "" ? (
+                        offer.ownerProfilePhoto ? `
+        <div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-white/10 relative transition-transform duration-300 group-hover:scale-105">
+          <img class="w-full h-full object-cover" src="${offer.ownerProfilePhoto}"/>
+        </div>
+        ` : `
+        <div class="w-10 h-10 rounded-full overflow-hidden border border-white/10 relative transition-transform duration-300 group-hover:scale-105 flex items-center justify-center font-bold text-sm text-text-primary bg-gradient-to-tr from-secondary to-primary" style="width:40px; height:40px;">
+          ${initials}
+        </div>
+        `
+                    ) : `
+      <div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden border border-primary/30 relative flex items-center justify-center transition-transform duration-300 group-hover:scale-105" style="width:40px; height:40px;">
+        <span class="material-symbols-outlined text-primary">local_shipping</span>
+      </div>
+      `}
+      <div class="flex flex-col">
+        <span class="text-sm font-semibold text-text-primary group-hover:text-primary transition-colors duration-300">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
+        <div class="flex items-center gap-1 text-[11px] ${isVerified ? 'text-primary' : 'text-on-surface-variant'}" style="margin-top: 2px;">
+          ${isVerified ? '<span class="material-symbols-outlined text-[14px]" style="font-size:14px; font-variation-settings: \'FILL\' 1;">verified</span>' : ''}
+          <span class="">${offerMode === "" ? "Voyageur" : "Transporteur Pro"}</span>
+        </div>
+      </div>
+    </div>
+    <button class="bg-surface-variant hover:bg-primary hover:text-on-primary text-text-primary w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:bg-primary/20 group-hover:text-primary active:scale-90 border-0 cursor-pointer" data-reserve-offer="${offer.id}">
+      <span class="material-symbols-outlined text-[20px] transition-transform duration-300 group-hover:translate-x-1">arrow_forward</span>
+    </button>
   </div>
 </article>`;
             })
@@ -354,6 +452,33 @@
             loadOffers().catch(err => console.warn(err));
         });
 
+        // Sort Select
+        document.getElementById("sort-select")?.addEventListener("change", (e) => {
+            state.sortBy = e.target.value;
+            renderOffers();
+        });
+
+        // Pill Toggles
+        const togglePill = (id, stateKey) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener("click", () => {
+                state[stateKey] = !state[stateKey];
+
+                // Toggle active styling
+                if (state[stateKey]) {
+                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary text-primary bg-primary/10 text-sm whitespace-nowrap transition-colors duration-200 active:scale-95 cursor-pointer";
+                } else {
+                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer";
+                }
+                renderOffers();
+            });
+        };
+
+        togglePill("pill-verified", "filterVerified");
+        togglePill("pill-weight", "filterWeight10");
+        togglePill("pill-urgent", "filterUrgent");
+
         // ===== TOGGLE FILTRE MOBILE =====
         const mobileToggleBtn = document.getElementById("mobile-filter-toggle-btn");
         const mobileToggleLabel = document.getElementById("mobile-filter-toggle-label");
@@ -398,20 +523,10 @@
         }
         // Setup autocomplete pays pour la barre de recherche
         if (window.CCCommon.setupCountryInput) {
-            ["res-origin-country", "res-dest-country"].forEach(id => {
+            ["res-origin", "res-dest"].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) window.CCCommon.setupCountryInput(el);
             });
-        }
-        // Setup autocomplete ville pour la barre de recherche
-        if (window.CCCommon.setupCityAutocomplete) {
-            const setup = (paysId, villeId) => {
-                const pays = document.getElementById(paysId);
-                const ville = document.getElementById(villeId);
-                if (pays && ville) window.CCCommon.setupCityAutocomplete(ville, pays);
-            };
-            setup("res-origin-country", "res-origin-city");
-            setup("res-dest-country", "res-dest-city");
         }
 
         // Setup autocomplete ville pour les champs ville déjà présents dans le HTML
