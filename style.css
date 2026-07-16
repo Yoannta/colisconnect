@@ -7715,194 +7715,302 @@ input[data-country-select="true"]::placeholder {
     }
 }
 
-.offers-stream>.offer-compact-card {
-    border: 1px solid rgba(65, 213, 170, 0.22);
-    border-radius: 10px;
-    background: linear-gradient(130deg, rgba(9, 16, 23, 0.95), rgba(12, 24, 33, 0.88));
-    padding: 5px 6px;
-    display: grid;
-    gap: 3px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.16);
-}
 
-.compact-row {
+
+/* === OFFER CARD — Stitch Design (marketplace) === */
+.offer-compact-card {
+    background: #1A1B1E;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
     display: flex;
-    align-items: center;
-    gap: 5px;
-    min-width: 0;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s ease, transform 0.2s ease;
+    cursor: default;
+}
+.offer-compact-card:hover {
+    border-color: rgba(19, 236, 200, 0.4);
+    transform: translateY(-1px);
 }
 
-.compact-row-top {
+/* Glow line on hover */
+.offer-compact-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(19, 236, 200, 0.3), transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.offer-compact-card:hover::before {
+    opacity: 1;
+}
+
+/* ZONE 1 : Route visuelle + Prix */
+.oc-header {
+    display: flex;
     justify-content: space-between;
-    padding-bottom: 1px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    align-items: flex-start;
+    gap: 12px;
 }
-
-.compact-row-mid {
-    justify-content: flex-start;
-}
-
-.compact-route {
-    min-width: 0;
-    flex: 1;
+.oc-route-visual {
     display: flex;
     align-items: center;
-    gap: 3px;
-    flex-wrap: nowrap;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
 }
-
-.compact-code {
-    font-size: 0.9rem;
-    font-weight: 800;
-    letter-spacing: 0.06em;
-    color: #f4fffd;
+.oc-route-dots {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
 }
-
-.compact-arrow {
-    font-size: 0.56rem;
-    color: #44dfb0;
+.oc-dot-start {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #4C82FF;
+    box-shadow: 0 0 8px rgba(76, 130, 255, 0.6);
 }
-
-.compact-cityline {
-    font-size: 0.7rem;
-    color: rgba(214, 232, 246, 0.72);
-    max-width: 180px;
+.oc-dot-line {
+    width: 2px; height: 20px;
+    background: rgba(76, 130, 255, 0.25);
+    margin: 2px 0;
+}
+.oc-dot-end {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #13ECC8;
+    box-shadow: 0 0 8px rgba(19, 236, 200, 0.6);
+}
+.oc-route-labels {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+.oc-country {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #FFFFFF;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 160px;
+    line-height: 1.3;
 }
-
-.compact-price-box {
-    line-height: 1;
+.oc-price-box {
     text-align: right;
     flex-shrink: 0;
 }
-
-.compact-price {
-    font-size: 1rem;
-    font-weight: 800;
-    color: #f8fffd;
+.oc-price {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: #13ECC8;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    white-space: nowrap;
 }
-
-.compact-price-unit {
+.oc-price-unit {
+    font-size: 10px;
+    color: rgba(185, 202, 196, 0.7);
     display: block;
-    font-size: 0.48rem;
-    color: rgba(224, 239, 250, 0.6);
+    text-align: right;
+    margin-top: 2px;
 }
 
-.compact-owner {
-    min-width: 0;
-    flex: 1;
+/* ZONE 2 : Infos (date, kg, type) */
+.oc-infos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.oc-info-item {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 6px;
 }
-
-.compact-avatar {
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: #f2fffb;
-    background: linear-gradient(140deg, #12ba86, #3b82f6);
-    border: 1px solid rgba(255, 255, 255, 0.22);
+.oc-info-icon {
+    font-size: 14px;
     flex-shrink: 0;
 }
-
-.compact-owner-name {
-    font-size: 0.85rem;
+.oc-info-label {
+    font-size: 9px;
+    color: rgba(185, 202, 196, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: block;
+    line-height: 1.2;
+}
+.oc-info-value {
+    font-size: 13px;
+    color: #FFFFFF;
+    font-weight: 600;
+    line-height: 1.2;
+}
+.oc-type-badge {
+    font-size: 10px;
     font-weight: 700;
-    color: rgba(245, 252, 255, 0.94);
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    line-height: 1.3;
+    margin-top: 2px;
+}
+.oc-type-voyageur {
+    color: #13ECC8;
+    background: rgba(19, 236, 200, 0.1);
+    border: 1px solid rgba(19, 236, 200, 0.2);
+}
+.oc-type-cargo {
+    color: #F59E0B;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* ZONE 3 : Colis acceptés/refusés */
+.oc-colis-panel {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 8px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.oc-colis-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    overflow: hidden;
+}
+.oc-colis-icon {
+    font-size: 12px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+.oc-colis-ok { color: #13ECC8; }
+.oc-colis-no { color: #FFB4AB; }
+.oc-colis-text {
+    font-size: 11px;
+    color: rgba(185, 202, 196, 0.8);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    line-height: 1.4;
 }
 
-.compact-badge {
-    font-size: 0.48rem;
-    font-weight: 700;
-    border-radius: 999px;
-    padding: 1px 4px;
-    border: 1px solid transparent;
-    flex-shrink: 0;
-}
-
-.compact-badge.verified {
-    color: #1fe0a3;
-    border-color: rgba(31, 224, 163, 0.35);
-    background: rgba(31, 224, 163, 0.1);
-}
-
-.compact-badge.pending {
-    color: #ffd281;
-    border-color: rgba(255, 210, 129, 0.28);
-    background: rgba(255, 210, 129, 0.08);
-}
-
-.compact-meta {
+/* ZONE 4 : Footer - Avatar + Nom + Bouton */
+.oc-footer {
     display: flex;
-    gap: 2px;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 4px;
+}
+.oc-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    flex: 1;
+}
+.oc-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(140deg, #13ECC8, #4C82FF);
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #00382E;
+    border: 2px solid rgba(255, 255, 255, 0.12);
     flex-shrink: 0;
-    margin-left: auto;
+    box-shadow: 0 0 12px rgba(19, 236, 200, 0.15);
 }
-
-.compact-meta-chip {
-    font-size: 0.7rem;
-    color: rgba(223, 236, 247, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 999px;
-    padding: 1px 4px;
+.oc-user-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.oc-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #FFFFFF;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+    line-height: 1.3;
 }
-
-/* === OFFER CARD — Nouveau design Tailwind (legacy .oc-* conservé pour compat) === */
-/* Reset de l'ancienne carte pour laisser Tailwind piloter */
-.offer-compact-card {
-    /* ⚠️ Pas de max-height, pas de background imposé : Tailwind gère tout */
-    max-height: none !important;
-    background: none;
-    border: none;
-    padding: 0;
+.oc-user-badges {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 1px;
+}
+.oc-verified svg {
+    width: 12px; height: 12px;
     display: block;
-    /* Tailwind override via flex flex-col */
-    gap: 0;
-    box-shadow: none;
-    transition: none;
+}
+.oc-contact-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+    flex-shrink: 0;
+    font-size: 0;
+    line-height: 0;
+}
+.oc-contact-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(19, 236, 200, 0.4);
+}
+.oc-contact-btn::after {
+    content: '→';
+    font-size: 18px;
+    color: #FFFFFF;
+    line-height: 1;
 }
 
-.offer-compact-card:hover {
-    transform: none;
-    box-shadow: none;
+/* Empty state */
+.empty-card {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    background: #1A1B1E;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
 }
 
-/* Keyframe animation pour l'apparition des cartes */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(16px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Responsive card adjustments */
+@media (max-width: 800px) {
+    .offer-compact-card { padding: 12px; gap: 10px; }
+    .oc-price { font-size: 16px; }
+    .oc-country { font-size: 12px; max-width: 120px; }
+    .oc-avatar { width: 30px; height: 30px; font-size: 11px; }
+    .oc-name { font-size: 12px; max-width: 90px; }
+    .oc-contact-btn { width: 30px; height: 30px; }
+}
+@media (max-width: 480px) {
+    .offer-compact-card { padding: 10px; gap: 8px; }
+    .oc-colis-panel { padding: 6px 8px; }
 }
 
-.animate-fade-in-up {
-    animation: fadeInUp 0.4s ease both;
-}
-
-/* Scrollbar cachée pour les pills */
-.hide-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.hide-scrollbar {
-    -ms-overflow-style: none;
+style: none;
     scrollbar-width: none;
 }
 
