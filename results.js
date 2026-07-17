@@ -158,27 +158,28 @@
 
                 return `
 <article class="offer-compact-card">
-  <div class="card-body">
-    <div class="oc-route">
-      <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
-      <span class="oc-arrow">&rarr;</span>
-      <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
-    </div>
-    <div class="oc-price">${priceDisplay}<span class="oc-price-unit"> /kg</span></div>
-    <div class="oc-meta">
-      <span class="oc-meta-item">📅 ${window.CCCommon.escapeHtml(formattedDate)}</span>
-      <span class="oc-meta-item">📦 ${availableKg} kg</span>
-    </div>
-    ${hasColisInfo ? `<div class="oc-colis" style="margin-top:4px">${colisAcceptes ? `<span class="oc-colis ok">✓ ${window.CCCommon.escapeHtml(colisAcceptes)}</span> ` : ""}${colisRefuses ? `<span class="oc-colis no">✕ ${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}</div>` : ""}
+  <div class="oc-route">
+    <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+    <span class="oc-arrow">→</span>
+    <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
   </div>
-  <div class="card-footer">
-    <div class="user-info">
+  <div class="oc-price">${priceDisplay}<span class="oc-price-unit"> /kg</span></div>
+  <div class="oc-meta">
+    <span class="oc-meta-item"><span class="icon">📅</span> ${window.CCCommon.escapeHtml(formattedDate)}</span>
+    <span class="oc-meta-item"><span class="icon">📦</span> ${availableKg} kg</span>
+    <span class="oc-badge ${offerMode === "" ? 'v' : 'c'}">${offerMode === "" ? "Voyageur" : "Cargo"}</span>
+  </div>
+  ${hasColisInfo ? `<div class="oc-colis">${colisAcceptes ? `<span class="oc-colis-pill ok">✓ ${window.CCCommon.escapeHtml(colisAcceptes)}</span> ` : ""}${colisRefuses ? `<span class="oc-colis-pill no">✕ ${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}</div>` : ""}
+  <div class="oc-divider"></div>
+  <div class="oc-footer">
+    <div class="oc-user">
       <span class="oc-avatar">${initials}</span>
-      <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
-      ${isVerified ? `<span class="oc-star">★</span>` : ""}
-      <span class="oc-badge ${offerMode === "" ? 'v' : 'c'}">${offerMode === "" ? "Voyageur" : "Cargo"}</span>
+      <div class="oc-user-info">
+        <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
+        <span class="oc-user-meta">${isVerified ? `<span class="oc-star">★</span> ` : ""}<span class="oc-badge ${offerMode === "" ? 'v' : 'c'}">${offerMode === "" ? "Voyageur" : "Cargo"}</span></span>
+      </div>
     </div>
-    <button class="btn primary oc-btn" data-reserve-offer="${offer.id}">Contacter</button>
+    <button class="oc-btn" data-reserve-offer="${offer.id}">Contacter</button>
   </div>
 </article>`;
             })
