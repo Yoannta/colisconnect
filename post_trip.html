@@ -338,6 +338,288 @@
             display: none !important;
         }
 
+        /* === Autocomplete pays (standalone-common.js) === */
+        .cc-autocomplete-ctn {
+            position: relative;
+        }
+        .cc-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cc-input-wrapper .form-input {
+            flex: 1;
+        }
+        .cc-custom-arrow {
+            color: var(--emerald-bright, #13ecc8);
+            font-size: 0.7rem;
+            cursor: pointer;
+            opacity: 0.6;
+            padding: 4px;
+            user-select: none;
+            pointer-events: none;
+        }
+        .cc-suggestions-list {
+            position: absolute;
+            z-index: 2147483647;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: rgba(10, 15, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(19, 236, 200, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(19, 236, 200, 0.1);
+            max-height: 280px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: none;
+            animation: ccFadeIn 0.15s ease-out;
+        }
+        .cc-suggestions-list li {
+            padding: 12px 16px;
+            color: #f0f7f6;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .cc-suggestions-list li:last-child {
+            border-bottom: none;
+        }
+        .cc-suggestions-list li:hover,
+        .cc-suggestions-list li.active {
+            background: rgba(19, 236, 200, 0.15);
+            color: #13ecc8;
+            padding-left: 20px;
+        }
+        .cc-suggestions-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .cc-suggestions-list::-webkit-scrollbar-thumb {
+            background: #13ecc8;
+            border-radius: 10px;
+        }
+        .cc-country-invalid {
+            border-color: #ff4444 !important;
+            box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2) !important;
+        }
+        @keyframes ccFadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === Popup Types de colis === */
+        .popup-trigger-btn {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #f0f7f6;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .popup-trigger-btn:hover {
+            border-color: var(--emerald-bright, #13ecc8);
+            background: rgba(255,255,255,0.08);
+        }
+        .popup-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .option-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .option-card:hover {
+            background: rgba(19,236,200,0.08);
+            border-color: rgba(19,236,200,0.3);
+        }
+        .option-card.selected {
+            background: rgba(19,236,200,0.15);
+            border-color: #13ecc8;
+        }
+        .option-circle {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .option-card.selected .option-circle {
+            background: #13ecc8;
+            border-color: #13ecc8;
+            box-shadow: 0 0 6px rgba(19,236,200,0.5);
+        }
+        .option-text {
+            font-size: 0.85rem;
+            color: #d0d0d0;
+        }
+        .option-card.selected .option-text {
+            color: white;
+            font-weight: 600;
+        }
+        .add-custom-section {
+            margin-bottom: 16px;
+        }
+        .btn-add-trigger {
+            background: none;
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--emerald-bright, #13ecc8);
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-add-trigger:hover {
+            background: rgba(19,236,200,0.06);
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .custom-input-group {
+            display: none;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .custom-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .custom-input:focus {
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .btn-save-custom {
+            background: rgba(19,236,200,0.15);
+            border: 1px solid rgba(19,236,200,0.3);
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #13ecc8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .btn-save-custom:hover {
+            background: rgba(19,236,200,0.25);
+        }
+        .btn-validate {
+            width: 100%;
+            background: rgba(19,236,200,0.15);
+            border: 1px solid #13ecc8;
+            border-radius: 12px;
+            padding: 14px;
+            color: #13ecc8;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-validate:hover {
+            background: rgba(19,236,200,0.25);
+        }
+
+        /* === Section téléphone (modal contact) === */
+        .phone-section-container {
+            margin-top: 16px;
+        }
+        .phone-label {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .phone-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+        .phone-prefix-select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 0 8px;
+            color: #f0f7f6;
+            font-size: 0.85rem;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        .phone-prefix-select option {
+            background: #1a1a2e;
+            color: #f0f7f6;
+        }
+        .phone-main-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .phone-main-input:focus {
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .phone-verify-btn {
+            background: rgba(19,236,200,0.1);
+            border: 1px solid rgba(19,236,200,0.2);
+            border-radius: 12px;
+            padding: 0 16px;
+            color: #13ecc8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .phone-verify-btn:not(:disabled):hover {
+            background: rgba(19,236,200,0.2);
+            border-color: #13ecc8;
+        }
+        .phone-verify-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        .phone-help-text {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 8px;
+        }
+
         /* Popup overlays for colis types (hidden by default) */
         .popup-overlay {
             display: none;
@@ -490,7 +772,7 @@
                                 <button type="button" id="open-payment-method-btn" class="btn secondary payment-method-btn">
                                     <span id="payment-method-label">
                                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                                        <span id="payment-method-label">Mon numero de contact</span>
+                                        <span id="payment-method-label-text">Mon numero de contact</span>
                                     </span>
                                 </button>
                                 <input type="hidden" id="payment-method" name="paymentMethod">
