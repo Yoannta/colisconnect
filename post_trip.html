@@ -551,6 +551,11 @@
             background: rgba(19,236,200,0.25);
         }
 
+        /* Masquer le champ "Types de colis acceptés" (logique conservée) */
+        div.form-group:has(> button#openColisPopupBtn) {
+            display: none !important;
+        }
+
         /* === Section téléphone (modal contact) === */
         .phone-section-container {
             margin-top: 16px;
