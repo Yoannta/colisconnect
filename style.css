@@ -7686,19 +7686,21 @@ input[data-country-select="true"]::placeholder {
 
 .offers-stream {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 14px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
 }
 
 @media (max-width: 1600px) {
     .offers-stream {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
     }
 }
 
 @media (max-width: 1200px) {
     .offers-stream {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
     }
 }
 
@@ -7712,6 +7714,7 @@ input[data-country-select="true"]::placeholder {
 @media (max-width: 480px) {
     .offers-stream {
         grid-template-columns: 1fr;
+        gap: 8px;
     }
 }
 
@@ -7899,30 +7902,6 @@ input[data-country-select="true"]::placeholder {
     background: #1A1B1E;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-}
-
-/* Responsive card adjustments */
-@media (max-width: 800px) {
-    .offer-compact-card { padding: 12px; gap: 10px; }
-    .oc-price { font-size: 16px; }
-    .oc-country { font-size: 12px; max-width: 120px; }
-    .oc-avatar { width: 30px; height: 30px; font-size: 11px; }
-    .oc-name { font-size: 12px; max-width: 90px; }
-    .oc-contact-btn { width: 30px; height: 30px; }
-}
-@media (max-width: 480px) {
-    .offer-compact-card { padding: 10px; gap: 8px; }
-    .oc-colis-panel { padding: 6px 8px; }
-}
-
-style: none;
-    scrollbar-width: none;
-}
-
-.oc-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
 .oc-user {
