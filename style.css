@@ -7718,15 +7718,16 @@ input[data-country-select="true"]::placeholder {
 
 
 
-/* === OFFER CARD — Compact === */
+
+/* === OFFER CARD — Grid Layout === */
 .offer-compact-card {
     background: #1A1B1E;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     padding: 10px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 10px;
     position: relative;
     overflow: hidden;
     transition: border-color 0.2s ease;
@@ -7741,24 +7742,21 @@ input[data-country-select="true"]::placeholder {
 }
 .offer-compact-card:hover::before { opacity: 1; }
 
-/* ZONE 1: Route + Prix */
-.oc-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
-}
+/* Col 1: labels/info — Col 2: values */
+.oc-cell-route { grid-column: 1; grid-row: 1; }
+.oc-cell-price { grid-column: 2; grid-row: 1; text-align: right; }
+.oc-cell-date  { grid-column: 1; grid-row: 2; }
+.oc-cell-kg    { grid-column: 2; grid-row: 2; text-align: right; }
+.oc-cell-colis { grid-column: 1 / -1; grid-row: 3; } /* full width if present */
+.oc-cell-user  { grid-column: 1; grid-row: 4; }
+.oc-cell-btn   { grid-column: 2; grid-row: 4; text-align: right; }
+
+/* Route */
 .oc-route {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
     min-width: 0;
-    flex: 1;
-}
-.oc-arrow {
-    font-size: 10px;
-    color: rgba(19, 236, 200, 0.7);
-    flex-shrink: 0;
 }
 .oc-country {
     font-family: 'Space Grotesk', sans-serif;
@@ -7770,7 +7768,13 @@ input[data-country-select="true"]::placeholder {
     text-overflow: ellipsis;
     max-width: 130px;
 }
-.oc-price-box { text-align: right; flex-shrink: 0; }
+.oc-arrow {
+    font-size: 10px;
+    color: rgba(19, 236, 200, 0.7);
+    flex-shrink: 0;
+}
+
+/* Price */
 .oc-price {
     font-family: 'Space Grotesk', sans-serif;
     font-size: 0.9rem;
@@ -7782,59 +7786,44 @@ input[data-country-select="true"]::placeholder {
     font-size: 0.55rem;
     color: rgba(185, 202, 196, 0.5);
     display: block;
-    text-align: right;
 }
 
-/* ZONE 2: Infos (date/kg + colis) */
-.oc-mid {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+/* Date & Kg */
+.oc-label {
+    font-size: 0.6rem;
+    color: rgba(185, 202, 196, 0.6);
+    display: block;
+    line-height: 1.2;
 }
-.oc-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    flex: 1;
-    min-width: 0;
+.oc-value {
+    font-size: 0.7rem;
+    color: #FFFFFF;
+    font-weight: 600;
+    line-height: 1.3;
 }
-.oc-info-chip {
-    font-size: 0.65rem;
-    color: rgba(185, 202, 196, 0.8);
+
+/* Colis (full width row) */
+.oc-colis-row {
     display: flex;
-    align-items: center;
-    gap: 3px;
-}
-.oc-colis {
-    display: flex;
-    gap: 8px;
+    gap: 12px;
     overflow: hidden;
-    flex: 1;
-    justify-content: flex-end;
-    min-width: 0;
 }
 .oc-colis-item {
-    font-size: 0.58rem;
+    font-size: 0.6rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 50%;
 }
 .oc-colis-item.ok { color: #13ECC8; }
 .oc-colis-item.no { color: #FFB4AB; }
 
-/* ZONE 3: Footer */
-.oc-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+/* User */
 .oc-user {
     display: flex;
     align-items: center;
     gap: 6px;
     min-width: 0;
-    flex: 1;
 }
 .oc-avatar {
     width: 22px; height: 22px;
@@ -7862,7 +7851,7 @@ input[data-country-select="true"]::placeholder {
     gap: 3px;
 }
 .oc-verified svg { width: 10px; height: 10px; display: block; }
-.oc-type-badge {
+.oc-type-chip {
     font-size: 0.5rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -7882,7 +7871,7 @@ input[data-country-select="true"]::placeholder {
     border: 1px solid rgba(245, 158, 11, 0.15);
 }
 .oc-contact-btn {
-    min-width: 64px;
+    min-width: 68px;
     padding: 4px 10px !important;
     font-size: 0.62rem !important;
     line-height: 1.2 !important;
@@ -7890,6 +7879,16 @@ input[data-country-select="true"]::placeholder {
     border-radius: 6px !important;
     flex-shrink: 0;
     font-weight: 600;
+}
+
+/* Mobile */
+@media (max-width: 800px) {
+    .offer-compact-card { padding: 8px 10px; gap: 3px 8px; }
+    .oc-country { font-size: 0.7rem; max-width: 100px; }
+    .oc-price { font-size: 0.82rem; }
+    .oc-avatar { width: 20px; height: 20px; font-size: 0.55rem; }
+    .oc-name { font-size: 0.65rem; max-width: 70px; }
+    .oc-contact-btn { min-width: 60px; font-size: 0.58rem !important; height: 20px !important; padding: 3px 8px !important; }
 }
 
 /* Empty state */
@@ -7918,104 +7917,6 @@ input[data-country-select="true"]::placeholder {
 
 style: none;
     scrollbar-width: none;
-}
-
-/* Legacy classes conservées pour éventuelle compat ailleurs */
-.oc-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 8px;
-}
-
-.oc-route {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    min-width: 0;
-    flex: 1;
-}
-
-.oc-country {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: #f4fffd;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 110px;
-}
-
-.oc-arrow {
-    font-size: 0.75rem;
-    color: #44dfb0;
-    flex-shrink: 0;
-}
-
-.oc-price-box {
-    text-align: right;
-    flex-shrink: 0;
-    line-height: 1.1;
-}
-
-.oc-price {
-    font-size: 0.95rem;
-    font-weight: 800;
-    color: #f8fffd;
-    white-space: nowrap;
-}
-
-.oc-price-unit {
-    display: block;
-    font-size: 0.55rem;
-    color: rgba(224, 239, 250, 0.5);
-}
-
-.oc-infos {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.oc-infos-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.oc-info-chip {
-    font-size: 0.65rem;
-    color: rgba(214, 232, 246, 0.7);
-    display: flex;
-    align-items: center;
-    gap: 2px;
-}
-
-.oc-type-chip {
-    margin-left: auto;
-}
-
-.oc-colis-row {
-    display: flex;
-    gap: 10px;
-    overflow: hidden;
-}
-
-.oc-colis-item {
-    font-size: 0.6rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: rgba(214, 232, 246, 0.6);
-}
-
-.oc-colis-ok {
-    color: #1fe0a3;
-}
-
-.oc-colis-no {
-    color: #f87171;
 }
 
 .oc-footer {
