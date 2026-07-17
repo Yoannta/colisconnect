@@ -7874,8 +7874,335 @@ input[data-country-select="true"]::placeholder {
     .oc-btn { width: 78px; flex-shrink: 0; padding: 6px 0 !important; font-size: 0.7rem !important; }
 }
 
+/* ============================================================
+   AUTOCOMPLETE PAYS (setupCountryInput dans standalone-common.js)
+   ============================================================ */
+.cc-autocomplete-ctn {
+    position: relative;
+}
+.cc-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.cc-input-wrapper .form-input,
+.cc-input-wrapper input {
+    flex: 1;
+}
+.cc-custom-arrow {
+    color: var(--emerald-bright, #13ecc8);
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 4px;
+    user-select: none;
+    pointer-events: none;
+}
+.cc-suggestions-list {
+    position: absolute;
+    z-index: 2147483647;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: rgba(10, 15, 20, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(19, 236, 200, 0.3);
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(19, 236, 200, 0.1);
+    max-height: 280px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: none;
+    animation: ccFadeIn 0.15s ease-out;
+}
+.cc-suggestions-list li {
+    padding: 12px 16px;
+    color: #f0f7f6;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+}
+.cc-suggestions-list li:last-child {
+    border-bottom: none;
+}
+.cc-suggestions-list li:hover,
+.cc-suggestions-list li.active {
+    background: rgba(19, 236, 200, 0.15);
+    color: #13ecc8;
+    padding-left: 20px;
+}
+.cc-suggestions-list::-webkit-scrollbar { width: 6px; }
+.cc-suggestions-list::-webkit-scrollbar-thumb { background: #13ecc8; border-radius: 10px; }
+.cc-country-invalid {
+    border-color: #ff4444 !important;
+    box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2) !important;
+}
+@keyframes ccFadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
+/* ============================================================
+   RECHERCHE — Filtres et barre mobile (results.html)
+   ============================================================ */
+.search-section-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.search-filter-panel {
+    display: block;
+}
+.profile-type-filters {
+    display: flex;
+    gap: 12px;
+}
+.filter-tab {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 8px;
+    padding: 8px 18px;
+    color: #b9cac4;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.filter-tab:hover {
+    background: rgba(19,236,200,0.08);
+    border-color: rgba(19,236,200,0.3);
+    color: #a7ffe7;
+}
+.filter-tab.active {
+    background: rgba(167,255,231,0.12);
+    border-color: #a7ffe7;
+    color: #a7ffe7;
+}
+.mobile-filter-bar {
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    margin-bottom: 8px;
+}
+.mobile-filter-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #b9cac4;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.mobile-filter-toggle-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #a7ffe7;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.mobile-filter-toggle-btn:hover {
+    background: rgba(167,255,231,0.1);
+    border-color: rgba(167,255,231,0.3);
+}
+.mobile-filter-icon {
+    width: 16px;
+    height: 16px;
+}
 
+/* ============================================================
+   DEVISE — Dropdown personnalisé (results.html)
+   ============================================================ */
+.currency-header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+.currency-header-label {
+    font-size: 0.75rem;
+    color: #b9cac4;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+.custom-currency-dropdown {
+    position: relative;
+}
+.currency-trigger-btn {
+    color: #a7ffe7;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+}
+.currency-trigger-btn:hover {
+    border-color: rgba(167,255,231,0.5);
+}
+.currency-bracket {
+    opacity: 0.5;
+    color: #b9cac4;
+}
+.currency-val {
+    font-weight: 700;
+    color: #a7ffe7;
+}
+.currency-arrow {
+    font-size: 0.65rem;
+    color: #a7ffe7;
+    margin-left: 2px;
+}
+.currency-dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    min-width: 180px;
+    background: #1f1f23;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 4px;
+    z-index: 50;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+}
+.currency-dropdown-menu.hidden {
+    display: none !important;
+}
+.currency-search-container {
+    margin-bottom: 8px;
+}
+.currency-search-container input {
+    box-sizing: border-box;
+}
+.currency-options-list {
+    max-height: 160px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
 
+/* ============================================================
+   MODALE DEMANDE DE TRAJET (results.html)
+   ============================================================ */
+.demande-modal-card {
+    max-width: 500px !important;
+    padding: 28px 24px !important;
+}
+.demande-subtitle {
+    font-size: 0.9rem;
+    color: #b0b0b0;
+    margin: 8px 0 20px 0;
+    line-height: 1.4;
+}
+.demande-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.demande-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.demande-field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #b0b0b0;
+}
+.demande-input {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    box-sizing: border-box;
+    width: 100%;
+}
+.demande-input:focus {
+    border-color: var(--emerald-bright, #13ecc8);
+}
+.demande-textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: inherit;
+}
+.demande-date-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.demande-date-alt {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: #a7ffe7;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+.demande-date-alt:hover {
+    background: rgba(167,255,231,0.08);
+    border-color: rgba(167,255,231,0.3);
+}
+.demande-submit {
+    background: #a7ffe7;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 20px;
+    color: #00382e;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+}
+.demande-submit:hover {
+    background: #8cfada;
+    transform: translateY(-1px);
+}
+.demande-feedback {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #13ecc8;
+    text-align: center;
+    margin-top: 8px;
+}
+
+/* ============================================================
+   RESPONSIVE — Mobile (< 800px)
+   ============================================================ */
+@media (max-width: 800px) {
+    .mobile-filter-bar {
+        display: flex;
+    }
+    .search-filter-panel {
+        display: none;
+    }
+    .search-filter-panel.is-open {
+        display: block;
+    }
+    .profile-type-filters {
+        flex-direction: column;
+    }
+}
 
 /* ===== FIN BARRE DE RECHERCHE VOYAGE ===== */

@@ -22,13 +22,6 @@
 
     <title>Offres | ColisConnect</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
-        rel="stylesheet">
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script id="tailwind-config">
@@ -427,26 +420,22 @@
                     <div class="currency-header-container mb-4 flex items-center justify-between">
                         <span class="currency-header-label text-xs text-on-surface-variant font-semibold">DEVISE
                             ACTUELLE :</span>
-                        <div class="custom-currency-dropdown" id="custom-currency-dropdown" style="position: relative;">
+                        <div class="custom-currency-dropdown" id="custom-currency-dropdown">
                             <button type="button"
                                 class="currency-trigger-btn bg-black/40 text-primary border border-white/10 px-3 py-1.5 rounded-lg text-sm cursor-pointer hover:border-primary/50 transition-all duration-200"
-                                id="currency-trigger-btn"
-                                style="color: #a7ffe7; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                                id="currency-trigger-btn">
                                 <span class="currency-bracket">[</span><span id="current-currency-val"
                                     class="currency-val">XOF</span><span class="currency-bracket">]</span> <span
                                     class="currency-arrow">▼</span>
                             </button>
                             <div class="currency-dropdown-menu hidden absolute bg-neutral-900 border border-white/10 rounded-lg p-2 mt-1 z-50 shadow-xl"
-                                id="currency-dropdown-menu"
-                                style="position: absolute; right: 0; top: 100%; min-width: 180px; background: #1f1f23; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                                id="currency-dropdown-menu">
                                 <div class="currency-search-container mb-2">
                                     <input type="text" id="currency-search-input"
                                         class="w-full bg-black/50 border border-white/10 rounded p-1.5 text-xs text-text-primary focus:outline-none focus:border-primary"
-                                        placeholder="Rechercher une devise..." autocomplete="off"
-                                        style="color:#fff; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); outline: none;">
+                                        placeholder="Rechercher une devise..." autocomplete="off" />
                                 </div>
-                                <ul class="currency-options-list max-h-40 overflow-y-auto" id="currency-options-list"
-                                    style="margin: 0; padding: 0; list-style: none;">
+                                <ul class="currency-options-list max-h-40 overflow-y-auto" id="currency-options-list">
                                     <!-- Rempli dynamiquement -->
                                 </ul>
                             </div>
@@ -454,99 +443,84 @@
                     </div>
 
                     <!-- SEARCH MAIN CARD (Stich Inspired) -->
-                    <div class="bg-surface-card rounded-xl border border-white/10 p-6 shadow-lg shadow-black/50 mb-8"
-                        style="background:#1A1B1E; border:1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);">
-                        <div class="flex flex-col lg:flex-row gap-4 items-end"
-                            style="display:flex; flex-direction:column; gap:16px;">
+                    <div class="bg-surface-card rounded-xl border border-white/10 p-6 shadow-lg shadow-black/50 mb-8">
+                        <div class="flex flex-col lg:flex-row gap-4 items-end">
                             <!-- Nested row for grid layout on large screens -->
-                            <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-                                style="display: grid; width: 100%; gap: 16px;">
+                            <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div class="relative group">
                                     <label
-                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200"
-                                        style="margin-bottom:8px; display:block; font-size:12px; text-transform:uppercase; color:#b9cac4;">Départ</label>
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Départ</label>
                                     <div class="relative">
                                         <span
                                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
-                                            style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#b9cac4;">flight_takeoff</span>
+                                            style="color:#b9cac4;">flight_takeoff</span>
                                         <input id="res-origin"
                                             class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
-                                            placeholder="Pays ou Ville" type="text" autocomplete="off"
-                                            style="width:100%; box-sizing:border-box; background:#121316; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px 16px 12px 40px; color:#fff; outline:none;" />
+                                            placeholder="Pays ou Ville" type="text" autocomplete="off" />
                                     </div>
                                 </div>
                                 <div class="relative group">
                                     <label
-                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200"
-                                        style="margin-bottom:8px; display:block; font-size:12px; text-transform:uppercase; color:#b9cac4;">Arrivée</label>
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Arrivée</label>
                                     <div class="relative">
                                         <span
                                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
-                                            style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#b9cac4;">flight_land</span>
+                                            style="color:#b9cac4;">flight_land</span>
                                         <input id="res-dest"
                                             class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
-                                            placeholder="Pays ou Ville" type="text" autocomplete="off"
-                                            style="width:100%; box-sizing:border-box; background:#121316; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px 16px 12px 40px; color:#fff; outline:none;" />
+                                            placeholder="Pays ou Ville" type="text" autocomplete="off" />
                                     </div>
                                 </div>
                                 <div class="relative group">
                                     <label
-                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200"
-                                        style="margin-bottom:8px; display:block; font-size:12px; text-transform:uppercase; color:#b9cac4;">Date
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Date
                                         limite</label>
                                     <div class="relative">
                                         <span
                                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
-                                            style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#b9cac4;">event_busy</span>
+                                            style="color:#b9cac4;">event_busy</span>
                                         <input id="res-date"
-                                            class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200 [color-scheme:dark]"
+                                            class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
                                             type="date"
-                                            style="width:100%; box-sizing:border-box; background:#121316; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px 16px 12px 40px; color:#fff; outline:none; color-scheme:dark;" />
+                                            style="color-scheme:dark;" />
                                     </div>
                                 </div>
                                 <div class="relative group">
                                     <label
-                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200"
-                                        style="margin-bottom:8px; display:block; font-size:12px; text-transform:uppercase; color:#b9cac4;">Kilos
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Kilos
                                         requis</label>
                                     <div class="relative">
                                         <span
                                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
-                                            style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#b9cac4;">weight</span>
+                                            style="color:#b9cac4;">weight</span>
                                         <input id="res-weight"
                                             class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
-                                            min="1" placeholder="Ex: 5" type="number"
-                                            style="width:100%; box-sizing:border-box; background:#121316; border:1px solid rgba(255,255,255,0.1); border-radius:8px; padding:12px 16px 12px 40px; color:#fff; outline:none;" />
+                                            min="1" placeholder="Ex: 5" type="number" />
                                     </div>
                                 </div>
                             </div>
 
                             <button id="new-search-btn" type="button"
-                                class="bg-primary text-on-primary font-body-md text-body-md font-semibold py-3 px-6 rounded-lg hover:bg-primary-fixed hover:-translate-y-0.5 active:scale-95 active:translate-y-0 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer w-full md:w-auto"
-                                style="width: 100%; box-sizing: border-box; background: #a7ffe7; color: #00201a; padding: 14px 24px; border-radius: 8px; border: 0; font-weight: bold; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                class="bg-primary text-on-primary font-body-md text-body-md font-semibold py-3 px-6 rounded-lg hover:bg-primary-fixed hover:-translate-y-0.5 active:scale-95 active:translate-y-0 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer w-full md:w-auto">
                                 <span class="material-symbols-outlined">search</span>
                                 Rechercher
                             </button>
                         </div>
 
                         <!-- Filter Pills -->
-                        <div class="mt-6 flex gap-2 overflow-x-auto hide-scrollbar pb-2"
-                            style="margin-top: 24px; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;">
+                        <div class="mt-6 flex gap-2 overflow-x-auto hide-scrollbar pb-2">
                             <button id="pill-verified" type="button"
-                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer"
-                                style="border: 1px solid rgba(255,255,255,0.1); border-radius: 99px; color: #b9cac4; background: transparent; padding: 6px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-sizing: border-box;">
+                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer">
                                 <span class="material-symbols-outlined text-[18px]">verified</span>
                                 Voyageurs Vérifiés
                             </button>
                             <button id="pill-weight" type="button"
-                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer"
-                                style="border: 1px solid rgba(255,255,255,0.1); border-radius: 99px; color: #b9cac4; background: transparent; padding: 6px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-sizing: border-box;">
+                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer">
                                 <span class="material-symbols-outlined text-[18px]">weight</span>
                                 &gt; 10 kg
                             </button>
                             <button id="pill-urgent" type="button"
-                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer"
-                                style="border: 1px solid rgba(255,255,255,0.1); border-radius: 99px; color: #b9cac4; background: transparent; padding: 6px 16px; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; box-sizing: border-box;">
+                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer">
                                 <span class="material-symbols-outlined text-[18px]">electric_bolt</span>
                                 Départ Proche
                             </button>
@@ -557,21 +531,15 @@
             </div>
 
             <!-- Results Header (Stich Inspired) -->
-            <div class="flex justify-between items-center mb-6 mt-8 animate-fade-in-up delay-100"
-                style="display: flex; justify-content: space-between; align-items: center; margin-top: 32px; margin-bottom: 24px;">
-                <h2 class="font-headline-md text-headline-md text-text-primary"
-                    style="margin: 0; font-size: 24px; color: #fff; font-family: Space Grotesk, sans-serif;">Voyages
+            <div class="flex justify-between items-center mb-6 mt-8 animate-fade-in-up delay-100">
+                <h2 class="font-headline-md text-headline-md text-text-primary">Voyages
                     disponibles</h2>
-                <div class="flex items-center gap-2 text-on-surface-variant text-sm"
-                    style="display: flex; align-items: center; gap: 8px; color: #b9cac4; font-size: 14px;">
+                <div class="flex items-center gap-2 text-on-surface-variant text-sm">
                     <span>Trier par:</span>
                     <select id="sort-select"
-                        class="bg-transparent border-none text-primary focus:ring-0 cursor-pointer transition-colors duration-200 text-sm font-semibold outline-none"
-                        style="background: transparent; border: 0; color: #a7ffe7; font-weight: bold; cursor: pointer; outline: none;">
-                        <option value="date" class="bg-surface" style="background: #121316; color: #fff;">Date (Plus
-                            proche)</option>
-                        <option value="price" class="bg-surface" style="background: #121316; color: #fff;">Prix
-                            (Croissant)</option>
+                        class="bg-transparent border-none text-primary focus:ring-0 cursor-pointer transition-colors duration-200 text-sm font-semibold outline-none">
+                        <option value="date" class="bg-surface">Date (Plus proche)</option>
+                        <option value="price" class="bg-surface">Prix (Croissant)</option>
                     </select>
                 </div>
             </div>
