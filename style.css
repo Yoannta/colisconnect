@@ -157,6 +157,56 @@ button {
     display: none !important;
 }
 
+/* ============================================================
+   VILLE — Champs masqués (réactivation future)
+   Tous les champs "Ville de départ" et "Ville d'arrivée"
+   sont cachés visuellement mais la logique JS reste intacte.
+   ============================================================ */
+/* index.html — estimateur */
+input#est-ville-depart,
+input#est-ville-arrivee {
+    display: none !important;
+}
+/* results.html — modale demande */
+input#city-demande-origin,
+input#city-demande-destination,
+label[for="city-demande-origin"],
+label[for="city-demande-destination"] {
+    display: none !important;
+}
+/* dashboard.html — offre édition (label wrap input) */
+label.form-field:has(> input#city-offer-origin),
+label.form-field:has(> input#city-offer-destination) {
+    display: none !important;
+}
+/* dashboard.html — modale demande */
+input#city-dash-demande-origin,
+input#city-dash-demande-destination,
+label[for="city-dash-demande-origin"],
+label[for="city-dash-demande-destination"] {
+    display: none !important;
+}
+/* dashboard.html — modale modification */
+input#city-edit-parcel-origin,
+input#city-edit-parcel-destination,
+label[for="city-edit-parcel-origin"],
+label[for="city-edit-parcel-destination"] {
+    display: none !important;
+}
+/* post_trip.html — généré dynamiquement par initLocationFields */
+input[id^="city-departure"],
+input[id^="city-destination"],
+label[for^="city-departure"],
+label[for^="city-destination"] {
+    display: none !important;
+}
+/* Cache les conteneurs .demande-field qui contiennent une ville */
+div.demande-field:has(> input[id^="city-demande"]),
+div.demande-field:has(> input[id^="city-dash-demande"]),
+div.demande-field:has(> input[id^="city-edit-parcel"]) {
+    display: none !important;
+}
+
 .site-header {
     position: sticky;
     top: 16px;
