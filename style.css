@@ -8296,3 +8296,369 @@ input[data-country-select="true"]::placeholder {
 }
 
 /* ===== FIN BARRE DE RECHERCHE VOYAGE ===== */
+
+/* ============================================================
+   RESULTS OFFER CARDS - reference layout
+   ============================================================ */
+.cards-list.offers-stream {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)) !important;
+    gap: 22px !important;
+    align-items: stretch !important;
+}
+
+.cards-list.offers-stream .offer-compact-card,
+.cards-list.offers-stream .offer-compact-card * {
+    box-sizing: border-box;
+}
+
+.cards-list.offers-stream .offer-compact-card div,
+.cards-list.offers-stream .offer-compact-card span,
+.cards-list.offers-stream .offer-compact-card img {
+    padding: 0 !important;
+}
+
+.cards-list.offers-stream .offer-compact-card {
+    min-height: 322px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+    padding: 22px 20px 20px !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    background: #191a1d !important;
+    box-shadow: none !important;
+    overflow: hidden !important;
+    position: relative !important;
+    color: #f7faf9 !important;
+    cursor: pointer;
+}
+
+.cards-list.offers-stream .offer-compact-card::before {
+    display: none !important;
+}
+
+.cards-list.offers-stream .offer-compact-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: rgba(167, 255, 231, 0.28) !important;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22) !important;
+}
+
+.offer-compact-card .oc-top {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    gap: 18px !important;
+    align-items: start !important;
+    padding-bottom: 22px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.offer-compact-card .oc-route {
+    display: grid !important;
+    grid-template-columns: 10px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: stretch !important;
+    min-width: 0;
+    margin: 0 !important;
+}
+
+.offer-compact-card .oc-route-rail {
+    position: relative;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 10px;
+    min-height: 38px;
+    margin-top: 2px;
+}
+
+.offer-compact-card .oc-route-rail::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, rgba(155, 177, 255, 0.85), rgba(143, 255, 224, 0.9));
+}
+
+.offer-compact-card .oc-route-rail span {
+    position: relative;
+    z-index: 1;
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #a8b8ff;
+    box-shadow: 0 0 12px rgba(168, 184, 255, 0.65);
+}
+
+.offer-compact-card .oc-route-rail span:last-child {
+    background: #9dffe7;
+    box-shadow: 0 0 12px rgba(157, 255, 231, 0.65);
+}
+
+.offer-compact-card .oc-route-copy {
+    display: flex !important;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 12px !important;
+    min-width: 0;
+}
+
+.offer-compact-card .oc-country {
+    max-width: 100% !important;
+    color: #f7f8fb !important;
+    font-family: "Plus Jakarta Sans", sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    line-height: 1.2 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.offer-compact-card .oc-price {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-end;
+    margin: 0 !important;
+    color: #9fffe9 !important;
+    font-family: "Space Grotesk", sans-serif !important;
+    font-size: 31px !important;
+    font-weight: 800 !important;
+    line-height: 0.95 !important;
+    letter-spacing: 0 !important;
+    white-space: nowrap;
+}
+
+.offer-compact-card .oc-price-unit {
+    margin-top: 6px;
+    color: rgba(238, 246, 244, 0.74) !important;
+    font-family: "Plus Jakarta Sans", sans-serif !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1 !important;
+}
+
+.offer-compact-card .oc-meta {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
+    padding: 18px 0 20px !important;
+}
+
+.offer-compact-card .oc-meta-item {
+    display: grid !important;
+    grid-template-columns: 18px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    align-items: center !important;
+    min-width: 0;
+    color: #dce5e1 !important;
+}
+
+.offer-compact-card .oc-meta-item .material-symbols-outlined {
+    color: #c7d1cd;
+    font-size: 19px;
+    line-height: 1;
+}
+
+.offer-compact-card .oc-meta-item small {
+    display: block;
+    margin-bottom: 3px;
+    color: rgba(218, 229, 224, 0.66);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0;
+    line-height: 1;
+}
+
+.offer-compact-card .oc-meta-item strong {
+    display: block;
+    color: #f5f8f7;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.offer-compact-card .oc-colis {
+    min-height: 66px;
+    height: 66px;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px !important;
+    padding: 13px 14px !important;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.035);
+    background: rgba(12, 13, 15, 0.34);
+}
+
+.offer-compact-card .oc-colis.empty {
+    align-items: center;
+    border-style: dashed;
+    background: transparent;
+}
+
+.offer-compact-card .oc-colis.empty span {
+    color: rgba(196, 210, 205, 0.48);
+    font-size: 12px;
+    font-style: italic;
+    font-weight: 700;
+}
+
+.offer-compact-card .oc-colis-pill {
+    display: flex !important;
+    align-items: center;
+    gap: 7px !important;
+    max-width: 100%;
+    border: 0 !important;
+    background: transparent !important;
+    color: rgba(222, 230, 227, 0.78) !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.offer-compact-card .oc-colis-pill .material-symbols-outlined {
+    flex: 0 0 auto;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.offer-compact-card .oc-colis-pill.ok .material-symbols-outlined {
+    color: #14f5c7;
+}
+
+.offer-compact-card .oc-colis-pill.no .material-symbols-outlined {
+    color: #ff9b9b;
+}
+
+.offer-compact-card .oc-footer {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 40px !important;
+    gap: 12px !important;
+    align-items: center !important;
+    margin-top: auto !important;
+    padding-top: 28px !important;
+}
+
+.offer-compact-card .oc-user {
+    display: grid !important;
+    grid-template-columns: 40px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    align-items: center !important;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.offer-compact-card .oc-avatar {
+    width: 40px !important;
+    height: 40px !important;
+    display: grid !important;
+    place-items: center !important;
+    border-radius: 999px !important;
+    border: 1px solid rgba(157, 255, 231, 0.45) !important;
+    background: rgba(157, 255, 231, 0.1) !important;
+    color: #a7ffe7 !important;
+    object-fit: cover;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+}
+
+.offer-compact-card .oc-user-info {
+    display: flex !important;
+    flex-direction: column;
+    gap: 3px !important;
+    min-width: 0;
+}
+
+.offer-compact-card .oc-name {
+    color: #f6f8fb !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    line-height: 1.15 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.offer-compact-card .oc-user-meta {
+    display: flex !important;
+    align-items: center;
+    gap: 4px !important;
+    color: #bcd0ff !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.offer-compact-card .oc-user-meta .material-symbols-outlined {
+    flex: 0 0 auto;
+    color: #9fffe9;
+    font-size: 15px;
+    line-height: 1;
+}
+
+.offer-compact-card .oc-btn {
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    display: grid !important;
+    place-items: center !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: rgba(255, 255, 255, 0.13) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    transition: background 0.2s ease, transform 0.2s ease !important;
+}
+
+.offer-compact-card .oc-btn:hover,
+.offer-compact-card .oc-btn:focus-visible {
+    background: rgba(167, 255, 231, 0.18) !important;
+    transform: translateX(2px);
+    outline: none;
+}
+
+.offer-compact-card .oc-btn .material-symbols-outlined {
+    color: #ffffff !important;
+    font-size: 24px !important;
+    line-height: 1;
+}
+
+@media (max-width: 800px) {
+    .cards-list.offers-stream {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 14px !important;
+    }
+
+    .cards-list.offers-stream .offer-compact-card {
+        min-height: 310px !important;
+        padding: 20px 18px 18px !important;
+    }
+}
+
+@media (max-width: 420px) {
+    .offer-compact-card .oc-top {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+
+    .offer-compact-card .oc-price {
+        align-items: flex-start;
+        padding-top: 14px !important;
+    }
+}

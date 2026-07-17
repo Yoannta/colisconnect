@@ -125,7 +125,7 @@
         }
 
         els.offersList.innerHTML = filteredOffers
-            .map((offer, index) => {
+            .map((offer) => {
                 const initials = getInitials(offer.ownerName);
                 const isVerified = Boolean(offer.ownerIsVerified);
 
@@ -154,32 +154,46 @@
                 const colisRefuses = String(offer.refused_colis_types || offer.refusedColisTypes || "").trim();
                 const hasColisInfo = colisAcceptes || colisRefuses;
 
-                const animDelay = (index % 5) * 100 + 100;
+                const profilePhoto = String(offer.ownerProfilePhoto || offer.ownerAvatar || offer.avatar || "").trim();
+                const profileLabel = offerMode === "" ? "Voyageur" : "Transporteur Pro";
+                const profileIcon = offerMode === "" ? (isVerified ? "verified" : "person") : "local_shipping";
 
                 return `
 <article class="offer-compact-card">
-  <div class="oc-route">
-    <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
-    <span class="oc-arrow">→</span>
-    <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
-  </div>
-  <div class="oc-price">${priceDisplay}<span class="oc-price-unit"> /kg</span></div>
-  <div class="oc-meta">
-    <span class="oc-meta-item"><span class="icon">📅</span> ${window.CCCommon.escapeHtml(formattedDate)}</span>
-    <span class="oc-meta-item"><span class="icon">📦</span> ${availableKg} kg</span>
-    <span class="oc-badge ${offerMode === "" ? 'v' : 'c'}">${offerMode === "" ? "Voyageur" : "Cargo"}</span>
-  </div>
-  ${hasColisInfo ? `<div class="oc-colis">${colisAcceptes ? `<span class="oc-colis-pill ok">✓ ${window.CCCommon.escapeHtml(colisAcceptes)}</span> ` : ""}${colisRefuses ? `<span class="oc-colis-pill no">✕ ${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}</div>` : ""}
-  <div class="oc-divider"></div>
-  <div class="oc-footer">
-    <div class="oc-user">
-      <span class="oc-avatar">${initials}</span>
-      <div class="oc-user-info">
-        <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
-        <span class="oc-user-meta">${isVerified ? `<span class="oc-star">★</span> ` : ""}<span class="oc-badge ${offerMode === "" ? 'v' : 'c'}">${offerMode === "" ? "Voyageur" : "Cargo"}</span></span>
+  <div class="oc-top">
+    <div class="oc-route" aria-label="${window.CCCommon.escapeHtml(originCountry)} vers ${window.CCCommon.escapeHtml(destCountry)}">
+      <span class="oc-route-rail" aria-hidden="true"><span></span><span></span></span>
+      <div class="oc-route-copy">
+        <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+        <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
       </div>
     </div>
-    <button class="oc-btn" data-reserve-offer="${offer.id}">Contacter</button>
+    <div class="oc-price">${priceDisplay}<span class="oc-price-unit">/ kg</span></div>
+  </div>
+  <div class="oc-meta">
+    <span class="oc-meta-item">
+      <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
+      <span><small>DÉPART</small><strong>${window.CCCommon.escapeHtml(formattedDate)}</strong></span>
+    </span>
+    <span class="oc-meta-item">
+      <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
+      <span><small>DISPO</small><strong>${availableKg} kg</strong></span>
+    </span>
+  </div>
+  <div class="oc-colis ${hasColisInfo ? "" : "empty"}">
+    ${hasColisInfo ? `${colisAcceptes ? `<span class="oc-colis-pill ok"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>${window.CCCommon.escapeHtml(colisAcceptes)}</span>` : ""}${colisRefuses ? `<span class="oc-colis-pill no"><span class="material-symbols-outlined" aria-hidden="true">cancel</span>${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}` : `<span>Détails colis sur demande</span>`}
+  </div>
+  <div class="oc-footer">
+    <div class="oc-user">
+      ${profilePhoto ? `<img class="oc-avatar" src="${window.CCCommon.escapeHtml(profilePhoto)}" alt="">` : `<span class="oc-avatar">${initials}</span>`}
+      <div class="oc-user-info">
+        <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
+        <span class="oc-user-meta"><span class="material-symbols-outlined" aria-hidden="true">${profileIcon}</span>${window.CCCommon.escapeHtml(profileLabel)}</span>
+      </div>
+    </div>
+    <button class="oc-btn" data-reserve-offer="${offer.id}" aria-label="Contacter ${window.CCCommon.escapeHtml(offer.ownerName || "ce voyageur")}">
+      <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+    </button>
   </div>
 </article>`;
             })
