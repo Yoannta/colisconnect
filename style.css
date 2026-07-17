@@ -8708,23 +8708,39 @@ input[data-country-select="true"]::placeholder {
 
 @media (max-width: 420px) {
     .offer-compact-card .oc-top {
-        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: start !important;
+        gap: 12px !important;
+    }
+
+    .offer-compact-card .oc-route {
+        grid-template-columns: 9px minmax(0, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .offer-compact-card .oc-route-rail {
+        min-height: 40px;
+    }
+
+    .offer-compact-card .oc-country {
+        font-size: 13px !important;
     }
 
     .offer-compact-card .oc-price {
-        width: 100%;
+        width: auto;
         max-width: 100%;
-        align-items: flex-start;
+        align-items: flex-end;
+        justify-self: end;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 24px !important;
+        overflow: visible;
+        text-overflow: clip;
+        font-size: 22px !important;
         line-height: 1 !important;
-        padding-top: 14px !important;
+        padding-top: 2px !important;
     }
 
     .offer-compact-card .oc-price-unit {
-        margin-top: 4px;
-        font-size: 11px !important;
+        margin-top: 2px;
+        font-size: 10px !important;
     }
 }
