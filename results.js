@@ -168,7 +168,6 @@
     <div class="oc-meta">
       <span class="oc-meta-item">📅 ${window.CCCommon.escapeHtml(formattedDate)}</span>
       <span class="oc-meta-item">📦 ${availableKg} kg</span>
-      <span class="oc-badge ${offerMode === "" ? 'v' : 'c'}" style="margin-left:auto">${offerMode === "" ? "Voyageur" : "Cargo"}</span>
     </div>
     ${hasColisInfo ? `<div class="oc-colis" style="margin-top:4px">${colisAcceptes ? `<span class="oc-colis ok">✓ ${window.CCCommon.escapeHtml(colisAcceptes)}</span> ` : ""}${colisRefuses ? `<span class="oc-colis no">✕ ${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}</div>` : ""}
   </div>
@@ -177,6 +176,7 @@
       <span class="oc-avatar">${initials}</span>
       <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
       ${isVerified ? `<span class="oc-star">★</span>` : ""}
+      <span class="oc-badge ${offerMode === "" ? 'v' : 'c'}">${offerMode === "" ? "Voyageur" : "Cargo"}</span>
     </div>
     <button class="btn primary oc-btn" data-reserve-offer="${offer.id}">Contacter</button>
   </div>

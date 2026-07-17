@@ -7804,8 +7804,9 @@ input[data-country-select="true"]::placeholder {
     display: flex;
     align-items: center;
     gap: 6px;
-    min-width: 0;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
 }
 .oc-avatar {
     width: 26px; height: 26px;
@@ -7825,9 +7826,10 @@ input[data-country-select="true"]::placeholder {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 80px;
+    flex: 1;
+    min-width: 0;
 }
-.oc-star { color: #13ECC8; font-size: 11px; }
+.oc-star { color: #13ECC8; font-size: 11px; flex-shrink: 0; }
 .oc-badge {
     font-size: 0.5rem;
     font-weight: 700;
@@ -7841,8 +7843,9 @@ input[data-country-select="true"]::placeholder {
 .oc-badge.c { color: #F59E0B; background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.15); }
 
 .oc-btn {
-    min-width: 100px;
-    padding: 8px 14px !important;
+    width: 90px;
+    flex-shrink: 0;
+    padding: 8px 0 !important;
     text-align: center;
     border-radius: 20px !important;
     font-weight: 600 !important;
@@ -7868,7 +7871,7 @@ input[data-country-select="true"]::placeholder {
     .oc-price { font-size: 0.95rem; }
     .oc-avatar { width: 24px; height: 24px; font-size: 0.6rem; }
     .oc-name { font-size: 0.7rem; max-width: 60px; }
-    .oc-btn { min-width: 80px; padding: 6px 12px !important; font-size: 0.7rem !important; }
+    .oc-btn { width: 78px; flex-shrink: 0; padding: 6px 0 !important; font-size: 0.7rem !important; }
 }
 
 
