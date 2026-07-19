@@ -420,26 +420,6 @@
         togglePill("pill-weight", "filterWeight10");
         togglePill("pill-urgent", "filterUrgent");
 
-        // ===== TOGGLE FILTRE MOBILE =====
-        const mobileToggleBtn = document.getElementById("mobile-filter-toggle-btn");
-        const mobileToggleLabel = document.getElementById("mobile-filter-toggle-label");
-        const filterPanel = document.getElementById("search-filter-panel");
-
-        if (mobileToggleBtn && filterPanel) {
-            mobileToggleBtn.addEventListener("click", () => {
-                const isMobile = window.matchMedia("(max-width: 950px)").matches;
-                if (!isMobile) return; // Aucun effet sur desktop
-
-                const isOpen = filterPanel.classList.contains("is-open");
-                if (isOpen) {
-                    filterPanel.classList.remove("is-open");
-                    if (mobileToggleLabel) mobileToggleLabel.textContent = "Afficher";
-                } else {
-                    filterPanel.classList.add("is-open");
-                    if (mobileToggleLabel) mobileToggleLabel.textContent = "Masquer";
-                }
-            });
-        }
     }
 
     async function bootstrap() {
