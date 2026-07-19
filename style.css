@@ -8871,14 +8871,14 @@ input[data-country-select="true"]::placeholder {
     gap: 6px;
     min-height: 44px;
     padding: 0 16px;
-    background: rgba(167,255,231,0.12);
-    border: 1px solid rgba(167,255,231,0.3);
+    background: #000000;
+    border: 1px solid rgba(167,255,231,0.5);
     border-radius: 10px;
     color: #a7ffe7;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6);
 }
 .mobile-mode .mobile-filter-trigger:active {
     background: rgba(167,255,231,0.15);
