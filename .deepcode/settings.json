@@ -1,0 +1,9 @@
+{
+  "env": {
+    "MODEL": "deepseek-v4-flash",
+    "BASE_URL": "http://127.0.0.1:3333",
+    "API_KEY": "local-proxy"
+  },
+  "thinkingEnabled": true,
+  "reasoningEffort": "max"
+}
