@@ -608,4 +608,147 @@
             }
         });
     });
+
+    // ===== MOBILE FILTER LOGIC =====
+    const mobileFilter = {
+        active: {},
+        overlay: document.getElementById("mobile-filter-overlay"),
+        sheet: document.getElementById("mobile-filter-sheet"),
+        priceSheet: document.getElementById("slider-price-sheet"),
+        priceOverlay: document.getElementById("slider-price-overlay"),
+        weightSheet: document.getElementById("slider-weight-sheet"),
+        weightOverlay: document.getElementById("slider-weight-overlay"),
+
+        init() {
+            document.getElementById("mobile-filter-trigger")?.addEventListener("click", () => this.open());
+            document.getElementById("mf-close")?.addEventListener("click", () => this.close());
+            this.overlay?.addEventListener("click", () => this.close());
+
+            document.getElementById("mf-origin")?.addEventListener("input", (e) => {
+                document.getElementById("res-origin").value = e.target.value;
+            });
+            document.getElementById("mf-dest")?.addEventListener("input", (e) => {
+                document.getElementById("res-dest").value = e.target.value;
+            });
+            document.getElementById("mf-date")?.addEventListener("change", (e) => {
+                document.getElementById("res-date").value = e.target.value;
+            });
+
+            const syncFromDesktop = () => {
+                document.getElementById("mf-origin").value = document.getElementById("res-origin")?.value || "";
+                document.getElementById("mf-dest").value = document.getElementById("res-dest")?.value || "";
+                document.getElementById("mf-date").value = document.getElementById("res-date")?.value || "";
+            };
+            const origOpen = this.open.bind(this);
+            this.open = () => { syncFromDesktop(); origOpen(); };
+
+            document.querySelectorAll(".mf-chip[data-chip]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    const chip = btn.dataset.chip;
+                    if (chip === "weight") this.openWeightSlider();
+                    else if (chip === "price") this.openPriceSlider();
+                    else if (chip === "verified" || chip === "urgent") {
+                        this.active[chip] = !this.active[chip];
+                        btn.classList.toggle("is-active", this.active[chip]);
+                        this.renderActiveTags();
+                    }
+                });
+            });
+
+            document.getElementById("mf-apply")?.addEventListener("click", () => {
+                this.syncToDesktop();
+                this.close();
+                if (typeof loadOffers === "function") loadOffers();
+            });
+
+            document.getElementById("mf-clear-all")?.addEventListener("click", () => {
+                this.active = {};
+                document.querySelectorAll(".mf-chip[data-chip]").forEach((b) => b.classList.remove("is-active"));
+                this.renderActiveTags();
+            });
+
+            const priceInput = document.getElementById("slider-price-input");
+            const priceVal = document.getElementById("slider-price-value");
+            priceInput?.addEventListener("input", () => {
+                priceVal.textContent = Number(priceInput.value).toLocaleString("fr-FR") + " CFA";
+            });
+            document.getElementById("slider-price-ok")?.addEventListener("click", () => {
+                this.active.price = Number(priceInput.value);
+                document.getElementById("mf-chip-price").classList.add("is-active");
+                this.renderActiveTags();
+                this.closePriceSlider();
+            });
+            document.getElementById("slider-price-cancel")?.addEventListener("click", () => this.closePriceSlider());
+            this.priceOverlay?.addEventListener("click", () => this.closePriceSlider());
+
+            const weightInput = document.getElementById("slider-weight-input");
+            weightInput?.addEventListener("input", () => {
+                document.getElementById("slider-weight-value").textContent = Number(weightInput.value) + " kg";
+            });
+            document.getElementById("slider-weight-ok")?.addEventListener("click", () => {
+                this.active.weight = Number(weightInput.value);
+                document.getElementById("mf-chip-weight").classList.add("is-active");
+                this.renderActiveTags();
+                this.closeWeightSlider();
+            });
+            document.getElementById("slider-weight-cancel")?.addEventListener("click", () => this.closeWeightSlider());
+            this.weightOverlay?.addEventListener("click", () => this.closeWeightSlider());
+        },
+
+        open() { this.overlay?.classList.add("is-open"); this.sheet?.classList.add("is-open"); },
+        close() { this.overlay?.classList.remove("is-open"); this.sheet?.classList.remove("is-open"); },
+
+        openPriceSlider() {
+            this.priceOverlay?.classList.add("is-open"); this.priceSheet?.classList.add("is-open");
+            const val = this.active.price || 100000;
+            document.getElementById("slider-price-input").value = val;
+            document.getElementById("slider-price-value").textContent = val.toLocaleString("fr-FR") + " CFA";
+        },
+        closePriceSlider() { this.priceOverlay?.classList.remove("is-open"); this.priceSheet?.classList.remove("is-open"); },
+
+        openWeightSlider() {
+            this.weightOverlay?.classList.add("is-open"); this.weightSheet?.classList.add("is-open");
+            const val = this.active.weight || 11;
+            document.getElementById("slider-weight-input").value = val;
+            document.getElementById("slider-weight-value").textContent = val + " kg";
+        },
+        closeWeightSlider() { this.weightOverlay?.classList.remove("is-open"); this.weightSheet?.classList.remove("is-open"); },
+
+        renderActiveTags() {
+            const container = document.getElementById("mf-tags");
+            const entries = Object.entries(this.active).filter(([, v]) => v !== false && v !== undefined);
+            const labels = { verified: "Voyageurs vérifiés", urgent: "Départ proche", weight: "", price: "" };
+            container.innerHTML = entries.map(([key, val]) => {
+                const label = key === "weight" ? "Poids min: " + val + " kg"
+                    : key === "price" ? "Prix max: " + Number(val).toLocaleString("fr-FR") + " CFA/kg"
+                    : labels[key] || key;
+                return `<span class="mfa-tag">${label}<button data-remove="${key}">&times;</button></span>`;
+            }).join("");
+            container.querySelectorAll("button[data-remove]").forEach((btn) => {
+                btn.addEventListener("click", () => {
+                    delete this.active[btn.dataset.remove];
+                    document.querySelector(`.mf-chip[data-chip="${btn.dataset.remove}"]`)?.classList.remove("is-active");
+                    this.renderActiveTags();
+                });
+            });
+        },
+
+        syncToDesktop() {
+            document.getElementById("res-origin").value = document.getElementById("mf-origin")?.value || "";
+            document.getElementById("res-dest").value = document.getElementById("mf-dest")?.value || "";
+            document.getElementById("res-date").value = document.getElementById("mf-date")?.value || "";
+            if (typeof state !== "undefined") {
+                state.filterVerified = !!this.active.verified;
+                state.filterWeight10 = (this.active.weight || 0) >= 10;
+                state.filterUrgent = !!this.active.urgent;
+            }
+            if (this.active.weight) document.getElementById("res-weight").value = this.active.weight;
+        }
+    };
+
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+        mobileFilter.init();
+    } else {
+        document.addEventListener("DOMContentLoaded", () => mobileFilter.init());
+    }
 })();

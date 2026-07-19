@@ -719,6 +719,101 @@
         </div>
     </div>
 
+    <!-- MOBILE FILTER TRIGGER (visible only in mobile-mode) -->
+    <button class="mobile-filter-trigger" id="mobile-filter-trigger" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        Filtres
+    </button>
+
+    <!-- MOBILE FILTER OVERLAY -->
+    <div class="mobile-filter-overlay" id="mobile-filter-overlay"></div>
+
+    <!-- MOBILE FILTER SHEET -->
+    <div class="mobile-filter-sheet" id="mobile-filter-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h3>Filtres</h3>
+            <button class="sheet-close" id="mf-close" aria-label="Fermer">&times;</button>
+        </div>
+
+        <div class="mobile-filter-fields">
+            <div class="mf-field">
+                <label>Départ</label>
+                <input type="text" id="mf-origin" placeholder="Ville ou pays" autocomplete="off">
+            </div>
+            <div class="mf-field">
+                <label>Arrivée</label>
+                <input type="text" id="mf-dest" placeholder="Ville ou pays" autocomplete="off">
+            </div>
+            <div class="mf-field">
+                <label>Date</label>
+                <input type="date" id="mf-date">
+            </div>
+        </div>
+
+        <div class="mobile-filter-chips" id="mf-chips">
+            <button class="mf-chip" data-chip="weight" id="mf-chip-weight">
+                <span class="material-symbols-outlined" style="font-size:18px;">weight</span>
+                Poids min
+            </button>
+            <button class="mf-chip" data-chip="price" id="mf-chip-price">
+                <span class="material-symbols-outlined" style="font-size:18px;">payments</span>
+                Prix max
+            </button>
+            <button class="mf-chip" data-chip="verified" id="mf-chip-verified">
+                <span class="material-symbols-outlined" style="font-size:18px;">verified</span>
+                Vérifiés
+            </button>
+            <button class="mf-chip" data-chip="urgent" id="mf-chip-urgent">
+                <span class="material-symbols-outlined" style="font-size:18px;">electric_bolt</span>
+                Urgent
+            </button>
+        </div>
+
+        <div class="mobile-filter-active" id="mf-active">
+            <div class="mfa-header">
+                <span>Filtres actifs</span>
+                <button class="mfa-clear" id="mf-clear-all">Effacer tout</button>
+            </div>
+            <div class="mfa-tags" id="mf-tags"></div>
+        </div>
+
+        <div class="mobile-filter-apply">
+            <button id="mf-apply">
+                <span class="material-symbols-outlined" style="font-size:20px;">search</span>
+                Appliquer les filtres
+            </button>
+        </div>
+    </div>
+
+    <!-- PRICE SLIDER SHEET -->
+    <div class="slider-sheet-overlay" id="slider-price-overlay"></div>
+    <div class="slider-sheet" id="slider-price-sheet">
+        <div class="slider-handle"></div>
+        <div class="slider-title">Prix max par kg</div>
+        <div class="slider-value" id="slider-price-value">100 000 CFA</div>
+        <input type="range" id="slider-price-input" min="0" max="500000" step="5000" value="100000">
+        <div class="slider-actions">
+            <button class="slider-cancel" id="slider-price-cancel">Annuler</button>
+            <button class="slider-ok" id="slider-price-ok">Appliquer</button>
+        </div>
+    </div>
+
+    <!-- WEIGHT SLIDER SHEET -->
+    <div class="slider-sheet-overlay" id="slider-weight-overlay"></div>
+    <div class="slider-sheet" id="slider-weight-sheet">
+        <div class="slider-handle"></div>
+        <div class="slider-title">Poids minimum</div>
+        <div class="slider-value" id="slider-weight-value">11 kg</div>
+        <input type="range" id="slider-weight-input" min="0" max="100" step="1" value="11">
+        <div class="slider-actions">
+            <button class="slider-cancel" id="slider-weight-cancel">Annuler</button>
+            <button class="slider-ok" id="slider-weight-ok">Appliquer</button>
+        </div>
+    </div>
+
 </body>
 
 </html>
