@@ -387,48 +387,8 @@
             <!-- ===== BARRE DE RECHERCHE VOYAGE ===== -->
             <div class="search-section-wrapper">
 
-                <div class="view-head"
-                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
-                    <div>
-                        <h2 class="welcome-title" id="results-headline">Voyageurs disponibles pour vos transferts
-                            urgents ou petites quantités</h2>
-                        <p class="kicker">Recherchez par destination</p>
-                    </div>
-                    <div class="profile-type-filters" style="display: flex; gap: 12px;">
-                        <button type="button" id="filter-traveler-btn" class="filter-tab active">Voyageur
-                            simple</button>
-                        <button type="button" id="filter-cargo-btn" class="filter-tab">Entreprise cargo</button>
-                    </div>
-                </div>
-
                 <!-- PANNEAU FILTRE -->
                 <div class="search-filter-panel" id="search-filter-panel">
-
-                    <!-- DEVISE MODERNE -->
-                    <div class="currency-header-container mb-4 flex items-center justify-between">
-                        <span class="currency-header-label text-xs text-on-surface-variant font-semibold">DEVISE
-                            ACTUELLE :</span>
-                        <div class="custom-currency-dropdown" id="custom-currency-dropdown">
-                            <button type="button"
-                                class="currency-trigger-btn bg-black/40 text-primary border border-white/10 px-3 py-1.5 rounded-lg text-sm cursor-pointer hover:border-primary/50 transition-all duration-200"
-                                id="currency-trigger-btn">
-                                <span class="currency-bracket">[</span><span id="current-currency-val"
-                                    class="currency-val">XOF</span><span class="currency-bracket">]</span> <span
-                                    class="currency-arrow">▼</span>
-                            </button>
-                            <div class="currency-dropdown-menu hidden absolute bg-neutral-900 border border-white/10 rounded-lg p-2 mt-1 z-50 shadow-xl"
-                                id="currency-dropdown-menu">
-                                <div class="currency-search-container mb-2">
-                                    <input type="text" id="currency-search-input"
-                                        class="w-full bg-black/50 border border-white/10 rounded p-1.5 text-xs text-text-primary focus:outline-none focus:border-primary"
-                                        placeholder="Rechercher une devise..." autocomplete="off" />
-                                </div>
-                                <ul class="currency-options-list max-h-40 overflow-y-auto" id="currency-options-list">
-                                    <!-- Rempli dynamiquement -->
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- SEARCH MAIN CARD (Stich Inspired) -->
                     <div class="bg-surface-card rounded-xl border border-white/10 p-6 shadow-lg shadow-black/50 mb-8">
