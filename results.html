@@ -387,6 +387,22 @@
             <!-- ===== BARRE DE RECHERCHE VOYAGE ===== -->
             <div class="search-section-wrapper">
 
+                <div class="profile-type-filters" style="margin-bottom: 16px;">
+                    <button type="button" id="filter-traveler-btn" class="filter-tab active">
+                        <span class="material-symbols-outlined tab-icon">person</span>
+                        <span>Je cherche un voyageur</span>
+                    </button>
+                    <button type="button" id="filter-cargo-btn" class="filter-tab">
+                        <span class="material-symbols-outlined tab-icon">local_shipping</span>
+                        <span>Je cherche un cargo</span>
+                    </button>
+                    <button type="button" id="filter-client-btn" class="filter-tab filter-tab-disabled" disabled
+                        aria-disabled="true">
+                        <span class="material-symbols-outlined tab-icon">work</span>
+                        <span>Je cherche un client</span>
+                    </button>
+                </div>
+
                 <!-- PANNEAU FILTRE -->
                 <div class="search-filter-panel" id="search-filter-panel">
 
