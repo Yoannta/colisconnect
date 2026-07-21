@@ -344,9 +344,9 @@
 
             <a href="index.html" class="nav-link">Accueil</a>
 
-            <a href="results.html" class="nav-link is-active">Explorer</a>
+            <a href="results.html" class="nav-link is-active">Chercher voyageur</a>
 
-            <a href="post_trip.html" class="nav-link">Publier</a>
+            <a href="post_trip.html" class="nav-link">Pubier un offre</a>
 
             <a href="chat.html" class="nav-link">Messages</a>
 
@@ -456,23 +456,6 @@
                         </div>
 
                         <!-- Filter Pills -->
-                        <div class="mt-6 flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                            <button id="pill-verified" type="button"
-                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer">
-                                <span class="material-symbols-outlined text-[18px]">verified</span>
-                                Voyageurs Vérifiés
-                            </button>
-                            <button id="pill-weight" type="button"
-                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer">
-                                <span class="material-symbols-outlined text-[18px]">weight</span>
-                                &gt; 10 kg
-                            </button>
-                            <button id="pill-urgent" type="button"
-                                class="flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer">
-                                <span class="material-symbols-outlined text-[18px]">electric_bolt</span>
-                                Départ Proche
-                            </button>
-                        </div>
                     </div>
 
                 </div><!-- fin .search-filter-panel -->
@@ -522,13 +505,13 @@
 
             </svg>
 
-            <span>Explorer</span>
+            <span>Chercher voyageur</span>
 
         </a>
 
         <a href="post_trip.html" class="mob-nav-item highlight">
 
-            <div class="plus-btn">+</div>
+            <div class="plus-btn" style="width:auto;height:50px;min-width:50px;padding:0 14px;border-radius:9999px;flex-direction:row;gap:8px;"><span style="font-size:18px;line-height:1;">+</span><span style="font-size:11px;font-weight:700;white-space:nowrap;">Pubier un offre</span></div>
 
         </a>
 
@@ -702,21 +685,9 @@
         </div>
 
         <div class="mobile-filter-chips" id="mf-chips">
-            <button class="mf-chip" data-chip="weight" id="mf-chip-weight">
-                <span class="material-symbols-outlined" style="font-size:18px;">weight</span>
-                Poids min
-            </button>
             <button class="mf-chip" data-chip="price" id="mf-chip-price">
                 <span class="material-symbols-outlined" style="font-size:18px;">payments</span>
                 Prix max
-            </button>
-            <button class="mf-chip" data-chip="verified" id="mf-chip-verified">
-                <span class="material-symbols-outlined" style="font-size:18px;">verified</span>
-                Vérifiés
-            </button>
-            <button class="mf-chip" data-chip="urgent" id="mf-chip-urgent">
-                <span class="material-symbols-outlined" style="font-size:18px;">electric_bolt</span>
-                Urgent
             </button>
         </div>
 
