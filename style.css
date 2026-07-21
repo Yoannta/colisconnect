@@ -294,6 +294,7 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
 }
 
 .nav-link:hover {
@@ -313,6 +314,20 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     display: flex;
     gap: 12px;
     align-items: center;
+}
+
+html:not(.cc-nav-ready) .site-header .main-nav,
+html:not(.cc-nav-ready) .site-header .header-auth,
+html:not(.cc-nav-ready) .mobile-bottom-nav {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+html.cc-nav-ready .site-header .main-nav,
+html.cc-nav-ready .site-header .header-auth,
+html.cc-nav-ready .mobile-bottom-nav {
+    transition: opacity 0.15s ease;
 }
 
 /* User Menu Dropdown (SaaS 2025 Standard) */
@@ -5315,6 +5330,11 @@ input[data-country-select="true"]::placeholder {
 .mob-nav-item svg {
     width: 24px;
     height: 24px;
+}
+
+.mobile-bottom-nav .mob-nav-item span,
+.mobile-bottom-nav .plus-btn span {
+    white-space: nowrap;
 }
 
 .mob-nav-item.active {

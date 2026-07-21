@@ -2202,6 +2202,7 @@
             }
         }
 
+        document.documentElement.classList.add("cc-nav-ready");
         return state.user;
     }
 
