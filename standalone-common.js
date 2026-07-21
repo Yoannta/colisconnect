@@ -85,8 +85,8 @@
     const TRANSLATIONS = {
         fr: {
             "nav_home": "Accueil",
-            "nav_explore": "Explorer",
-            "nav_post": "Publier",
+            "nav_explore": "Chercher voyageur",
+            "nav_post": "Pubier un offre",
             "nav_messages": "Messages",
             "nav_partner": "Partenaire",
             "brand_sub": "Transport de colis entre particuliers",
@@ -163,6 +163,7 @@
         };
 
         document.querySelectorAll(".main-nav a, .mobile-bottom-nav a").forEach(link => {
+            if (link.querySelector(".plus-btn")) return;
             const href = link.getAttribute("href") || "";
             for (const key in navMap) {
                 if (href.includes(key)) {
