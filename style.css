@@ -209,32 +209,36 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
 
 .site-header {
     position: sticky;
-    top: 16px;
+    top: 0;
     z-index: 100;
     margin: 0 auto;
-    max-width: 1200px;
-    width: calc(100% - 32px);
-    padding: 12px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    backdrop-filter: blur(var(--glass-blur));
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    box-shadow: var(--nexus-shadow);
+    max-width: none;
+    width: 100%;
+    padding: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    backdrop-filter: none;
+    background: linear-gradient(180deg, rgba(39, 40, 43, 0.98), rgba(28, 29, 32, 0.98));
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+    box-shadow: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: visible;
 }
 
 .site-header:hover {
-    border-color: var(--line-glow);
-    background: rgba(10, 15, 20, 0.85);
+    background: linear-gradient(180deg, rgba(44, 45, 49, 0.98), rgba(31, 32, 35, 0.98));
 }
 
 .brand {
     display: flex;
     gap: 12px;
     align-items: center;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.015);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .brand-logo {
@@ -269,44 +273,57 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
 }
 
 .main-nav {
-    display: flex;
-    gap: 4px;
-    padding: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.03);
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 0;
+    align-items: stretch;
+    min-width: 0;
+    background: linear-gradient(180deg, rgba(18, 19, 21, 0.95), rgba(24, 25, 28, 0.95));
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nav-link {
     border: none;
-    padding: 8px 18px;
-    border-radius: 999px;
+    padding: 0 20px;
+    min-height: 68px;
+    border-radius: 0;
     background: transparent;
     color: var(--muted);
     cursor: pointer;
     font-family: var(--font-body);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .main-nav .nav-link {
     text-decoration: none;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 0;
     white-space: nowrap;
+    letter-spacing: 0.01em;
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.main-nav .nav-link:last-child {
+    border-right: none;
 }
 
 .nav-link:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-link.is-active {
-    color: var(--bg-obsidian);
-    background: var(--emerald-bright);
+    color: var(--emerald-bright);
+    background: rgba(19, 236, 200, 0.08);
     font-weight: 700;
-    box-shadow: 0 4px 12px var(--emerald-glow);
+    box-shadow: inset 0 -3px 0 var(--emerald-bright);
 }
 
 .header-auth {
@@ -314,6 +331,9 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     display: flex;
     gap: 12px;
     align-items: center;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.015);
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 html:not(.cc-nav-ready) .site-header .main-nav,
@@ -2168,12 +2188,14 @@ input[data-country-select="true"]::placeholder {
 @media (max-width: 1080px) {
     .site-header {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 0;
         justify-items: start;
     }
 
     .main-nav {
         order: 3;
+        width: 100%;
+        grid-auto-columns: minmax(0, 1fr);
     }
 
     .header-auth {
@@ -2207,18 +2229,16 @@ input[data-country-select="true"]::placeholder {
     }
 
     .site-header {
-        padding: 12px;
+        padding: 0;
     }
 
     .main-nav {
         width: 100%;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        border-radius: 14px;
+        grid-auto-flow: row;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .nav-link {
-        flex: 1 1 auto;
         text-align: center;
     }
 
@@ -2577,17 +2597,19 @@ input[data-country-select="true"]::placeholder {
 /* Keep post_trip header identical to global site header */
 .post-trip-page .site-header {
     margin: 0 auto;
-    max-width: 1200px;
-    width: calc(100% - 32px);
-    padding: 12px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--surface);
-    backdrop-filter: blur(var(--glass-blur));
-    box-shadow: var(--nexus-shadow);
+    max-width: none;
+    width: 100%;
+    padding: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: stretch;
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(39, 40, 43, 0.98), rgba(28, 29, 32, 0.98));
+    backdrop-filter: none;
+    box-shadow: none;
+    overflow: visible;
 }
 
 .password-wrapper {
@@ -6404,8 +6426,8 @@ input[data-country-select="true"]::placeholder {
 /* Global mobile polish */
 @media (max-width: 860px) {
     .site-header {
-        padding: 12px 12px;
-        border-radius: 0 0 14px 14px;
+        padding: 0;
+        border-radius: 0;
     }
 
     .site-header .brand-sub {
@@ -6413,12 +6435,14 @@ input[data-country-select="true"]::placeholder {
     }
 
     .main-nav {
-        gap: 6px;
-        flex-wrap: wrap;
+        gap: 0;
+        width: 100%;
+        grid-auto-columns: minmax(0, 1fr);
     }
 
     .main-nav .nav-link {
-        padding: 8px 10px;
+        padding: 0 12px;
+        min-height: 60px;
         font-size: 0.82rem;
     }
 
