@@ -380,27 +380,45 @@
 
     </header>
 
-    <div class="results-mobile-topbar" aria-label="Navigation mobile principale">
-        <div class="results-mobile-brand">ColisConnect</div>
-        <div class="results-mobile-links">
-            <a href="results.html" class="results-mobile-link active">Chercher voyageur</a>
-            <a href="post_trip.html" class="results-mobile-link">Publier offre</a>
-            <a href="chat.html" class="results-mobile-link">Messages</a>
+    <section class="results-mobile-chooser" aria-label="Choix mobile de recherche">
+        <p class="results-mobile-kicker">Je souhaite...</p>
+        <div class="results-mobile-main-switch" role="tablist" aria-label="Mode principal">
+            <button type="button" class="results-mobile-main-btn active" data-mobile-mode="traveler"
+                aria-pressed="true">
+                <span class="material-symbols-outlined" aria-hidden="true">send</span>
+                <span>Chercher voyageur</span>
+            </button>
+            <button type="button" class="results-mobile-main-btn" data-mobile-mode="demand" aria-pressed="false">
+                <span class="material-symbols-outlined" aria-hidden="true">flight_takeoff</span>
+                <span>Chercher demande de transport</span>
+            </button>
         </div>
-    </div>
+        <div class="results-mobile-sub-switch" role="tablist" aria-label="Sous-section voyageur">
+            <button type="button" id="mobile-sub-traveler-btn" class="results-mobile-sub-btn active"
+                data-profile-type="traveler" aria-pressed="true">
+                <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                <span>Voyageur Particulier</span>
+            </button>
+            <button type="button" id="mobile-sub-cargo-btn" class="results-mobile-sub-btn"
+                data-profile-type="cargo" aria-pressed="false">
+                <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+                <span>Service Cargo</span>
+            </button>
+        </div>
+    </section>
 
     <div class="results-nav-panel">
         <div class="profile-type-filters">
-            <button type="button" id="filter-traveler-btn" class="filter-tab active">
+            <button type="button" id="filter-traveler-btn" class="filter-tab active" data-profile-type="traveler">
                 <span class="material-symbols-outlined tab-icon">person</span>
                 <span>Je cherche un voyageur</span>
             </button>
-            <button type="button" id="filter-cargo-btn" class="filter-tab">
+            <button type="button" id="filter-cargo-btn" class="filter-tab" data-profile-type="cargo">
                 <span class="material-symbols-outlined tab-icon">local_shipping</span>
                 <span>Je cherche un cargo</span>
             </button>
             <button type="button" id="filter-client-btn" class="filter-tab filter-tab-disabled" disabled
-                aria-disabled="true">
+                aria-disabled="true" data-profile-type="client">
                 <span class="material-symbols-outlined tab-icon">work</span>
                 <span>Je cherche un client</span>
             </button>

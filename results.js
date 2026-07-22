@@ -3,6 +3,7 @@
         offers: [],
         userCurrency: 'EUR',
         filterProfileType: 'traveler',
+        mobilePrimaryMode: 'traveler',
         filterVerified: false,
         filterWeight10: false,
         filterUrgent: false,
@@ -46,6 +47,48 @@
         const payload = await window.CCCommon.api(`/api/offers?${params.toString()}`, { auth: false });
         state.offers = Array.isArray(payload?.items) ? payload.items : [];
         renderOffers();
+    }
+
+    function syncProfileTypeButtons() {
+        const activeType = state.filterProfileType;
+        document.querySelectorAll("[data-profile-type]").forEach((btn) => {
+            const type = btn.getAttribute("data-profile-type");
+            if (!type || type === "client") return;
+            const isActive = type === activeType;
+            btn.classList.toggle("active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+    }
+
+    function syncMobilePrimaryButtons() {
+        const buttons = document.querySelectorAll("[data-mobile-mode]");
+        const subSwitch = document.querySelector(".results-mobile-sub-switch");
+        buttons.forEach((btn) => {
+            const mode = btn.getAttribute("data-mobile-mode");
+            const isActive = mode === state.mobilePrimaryMode;
+            btn.classList.toggle("active", isActive);
+            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+        });
+        if (subSwitch) {
+            subSwitch.classList.toggle("hidden", state.mobilePrimaryMode !== "traveler");
+        }
+    }
+
+    function setProfileType(profileType) {
+        state.filterProfileType = profileType;
+        syncProfileTypeButtons();
+        const headLine = document.getElementById("results-headline");
+        if (headLine) {
+            headLine.textContent = profileType === "cargo"
+                ? "Entreprises cargo disponibles pour vos colis"
+                : "Voyageurs disponibles pour vos transferts urgents ou petites quantités";
+        }
+        renderOffers();
+    }
+
+    function setMobilePrimaryMode(mode) {
+        state.mobilePrimaryMode = mode;
+        syncMobilePrimaryButtons();
     }
 
     function renderOffers() {
@@ -362,31 +405,21 @@
         }
 
         // Profil type Filters
-        const btnTraveler = document.getElementById("filter-traveler-btn");
-        const btnCargo = document.getElementById("filter-cargo-btn");
-        const headLine = document.getElementById("results-headline");
+        document.querySelectorAll('[data-profile-type="traveler"]').forEach((btn) => {
+            btn.addEventListener("click", () => setProfileType("traveler"));
+        });
+        document.querySelectorAll('[data-profile-type="cargo"]').forEach((btn) => {
+            btn.addEventListener("click", () => setProfileType("cargo"));
+        });
+        syncProfileTypeButtons();
 
-        if (btnTraveler && btnCargo) {
-            btnTraveler.addEventListener("click", () => {
-                btnTraveler.classList.add("active");
-                btnCargo.classList.remove("active");
-                state.filterProfileType = 'traveler';
-                if (headLine) {
-                    headLine.textContent = "Voyageurs disponibles pour vos transferts urgents ou petites quantités";
-                }
-                renderOffers();
+        document.querySelectorAll("[data-mobile-mode]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const mode = btn.getAttribute("data-mobile-mode");
+                if (mode) setMobilePrimaryMode(mode);
             });
-
-            btnCargo.addEventListener("click", () => {
-                btnCargo.classList.add("active");
-                btnTraveler.classList.remove("active");
-                state.filterProfileType = 'cargo';
-                if (headLine) {
-                    headLine.textContent = "Entreprises cargo disponibles pour vos colis";
-                }
-                renderOffers();
-            });
-        }
+        });
+        syncMobilePrimaryButtons();
 
         // Bouton Rechercher de la nouvelle barre
         document.getElementById("new-search-btn")?.addEventListener("click", () => {
@@ -464,6 +497,8 @@
                 window.CCCommon.setupCityAutocomplete(cityDest, countryDest);
             }
         }
+        syncProfileTypeButtons();
+        syncMobilePrimaryButtons();
         // Evenements de la modale demande
         document.getElementById("close-demande-modal")?.addEventListener("click", () => {
             document.getElementById("demande-trajet-modal")?.classList.add("hidden");
