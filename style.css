@@ -2261,6 +2261,11 @@ input[data-country-select="true"]::placeholder {
     }
 }
 
+/* ── Caché par défaut (desktop) ; réaffiché dans la media query mobile ET via .mobile-mode ── */
+.results-mobile-chooser {
+    display: none;
+}
+
 @media (max-width: 760px) {
     .app-shell {
         padding: 2px 4px;
