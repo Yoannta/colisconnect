@@ -416,7 +416,7 @@
         document.querySelectorAll("[data-mobile-mode]").forEach((btn) => {
             btn.addEventListener("click", () => {
                 const mode = btn.getAttribute("data-mobile-mode");
-                if (mode) setMobilePrimaryMode(mode);
+                if (mode && mode === "traveler") setMobilePrimaryMode(mode);
             });
         });
         syncMobilePrimaryButtons();

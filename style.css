@@ -2302,73 +2302,33 @@ input[data-country-select="true"]::placeholder {
         padding: 10px 12px 0;
     }
 
+    /* ── Kicker caché ── */
     .results-mobile-kicker {
         display: none;
     }
 
+    /* ── Rangée du haut : chaque bouton dans son propre cadre carré ── */
     .results-mobile-main-switch {
-        display: none;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
     }
 
     .results-mobile-main-btn {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: flex-start;
-        gap: 10px;
-        min-height: 40px;
-        padding: 8px 14px;
-        border-radius: 9999px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(238, 242, 243, 0.98);
-        color: #2d86ff;
-        font-family: var(--font-title);
-        font-size: 0.78rem;
-        font-weight: 700;
-        line-height: 1.1;
-        text-align: left;
-        cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
-    }
-
-    .results-mobile-main-btn .material-symbols-outlined {
-        font-size: 1.15rem;
-        line-height: 1;
-    }
-
-    .results-mobile-main-btn.active {
-        color: #2d86ff;
-        background: rgba(247, 248, 248, 0.98);
-        border-color: rgba(168, 255, 231, 0.75);
-        box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.08);
-    }
-
-    .results-mobile-sub-switch {
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        padding: 0;
-        border-radius: 0;
-        background: transparent;
-        border: 0;
-        max-width: 100%;
-    }
-
-    .results-mobile-sub-btn {
+        flex: 1;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         gap: 6px;
-        flex: 1;
-        min-height: 80px;
-        padding: 12px 8px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        min-height: 76px;
+        padding: 12px 10px;
         border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
         background: #1A1B1E;
         color: #e3e2e6;
         font-family: var(--font-title);
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 600;
         line-height: 1.2;
         text-align: center;
@@ -2376,17 +2336,90 @@ input[data-country-select="true"]::placeholder {
         transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
-    .results-mobile-sub-btn .material-symbols-outlined {
-        font-size: 1.4rem;
+    .results-mobile-main-btn .material-symbols-outlined {
+        font-size: 1.3rem;
         line-height: 1;
         color: #b9cac4;
         transition: color 0.2s ease;
     }
 
-    .results-mobile-sub-btn.active {
+    .results-mobile-main-btn.active {
         background: rgba(167, 255, 231, 0.08);
         border-color: rgba(167, 255, 231, 0.3);
         color: #a7ffe7;
+    }
+
+    .results-mobile-main-btn.active .material-symbols-outlined {
+        color: #a7ffe7;
+    }
+
+    /* ── Rangée du bas : cadre rectangulaire unique avec switch glissant ── */
+    .results-mobile-sub-switch {
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+        padding: 4px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        max-width: 100%;
+    }
+
+    .switch-slider {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: calc(50% - 4px);
+        height: calc(100% - 8px);
+        background: rgba(167, 255, 231, 0.08);
+        border: 1px solid rgba(167, 255, 231, 0.2);
+        border-radius: 10px;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Slider glisse à droite quand Service Cargo est actif (3e enfant = 2e bouton) */
+    .results-mobile-sub-switch:has(.results-mobile-sub-btn.active:nth-child(3)) .switch-slider {
+        transform: translateX(100%);
+    }
+
+    .results-mobile-sub-btn {
+        flex: 1;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        min-height: 44px;
+        padding: 8px 6px;
+        border: none;
+        border-radius: 10px;
+        background: transparent;
+        color: rgba(227, 226, 230, 0.5);
+        font-family: var(--font-title);
+        font-size: 0.68rem;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        cursor: pointer;
+        transition: color 0.25s ease;
+    }
+
+    .results-mobile-sub-btn .material-symbols-outlined {
+        font-size: 1.2rem;
+        line-height: 1;
+        color: rgba(185, 202, 196, 0.5);
+        transition: color 0.25s ease;
+    }
+
+    .results-mobile-sub-btn.active {
+        color: #a7ffe7;
+        background: transparent;
+        border: none;
     }
 
     .results-mobile-sub-btn.active .material-symbols-outlined {
