@@ -2505,6 +2505,11 @@ input[data-country-select="true"]::placeholder {
         color: #ef4444;
         border-color: rgba(239, 68, 68, 0.2);
     }
+
+    /* ── Force l'affichage du chooser mobile quand mobile-mode est détecté par JS ── */
+    .mobile-mode.results-page .results-mobile-chooser {
+        display: grid !important;
+    }
 }
 
 .mobile-only {
@@ -5582,8 +5587,9 @@ input[data-country-select="true"]::placeholder {
     display: none !important;
 }
 
-.mobile-mode.results-page .results-mobile-chooser {
-    display: grid !important;
+/* ── Desktop : toujours caché ── */
+.desktop-mode.results-page .results-mobile-chooser {
+    display: none !important;
 }
 
 .mob-nav-item {
