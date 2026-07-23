@@ -2300,19 +2300,11 @@ input[data-country-select="true"]::placeholder {
     }
 
     .results-mobile-kicker {
-        margin: 0;
-        color: rgba(227, 226, 230, 0.7);
-        font-family: var(--font-title);
-        font-size: 0.92rem;
-        font-weight: 600;
-        letter-spacing: -0.01em;
+        display: none;
     }
 
     .results-mobile-main-switch {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 6px;
-        max-width: 360px;
+        display: none;
     }
 
     .results-mobile-main-btn {
@@ -2349,46 +2341,53 @@ input[data-country-select="true"]::placeholder {
     }
 
     .results-mobile-sub-switch {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 6px;
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
         padding: 0;
         border-radius: 0;
         background: transparent;
         border: 0;
-        overflow: hidden;
-        max-width: 360px;
+        max-width: 100%;
     }
 
     .results-mobile-sub-btn {
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: flex-start;
-        gap: 10px;
-        min-height: 40px;
-        padding: 8px 14px;
+        justify-content: center;
+        gap: 6px;
+        flex: 1;
+        min-height: 80px;
+        padding: 12px 8px;
         border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 9999px;
-        background: rgba(238, 242, 243, 0.98);
-        color: #2d86ff;
+        border-radius: 12px;
+        background: #1A1B1E;
+        color: #e3e2e6;
         font-family: var(--font-title);
-        font-size: 0.76rem;
-        font-weight: 700;
-        line-height: 1.1;
-        white-space: nowrap;
+        font-size: 0.7rem;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
         cursor: pointer;
-        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     }
 
     .results-mobile-sub-btn .material-symbols-outlined {
-        font-size: 1rem;
+        font-size: 1.4rem;
         line-height: 1;
+        color: #b9cac4;
+        transition: color 0.2s ease;
     }
 
     .results-mobile-sub-btn.active {
-        background: rgba(247, 248, 248, 0.98);
-        color: #2d86ff;
-        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+        background: rgba(167, 255, 231, 0.08);
+        border-color: rgba(167, 255, 231, 0.3);
+        color: #a7ffe7;
+    }
+
+    .results-mobile-sub-btn.active .material-symbols-outlined {
+        color: #a7ffe7;
     }
 
     .results-mobile-brand {
