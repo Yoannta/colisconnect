@@ -86,7 +86,7 @@
         fr: {
             "nav_home": "Accueil",
             "nav_explore": "Chercher voyageur",
-            "nav_post": "Pubier un offre",
+            "nav_post": "Publier une offre",
             "nav_messages": "Messages",
             "nav_partner": "Partenaire",
             "brand_sub": "Transport de colis entre particuliers",

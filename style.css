@@ -218,27 +218,27 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: stretch;
-    backdrop-filter: none;
-    background: linear-gradient(180deg, rgba(54, 55, 58, 0.98), rgba(42, 43, 46, 0.98));
+    backdrop-filter: blur(18px);
+    background: linear-gradient(180deg, rgba(14, 18, 22, 0.84), rgba(10, 14, 18, 0.78));
     border: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: visible;
 }
 
 .site-header:hover {
-    background: linear-gradient(180deg, rgba(59, 60, 64, 0.98), rgba(47, 48, 52, 0.98));
+    background: linear-gradient(180deg, rgba(18, 22, 27, 0.9), rgba(12, 16, 20, 0.84));
 }
 
 .brand {
     display: flex;
     gap: 12px;
     align-items: center;
-    padding: 14px 18px;
-    background: rgba(255, 255, 255, 0.03);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.015);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .brand-logo {
@@ -280,21 +280,21 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     padding: 0;
     align-items: stretch;
     min-width: 0;
-    background: linear-gradient(180deg, rgba(78, 79, 83, 0.96), rgba(66, 67, 71, 0.96));
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.015));
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .nav-link {
     border: none;
     padding: 0 20px;
-    min-height: 68px;
+    min-height: 60px;
     border-radius: 0;
     background: transparent;
     color: #d8d8d8;
     cursor: pointer;
     font-family: var(--font-body);
-    font-size: 0.88rem;
+    font-size: 0.84rem;
     font-weight: 500;
     transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -307,7 +307,7 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     min-width: 0;
     white-space: nowrap;
     letter-spacing: 0.01em;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .main-nav .nav-link:last-child {
@@ -316,14 +316,14 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
 
 .nav-link:hover {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .nav-link.is-active {
     color: #ffffff;
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(19, 236, 200, 0.08);
     font-weight: 700;
-    box-shadow: inset 0 -3px 0 rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 -3px 0 rgba(19, 236, 200, 0.45);
 }
 
 .header-auth {
@@ -331,9 +331,9 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     display: flex;
     gap: 12px;
     align-items: center;
-    padding: 14px 18px;
-    background: rgba(255, 255, 255, 0.03);
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.015);
+    border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .results-nav-panel {
@@ -5601,9 +5601,9 @@ input[data-country-select="true"]::placeholder {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 70px;
-    background: linear-gradient(180deg, rgba(34, 35, 39, 0.98), rgba(23, 24, 27, 0.98));
-    backdrop-filter: blur(20px);
+    height: 64px;
+    background: linear-gradient(180deg, rgba(18, 20, 24, 0.94), rgba(12, 14, 18, 0.94));
+    backdrop-filter: blur(16px);
     border-top: 1px solid var(--line);
     justify-content: space-around;
     align-items: center;
@@ -5631,17 +5631,17 @@ input[data-country-select="true"]::placeholder {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     color: rgba(227, 226, 230, 0.48);
     text-decoration: none;
-    font-size: 0.7rem;
+    font-size: 0.64rem;
     font-weight: 600;
     transition: all 0.2s ease;
 }
 
 .mob-nav-item svg {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
 }
 
 .mobile-bottom-nav .mob-nav-item span,
@@ -5655,21 +5655,25 @@ input[data-country-select="true"]::placeholder {
 
 .mob-nav-item.highlight {
     position: relative;
-    top: -15px;
+    top: -11px;
 }
 
 .mob-nav-item .plus-btn {
-    width: 50px;
-    height: 50px;
+    width: 44px;
+    height: 44px;
     background: var(--emerald-bright);
     color: #000;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2rem;
+    font-size: 1.7rem;
     font-weight: 400;
     box-shadow: 0 0 20px var(--emerald-glow);
+}
+
+html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
+    display: none !important;
 }
 
 /* ─── Notification Badges ─────────────────────────────────────── */
