@@ -2640,7 +2640,7 @@ input[data-country-select="true"]::placeholder {
     box-shadow: var(--nexus-shadow);
 }
 
-.post-trip-page nav {
+.post-trip-page nav:not(.main-nav) {
     min-height: 74px;
     padding: 8px 16px;
     display: flex;
@@ -2848,7 +2848,7 @@ input[data-country-select="true"]::placeholder {
         border-radius: 20px;
     }
 
-    .post-trip-page nav {
+    .post-trip-page nav:not(.main-nav) {
         flex-wrap: wrap;
         justify-content: center;
     }
