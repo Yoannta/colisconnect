@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script>
+        (function () {
+            var isMobile = window.innerWidth <= 800 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+            document.documentElement.classList.add(isMobile ? 'mobile-mode' : 'desktop-mode');
+        })();
+    </script>
+    <title>Proposer un trajet | ColisConnect</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> <!-- Supabase Core & Init -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+    <script defer src="responsive.js"></script>
+    <script defer src="password-toggle.js"></script>
+    <!-- Header unifié (source unique) -->
+    <script defer src="shared-header.js"></script>
+
+    <script defer src="standalone-common.js"></script>
+    <script defer src="admin-banner.js"></script>
+    <script defer src="datalist-helper.js"></script>
+    <script defer src="post_trip.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+    <style>
+        /* Simple Text-based List Styles */
+        .pm-choices-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .pm-text-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pm-text-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary-color);
+            transform: translateX(5px);
+        }
+
+        .pm-btn-name {
+            font-size: 1rem;
+            font-weight: 500;
+            color: white;
+        }
+
+        .pm-btn-arrow {
+            color: var(--primary-color);
+            font-weight: bold;
+            opacity: 0.6;
+        }
+
+        .pm-text-btn:hover .pm-btn-arrow {
+            opacity: 1;
+        }
+
+        .pm-back-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            cursor: pointer;
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+
+        .pm-back-btn:hover {
+            text-decoration: underline;
+        }
+
+        .input-with-action {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .btn-verify {
+            background: rgba(19, 236, 200, 0.1);
+            border: 1px solid var(--line);
+            color: var(--emerald-bright);
+            padding: 0 15px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .btn-verify:not(:disabled):hover {
+            background: var(--emerald-glow);
+            border-color: var(--emerald-bright);
+        }
+
+        .pm-hint {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 6px;
+        }
+
+        .pm-otp-box {
+            background: rgba(19, 236, 200, 0.05);
+            border: 1px solid rgba(19, 236, 200, 0.15);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .otp-input-wrap {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .otp-field {
+            text-align: center;
+            letter-spacing: 0.5em;
+            font-weight: 800;
+            font-size: 1.2rem;
+            flex: 1;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .spinner-sm {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(19, 236, 200, 0.3);
+            border-top-color: var(--emerald-bright);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Profile Selection Modal Styles */
+        .profile-type-modal-card {
+            max-width: 480px !important;
+            width: 90%;
+            text-align: center;
+        }
+
+        .profile-options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 24px 0;
+            text-align: left;
+        }
+
+        .profile-option-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(19, 236, 200, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            gap: 15px;
+            align-items: flex-start;
+        }
+
+        .profile-option-card.selected {
+            background: rgba(19, 236, 200, 0.1);
+            border-color: #13ecc8 !important;
+            box-shadow: 0 0 20px rgba(19, 236, 200, 0.2);
+        }
+
+        .profile-option-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+            transform: translateY(-2px);
+            border-color: rgba(19, 236, 200, 0.4);
+        }
+
+        .profile-option-icon {
+            font-size: 1.8rem;
+            color: #13ecc8;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .profile-option-content {
+            flex: 1;
+        }
+
+        .profile-option-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .profile-option-desc {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+            line-height: 1.4;
+        }
+
+        /* Transport mode selector */
+        .transport-mode-grid {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .transport-mode-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--line, rgba(19, 236, 200, 0.12));
+            border-radius: 10px;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: var(--text, #f0f7f6);
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            justify-content: center;
+        }
+        .transport-mode-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .transport-mode-btn.selected {
+            background: rgba(19, 236, 200, 0.15);
+            border-color: var(--emerald-bright, #13ecc8);
+            color: var(--emerald-bright, #13ecc8);
+            font-weight: 700;
+        }
+
+        /* Modal transport buttons */
+        .modal-transport-mode {
+            margin-bottom: 16px;
+        }
+        .modal-transport-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+            margin: 16px 0;
+        }
+        .modal-transport-grid {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .modal-transport-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 12px 8px;
+            cursor: pointer;
+            color: #f0f7f6;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        .modal-transport-btn:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .modal-transport-btn.selected {
+            background: rgba(19,236,200,0.15);
+            border-color: var(--emerald-bright, #13ecc8);
+            color: var(--emerald-bright, #13ecc8);
+            font-weight: 700;
+        }
+
+        /* Profile select buttons */
+        .profile-select-grid {
+            display: flex;
+            gap: 8px;
+        }
+        .profile-select-btn {
+            background: transparent;
+            border: 1px solid rgba(19,236,200,0.25);
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            flex: 1;
+            white-space: nowrap;
+        }
+        .profile-select-btn:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(19,236,200,0.5);
+        }
+        .profile-select-btn.selected {
+            background: rgba(19,236,200,0.12);
+            border-color: #13ecc8;
+        }
+        .profile-select-btn .ps-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        /* Hide native datalist so options never show as raw text */
+        datalist {
+            display: none !important;
+        }
+
+        /* === Autocomplete pays (standalone-common.js) === */
+        .cc-autocomplete-ctn {
+            position: relative;
+        }
+        .cc-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .cc-input-wrapper .form-input {
+            flex: 1;
+        }
+        .cc-custom-arrow {
+            color: var(--emerald-bright, #13ecc8);
+            font-size: 0.7rem;
+            cursor: pointer;
+            opacity: 0.6;
+            padding: 4px;
+            user-select: none;
+            pointer-events: none;
+        }
+        .cc-suggestions-list {
+            position: absolute;
+            z-index: 2147483647;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 0;
+            background: rgba(10, 15, 20, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(19, 236, 200, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(19, 236, 200, 0.1);
+            max-height: 280px;
+            overflow-y: auto;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            display: none;
+            animation: ccFadeIn 0.15s ease-out;
+        }
+        .cc-suggestions-list li {
+            padding: 12px 16px;
+            color: #f0f7f6;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .cc-suggestions-list li:last-child {
+            border-bottom: none;
+        }
+        .cc-suggestions-list li:hover,
+        .cc-suggestions-list li.active {
+            background: rgba(19, 236, 200, 0.15);
+            color: #13ecc8;
+            padding-left: 20px;
+        }
+        .cc-suggestions-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .cc-suggestions-list::-webkit-scrollbar-thumb {
+            background: #13ecc8;
+            border-radius: 10px;
+        }
+        .cc-country-invalid {
+            border-color: #ff4444 !important;
+            box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2) !important;
+        }
+        @keyframes ccFadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === Popup Types de colis === */
+        .popup-trigger-btn {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #f0f7f6;
+            font-size: 0.95rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .popup-trigger-btn:hover {
+            border-color: var(--emerald-bright, #13ecc8);
+            background: rgba(255,255,255,0.08);
+        }
+        .popup-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .option-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px;
+            padding: 10px 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .option-card:hover {
+            background: rgba(19,236,200,0.08);
+            border-color: rgba(19,236,200,0.3);
+        }
+        .option-card.selected {
+            background: rgba(19,236,200,0.15);
+            border-color: #13ecc8;
+        }
+        .option-circle {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .option-card.selected .option-circle {
+            background: #13ecc8;
+            border-color: #13ecc8;
+            box-shadow: 0 0 6px rgba(19,236,200,0.5);
+        }
+        .option-text {
+            font-size: 0.85rem;
+            color: #d0d0d0;
+        }
+        .option-card.selected .option-text {
+            color: white;
+            font-weight: 600;
+        }
+        .add-custom-section {
+            margin-bottom: 16px;
+        }
+        .btn-add-trigger {
+            background: none;
+            border: 1px dashed rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: var(--emerald-bright, #13ecc8);
+            font-size: 0.85rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-add-trigger:hover {
+            background: rgba(19,236,200,0.06);
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .custom-input-group {
+            display: none;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .custom-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .custom-input:focus {
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .btn-save-custom {
+            background: rgba(19,236,200,0.15);
+            border: 1px solid rgba(19,236,200,0.3);
+            border-radius: 10px;
+            padding: 10px 16px;
+            color: #13ecc8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .btn-save-custom:hover {
+            background: rgba(19,236,200,0.25);
+        }
+        .btn-validate {
+            width: 100%;
+            background: rgba(19,236,200,0.15);
+            border: 1px solid #13ecc8;
+            border-radius: 12px;
+            padding: 14px;
+            color: #13ecc8;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-validate:hover {
+            background: rgba(19,236,200,0.25);
+        }
+
+        /* Masquer le champ "Types de colis acceptés" (logique conservée) */
+        div.form-group:has(> button#openColisPopupBtn) {
+            display: none !important;
+        }
+
+        /* === Section téléphone (modal contact) === */
+        .phone-section-container {
+            margin-top: 16px;
+        }
+        .phone-label {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .phone-input-row {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+        .phone-prefix-select {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 0 8px;
+            color: #f0f7f6;
+            font-size: 0.85rem;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        .phone-prefix-select option {
+            background: #1a1a2e;
+            color: #f0f7f6;
+        }
+        .phone-main-input {
+            flex: 1;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px 14px;
+            color: white;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .phone-main-input:focus {
+            border-color: var(--emerald-bright, #13ecc8);
+        }
+        .phone-verify-btn {
+            background: rgba(19,236,200,0.1);
+            border: 1px solid rgba(19,236,200,0.2);
+            border-radius: 12px;
+            padding: 0 16px;
+            color: #13ecc8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .phone-verify-btn:not(:disabled):hover {
+            background: rgba(19,236,200,0.2);
+            border-color: #13ecc8;
+        }
+        .phone-verify-btn:disabled {
+            opacity: 0.4;
+            cursor: default;
+        }
+        .phone-help-text {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        /* Popup overlays for colis types (hidden by default) */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-overlay.active {
+            display: flex;
+        }
+        .popup-content {
+            background: #1a1a2e;
+            border: 1px solid rgba(19, 236, 200, 0.3);
+            border-radius: 20px;
+            padding: 28px 24px;
+            max-width: 420px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+
+<body class="post-trip-page">
+    <div class="noise-layer" aria-hidden="true"></div>
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <div id="site-header-root"></div>
+
+    <main class="page-main">
+        <div class="container">
+            <section class="page-header" data-animate>
+                <p class="section-kicker">Monétisez votre trajet</p>
+                <h1>Publiez vos kilos disponibles</h1>
+                <p>Définissez votre route, votre prix au kilo et recevez des paiements directs de vos clients.</p>
+            </section>
+
+            <section class="post-shell">
+                <aside class="trip-benefits glass-panel" data-animate>
+                    <h3>Pourquoi publier sur ColisConnect ?</h3>
+                    <ul>
+                        <li><ion-icon name="cash-outline"></ion-icon> Revenus complementaires sur chaque deplacement.
+                        </li>
+                        <li><ion-icon name="shield-checkmark-outline"></ion-icon> Echanges securises avec profils
+                            verifies.</li>
+                        <li><ion-icon name="flash-outline"></ion-icon> Mise en relation rapide avec des expediteurs
+                            serieux.</li>
+                        <li><ion-icon name="star-outline"></ion-icon> Reputation construite via les avis.</li>
+                    </ul>
+                </aside>
+
+                <section class="trip-form-card glass-panel" data-animate>
+                    <form class="trip-form" id="trip-form">
+                        <div class="location-group" data-type="departure"></div>
+                        <div class="location-group" data-type="destination"></div>
+                        <datalist id="country-options-trip" data-country-list></datalist>
+
+                        <div class="form-group">
+                            <label for="date-depart">Date du voyage</label>
+                            <input type="date" id="date-depart" class="form-input" required>
+                        </div>
+
+                        <!-- Choix du type de profil -->
+                        <div id="profile-choice-section" class="form-group">
+                            <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
+                            <div class="profile-select-grid">
+                                <button type="button" class="profile-select-btn" id="btn-traveler-choice">
+                                    <span class="ps-title">Voyageur simple</span>
+                                </button>
+                                <button type="button" class="profile-select-btn" id="btn-cargo-choice">
+                                    <span class="ps-title">Entreprise cargo</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Champs additionnels (caches tant que le profil n est pas choisi) -->
+                        <div id="trip-extra-fields" class="hidden">
+                            <div class="form-row">
+                                <div class="form-group" id="kilos-group">
+                                    <label for="kilos">Kilos disponibles</label>
+                                    <div class="input-with-suffix">
+                                        <input type="number" id="kilos" class="form-input" placeholder="0" min="1">
+                                        <span>kg</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="price">Prix par kilo</label>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <input type="number" id="price" class="form-input" placeholder="0" min="0" style="width: 120px;">
+                                        <div class="currency-selector-custom" id="currency-selector-wrap" style="position: relative;">
+                                            <button type="button" id="currency-toggle-btn" class="currency-toggle"
+                                                style="background: rgba(19, 236, 200, 0.1); border: 1px solid rgba(19, 236, 200, 0.3); border-radius: 20px; color: #13ecc8; font-size: 0.85rem; font-weight: 700; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
+                                                <span id="current-currency-text">Devise</span>
+                                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                            </button>
+                                            <div id="currency-popover" class="currency-popover hidden glass-panel"
+                                                style="position: absolute; top: calc(100% + 8px); right: 0; width: 150px; z-index: 1000; padding: 8px; border: 1px solid rgba(19, 236, 200, 0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.6);"></div>
+                                        </div>
+                                        <input type="hidden" id="price-currency" value="">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" id="transport-mode-section" style="display:none;">
+                                <label>Moyen de transport</label>
+                                <div class="transport-mode-grid">
+                                    <button type="button" class="transport-mode-btn" data-mode="avion">✈️ Avion</button>
+                                    <button type="button" class="transport-mode-btn" data-mode="bateau">🚢 Bateau</button>
+                                    <button type="button" class="transport-mode-btn" data-mode="les_deux">✈️🚢 Les deux</button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Comment le client vous contacte ?</label>
+                                <button type="button" id="open-payment-method-btn" class="btn secondary payment-method-btn">
+                                    <span id="payment-method-label">
+                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                        <span id="payment-method-label-text">Mon numero de contact</span>
+                                    </span>
+                                </button>
+                                <input type="hidden" id="payment-method" name="paymentMethod">
+                                <input type="hidden" id="payment-qr" name="paymentQr">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                                <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
+                                    <span id="selectedColisText">Choisir les types de colis</span>
+                                    <span>▼</span>
+                                </button>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                                <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
+                                    <span id="selectedRefusedText">Choisir les types refusés</span>
+                                    <span>▼</span>
+                                </button>
+                            </div>
+                            <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
+                        </div>
+                    </form>
+                </section>
+            </section>
+        </div>
+    </main>
+
+    <!-- ===== MODALE TYPES DE COLIS ===== -->
+    <div class="popup-overlay" id="colisPopupOverlay">
+        <div class="popup-content">
+            <div class="popup-title">📦 Types de colis acceptés</div>
+            <div class="options-grid" id="colisOptionsGrid">
+                <div class="option-card" data-value="Documents">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Documents</span>
+                </div>
+                <div class="option-card" data-value="Électronique">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Électronique</span>
+                </div>
+                <div class="option-card" data-value="Vêtements">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Vêtements</span>
+                </div>
+                <div class="option-card" data-value="Nourriture">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Nourriture</span>
+                </div>
+                <div class="option-card" data-value="Cosmétiques">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Cosmétiques</span>
+                </div>
+                <div class="option-card" data-value="Médicaments">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Médicaments</span>
+                </div>
+                <div class="option-card" data-value="Autres">
+                    <span class="option-circle"></span>
+                    <span class="option-text">Autres</span>
+                </div>
+            </div>
+            <div class="add-custom-section">
+                <button type="button" class="btn-add-trigger" id="toggleCustomColisBtn">+ Ajouter un type personnalisé</button>
+                <div class="custom-input-group" id="customColisGroup">
+                    <input type="text" class="custom-input" id="newColisTypeInput" placeholder="Entrer le nom du type...">
+                    <button type="button" class="btn-save-custom" id="saveCustomColisBtn">Enregistrer</button>
+                </div>
+            </div>
+            <button type="button" class="btn-validate" id="validateColisBtn">Valider la sélection</button>
+        </div>
+    </div>
+
+    <!-- ===== MODALE TYPES DE COLIS REFUSÉS ===== -->
+    <div class="popup-overlay" id="refusedPopupOverlay">
+        <div class="popup-content">
+            <div class="popup-title">🚫 Types de colis refusés</div>
+            <div class="options-grid" id="refusedOptionsGrid">
+                <div class="option-card" data-value="Documents"><span class="option-circle"></span><span class="option-text">Documents</span></div>
+                <div class="option-card" data-value="Électronique"><span class="option-circle"></span><span class="option-text">Électronique</span></div>
+                <div class="option-card" data-value="Vêtements"><span class="option-circle"></span><span class="option-text">Vêtements</span></div>
+                <div class="option-card" data-value="Nourriture"><span class="option-circle"></span><span class="option-text">Nourriture</span></div>
+                <div class="option-card" data-value="Cosmétiques"><span class="option-circle"></span><span class="option-text">Cosmétiques</span></div>
+                <div class="option-card" data-value="Médicaments"><span class="option-circle"></span><span class="option-text">Médicaments</span></div>
+                <div class="option-card" data-value="Autres"><span class="option-circle"></span><span class="option-text">Autres</span></div>
+            </div>
+            <div class="add-custom-section">
+                <button type="button" class="btn-add-trigger" id="toggleCustomRefusedBtn">+ Ajouter un type personnalisé</button>
+                <div class="custom-input-group" id="customRefusedGroup">
+                    <input type="text" class="custom-input" id="newRefusedTypeInput" placeholder="Entrer le nom du type...">
+                    <button type="button" class="btn-save-custom" id="saveCustomRefusedBtn">Enregistrer</button>
+                </div>
+            </div>
+            <button type="button" class="btn-validate" id="validateRefusedBtn">Valider la sélection</button>
+        </div>
+    </div>
+
+    <!-- ===== MODALE MOYEN DE PAIEMENT ===== -->
+    <div id="payment-method-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true"
+        aria-labelledby="pm-modal-title">
+        <div class="pt-modal-card glass-panel">
+            <button class="pt-modal-close" id="close-payment-modal-btn" aria-label="Fermer">&times;</button>
+
+            <!-- Étape 1 : Supprimée (Direct au numéro) -->
+            <div id="pm-step-choose" class="hidden"></div>
+
+            <!-- Étape 2 : Numéro de compte -->
+            <div id="pm-step-upload">
+                <h3 class="pm-title" id="pm-upload-title">Votre numéro de contact</h3>
+                <p class="pm-subtitle">Ce numéro sera révélé au client après validation.</p>
+
+                <div class="phone-section-container">
+                    <label class="phone-label">Votre numéro de contact</label>
+                    <div class="phone-input-row">
+                        <select class="phone-prefix-select" id="phonePrefix">
+                            <option value="+33">🇫🇷 +33</option>
+                            <option value="+225">🇨🇮 +225</option>
+                            <option value="+221">🇸🇳 +221</option>
+                            <option value="+229">🇧🇯 +229</option>
+                            <option value="+223">🇲🇱 +223</option>
+                            <option value="+226">🇧🇫 +226</option>
+                            <option value="+228">🇹🇬 +228</option>
+                            <option value="+227">🇳🇪 +227</option>
+                            <option value="+237">🇨🇲 +237</option>
+                            <option value="+242">🇨🇬 +242</option>
+                            <option value="+243">🇨🇩 +243</option>
+                            <option value="+241">🇬🇦 +241</option>
+                            <option value="+224">🇬🇳 +224</option>
+                            <option value="+245">🇬🇼 +245</option>
+                            <option value="+240">🇬🇶 +240</option>
+                            <option value="+244">🇦🇴 +244</option>
+                            <option value="+238">🇨🇻 +238</option>
+                            <option value="+239">🇸🇹 +239</option>
+                            <option value="+222">🇲🇷 +222</option>
+                            <option value="+1">🇺🇸 +1</option>
+                            <option value="+86">🇨🇳 +86</option>
+                            <option value="+44">🇬🇧 +44</option>
+                            <option value="+49">🇩🇪 +49</option>
+                            <option value="+32">🇧🇪 +32</option>
+                            <option value="+41">🇨🇭 +41</option>
+                        </select>
+                        <input type="tel" class="phone-main-input" id="phoneMainNumber" placeholder="07 00 00 00 00" autocomplete="off">
+                        <button type="button" class="phone-verify-btn" id="pm-verify-sms-btn">Vérifier</button>
+                    </div>
+                    <p class="phone-help-text">Ce numéro sera révélé au client dès qu'il aura validé sa réservation.</p>
+                </div>
+
+                <!-- Section OTP (cachée par défaut) -->
+                <div id="pm-otp-section" class="pm-otp-box hidden">
+                    <label for="pm-otp-code">Code de vérification (SMS)</label>
+                    <div class="otp-input-wrap">
+                        <input type="text" id="pm-otp-code" class="form-input otp-field" placeholder="· · · · · ·"
+                            maxlength="6">
+                        <button type="button" id="pm-confirm-otp-btn" class="btn primary sm">Valider</button>
+                    </div>
+                    <p class="pm-hint">Saisissez le code reçu par SMS (Simulé).</p>
+                </div>
+
+                <button type="button" class="btn primary full-width" id="pm-confirm-btn" disabled
+                    style="margin-top: 20px;">Enregistrer mon contact</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modale de redirection vers Dashboard -->
+    <div id="qr-redirect-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="pt-modal-card glass-panel" style="text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 20px;">🛡️</div>
+            <h3>Moyens de paiement centralisés</h3>
+            <p>Installer vos QR codes pour faciliter vos prochaines publications (une seule fois).</p>
+
+            <div class="modal-actions" style="margin-top: 30px; display: flex; flex-direction: column; gap: 10px;">
+                <button id="qr-go-dashboard-btn" class="btn primary full-width">Aller sur mon Dashboard</button>
+                <button id="qr-redirect-close-btn" class="btn ghost full-width">Plus tard</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- Modale de sélection de type de profil + mode transport -->
+    <div id="profile-type-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true">
+        <div class="pt-modal-card glass-panel profile-type-modal-card">
+            <h3 class="pm-title">Choisissez votre type de profil</h3>
+            <p class="pm-subtitle">Afin de personnaliser votre expérience et adapter nos limites de publication.</p>
+
+            <div class="profile-options-grid">
+                <div class="profile-option-card" id="profile-choice-traveler" data-type="traveler">
+                    <div class="profile-option-icon">✈️</div>
+                    <div class="profile-option-content">
+                        <div class="profile-option-title">Voyageur simple</div>
+                        <div class="profile-option-desc">Je voyage ponctuellement et je souhaite rentabiliser mes kilos
+                            de bagages non utilisés. (Limite : 1 trajet actif)</div>
+                    </div>
+                </div>
+
+                <div class="profile-option-card" id="profile-choice-cargo" data-type="cargo">
+                    <div class="profile-option-icon">📦</div>
+                    <div class="profile-option-content">
+                        <div class="profile-option-title">Entreprise cargo</div>
+                        <div class="profile-option-desc">Je suis un professionnel, import-export ou transitaire avec un
+                            volume régulier. (Limite : 5 trajets actifs)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Choix mode transport (caché par défaut, visible si cargo) -->
+            <div id="modal-transport-mode" class="modal-transport-mode hidden">
+                <div class="modal-transport-divider"></div>
+                <p class="pm-subtitle" style="margin-bottom:12px;font-weight:600;">Mode de transport</p>
+                <div class="modal-transport-grid">
+                    <button type="button" class="modal-transport-btn" data-mode="avion">
+                        <span>Avion</span>
+                    </button>
+                    <button type="button" class="modal-transport-btn" data-mode="bateau">
+                        <span>Bateau</span>
+                    </button>
+                    <button type="button" class="modal-transport-btn" data-mode="les_deux">
+                        <span>Les deux</span>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="btn primary full-width" id="profile-type-confirm-btn" disabled>Confirmer mon
+                choix</button>
+        </div>
+    </div>
+
+    <!-- Navigation Mobile Basse -->
+    <nav class="mobile-bottom-nav" aria-label="Navigation mobile">
+        <a href="index.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M3 9.5L12 3L21 9.5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V9.5Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Accueil</span>
+        </a>
+        <a href="results.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Chercher voyageur</span>
+        </a>
+        <a href="post_trip.html" class="mob-nav-item active highlight">
+            <div class="plus-btn">+</div>
+        </a>
+        <a href="chat.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Messages</span>
+        </a>
+        <a href="partner.html" id="mobile-partner-link" class="mob-nav-item hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+            <span>Partenaire</span>
+        </a>
+        <a href="dashboard.html" class="mob-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <span>Profil</span>
+        </a>
+    </nav>
+</body>
+
+</html>
