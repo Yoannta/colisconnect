@@ -337,10 +337,10 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
 }
 
 .results-nav-panel {
-    margin: -1px 0 18px;
-    padding: 12px 16px 14px;
-    background: linear-gradient(180deg, rgba(17, 18, 20, 0.98), rgba(22, 23, 26, 0.98));
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin: 0 0 18px;
+    padding: 0;
+    background: transparent;
+    border-bottom: none;
 }
 
 .results-nav-panel .profile-type-filters {
