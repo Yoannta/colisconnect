@@ -8108,12 +8108,17 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     display: flex;
     align-items: center;
     gap: 8px;
+    position: relative;
 }
 .cc-input-wrapper .form-input,
 .cc-input-wrapper input {
     flex: 1;
 }
 .cc-custom-arrow {
+    position: absolute;
+    right: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
     color: var(--emerald-bright, #13ecc8);
     font-size: 0.7rem;
     cursor: pointer;
@@ -8121,6 +8126,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     padding: 4px;
     user-select: none;
     pointer-events: none;
+    z-index: 2;
+}
+/* Texte du champ : marge droite pour ne pas passer sous la flèche */
+.cc-input-wrapper .cc-autocomplete-input {
+    padding-right: 2.2rem !important;
 }
 .cc-suggestions-list {
     position: absolute;
