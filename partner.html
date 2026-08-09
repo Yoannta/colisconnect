@@ -85,6 +85,9 @@
         }
     </style>
     <script defer src="responsive.js"></script>
+    <!-- Header unifié (source unique) -->
+    <script defer src="shared-header.js"></script>
+
     <script defer src="standalone-common.js"></script>
     <script defer src="partner.js"></script>
 </head>
@@ -93,36 +96,7 @@
     <div class="noise-layer"></div>
     <div class="ambient ambient-a"></div>
 
-    <header class="site-header">
-        <div class="brand">
-            <div class="brand-logo">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#000" />
-                    <path d="M2 17L12 22L22 17" stroke="#000" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    <path d="M2 12L12 17L22 12" stroke="#000" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-            </div>
-            <div>
-                <p class="brand-name">ColisConnect</p>
-                <p class="brand-sub">Transport de colis entre particuliers</p>
-            </div>
-        </div>
-        <nav class="main-nav" aria-label="Navigation principale">
-            <a href="index.html" class="nav-link">Accueil</a>
-            <a href="results.html" class="nav-link">Chercher voyageur</a>
-            <a href="post_trip.html" class="nav-link">Pubier un offre</a>
-            <a href="chat.html" class="nav-link">Messages</a>
-            <a href="partner.html" id="nav-partner-link" class="nav-link is-active">Partenaire</a>
-        </nav>
-        <div class="header-auth">
-            <p id="user-chip" class="user-chip hidden"></p>
-            <a id="admin-link" href="admin.html" class="btn secondary hidden">Admin</a>
-            <a id="auth-open-btn" href="auth.html" class="btn primary">Login</a>
-            <button id="logout-btn" class="btn secondary hidden">Quitter</button>
-        </div>
-    </header>
+    <div id="site-header-root"></div>
 
     <main class="page-main">
         <div class="container">
