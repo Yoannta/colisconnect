@@ -374,6 +374,11 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     opacity: 0.5;
 }
 
+/* Champ date : texte en gris (segments natifs Month/Day/Year suivent color) */
+#res-date {
+    color: #8d9694;
+}
+
 .results-mobile-topbar {
     display: none;
 }
