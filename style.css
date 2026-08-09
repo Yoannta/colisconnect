@@ -374,9 +374,9 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
     opacity: 0.5;
 }
 
-/* Champ date : texte en gris (segments natifs Month/Day/Year suivent color) */
+/* Champ date : texte aligné sur la couleur des champs pays (#4f555f) */
 #res-date {
-    color: #8d9694;
+    color: #4f555f;
 }
 
 .results-mobile-topbar {
