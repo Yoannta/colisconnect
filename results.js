@@ -272,15 +272,16 @@
                 const profileIcon = offerMode === "" ? (isVerified ? "verified" : "person") : "local_shipping";
 
                 return `
-<article class="offer-compact-card">
-  <div class="oc-top">
-    <div class="oc-route" aria-label="${window.CCCommon.escapeHtml(originCountry)} vers ${window.CCCommon.escapeHtml(destCountry)}">
-      <span class="oc-route-rail" aria-hidden="true"><span></span><span></span></span>
-      <div class="oc-route-copy">
-        <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
-        <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
-      </div>
+<div class="offer-wrap">
+  <div class="oc-route" aria-label="${window.CCCommon.escapeHtml(originCountry)} vers ${window.CCCommon.escapeHtml(destCountry)}">
+    <span class="oc-route-rail" aria-hidden="true"><span></span><span></span></span>
+    <div class="oc-route-copy">
+      <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+      <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
     </div>
+  </div>
+  <article class="offer-compact-card">
+  <div class="oc-top">
     <div class="oc-price">${priceDisplay}<span class="oc-price-unit">/ kg</span></div>
   </div>
   <div class="oc-meta">
@@ -308,7 +309,8 @@
       <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
     </button>
   </div>
-</article>`;
+  </article>
+</div>`;
             })
             .join("\n");
     }

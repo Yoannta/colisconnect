@@ -918,6 +918,15 @@ html.cc-nav-ready .mobile-bottom-nav {
     gap: 8px;
 }
 
+.cards-list .offer-wrap {
+    padding: 0;
+    display: block;
+}
+.offer-wrap .oc-route {
+    margin-bottom: 8px;
+}
+
+
 .cards-list article,
 .cards-list button,
 .cards-list div {
@@ -8604,13 +8613,13 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) auto !important;
     gap: 18px !important;
-    align-items: start !important;
-    min-height: 76px;
-    padding-bottom: 24px !important;
+    align-items: center !important;
+    min-height: 0;
+    padding-bottom: 10px !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.045);
 }
 
-.offer-compact-card .oc-route {
+.offer-wrap .oc-route {
     display: grid !important;
     grid-template-columns: 10px minmax(0, 1fr) !important;
     gap: 10px !important;
@@ -8619,7 +8628,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     margin: 0 !important;
 }
 
-.offer-compact-card .oc-route-rail {
+.offer-wrap .oc-route-rail {
     position: relative;
     display: flex !important;
     flex-direction: column;
@@ -8630,7 +8639,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     margin-top: 1px;
 }
 
-.offer-compact-card .oc-route-rail::before {
+.offer-wrap .oc-route-rail::before {
     content: "";
     position: absolute;
     top: 6px;
@@ -8641,7 +8650,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     background: linear-gradient(180deg, rgba(155, 177, 255, 0.85), rgba(143, 255, 224, 0.9));
 }
 
-.offer-compact-card .oc-route-rail span {
+.offer-wrap .oc-route-rail span {
     position: relative;
     z-index: 1;
     width: 8px;
@@ -8651,12 +8660,12 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     box-shadow: 0 0 12px rgba(168, 184, 255, 0.65);
 }
 
-.offer-compact-card .oc-route-rail span:last-child {
+.offer-wrap .oc-route-rail span:last-child {
     background: #9dffe7;
     box-shadow: 0 0 12px rgba(157, 255, 231, 0.65);
 }
 
-.offer-compact-card .oc-route-copy {
+.offer-wrap .oc-route-copy {
     display: flex !important;
     flex-direction: column;
     justify-content: space-between;
@@ -8664,7 +8673,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     min-width: 0;
 }
 
-.offer-compact-card .oc-country {
+.offer-wrap .oc-country {
     max-width: 100% !important;
     color: #f7f8fb !important;
     font-family: "Plus Jakarta Sans", sans-serif !important;
@@ -8918,16 +8927,16 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
         gap: 8px !important;
     }
 
-    .offer-compact-card .oc-route {
+    .offer-wrap .oc-route {
         grid-template-columns: 9px minmax(0, 1fr) !important;
         gap: 8px !important;
     }
 
-    .offer-compact-card .oc-route-rail {
+    .offer-wrap .oc-route-rail {
         min-height: 40px;
     }
 
-    .offer-compact-card .oc-country {
+    .offer-wrap .oc-country {
         font-size: 13px !important;
     }
 
