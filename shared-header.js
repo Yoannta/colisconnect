@@ -20,7 +20,7 @@
   // ═══════════════════════════════════════════════
   var links = [
     { href: 'index.html',      label: 'Accueil' },
-    { href: 'results.html',    label: 'Chercher voyageur' },
+    { href: 'results.html',    label: 'Recherche' },
     { href: 'post_trip.html',  label: 'Publier une offre' },
     { href: 'chat.html',       label: 'Messages' },
   ];
