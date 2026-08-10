@@ -8622,12 +8622,19 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     gap: 10px !important;
     align-items: center !important;
     min-width: 0;
-    margin: 0 0 8px !important;
     /* Cadre arrondi autour de toute la bande pays */
     background: #24262a;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 14px;
     padding: 8px 14px;
+    /* Effet flottant : la pastille chevauche le haut de la carte */
+    position: relative;
+    z-index: 2;
+    margin: 0 0 -12px !important;
+}
+
+.offer-wrap .offer-compact-card {
+    padding-top: 26px !important;
 }
 
 .offer-wrap .oc-country:first-child {
