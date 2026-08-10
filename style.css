@@ -8627,14 +8627,8 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 14px;
     padding: 8px 14px;
-    /* Effet flottant : la pastille chevauche le haut de la carte */
-    position: relative;
-    z-index: 2;
-    margin: 0 0 -12px !important;
-}
-
-.offer-wrap .offer-compact-card {
-    padding-top: 26px !important;
+    /* Espace propre entre la pastille et la carte (sections liées mais décollées) */
+    margin: 0 0 12px !important;
 }
 
 .offer-wrap .oc-country:first-child {
