@@ -4,6 +4,7 @@
         userCurrency: 'EUR',
         filterProfileType: 'traveler',
         mobilePrimaryMode: 'traveler',
+        demands: [],
         filterVerified: false,
         filterWeight10: false,
         filterUrgent: false,
@@ -62,15 +63,17 @@
 
     function syncMobilePrimaryButtons() {
         const buttons = document.querySelectorAll("[data-mobile-mode]");
-        const subSwitch = document.querySelector(".results-mobile-sub-switch");
+        const profileBlock = document.querySelector(".results-mobile-profile-block");
         buttons.forEach((btn) => {
             const mode = btn.getAttribute("data-mobile-mode");
             const isActive = mode === state.mobilePrimaryMode;
             btn.classList.toggle("active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
         });
-        if (subSwitch) {
-            subSwitch.classList.toggle("hidden", state.mobilePrimaryMode !== "traveler");
+        // Le bloc "Type de transporteur" (étiquette + switch Simple/Cargo)
+        // n'apparaît QUE sur l'onglet "Chercher un voyageur" (traveler)
+        if (profileBlock) {
+            profileBlock.classList.toggle("hidden", state.mobilePrimaryMode !== "traveler");
         }
     }
 
@@ -89,6 +92,73 @@
     function setMobilePrimaryMode(mode) {
         state.mobilePrimaryMode = mode;
         syncMobilePrimaryButtons();
+        // Le titre change selon la section
+        const headLine = document.getElementById("results-headline");
+        if (headLine) {
+            if (mode === "demand") {
+                headLine.textContent = "Demandes de transport";
+            } else if (state.filterProfileType === "cargo") {
+                headLine.textContent = "Cargo disponibles";
+            } else {
+                headLine.textContent = "Voyageurs disponibles";
+            }
+        }
+        // La liste change : offres (voyageur) ou demandes (voyageur qui cherche des clients)
+        if (mode === "demand") {
+            renderDemands();
+        } else {
+            renderOffers();
+        }
+    }
+
+    async function loadDemands() {
+        if (!els.offersList) return;
+        els.offersList.innerHTML = '<div class="loading-state">Chargement des demandes...</div>';
+        let items = [];
+        try {
+            if (window.ccSupabase) {
+                const { data, error } = await window.ccSupabase
+                    .from("parcel_requests")
+                    .select("*")
+                    .eq("status", "pending")
+                    .order("created_at", { ascending: false });
+                if (error) throw error;
+                items = data || [];
+            } else {
+                const payload = await window.CCCommon.api("/api/parcel-requests", { auth: false });
+                items = Array.isArray(payload?.items) ? payload.items : [];
+            }
+        } catch (err) {
+            console.warn("Impossible de charger les demandes:", err);
+            items = [];
+        }
+        state.demands = items;
+        renderDemands();
+    }
+
+    function renderDemands() {
+        if (!els.offersList) return;
+        const items = state.demands || [];
+        if (!items.length) {
+            els.offersList.innerHTML =
+                '<div class="empty-state">Aucune demande en ce moment.<br>Revenez plus tard !</div>';
+            return;
+        }
+        const esc = (s) => window.CCCommon?.escapeHtml ? window.CCCommon.escapeHtml(String(s ?? "")) : String(s ?? "");
+        els.offersList.innerHTML = items.map((d) => {
+            const route = (d.origin && d.destination)
+                ? esc(d.origin) + " → " + esc(d.destination)
+                : "Itinéraire à préciser";
+            const kg = d.weight_kg ? ` · ${esc(d.weight_kg)} kg` : "";
+            const date = d.needed_by_date ? ` · avant le ${esc(String(d.needed_by_date).slice(0, 10))}` : "";
+            return (
+                '<div class="offer-card demande-card">' +
+                '<div class="demande-route">' + route + '</div>' +
+                '<div class="demande-meta">📦' + kg + date + '</div>' +
+                (d.description ? '<p class="demande-desc">' + esc(d.description) + '</p>' : "") +
+                '</div>'
+            );
+        }).join("");
     }
 
     function renderOffers() {
@@ -416,7 +486,12 @@
         document.querySelectorAll("[data-mobile-mode]").forEach((btn) => {
             btn.addEventListener("click", () => {
                 const mode = btn.getAttribute("data-mobile-mode");
-                if (mode && mode === "traveler") setMobilePrimaryMode(mode);
+                if (mode === "traveler") {
+                    setMobilePrimaryMode("traveler");
+                } else if (mode === "demand") {
+                    setMobilePrimaryMode("demand");
+                    loadDemands();
+                }
             });
         });
         syncMobilePrimaryButtons();

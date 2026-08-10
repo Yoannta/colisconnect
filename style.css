@@ -2319,6 +2319,45 @@ input[data-country-select="true"]::placeholder {
         display: none;
     }
 
+    /* ── Bloc "Type de transporteur" (étiquette + switch Simple/Cargo) ── */
+    .results-mobile-profile-block {
+        margin-bottom: 12px;
+    }
+    .profile-type-label {
+        margin: 0 0 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: rgba(227, 226, 230, 0.55);
+    }
+
+    /* ── Cartes de demandes (section "Voir les demandes") ── */
+    .demande-card {
+        border: 1px solid rgba(167, 255, 231, 0.18);
+        border-radius: 14px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.03);
+    }
+    .demande-route {
+        font-family: var(--font-title);
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #eafff9;
+        margin-bottom: 4px;
+    }
+    .demande-meta {
+        font-size: 0.78rem;
+        color: #8ea19a;
+        margin-bottom: 6px;
+    }
+    .demande-desc {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #b9cac4;
+        line-height: 1.45;
+    }
+
     /* Titre + devise remontés en haut (occuper l'espace vide) */
     .results-page .results-header {
         margin-top: 0 !important;

@@ -319,6 +319,19 @@
 
         <section class="view is-active" data-view="search" id="search-view">
 
+            <!-- ===== ONGLETS RÔLES (client vs voyageur) ===== -->
+            <div class="results-mobile-main-switch" role="tablist" aria-label="Mode principal">
+                <button type="button" class="results-mobile-main-btn active" data-mobile-mode="traveler"
+                    aria-pressed="true">
+                    <span class="material-symbols-outlined" aria-hidden="true">person_search</span>
+                    <span>Chercher un voyageur</span>
+                </button>
+                <button type="button" class="results-mobile-main-btn" data-mobile-mode="demand" aria-pressed="false">
+                    <span class="material-symbols-outlined" aria-hidden="true">assignment</span>
+                    <span>Voir les demandes</span>
+                </button>
+            </div>
+
             <!-- ===== BARRE DE RECHERCHE VOYAGE ===== -->
             <div class="search-section-wrapper">
 
@@ -415,19 +428,22 @@
                 </div>
             </div>
 
-            <!-- Choix voyageur/cargo (unique, sans hiérarchie) -->
-            <div class="results-mobile-sub-switch" role="tablist" aria-label="Sous-section voyageur">
-                <div class="switch-slider" aria-hidden="true"></div>
-                <button type="button" id="mobile-sub-traveler-btn" class="results-mobile-sub-btn active"
-                    data-profile-type="traveler" aria-pressed="true">
-                    <span class="material-symbols-outlined" aria-hidden="true">person</span>
-                    <span>Voyageur</span>
-                </button>
-                <button type="button" id="mobile-sub-cargo-btn" class="results-mobile-sub-btn"
-                    data-profile-type="cargo" aria-pressed="false">
-                    <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
-                    <span>Cargo</span>
-                </button>
+            <!-- Choix du type de transporteur (sous-choix de "Chercher un voyageur") -->
+            <div class="results-mobile-profile-block" id="mobile-profile-block">
+                <p class="profile-type-label">Type de transporteur :</p>
+                <div class="results-mobile-sub-switch" role="tablist" aria-label="Sous-section voyageur">
+                    <div class="switch-slider" aria-hidden="true"></div>
+                    <button type="button" id="mobile-sub-traveler-btn" class="results-mobile-sub-btn active"
+                        data-profile-type="traveler" aria-pressed="true">
+                        <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                        <span>Simple</span>
+                    </button>
+                    <button type="button" id="mobile-sub-cargo-btn" class="results-mobile-sub-btn"
+                        data-profile-type="cargo" aria-pressed="false">
+                        <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+                        <span>Cargo</span>
+                    </button>
+                </div>
             </div>
 
             <!-- Boutons de profil (placés sous le titre) -->
