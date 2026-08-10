@@ -2319,6 +2319,12 @@ input[data-country-select="true"]::placeholder {
         display: none;
     }
 
+    /* Titre + devise remontés en haut (occuper l'espace vide) */
+    .results-page .results-header {
+        margin-top: 0 !important;
+        margin-bottom: 12px !important;
+    }
+
     /* ── Rangée du haut : chaque bouton dans son propre cadre carré ── */
     .results-mobile-main-switch {
         display: flex;
