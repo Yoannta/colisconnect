@@ -2271,6 +2271,13 @@ input[data-country-select="true"]::placeholder {
     .results-mobile-chooser {
         display: none !important;
     }
+    .results-mobile-sub-switch {
+        display: none !important;
+    }
+    .results-header {
+        max-width: 1200px;
+        margin: 1.6rem auto 1rem;
+    }
 }
 
 /* ── Visible sur mobile (≤ 760px) ── */
@@ -8309,6 +8316,17 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 .custom-currency-dropdown {
     position: relative;
+}
+.currency-wrap {
+    position: relative;
+    margin-left: auto;
+}
+.results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    width: 100%;
 }
 .currency-trigger-btn {
     color: #a7ffe7;

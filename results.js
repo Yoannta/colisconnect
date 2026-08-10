@@ -80,8 +80,8 @@
         const headLine = document.getElementById("results-headline");
         if (headLine) {
             headLine.textContent = profileType === "cargo"
-                ? "Entreprises cargo disponibles pour vos colis"
-                : "Voyageurs disponibles pour vos transferts urgents ou petites quantités";
+                ? "Cargo disponibles"
+                : "Voyageurs disponibles";
         }
         renderOffers();
     }

@@ -328,19 +328,6 @@
                 <span>Chercher demande de transport</span>
             </button>
         </div>
-        <div class="results-mobile-sub-switch" role="tablist" aria-label="Sous-section voyageur">
-            <div class="switch-slider" aria-hidden="true"></div>
-            <button type="button" id="mobile-sub-traveler-btn" class="results-mobile-sub-btn active"
-                data-profile-type="traveler" aria-pressed="true">
-                <span class="material-symbols-outlined" aria-hidden="true">person</span>
-                <span>Voyageur Particulier</span>
-            </button>
-            <button type="button" id="mobile-sub-cargo-btn" class="results-mobile-sub-btn"
-                data-profile-type="cargo" aria-pressed="false">
-                <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
-                <span>Service Cargo</span>
-            </button>
-        </div>
     </section>
 
     <main class="app-shell">
@@ -424,10 +411,38 @@
                 </div><!-- fin .search-filter-panel -->
             </div>
 
-            <!-- Results Header (Stich Inspired) -->
-            <div class="flex justify-between items-center mb-6 mt-8 animate-fade-in-up delay-100">
-                <h2 class="font-headline-md text-headline-md text-text-primary">Voyages
+            <!-- Results Header : titre + devise (EUR) à droite -->
+            <div class="results-header flex justify-between items-center mb-6 mt-8 animate-fade-in-up delay-100">
+                <h2 id="results-headline" class="font-headline-md text-headline-md text-text-primary">Voyages
                     disponibles</h2>
+                <div class="currency-wrap">
+                    <button type="button" id="currency-trigger-btn" class="currency-trigger-btn">
+                        <span id="current-currency-val" class="currency-val">EUR</span>
+                        <span class="currency-arrow" aria-hidden="true">▾</span>
+                    </button>
+                    <div id="currency-dropdown-menu" class="currency-dropdown-menu hidden">
+                        <div class="currency-search-container">
+                            <input type="text" id="currency-search-input" class="currency-search-input"
+                                placeholder="Rechercher une devise...">
+                        </div>
+                        <div id="currency-options-list" class="currency-options-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sous-section voyageur/cargo (mobile, placée sous le titre) -->
+            <div class="results-mobile-sub-switch" role="tablist" aria-label="Sous-section voyageur">
+                <div class="switch-slider" aria-hidden="true"></div>
+                <button type="button" id="mobile-sub-traveler-btn" class="results-mobile-sub-btn active"
+                    data-profile-type="traveler" aria-pressed="true">
+                    <span class="material-symbols-outlined" aria-hidden="true">person</span>
+                    <span>Voyageur Particulier</span>
+                </button>
+                <button type="button" id="mobile-sub-cargo-btn" class="results-mobile-sub-btn"
+                    data-profile-type="cargo" aria-pressed="false">
+                    <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
+                    <span>Service Cargo</span>
+                </button>
             </div>
 
             <!-- Boutons de profil (placés sous le titre) -->
