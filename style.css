@@ -8879,11 +8879,6 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
         gap: 8px !important;
     }
 
-    .offer-wrap .oc-route {
-        grid-template-columns: 9px minmax(0, 1fr) !important;
-        gap: 8px !important;
-    }
-
     .offer-wrap .oc-country {
         font-size: 13px !important;
     }
