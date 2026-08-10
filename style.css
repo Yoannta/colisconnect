@@ -8629,7 +8629,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     max-width: 100% !important;
     color: #f7f8fb !important;
     font-family: "Plus Jakarta Sans", sans-serif !important;
-    font-size: 15px !important;
+    font-size: 20px !important;
     font-weight: 800 !important;
     line-height: 1.2 !important;
     letter-spacing: 0 !important;
@@ -8880,7 +8880,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     }
 
     .offer-wrap .oc-country {
-        font-size: 13px !important;
+        font-size: 16px !important;
     }
 
     .offer-compact-card .oc-price {
