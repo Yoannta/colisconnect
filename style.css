@@ -7925,10 +7925,10 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     background: #1A1B1E;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
-    padding: 20px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 10px;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     overflow: hidden;
@@ -7980,11 +7980,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 /* Price */
 .oc-price {
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     font-weight: 700;
     color: #10b981;
     line-height: 1.1;
-    margin: 2px 0;
+    margin: 0;
 }
 .oc-price-unit {
     font-size: 0.7rem;
@@ -7997,15 +7997,18 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .oc-meta {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 .oc-meta-item {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     color: #94a3b8;
     display: flex;
     align-items: center;
     gap: 4px;
+}
+.oc-meta-item strong {
+    font-size: 0.8rem;
 }
 .oc-meta-item .icon {
     font-size: 0.85rem;
@@ -8016,7 +8019,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     display: flex;
     flex-wrap: wrap;
     gap: 6px;
-    margin-top: 2px;
+    margin-top: 0;
 }
 .oc-colis-pill {
     font-size: 0.65rem;
@@ -8059,14 +8062,14 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     overflow: hidden;
 }
 .oc-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: linear-gradient(135deg, #10b981, #059669);
     display: grid;
     place-items: center;
     font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: #003824;
     flex-shrink: 0;
@@ -8139,10 +8142,10 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 
 /* Responsive mobile */
 @media (max-width: 800px) {
-    .offer-compact-card { padding: 16px; gap: 12px; }
+    .offer-compact-card { padding: 12px 14px; gap: 8px; }
     .oc-country { font-size: 0.78rem; max-width: 90px; }
-    .oc-price { font-size: 1.3rem; }
-    .oc-avatar { width: 28px; height: 28px; font-size: 0.65rem; }
+    .oc-price { font-size: 1.2rem; }
+    .oc-avatar { width: 26px; height: 26px; font-size: 0.65rem; }
     .oc-name { font-size: 0.72rem; }
     .oc-btn { padding: 6px 16px !important; font-size: 0.72rem !important; }
 }
