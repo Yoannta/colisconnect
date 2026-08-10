@@ -85,7 +85,7 @@
     const TRANSLATIONS = {
         fr: {
             "nav_home": "Accueil",
-            "nav_explore": "Chercher voyageur",
+            "nav_explore": "Recherche",
             "nav_post": "Publier une offre",
             "nav_messages": "Messages",
             "nav_partner": "Partenaire",
