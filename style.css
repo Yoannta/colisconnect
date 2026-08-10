@@ -921,6 +921,12 @@ html.cc-nav-ready .mobile-bottom-nav {
 .cards-list .offer-wrap {
     padding: 0;
     display: block;
+    /* Neutraliser le cadre générique .cards-list>div (fond/bordure/flou) */
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
 }
 
 
