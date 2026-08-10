@@ -315,21 +315,6 @@
 
     <div id="site-header-root"></div>
 
-    <section class="results-mobile-chooser" aria-label="Choix mobile de recherche">
-        <p class="results-mobile-kicker">Je souhaite...</p>
-        <div class="results-mobile-main-switch" role="tablist" aria-label="Mode principal">
-            <button type="button" class="results-mobile-main-btn active" data-mobile-mode="traveler"
-                aria-pressed="true">
-                <span class="material-symbols-outlined" aria-hidden="true">send</span>
-                <span>Chercher voyageur</span>
-            </button>
-            <button type="button" class="results-mobile-main-btn" data-mobile-mode="demand" aria-pressed="false">
-                <span class="material-symbols-outlined" aria-hidden="true">flight_takeoff</span>
-                <span>Chercher demande de transport</span>
-            </button>
-        </div>
-    </section>
-
     <main class="app-shell">
 
         <section class="view is-active" data-view="search" id="search-view">
@@ -430,18 +415,18 @@
                 </div>
             </div>
 
-            <!-- Sous-section voyageur/cargo (mobile, placée sous le titre) -->
+            <!-- Choix voyageur/cargo (unique, sans hiérarchie) -->
             <div class="results-mobile-sub-switch" role="tablist" aria-label="Sous-section voyageur">
                 <div class="switch-slider" aria-hidden="true"></div>
                 <button type="button" id="mobile-sub-traveler-btn" class="results-mobile-sub-btn active"
                     data-profile-type="traveler" aria-pressed="true">
                     <span class="material-symbols-outlined" aria-hidden="true">person</span>
-                    <span>Voyageur Particulier</span>
+                    <span>Voyageur</span>
                 </button>
                 <button type="button" id="mobile-sub-cargo-btn" class="results-mobile-sub-btn"
                     data-profile-type="cargo" aria-pressed="false">
                     <span class="material-symbols-outlined" aria-hidden="true">local_shipping</span>
-                    <span>Service Cargo</span>
+                    <span>Cargo</span>
                 </button>
             </div>
 
