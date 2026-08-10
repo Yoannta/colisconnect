@@ -2645,7 +2645,7 @@ input[data-country-select="true"]::placeholder {
     box-shadow: var(--nexus-shadow);
 }
 
-.post-trip-page nav:not(.main-nav) {
+.post-trip-page nav:not(.main-nav):not(.mobile-bottom-nav) {
     min-height: 74px;
     padding: 8px 16px;
     display: flex;
@@ -5610,14 +5610,16 @@ input[data-country-select="true"]::placeholder {
     background: linear-gradient(180deg, rgba(18, 20, 24, 0.94), rgba(12, 14, 18, 0.94));
     backdrop-filter: blur(16px);
     border-top: 1px solid var(--line);
-    justify-content: space-around;
+    /* Grille 5 colonnes égales → bouton + centré, layout uniforme */
+    grid-template-columns: repeat(5, 1fr);
+    justify-items: center;
     align-items: center;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 1000;
 }
 
 .mobile-mode .mobile-bottom-nav {
-    display: flex !important;
+    display: grid !important;
 }
 
 .mobile-mode.results-page .site-header,
