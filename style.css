@@ -2312,6 +2312,28 @@ input[data-country-select="true"]::placeholder {
         gap: 10px;
         margin: 0 0 12px;
         padding: 10px 12px 0;
+        /* Fond d'écran : image générée + voile sombre */
+        position: relative;
+        background-image: url('chooser-bg-mobile.jpg');
+        background-size: cover;
+        background-position: center;
+        border-radius: 14px;
+    }
+
+    /* Voile sombre pour la lisibilité */
+    .results-mobile-chooser::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(8, 34, 31, 0.45);
+        border-radius: 14px;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    .results-mobile-chooser > * {
+        position: relative;
+        z-index: 1;
     }
 
     /* ── Kicker caché ── */
