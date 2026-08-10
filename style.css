@@ -9528,3 +9528,200 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     .kc-price { font-size: 1.05rem; }
     .kc-watermark { width: 96px; padding-right: 12px; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   THÈME KINETIC — PAGE ENTIÈRE (Stitch) — orange/noir
+   Fond #111415 · orange #ff6b00 · Hanken Grotesk + JetBrains Mono
+   ═══════════════════════════════════════════════════════════ */
+
+/* 1. FOND DE PAGE + GLOW ORANGE AMBIANT */
+#search-view {
+    background: #111415;
+    position: relative;
+    overflow: hidden;
+}
+#search-view::before {
+    content: '';
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80vw;
+    height: 300px;
+    background: #ff6b00;
+    opacity: 0.05;
+    filter: blur(120px);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+#search-view > :not(.mobile-filter-trigger) {
+    position: relative;
+    z-index: 1;
+}
+
+/* 2. TITRE DE SECTION — accent orange italic (style Stitch) */
+#results-headline {
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-weight: 800 !important;
+    color: #e1e2e4 !important;
+    letter-spacing: -0.01em !important;
+}
+#results-headline .kc-title-accent {
+    color: #ff6b00;
+    font-weight: 400;
+    font-style: italic;
+}
+
+/* 3. ONGLETS PRINCIPAUX — pillules Kinetic */
+.results-mobile-main-switch {
+    display: flex !important;
+    gap: 8px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 0 16px !important;
+}
+.results-mobile-main-btn {
+    flex: 1;
+    background: #1d2022 !important;
+    border: 1px solid #5a4136 !important;
+    border-radius: 9999px !important;
+    color: #e2bfb0 !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.82rem !important;
+    padding: 11px 10px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+    box-shadow: none !important;
+}
+.results-mobile-main-btn.active {
+    background: #ff6b00 !important;
+    border-color: #ff6b00 !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 8px 28px rgba(255, 107, 0, 0.25) !important;
+}
+.results-mobile-main-btn .material-symbols-outlined {
+    color: inherit;
+    font-size: 18px !important;
+}
+
+/* 4. SOUS-SWITCH (Simple / Cargo) — pillules Kinetic */
+.results-mobile-sub-switch {
+    display: flex !important;
+    gap: 8px !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    position: relative;
+    overflow: visible !important;
+}
+.results-mobile-sub-btn {
+    flex: 1;
+    background: #1d2022 !important;
+    border: 1px solid #5a4136 !important;
+    border-radius: 9999px !important;
+    color: #e2bfb0 !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-weight: 500 !important;
+    font-size: 0.78rem !important;
+    padding: 10px 8px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.25s ease;
+}
+.results-mobile-sub-btn.active {
+    background: #ff6b00 !important;
+    border-color: #ff6b00 !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+    box-shadow: 0 6px 20px rgba(255, 107, 0, 0.22) !important;
+}
+
+/* 5. ÉTIQUETTE "Type de transporteur" */
+.profile-type-label {
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.62rem !important;
+    color: #a98a7d !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+}
+
+/* 6. PANNEAU DE RECHERCHE — glass Kinetic */
+#search-view .bg-surface-card {
+    background: rgba(29, 32, 34, 0.6) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: rgba(255, 107, 0, 0.15) !important;
+    border-radius: 12px !important;
+}
+#search-view .bg-surface-card input {
+    background: #1d2022 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    color: #e1e2e4 !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    border-radius: 8px !important;
+}
+#search-view .bg-surface-card input:focus {
+    border-color: #ff6b00 !important;
+    box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.4) !important;
+}
+#search-view .bg-surface-card label {
+    font-family: 'JetBrains Mono', monospace !important;
+    color: #a98a7d !important;
+    letter-spacing: 0.08em !important;
+}
+
+/* 7. BOUTON DEVISE — pill Kinetic */
+.currency-wrap #currency-trigger-btn,
+#currency-trigger-btn {
+    background: #1d2022 !important;
+    border: 1px solid #5a4136 !important;
+    border-radius: 9999px !important;
+    color: #e1e2e4 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.05em !important;
+    padding: 8px 18px !important;
+    transition: all 0.25s ease;
+}
+#currency-trigger-btn:hover {
+    border-color: #ff6b00 !important;
+    color: #ffb693 !important;
+}
+
+/* 8. BOUTON FLOTTANT "Recherche" — orange Kinetic */
+.mobile-mode .mobile-filter-trigger {
+    background: #ff6b00 !important;
+    border: none !important;
+    border-radius: 9999px !important;
+    color: #fff !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    box-shadow: 0 8px 32px rgba(255, 107, 0, 0.35) !important;
+}
+.mobile-mode .mobile-filter-trigger:active {
+    background: #e05e00 !important;
+    transform: scale(0.96);
+}
+.mobile-mode .mobile-filter-trigger .material-symbols-outlined {
+    color: inherit !important;
+}
+
+/* 9. ÉTAT VIDE — Kinetic */
+#search-view .empty-state,
+#search-view .no-results {
+    background: rgba(29, 32, 34, 0.6) !important;
+    border-color: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 12px !important;
+}

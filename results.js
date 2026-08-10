@@ -82,9 +82,9 @@
         syncProfileTypeButtons();
         const headLine = document.getElementById("results-headline");
         if (headLine) {
-            headLine.textContent = profileType === "cargo"
-                ? "Cargo disponibles"
-                : "Voyageurs disponibles";
+            headLine.innerHTML = profileType === "cargo"
+                ? "<span class=\"kc-title-accent\">Cargo</span> disponibles"
+                : "<span class=\"kc-title-accent\">Voyageurs</span> disponibles";
         }
         renderOffers();
     }
@@ -96,11 +96,11 @@
         const headLine = document.getElementById("results-headline");
         if (headLine) {
             if (mode === "demand") {
-                headLine.textContent = "Demandes de transport";
+                headLine.innerHTML = "<span class=\"kc-title-accent\">Demandes</span> de transport";
             } else if (state.filterProfileType === "cargo") {
-                headLine.textContent = "Cargo disponibles";
+                headLine.innerHTML = "<span class=\"kc-title-accent\">Cargo</span> disponibles";
             } else {
-                headLine.textContent = "Voyageurs disponibles";
+                headLine.innerHTML = "<span class=\"kc-title-accent\">Voyageurs</span> disponibles";
             }
         }
         // La liste change : offres (voyageur) ou demandes (voyageur qui cherche des clients)
