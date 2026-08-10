@@ -2321,7 +2321,7 @@ input[data-country-select="true"]::placeholder {
 
     /* ── Bloc "Type de transporteur" (étiquette + switch Simple/Cargo) ── */
     .results-mobile-profile-block {
-        margin-bottom: 12px;
+        margin-bottom: 44px;
     }
     .profile-type-label {
         margin: 0 0 6px;
