@@ -8639,7 +8639,8 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     opacity: 0.85;
 }
 .offer-wrap .oc-route-plane .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 22px;
+    transform: rotate(90deg);
 }
 
 .offer-wrap .oc-country {
