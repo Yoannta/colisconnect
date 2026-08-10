@@ -275,6 +275,7 @@
 <div class="offer-wrap">
   <div class="oc-route" aria-label="${window.CCCommon.escapeHtml(originCountry)} vers ${window.CCCommon.escapeHtml(destCountry)}">
     <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+    <span class="oc-route-plane" aria-hidden="true"><span class="material-symbols-outlined">flight</span></span>
     <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
   </div>
   <article class="offer-compact-card">
