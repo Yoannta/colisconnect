@@ -9330,3 +9330,201 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     margin: 0 0 12px;
     padding: 0 4px;
 }
+
+
+/* ═══════════════════════════════════════════════════════════
+   THÈME KINETIC — Stitch (orange/noir) — offer cards results
+   Palette : fond #111415, orange #ff6b00, orange clair #ffb693
+   Fonts : Hanken Grotesk (texte) + JetBrains Mono (labels)
+   ═══════════════════════════════════════════════════════════ */
+.cards-list .offer-wrap .kc-card {
+    background: rgba(29, 32, 34, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+    gap: 0;
+    transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cards-list .offer-wrap .kc-card:hover {
+    border-color: rgba(255, 107, 0, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 107, 0, 0.1);
+}
+.cards-list .offer-wrap .kc-card:active { transform: scale(0.985); }
+
+/* Filigrane : route courbe SVG (signature Kinetic) */
+.kc-watermark {
+    position: absolute;
+    right: 0; top: 0;
+    height: 100%; width: 128px;
+    opacity: 0.2;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 16px;
+    z-index: 0;
+}
+.kc-watermark svg { height: 100%; stroke: #ff6b00; stroke-width: 2; fill: none; }
+
+/* Haut de carte : icône + route IATA + badge */
+.kc-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 2;
+}
+.kc-route { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.kc-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: #323537;
+    display: grid; place-items: center;
+    color: #ff6b00;
+    flex-shrink: 0;
+}
+.kc-icon .material-symbols-outlined { font-size: 20px; }
+.kc-route-copy { display: flex; flex-direction: column; min-width: 0; }
+.kc-iata {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 800; font-size: 1.15rem;
+    color: #e1e2e4; letter-spacing: 0.01em;
+    white-space: nowrap;
+}
+.kc-iata-arrow { color: #ff6b00; font-size: 0.95rem; }
+.kc-route-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; color: #e2bfb0;
+    letter-spacing: 0.05em; margin-top: 2px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.kc-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; color: #e2bfb0;
+    background: #282a2c;
+    border: 1px solid #5a4136;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* Bas de carte : stats + prix */
+.kc-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 12px;
+    position: relative;
+    z-index: 2;
+}
+.kc-stats { display: flex; gap: 20px; }
+.kc-stat { display: flex; flex-direction: column; }
+.kc-stat-label, .kc-price-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem; color: #a98a7d;
+    letter-spacing: 0.05em; margin-bottom: 2px;
+}
+.kc-stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem; color: #e1e2e4;
+    letter-spacing: 0.05em; font-weight: 500;
+}
+.kc-price-block { display: flex; flex-direction: column; align-items: flex-end; }
+.kc-price {
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-weight: 800; font-size: 1.15rem;
+    color: #ff6b00; letter-spacing: -0.01em;
+    line-height: 1.1;
+}
+
+/* Colis acceptés / refusés (pills discrets) */
+.kc-colis {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    position: relative;
+    z-index: 2;
+}
+.kc-colis.empty { margin-top: 0; }
+.kc-colis-pill {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 9999px;
+    font-size: 0.64rem; font-weight: 500;
+    font-family: 'Hanken Grotesk', sans-serif;
+}
+.kc-colis-pill .material-symbols-outlined { font-size: 0.75rem; }
+.kc-colis-pill.ok {
+    background: rgba(16, 185, 129, 0.10);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.18);
+}
+.kc-colis-pill.no {
+    background: rgba(244, 63, 94, 0.08);
+    color: #fda4af;
+    border: 1px solid rgba(244, 63, 94, 0.15);
+}
+.kc-colis-empty {
+    font-size: 0.68rem;
+    color: #a98a7d;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.05em;
+}
+
+/* Footer user — restyle Kinetic */
+.cards-list .offer-wrap .kc-card .oc-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.cards-list .offer-wrap .kc-card .oc-avatar {
+    background: #282a2c;
+    border: 1px solid #5a4136;
+    color: #ff6b00;
+}
+.cards-list .offer-wrap .kc-card .oc-name {
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 0.85rem;
+}
+.cards-list .offer-wrap .kc-card .oc-user-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    color: #a98a7d;
+    letter-spacing: 0.05em;
+}
+.cards-list .offer-wrap .kc-card .oc-btn {
+    background: #ff6b00;
+    color: #fff;
+    border: none;
+    border-radius: 9999px;
+    padding: 10px 18px;
+    width: auto;
+    height: auto;
+    box-shadow: 0 0 20px rgba(255, 107, 0, 0.15);
+    transition: all 0.25s ease;
+}
+.cards-list .offer-wrap .kc-card .oc-btn:hover {
+    box-shadow: 0 0 28px rgba(255, 107, 0, 0.35);
+    transform: translateY(-1px);
+}
+
+/* Mobile : compact */
+@media (max-width: 760px) {
+    .cards-list .offer-wrap .kc-card { padding: 14px 16px; }
+    .kc-icon { width: 34px; height: 34px; }
+    .kc-icon .material-symbols-outlined { font-size: 17px; }
+    .kc-iata { font-size: 1rem; }
+    .kc-badge { font-size: 0.58rem; padding: 3px 10px; }
+    .kc-stat-value { font-size: 0.7rem; }
+    .kc-price { font-size: 1.05rem; }
+    .kc-watermark { width: 96px; padding-right: 12px; }
+}

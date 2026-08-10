@@ -271,42 +271,76 @@
                 const profileLabel = offerMode === "" ? "Voyageur" : "Transporteur Pro";
                 const profileIcon = offerMode === "" ? (isVerified ? "verified" : "person") : "local_shipping";
 
+                // Badge date : Aujourd'hui / Demain / date complète (style Kinetic)
+                let badgeDate = formattedDate;
+                try {
+                    const d = new Date(departureDate);
+                    const today = new Date();
+                    const tomorrow = new Date();
+                    tomorrow.setDate(today.getDate() + 1);
+                    if (!isNaN(d.getTime())) {
+                        if (d.toDateString() === today.toDateString()) badgeDate = "Aujourd'hui";
+                        else if (d.toDateString() === tomorrow.toDateString()) badgeDate = "Demain";
+                    }
+                } catch (e) { /* fallback */ }
+
+                // Code IATA : 3 premières lettres du pays (FRA, SEN...)
+                const iata = (name) => (String(name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]/g, '') || '???').slice(0, 3);
+                const codeFrom = iata(originCountry);
+                const codeDest = iata(destCountry);
+                const routeIcon = offerMode === "" ? "flight_takeoff" : "local_shipping";
+
                 return `
 <div class="offer-wrap">
-  <div class="oc-route" aria-label="${window.CCCommon.escapeHtml(originCountry)} vers ${window.CCCommon.escapeHtml(destCountry)}">
-    <span class="oc-country">${window.CCCommon.escapeHtml(originCountry)}</span>
-    <span class="oc-route-plane" aria-hidden="true"><span class="material-symbols-outlined">flight</span></span>
-    <span class="oc-country">${window.CCCommon.escapeHtml(destCountry)}</span>
-  </div>
-  <article class="offer-compact-card">
-  <div class="oc-top">
-    <div class="oc-price">${priceDisplay}<span class="oc-price-unit">/ kg</span></div>
-  </div>
-  <div class="oc-meta">
-    <span class="oc-meta-item">
-      <span class="material-symbols-outlined" aria-hidden="true">calendar_month</span>
-      <span><small>DÉPART</small><strong>${window.CCCommon.escapeHtml(formattedDate)}</strong></span>
-    </span>
-    <span class="oc-meta-item">
-      <span class="material-symbols-outlined" aria-hidden="true">inventory_2</span>
-      <span><small>DISPO</small><strong>${availableKg} kg</strong></span>
-    </span>
-  </div>
-  <div class="oc-colis ${hasColisInfo ? "" : "empty"}">
-    ${hasColisInfo ? `${colisAcceptes ? `<span class="oc-colis-pill ok"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>${window.CCCommon.escapeHtml(colisAcceptes)}</span>` : ""}${colisRefuses ? `<span class="oc-colis-pill no"><span class="material-symbols-outlined" aria-hidden="true">cancel</span>${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}` : `<span>Détails colis sur demande</span>`}
-  </div>
-  <div class="oc-footer">
-    <div class="oc-user">
-      ${profilePhoto ? `<img class="oc-avatar" src="${window.CCCommon.escapeHtml(profilePhoto)}" alt="">` : `<span class="oc-avatar">${initials}</span>`}
-      <div class="oc-user-info">
-        <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
-        <span class="oc-user-meta"><span class="material-symbols-outlined" aria-hidden="true">${profileIcon}</span>${window.CCCommon.escapeHtml(profileLabel)}</span>
+  <article class="offer-compact-card kc-card">
+    <div class="kc-watermark" aria-hidden="true">
+      <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
+        <path d="M 10 10 C 90 50, 10 150, 90 190" stroke-dasharray="4 4"></path>
+        <circle cx="10" cy="10" fill="#ff6b00" r="4"></circle>
+        <circle cx="90" cy="190" fill="#ff6b00" r="4"></circle>
+      </svg>
+    </div>
+    <div class="kc-top">
+      <div class="kc-route">
+        <span class="kc-icon"><span class="material-symbols-outlined" aria-hidden="true">${routeIcon}</span></span>
+        <span class="kc-route-copy">
+          <span class="kc-iata"><span>${window.CCCommon.escapeHtml(codeFrom)}</span><span class="material-symbols-outlined kc-iata-arrow" aria-hidden="true">arrow_forward</span><span>${window.CCCommon.escapeHtml(codeDest)}</span></span>
+          <span class="kc-route-sub">${window.CCCommon.escapeHtml(originCountry)} → ${window.CCCommon.escapeHtml(destCountry)}</span>
+        </span>
+      </div>
+      <span class="kc-badge">${window.CCCommon.escapeHtml(badgeDate)}</span>
+    </div>
+    <div class="kc-bottom">
+      <div class="kc-stats">
+        <div class="kc-stat">
+          <span class="kc-stat-label">CAPACITÉ</span>
+          <span class="kc-stat-value">${availableKg} KG</span>
+        </div>
+        <div class="kc-stat">
+          <span class="kc-stat-label">DÉPART</span>
+          <span class="kc-stat-value">${window.CCCommon.escapeHtml(badgeDate)}</span>
+        </div>
+      </div>
+      <div class="kc-price-block">
+        <span class="kc-price-label">PRIX/KG</span>
+        <span class="kc-price">${priceDisplay}</span>
       </div>
     </div>
-    <button class="oc-btn" data-reserve-offer="${offer.id}" aria-label="Contacter ${window.CCCommon.escapeHtml(offer.ownerName || "ce voyageur")}">
-      <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
-    </button>
-  </div>
+    <div class="kc-colis ${hasColisInfo ? "" : "empty"}">
+      ${hasColisInfo ? `${colisAcceptes ? `<span class="kc-colis-pill ok"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>${window.CCCommon.escapeHtml(colisAcceptes)}</span>` : ""}${colisRefuses ? `<span class="kc-colis-pill no"><span class="material-symbols-outlined" aria-hidden="true">cancel</span>${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}` : `<span class="kc-colis-empty">Détails colis sur demande</span>`}
+    </div>
+    <div class="oc-footer">
+      <div class="oc-user">
+        ${profilePhoto ? `<img class="oc-avatar" src="${window.CCCommon.escapeHtml(profilePhoto)}" alt="">` : `<span class="oc-avatar">${initials}</span>`}
+        <div class="oc-user-info">
+          <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
+          <span class="oc-user-meta"><span class="material-symbols-outlined" aria-hidden="true">${profileIcon}</span>${window.CCCommon.escapeHtml(profileLabel)}</span>
+        </div>
+      </div>
+      <button class="oc-btn" data-reserve-offer="${offer.id}" aria-label="Contacter ${window.CCCommon.escapeHtml(offer.ownerName || "ce voyageur")}">
+        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+      </button>
+    </div>
   </article>
 </div>`;
             })
