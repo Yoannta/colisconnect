@@ -103,7 +103,7 @@
   ];
 
   var mobNavHTML = '';
-  // Items de tête (Accueil, Chercher voyageur)
+  // Items de tête (Accueil, Recherche)
   mobItems.forEach(function (it) {
     var cls = (it.href === activePage) ? 'mob-nav-item active' : 'mob-nav-item';
     mobNavHTML += '\n        <a href="' + it.href + '" class="' + cls + '">\n' +
