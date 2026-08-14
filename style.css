@@ -8379,14 +8379,16 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 .currency-wrap {
     position: relative;
-    margin-left: auto;
+    margin-left: 2.25rem;
 }
 .results-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
     gap: 0.8rem;
     width: 100%;
+    position: relative;
+    z-index: 100;
 }
 .currency-trigger-btn {
     color: #a7ffe7;
