@@ -8384,11 +8384,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .results-header {
     display: flex;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: flex-start !important;
     gap: 0.8rem;
     width: 100%;
     position: relative;
-    z-index: 100;
+    z-index: 100 !important;
 }
 .currency-trigger-btn {
     color: #a7ffe7;
