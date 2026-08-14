@@ -9612,11 +9612,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     font-size: 18px !important;
 }
 
-/* 4. SOUS-SWITCH (Simple / Cargo) — pillules Kinetic */
+/* 4. SOUS-SWITCH (Simple / Cargo) — cases à cocher alignées horizontalement */
 .results-mobile-sub-switch {
     display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
+    flex-direction: row !important;
+    gap: 8px !important;
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
