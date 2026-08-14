@@ -231,6 +231,219 @@ body.results-page .gd:nth-child(8) { width: 2.5px;height: 2.5px;left: 47%; top: 
     100% { transform: translateY(-90vh) translateX(-1.5vw) scale(0.4); opacity: 0; }
 }
 
+/* ============================================================
+   BOUTON BASCULE THÈME — bas gauche (Obsidian Luxe / Gold Light)
+   ============================================================ */
+.theme-toggle {
+    position: fixed;
+    left: 10px;
+    bottom: 12px;
+    z-index: 999;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 160, 23, 0.45);
+    background: rgba(16, 16, 16, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #ffb347;
+    font-size: 1.15rem;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+.theme-toggle:hover {
+    transform: scale(1.1);
+    border-color: rgba(255, 179, 71, 0.85);
+}
+.theme-toggle-icon {
+    line-height: 1;
+    pointer-events: none;
+}
+@media (max-width: 760px) {
+    .theme-toggle {
+        bottom: 78px;
+    }
+}
+
+/* ============================================================
+   GOLD LIGHT — mode clair (body.results-page.light)
+   ============================================================ */
+body.results-page.light {
+    background-color: #f7f2e9;
+    background-image:
+        radial-gradient(ellipse at center, transparent 55%, rgba(212,160,23,0.10) 100%),
+        conic-gradient(from 210deg at 50% -10%,
+            rgba(212,160,23,0.0) 0deg,
+            rgba(212,160,23,0.07) 40deg,
+            rgba(255,255,255,0.9) 90deg,
+            rgba(212,160,23,0.0) 140deg),
+        repeating-linear-gradient(115deg,
+            transparent 0px, transparent 90px,
+            rgba(180,130,30,0.06) 90px, rgba(180,130,30,0.06) 91px,
+            transparent 91px, transparent 180px),
+        radial-gradient(circle at 12% 8%, rgba(255,170,60,0.22) 0%, rgba(255,170,60,0.06) 22%, transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(212,160,23,0.14) 0%, rgba(212,160,23,0.04) 20%, transparent 42%),
+        linear-gradient(180deg, #fdfaf4 0%, #f7f2e9 45%, #efe6d6 100%);
+}
+body.results-page.light::before {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(212,160,23,0.0) 15%,
+        rgba(212,160,23,0.9) 50%,
+        rgba(212,160,23,0.0) 85%,
+        transparent 100%);
+}
+body.results-page.light .ambient-a {
+    background: radial-gradient(circle, rgba(255,170,60,0.16), transparent 70%);
+}
+body.results-page.light .ambient-b {
+    background: radial-gradient(circle, rgba(212,160,23,0.12), transparent 70%);
+}
+body.results-page.light .gd {
+    background: radial-gradient(circle, rgba(212,150,40,0.95), rgba(212,150,40,0.0) 70%);
+}
+body.results-page.light .theme-toggle {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(184, 134, 11, 0.5);
+    color: #8a6d1f;
+    box-shadow: 0 4px 18px rgba(184, 134, 11, 0.18);
+}
+
+/* Texte de base sombre */
+body.results-page.light #results-headline {
+    color: #3a2f1e !important;
+}
+body.results-page.light .kc-iata {
+    color: #3a2f1e !important;
+}
+body.results-page.light .kc-route-sub,
+body.results-page.light .kc-stat-label,
+body.results-page.light .kc-price-label {
+    color: #8a6d1f !important;
+}
+body.results-page.light .kc-stat-value {
+    color: #3a2f1e !important;
+}
+body.results-page.light .oc-name {
+    color: #3a2f1e !important;
+}
+body.results-page.light .oc-user-meta {
+    color: #6d6252 !important;
+}
+body.results-page.light .kc-badge {
+    background: #f0e6d2 !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #6d4f10 !important;
+}
+body.results-page.light .kc-icon {
+    background: #f0e6d2 !important;
+    color: #b8860b !important;
+}
+
+/* Cartes : surface claire + bordure dorée subtile */
+body.results-page.light .cards-list .offer-wrap .kc-card {
+    border-color: rgba(184, 134, 11, 0.28) !important;
+}
+body.results-page.light .offer-compact-card .oc-avatar {
+    background: rgba(184, 134, 11, 0.12) !important;
+    border-color: rgba(184, 134, 11, 0.5) !important;
+    color: #8a6d1f !important;
+}
+body.results-page.light .kc-colis-pill.ok {
+    background: rgba(184, 134, 11, 0.12) !important;
+    color: #6d4f10 !important;
+}
+body.results-page.light .kc-colis-pill.no {
+    background: rgba(180, 90, 40, 0.10) !important;
+    color: #8a4a2a !important;
+}
+
+/* Champs de saisie : fond clair, texte sombre */
+body.results-page.light input.cc-autocomplete-input,
+body.results-page.light #res-date,
+body.results-page.light #res-weight,
+body.results-page.light .mf-field input,
+body.results-page.light .demande-input {
+    background: #fffdf8 !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #3a2f1e !important;
+}
+body.results-page.light .currency-trigger-btn {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.45) !important;
+    color: #8a6d1f !important;
+}
+
+/* Dataliste des devises : fond clair */
+body.results-page.light .currency-dropdown-menu {
+    background: #fdfaf4 !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+}
+body.results-page.light .currency-search-container input {
+    background: #fff !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #3a2f1e !important;
+}
+body.results-page.light .currency-dropdown-item {
+    color: #3a2f1e !important;
+}
+body.results-page.light .currency-dropdown-item:hover {
+    background: rgba(184, 134, 11, 0.10) !important;
+}
+body.results-page.light .currency-dropdown-item.active {
+    background: rgba(184, 134, 11, 0.14) !important;
+}
+body.results-page.light .currency-item-name {
+    color: #6d6252 !important;
+}
+
+/* Boutons de filtre (onglets + sous-switch) : texte sombre */
+body.results-page.light .results-mobile-main-btn {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    color: #3a2f1e !important;
+}
+body.results-page.light .results-mobile-main-btn.active {
+    background: #b8860b !important;
+    border-color: #b8860b !important;
+    color: #fff !important;
+}
+body.results-page.light .results-mobile-sub-btn {
+    color: #5a4632 !important;
+}
+body.results-page.light .results-mobile-sub-btn.active {
+    color: #b8860b !important;
+}
+
+/* Header partagé + nav mobile : clairs */
+body.results-page.light .site-header,
+body.results-page.light .mobile-bottom-nav {
+    background: rgba(253, 250, 244, 0.92) !important;
+    border-color: rgba(184, 134, 11, 0.25) !important;
+}
+body.results-page.light .site-header .nav-link,
+body.results-page.light .mob-nav-item {
+    color: #5a4632 !important;
+}
+body.results-page.light .site-header .nav-link.is-active,
+body.results-page.light .mob-nav-item.active {
+    color: #b8860b !important;
+}
+
+/* États vides / modales / sheets */
+body.results-page.light #search-view .empty-state,
+body.results-page.light #search-view .no-results,
+body.results-page.light .slider-sheet,
+body.results-page.light .mobile-filter-sheet,
+body.results-page.light .demande-modal-card {
+    background: #fdfaf4 !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    color: #3a2f1e !important;
+}
+
 .hidden {
     display: none !important;
 }
