@@ -9626,18 +9626,19 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 .results-mobile-sub-btn {
     flex: 1;
-    background: #1d2022 !important;
-    border: 1px solid #5a4136 !important;
+    background: transparent !important;
+    border: none !important;
     border-radius: 12px !important;
     color: #e2bfb0 !important;
     font-family: 'Hanken Grotesk', sans-serif !important;
     font-weight: 500 !important;
     font-size: 0.85rem !important;
-    padding: 10px 12px !important;
+    padding: 8px 6px !important;
     display: flex !important;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 10px;
+    flex-direction: row-reverse !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px;
     transition: all 0.25s ease;
     cursor: pointer;
 }
@@ -9655,11 +9656,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     line-height: 1;
 }
 .results-mobile-sub-btn.active {
-    background: rgba(255, 107, 0, 0.12) !important;
-    border-color: #ff6b00 !important;
+    background: transparent !important;
+    border-color: transparent !important;
     color: #ffb693 !important;
     font-weight: 700 !important;
-    box-shadow: 0 6px 20px rgba(255, 107, 0, 0.15) !important;
+    box-shadow: none !important;
 }
 
 /* 5. ÉTIQUETTE "Type de transporteur" */
