@@ -9635,6 +9635,120 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     z-index: 1;
 }
 
+/* ============================================================
+   FOND ANIMÉ — formes géométriques flottantes (en bas)
+   ============================================================ */
+.cc-shapes-bg {
+    position: absolute !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 45vh;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0 !important;
+}
+.cc-shapes-bg .shape {
+    position: absolute;
+    display: block;
+    opacity: 0.5;
+}
+/* Triangles */
+.cc-shapes-bg .shape-tri {
+    width: 0;
+    height: 0;
+    border-left: 16px solid transparent;
+    border-right: 16px solid transparent;
+    border-bottom: 26px solid rgba(255, 107, 0, 0.10);
+}
+.cc-shapes-bg .t1 {
+    left: 8%;
+    bottom: 10%;
+    animation: floatShape 9s ease-in-out infinite;
+}
+.cc-shapes-bg .t2 {
+    left: 30%;
+    bottom: 4%;
+    border-bottom-color: rgba(167, 255, 231, 0.12);
+    animation: floatShape 11s ease-in-out 1.5s infinite;
+}
+/* Cercles */
+.cc-shapes-bg .shape-circle {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: rgba(255, 107, 0, 0.08);
+}
+.cc-shapes-bg .c1 {
+    left: 55%;
+    bottom: 14%;
+    animation: floatShape 10s ease-in-out 0.8s infinite;
+}
+.cc-shapes-bg .c2 {
+    width: 18px;
+    height: 18px;
+    left: 75%;
+    bottom: 6%;
+    background: rgba(167, 255, 231, 0.10);
+    animation: floatShape 8s ease-in-out 2.2s infinite;
+}
+/* Lignes */
+.cc-shapes-bg .shape-line {
+    width: 90px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 0, 0.22), transparent);
+    border-radius: 2px;
+}
+.cc-shapes-bg .l1 {
+    left: 12%;
+    bottom: 32%;
+    transform: rotate(-18deg);
+    animation: driftLine 12s ease-in-out infinite;
+}
+.cc-shapes-bg .l2 {
+    left: 65%;
+    bottom: 28%;
+    width: 60px;
+    transform: rotate(24deg);
+    background: linear-gradient(90deg, transparent, rgba(167, 255, 231, 0.2), transparent);
+    animation: driftLine2 14s ease-in-out 2s infinite;
+}
+/* Petits points */
+.cc-shapes-bg .shape-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 107, 0, 0.25);
+}
+.cc-shapes-bg .d1 {
+    left: 45%;
+    bottom: 38%;
+    animation: pulseDot 6s ease-in-out infinite;
+}
+.cc-shapes-bg .d2 {
+    left: 85%;
+    bottom: 22%;
+    background: rgba(167, 255, 231, 0.3);
+    animation: pulseDot 7s ease-in-out 1.2s infinite;
+}
+
+@keyframes floatShape {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-26px) rotate(10deg); }
+}
+@keyframes driftLine {
+    0%, 100% { transform: translateX(0) rotate(-18deg); opacity: 0.3; }
+    50% { transform: translateX(34px) rotate(-18deg); opacity: 0.7; }
+}
+@keyframes driftLine2 {
+    0%, 100% { transform: translateX(0) rotate(24deg); opacity: 0.3; }
+    50% { transform: translateX(-28px) rotate(24deg); opacity: 0.7; }
+}
+@keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(2.2); opacity: 0.9; }
+}
+
 /* 2. TITRE DE SECTION — accent orange italic (style Stitch) */
 #results-headline {
     font-family: 'Hanken Grotesk', sans-serif !important;
