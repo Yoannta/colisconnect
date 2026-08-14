@@ -8798,8 +8798,8 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     grid-template-columns: minmax(0, 1fr) 40px !important;
     gap: 12px !important;
     align-items: center !important;
-    margin-top: auto !important;
-    padding-top: 28px !important;
+    margin-top: 4px !important;
+    padding-top: 10px !important;
 }
 
 .offer-compact-card .oc-user {
