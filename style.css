@@ -8450,6 +8450,78 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 
 /* ============================================================
+   DATALISTE DES DEVISES — styles des items (code + nom)
+   ============================================================ */
+.currency-dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 12px;
+    margin: 2px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    list-style: none;
+    transition: background 0.15s ease;
+}
+.currency-dropdown-item:hover {
+    background: rgba(255, 107, 0, 0.1);
+}
+.currency-dropdown-item.active {
+    background: rgba(255, 107, 0, 0.14);
+    box-shadow: inset 2px 0 0 #ff6b00;
+}
+.currency-item-code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #ff6b00;
+    min-width: 44px;
+}
+.currency-item-name {
+    font-size: 0.85rem;
+    color: #e1e2e4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: right;
+}
+
+/* Champ de recherche dans la dataliste */
+.currency-search-container input {
+    box-sizing: border-box;
+    width: 100%;
+    background: #282a2c;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #e1e2e4;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.currency-search-container input:focus {
+    border-color: #ff6b00;
+    box-shadow: 0 0 0 1px rgba(255, 107, 0, 0.3);
+}
+
+/* Animation d'ouverture du menu */
+.currency-dropdown-menu {
+    animation: currencyMenuIn 0.18s ease;
+    transform-origin: top right;
+}
+@keyframes currencyMenuIn {
+    from {
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ============================================================
    MODALE DEMANDE DE TRAJET (results.html)
    ============================================================ */
 .demande-modal-card {
