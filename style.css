@@ -9338,9 +9338,9 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
    Fonts : Hanken Grotesk (texte) + JetBrains Mono (labels)
    ═══════════════════════════════════════════════════════════ */
 .cards-list .offer-wrap .kc-card {
-    background: rgba(29, 32, 34, 0.6);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 12px;
     padding: 16px 18px;
