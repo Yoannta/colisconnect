@@ -8587,7 +8587,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 
 .cards-list.offers-stream .offer-compact-card {
-    min-height: 338px !important;
+    min-height: 0 !important;
     display: flex !important;
     flex-direction: column !important;
     gap: 0 !important;
@@ -8897,7 +8897,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     }
 
     .cards-list.offers-stream .offer-compact-card {
-        min-height: 330px !important;
+        min-height: 0 !important;
         padding: 20px 18px 18px !important;
     }
 }
