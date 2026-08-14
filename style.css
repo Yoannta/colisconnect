@@ -316,22 +316,31 @@ body.results-page.light .theme-toggle {
 body.results-page.light #results-headline {
     color: #3a2f1e !important;
 }
+/* CARTE NOIRE + textes ivoire (le fond clair) : mise en evidence en mode clair */
 body.results-page.light .kc-iata {
-    color: #3a2f1e !important;
+    color: #f7f2e9 !important;
 }
-body.results-page.light .kc-route-sub,
+body.results-page.light .kc-route-sub {
+    color: #d4c69c !important;
+}
 body.results-page.light .kc-stat-label,
 body.results-page.light .kc-price-label {
-    color: #8a6d1f !important;
+    color: #b8a47a !important;
 }
 body.results-page.light .kc-stat-value {
-    color: #3a2f1e !important;
+    color: #f7f2e9 !important;
 }
 body.results-page.light .oc-name {
-    color: #3a2f1e !important;
+    color: #f7f2e9 !important;
 }
 body.results-page.light .oc-user-meta {
-    color: #6d6252 !important;
+    color: #b3a98f !important;
+}
+body.results-page.light .kc-colis-pill.ok {
+    color: #d9e6d2 !important;
+}
+body.results-page.light .kc-colis-pill.no {
+    color: #f0d9c8 !important;
 }
 body.results-page.light .kc-badge {
     background: #f0e6d2 !important;
@@ -354,11 +363,11 @@ body.results-page.light .offer-compact-card .oc-avatar {
 }
 body.results-page.light .kc-colis-pill.ok {
     background: rgba(184, 134, 11, 0.12) !important;
-    color: #6d4f10 !important;
+    color: #d9e6d2 !important;
 }
 body.results-page.light .kc-colis-pill.no {
-    background: rgba(180, 90, 40, 0.10) !important;
-    color: #8a4a2a !important;
+    background: rgba(180, 90, 40, 0.14) !important;
+    color: #f0d9c8 !important;
 }
 
 /* Champs de saisie : fond clair, texte sombre */
