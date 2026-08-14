@@ -9537,7 +9537,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 
 /* 1. FOND DE PAGE + GLOW ORANGE AMBIANT */
 #search-view {
-    background: #111415;
+    background: transparent;
     position: relative;
     overflow: hidden;
 }
