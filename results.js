@@ -58,6 +58,8 @@
             const isActive = type === activeType;
             btn.classList.toggle("active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+            const cb = btn.querySelector(".sub-check");
+            if (cb) cb.checked = isActive;
         });
     }
 
