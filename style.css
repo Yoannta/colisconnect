@@ -10171,7 +10171,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .cc3-planet {
     position: absolute;
     right: -8px;
-    top: 58px;
+    top: 46px;
     width: 160px;
     pointer-events: none;
     z-index: 1;
@@ -10530,20 +10530,17 @@ body.results-page.light .cc3-shield { color: #d29a22; }
 
 /* ── Responsive ── */
 @media (max-width: 760px) {
-    .cards-list .cc3-card { padding: 14px 12px 10px !important; border-radius: 20px; gap: 8px; }
-    .cc3-planet { width: 110px; top: 58px; }
+    .cards-list .cc3-card { padding: 18px 14px 12px !important; border-radius: 20px; gap: 11px; }
+    .cc3-planet { width: 110px; top: 46px; }
     .cc3-skyline { height: 64px; }
-    .cc3-country { font-size: 0.9rem; }
-    .cc3-flag-shell { width: 40px; height: 40px; }
-    .cc3-flag { width: 26px; height: 26px; }
-    .cc3-flight { width: 56px; }
-    .cc3-detail { gap: 6px; padding: 2px 4px !important; }
-    .cc3-icon { width: 28px; height: 28px; border-radius: 8px; }
-    .cc3-icon svg { width: 16px; height: 16px; }
-    .cc3-value { font-size: 0.85rem; }
-    .cc3-price { font-size: 0.8rem; }
-    .cc3-cta { padding: 8px 11px !important; font-size: 0.62rem; }
-    .cc3-avatar { width: 32px; height: 32px; }
-    .cc3-name { font-size: 0.8rem; }
+    .cc3-country { font-size: 0.95rem; }
+    .cc3-flag-shell { width: 46px; height: 46px; }
+    .cc3-flag { width: 30px; height: 30px; }
+    .cc3-flight { width: 60px; }
+    .cc3-detail { gap: 7px; padding: 3px 5px !important; }
+    .cc3-value { font-size: 0.9rem; }
+    .cc3-price { font-size: 0.85rem; }
+    .cc3-cta { padding: 9px 13px !important; font-size: 0.65rem; }
+    .cc3-name { font-size: 0.85rem; }
 }
 
