@@ -292,57 +292,106 @@
                 const codeDest = iata(destCountry);
                 const routeIcon = offerMode === "" ? "flight_takeoff" : "local_shipping";
 
+                // Nom scindé (prénom + reste) pour le style "Yoann *Tato*"
+                const nameParts = String(offer.ownerName || "Voyageur").split(/\s+/).filter(Boolean);
+                const firstName = nameParts[0] || "Voyageur";
+                const lastName = nameParts.slice(1).join(" ") || "";
+                // Date courte pour la colonne DÉPART (ex: "21 août")
+                let shortDate = formattedDate;
+                try {
+                    const d = new Date(departureDate);
+                    if (!isNaN(d.getTime())) {
+                        shortDate = d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+                    }
+                } catch (e) { /* fallback */ }
+
                 return `
 <div class="offer-wrap">
-  <article class="offer-compact-card kc-card">
-    <div class="kc-watermark" aria-hidden="true">
-      <svg viewBox="0 0 100 200" xmlns="http://www.w3.org/2000/svg">
-        <path d="M 10 10 C 90 50, 10 150, 90 190" stroke-dasharray="4 4"></path>
-        <circle cx="10" cy="10" fill="#ff6b00" r="4"></circle>
-        <circle cx="90" cy="190" fill="#ff6b00" r="4"></circle>
+  <article class="cc3-card">
+    <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+    <header class="cc3-head">
+      <div class="cc3-logo">
+        <span class="cc3-logo-dot"></span>
+        <span class="cc3-logo-txt">COLIS<span>CONNECT</span></span>
+      </div>
+      <span class="cc3-date">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="2.2"></rect><path d="M8 2.8v4.4M16 2.8v4.4M4 10h16"></path></svg>
+        ${window.CCCommon.escapeHtml(badgeDate)}
+      </span>
+    </header>
+
+    <section class="cc3-route">
+      <div class="cc3-flag-shell"><span class="cc3-flag cc3-flag-fr" aria-hidden="true"></span></div>
+      <div class="cc3-place">
+        <span class="cc3-label">From</span>
+        <span class="cc3-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+      </div>
+      <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+        <path d="M2 47C50 11 105 8 181 45"></path>
+        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+          <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+        </g>
       </svg>
-    </div>
-    <div class="kc-top">
-      <div class="kc-route">
-        <span class="kc-icon"><span class="material-symbols-outlined" aria-hidden="true">${routeIcon}</span></span>
-        <span class="kc-route-copy">
-          <span class="kc-iata"><span>${window.CCCommon.escapeHtml(codeFrom)}</span><span class="material-symbols-outlined kc-iata-arrow" aria-hidden="true">arrow_forward</span><span>${window.CCCommon.escapeHtml(codeDest)}</span></span>
-          <span class="kc-route-sub">${window.CCCommon.escapeHtml(originCountry)} → ${window.CCCommon.escapeHtml(destCountry)}</span>
-        </span>
+      <div class="cc3-place cc3-place-to">
+        <span class="cc3-label">To</span>
+        <span class="cc3-country">${window.CCCommon.escapeHtml(destCountry)}</span>
       </div>
-      <span class="kc-badge">${window.CCCommon.escapeHtml(badgeDate)}</span>
-    </div>
-    <div class="kc-bottom">
-      <div class="kc-stats">
-        <div class="kc-stat">
-          <span class="kc-stat-label">CAPACITÉ</span>
-          <span class="kc-stat-value">${availableKg} KG</span>
+      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag cc3-flag-sn" aria-hidden="true"></span></div>
+    </section>
+
+    <div class="cc3-rule"></div>
+
+    <section class="cc3-details">
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
         </div>
-        <div class="kc-stat">
-          <span class="kc-stat-label">DÉPART</span>
-          <span class="kc-stat-value">${window.CCCommon.escapeHtml(badgeDate)}</span>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Départ</span>
+          <span class="cc3-value"><span class="cc3-gold">${window.CCCommon.escapeHtml(shortDate)}</span></span>
         </div>
       </div>
-      <div class="kc-price-block">
-        <span class="kc-price-label">PRIX/KG</span>
-        <span class="kc-price">${priceDisplay}</span>
-      </div>
-    </div>
-    <div class="kc-colis ${hasColisInfo ? "" : "empty"}">
-      ${hasColisInfo ? `${colisAcceptes ? `<span class="kc-colis-pill ok"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>${window.CCCommon.escapeHtml(colisAcceptes)}</span>` : ""}${colisRefuses ? `<span class="kc-colis-pill no"><span class="material-symbols-outlined" aria-hidden="true">cancel</span>${window.CCCommon.escapeHtml(colisRefuses)}</span>` : ""}` : `<span class="kc-colis-empty">Détails colis sur demande</span>`}
-    </div>
-    <div class="oc-footer">
-      <div class="oc-user">
-        ${profilePhoto ? `<img class="oc-avatar" src="${window.CCCommon.escapeHtml(profilePhoto)}" alt="">` : `<span class="oc-avatar">${initials}</span>`}
-        <div class="oc-user-info">
-          <span class="oc-name">${window.CCCommon.escapeHtml(offer.ownerName || "Voyageur")}</span>
-          <span class="oc-user-meta"><span class="material-symbols-outlined" aria-hidden="true">${profileIcon}</span>${window.CCCommon.escapeHtml(profileLabel)}</span>
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Disponibilité</span>
+          <span class="cc3-value">${availableKg} <span class="cc3-kg">kg</span></span>
         </div>
       </div>
-      <button class="oc-btn" data-reserve-offer="${offer.id}" aria-label="Contacter ${window.CCCommon.escapeHtml(offer.ownerName || "ce voyageur")}">
-        <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19.5 19.5 5H34v14.5L19.5 34 5 19.5z"></path><circle cx="28" cy="11.5" r="2.3"></circle><path d="M31 6.5c3.2 1.6 4.9 4.1 5.1 7.5"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Prix / kg</span>
+          <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
+          <span class="cc3-inclusive">all inclusive</span>
+        </div>
+      </div>
+    </section>
+
+    <footer class="cc3-foot">
+      <div class="cc3-profile">
+        ${profilePhoto ? `<img class="cc3-avatar cc3-avatar-img" src="${window.CCCommon.escapeHtml(profilePhoto)}" alt="">` : `<span class="cc3-avatar">${window.CCCommon.escapeHtml(initials)}</span>`}
+        <div class="cc3-profile-txt">
+          <div class="cc3-name-line">
+            <span class="cc3-name">${window.CCCommon.escapeHtml(firstName)} <em>${window.CCCommon.escapeHtml(lastName)}</em></span>
+            ${isVerified ? `<svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>` : ""}
+          </div>
+          <span class="cc3-meta">${window.CCCommon.escapeHtml(profileLabel)}</span>
+        </div>
+      </div>
+      <button class="cc3-cta" type="button" data-reserve-offer="${offer.id}" aria-label="Contacter ${window.CCCommon.escapeHtml(offer.ownerName || "ce voyageur")}">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
+        <span>Contacter</span>
       </button>
-    </div>
+    </footer>
   </article>
 </div>`;
             })

@@ -10134,3 +10134,405 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     border-color: rgba(255, 255, 255, 0.05) !important;
     border-radius: 12px !important;
 }
+
+/* ============================================================
+   OFFER CARD CC3 — design de l'agent (assets images)
+   Dark par défaut + Light sous body.results-page.light
+   ============================================================ */
+.cards-list .cc3-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-radius: 24px;
+    padding: 18px 18px 14px !important;
+    background:
+        radial-gradient(circle at 84% 29%, rgba(192, 136, 27, 0.12), transparent 21%),
+        linear-gradient(135deg, #1c1d1e 0%, #111213 47%, #0b0c0d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.105);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: background 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease, transform 0.25s ease;
+}
+.cards-list .cc3-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(212, 163, 69, 0.35);
+    box-shadow: 0 24px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(212, 163, 69, 0.08);
+}
+
+/* Assets images (planète + skyline) */
+.cc3-planet {
+    position: absolute;
+    right: -8px;
+    top: 60px;
+    width: 190px;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.9;
+    transition: opacity 0.28s ease, filter 0.28s ease;
+}
+.cc3-skyline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 96px;
+    object-fit: cover;
+    object-position: left bottom;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 1;
+    transition: opacity 0.28s ease;
+}
+.cc3-light { opacity: 0; }
+body.results-page.light .cc3-dark { opacity: 0; }
+body.results-page.light .cc3-light.cc3-planet { opacity: 0.92; }
+body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
+
+/* Contenu au-dessus des images */
+.cc3-head, .cc3-route, .cc3-rule, .cc3-details, .cc3-foot {
+    position: relative;
+    z-index: 2;
+}
+
+/* ── En-tête ── */
+.cc3-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+.cc3-logo { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.cc3-logo-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #f0c35a, #b87b10);
+    box-shadow: 0 0 14px rgba(210, 154, 34, 0.44);
+}
+.cc3-logo-txt {
+    font-family: 'Hanken Grotesk', sans-serif;
+    color: #f8f5ef;
+    font-size: 0.85rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.cc3-logo-txt span { color: #d29a22; }
+.cc3-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.125);
+    background: rgba(24, 24, 24, 0.76);
+    color: #ecdec4;
+    font-size: 0.7rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.cc3-date svg { width: 15px; height: 15px; stroke: #f0bf45; }
+
+/* ── Itinéraire ── */
+.cc3-route {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.cc3-flag-shell {
+    width: 52px;
+    height: 52px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border: 1px solid rgba(255, 255, 255, 0.11);
+    background: rgba(255, 255, 255, 0.035);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 18px rgba(0, 0, 0, 0.25);
+}
+.cc3-flag {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: block;
+    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.3);
+}
+.cc3-flag-fr { background: linear-gradient(90deg, #244a99 0 33.333%, #f7f7f3 33.333% 66.666%, #e3383d 66.666%); }
+.cc3-flag-sn {
+    position: relative;
+    background: linear-gradient(90deg, #1fa14c 0 33.333%, #f1df58 33.333% 66.666%, #e63a40 66.666%);
+}
+.cc3-flag-sn::before {
+    content: "\2605";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #168d41;
+    font-size: 13px;
+}
+.cc3-place { min-width: 0; }
+.cc3-place-to { text-align: right; margin-left: auto; }
+.cc3-label {
+    display: block;
+    color: #908d88;
+    font-size: 0.55rem;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+.cc3-country {
+    display: block;
+    color: #fffdf8;
+    font-size: 1.05rem;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cc3-flight {
+    width: 74px;
+    height: 26px;
+    flex-shrink: 0;
+}
+.cc3-flight path {
+    fill: none;
+    stroke: #d29a22;
+    stroke-width: 2.1;
+    stroke-linecap: round;
+    stroke-dasharray: 5 9;
+    opacity: 0.9;
+}
+.cc3-flight .cc3-plane { fill: #d29a22; stroke: none; filter: drop-shadow(0 0 8px rgba(210, 154, 34, 0.4)); }
+
+/* ── Règle ── */
+.cc3-rule {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.115);
+}
+
+/* ── Détails : 3 colonnes ── */
+.cc3-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+}
+.cc3-detail {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 8px;
+}
+.cc3-detail + .cc3-detail {
+    border-left: 1px solid rgba(255, 255, 255, 0.13);
+}
+.cc3-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: #d29a22;
+    border: 1px solid rgba(210, 154, 34, 0.2);
+    background: rgba(255, 255, 255, 0.032);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+.cc3-icon svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.9; fill: none; }
+.cc3-detail-txt { min-width: 0; }
+.cc3-d-label {
+    display: block;
+    color: #a9a49d;
+    font-size: 0.5rem;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    white-space: nowrap;
+}
+.cc3-value {
+    color: #fffaf2;
+    font-size: 1rem;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+.cc3-value .cc3-gold,
+.cc3-value .cc3-kg { color: #d29a22; }
+.cc3-value .cc3-kg { font-size: 0.85rem; margin-left: 1px; }
+.cc3-price {
+    display: block;
+    color: #fffaf2;
+    font-size: 0.95rem;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+}
+.cc3-inclusive {
+    display: block;
+    color: #e9ad2c;
+    font-size: 0.52rem;
+    line-height: 1;
+    font-weight: 700;
+    font-style: italic;
+    margin-top: 4px;
+    white-space: nowrap;
+}
+
+/* ── Pied ── */
+.cc3-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.cc3-profile { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.cc3-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 800;
+    background:
+        radial-gradient(circle at 32% 23%, #f0c552 0 20%, transparent 42%),
+        linear-gradient(135deg, #c98716, #e0a22c 52%, #906008);
+    border: 1px solid rgba(255, 255, 255, 0.13);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.cc3-avatar-img { object-fit: cover; }
+.cc3-profile-txt { min-width: 0; }
+.cc3-name-line { display: flex; align-items: center; gap: 6px; }
+.cc3-name {
+    color: #fffaf2;
+    font-size: 0.92rem;
+    line-height: 1;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cc3-name em { color: #d29a22; font-style: italic; }
+.cc3-shield {
+    width: 15px;
+    height: 17px;
+    color: #d29a22;
+    flex-shrink: 0;
+}
+.cc3-meta {
+    display: block;
+    color: #aaa6a0;
+    font-size: 0.52rem;
+    line-height: 1;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 5px;
+    white-space: nowrap;
+}
+.cc3-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 18px;
+    border: 0;
+    flex-shrink: 0;
+    color: #101010;
+    background:
+        radial-gradient(circle at 27% 0%, rgba(255, 255, 255, 0.3), transparent 34%),
+        linear-gradient(135deg, #c18017, #e4aa2e 45%, #f0bd42 100%);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    font-family: 'Hanken Grotesk', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+.cc3-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.32); }
+.cc3-cta svg { width: 16px; height: 16px; fill: #101010; }
+
+/* ── MODE CLAIR ── */
+body.results-page.light .cc3-card {
+    border-color: rgba(20, 20, 20, 0.105);
+    background:
+        radial-gradient(circle at 85% 28%, rgba(210, 154, 34, 0.12), transparent 22%),
+        linear-gradient(135deg, #ffffff 0%, #fbfaf7 56%, #f7f3eb 100%);
+    box-shadow: 0 18px 40px rgba(65, 55, 38, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+body.results-page.light .cc3-logo-txt { color: #151515; }
+body.results-page.light .cc3-logo-txt span { color: #d29a22; }
+body.results-page.light .cc3-date {
+    color: #272522;
+    border-color: rgba(20, 20, 20, 0.08);
+    background: rgba(244, 240, 232, 0.92);
+    box-shadow: 0 8px 18px rgba(64, 54, 37, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+body.results-page.light .cc3-date svg { stroke: #d29a22; }
+body.results-page.light .cc3-flag-shell {
+    border-color: rgba(20, 20, 20, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 10px 18px rgba(62, 54, 40, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+body.results-page.light .cc3-label,
+body.results-page.light .cc3-d-label { color: #5f5b55; }
+body.results-page.light .cc3-country,
+body.results-page.light .cc3-value,
+body.results-page.light .cc3-price,
+body.results-page.light .cc3-name { color: #131313; }
+body.results-page.light .cc3-flight path { stroke: rgba(45, 45, 45, 0.5); }
+body.results-page.light .cc3-flight .cc3-plane { fill: #d29a22; filter: drop-shadow(0 3px 7px rgba(210, 154, 34, 0.25)); }
+body.results-page.light .cc3-rule { background: rgba(23, 23, 23, 0.09); }
+body.results-page.light .cc3-detail + .cc3-detail { border-left-color: rgba(23, 23, 23, 0.11); }
+body.results-page.light .cc3-icon {
+    color: #c89422;
+    border-color: rgba(210, 154, 34, 0.13);
+    background: rgba(210, 154, 34, 0.075);
+    box-shadow: 0 7px 14px rgba(68, 53, 21, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+body.results-page.light .cc3-inclusive { color: #c89422; }
+body.results-page.light .cc3-meta { color: #5e5a53; }
+body.results-page.light .cc3-cta {
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(171, 120, 25, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+body.results-page.light .cc3-cta svg { fill: #fff; }
+body.results-page.light .cc3-shield { color: #d29a22; }
+
+/* ── Responsive ── */
+@media (max-width: 760px) {
+    .cards-list .cc3-card { padding: 16px 14px 12px !important; border-radius: 20px; gap: 10px; }
+    .cc3-planet { width: 140px; top: 66px; }
+    .cc3-skyline { height: 72px; }
+    .cc3-country { font-size: 0.95rem; }
+    .cc3-flag-shell { width: 46px; height: 46px; }
+    .cc3-flag { width: 30px; height: 30px; }
+    .cc3-flight { width: 60px; }
+    .cc3-detail { gap: 7px; padding: 4px 5px; }
+    .cc3-icon { width: 32px; height: 32px; border-radius: 9px; }
+    .cc3-icon svg { width: 18px; height: 18px; }
+    .cc3-value { font-size: 0.88rem; }
+    .cc3-price { font-size: 0.82rem; }
+    .cc3-cta { padding: 9px 13px; font-size: 0.66rem; }
+    .cc3-avatar { width: 36px; height: 36px; }
+}
+
