@@ -10402,6 +10402,76 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     white-space: nowrap;
 }
 
+/* ── BULLE D'EAU — réfraction sur la zone prix ── */
+.cards-list .cc3-card .cc3-detail-price {
+    padding: 0 !important;
+}
+.cards-list .cc3-card .cc3-price-bubble {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    /* Contour organique d'une goutte d'eau : fluide, sans bordure nette */
+    border-radius: 52% 48% 46% 54% / 56% 46% 58% 44%;
+    /* Réfraction : léger flou + saturation dorée + fraîcheur */
+    backdrop-filter: blur(1.6px) saturate(1.9) brightness(1.05);
+    -webkit-backdrop-filter: blur(1.6px) saturate(1.9) brightness(1.05);
+    background: radial-gradient(circle at 28% 18%, rgba(255, 255, 255, 0.09), transparent 55%);
+}
+/* Grossissement organique : uniforme sur TOUS les éléments de prix */
+.cards-list .cc3-card .cc3-price-zoom {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transform: scale(1.18);
+    transform-origin: center center;
+}
+/* Reflets de lumière : fins, nets, dispersés (comme l'eau stagnante) */
+.cards-list .cc3-card .cc3-price-bubble::before,
+.cards-list .cc3-card .cc3-price-bubble::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+}
+.cards-list .cc3-card .cc3-price-bubble::before {
+    top: 7%;
+    left: 12%;
+    width: 36%;
+    height: 2px;
+    transform: rotate(-14deg);
+    filter: blur(0.3px);
+}
+.cards-list .cc3-card .cc3-price-bubble::after {
+    bottom: 14%;
+    right: 7%;
+    width: 28%;
+    height: 1.5px;
+    transform: rotate(9deg);
+    opacity: 0.55;
+    filter: blur(0.3px);
+}
+/* Clarté chirurgicale : icône nue (sans boîte de verre), or saturé, blanc frais */
+.cards-list .cc3-card .cc3-price-zoom .cc3-icon {
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    color: #eab84e !important;
+}
+.cards-list .cc3-card .cc3-price-zoom .cc3-price {
+    color: #fffdf6;
+}
+.cards-list .cc3-card .cc3-price-zoom .cc3-inclusive {
+    color: #f5c05e;
+}
+.cards-list .cc3-card .cc3-price-zoom .cc3-d-label {
+    color: #d5cfc4;
+}
+
 /* ── Pied ── */
 .cc3-foot {
     display: flex;
@@ -10527,6 +10597,16 @@ body.results-page.light .cc3-cta {
 }
 body.results-page.light .cc3-cta svg { fill: #fff; }
 body.results-page.light .cc3-shield { color: #d29a22; }
+/* Bulle d'eau en mode clair : reflets brun-doré, halo chaud */
+body.results-page.light .cc3-price-bubble {
+    background: radial-gradient(circle at 28% 18%, rgba(210, 154, 34, 0.08), transparent 55%);
+}
+body.results-page.light .cc3-price-bubble::before,
+body.results-page.light .cc3-price-bubble::after {
+    background: linear-gradient(90deg, transparent, rgba(150, 105, 25, 0.5), transparent);
+}
+body.results-page.light .cc3-price-zoom .cc3-price { color: #1d1b17; }
+body.results-page.light .cc3-price-zoom .cc3-d-label { color: #6b655a; }
 
 /* ── Responsive ── */
 @media (max-width: 760px) {
@@ -10542,5 +10622,8 @@ body.results-page.light .cc3-shield { color: #d29a22; }
     .cc3-price { font-size: 0.85rem; }
     .cc3-cta { padding: 9px 13px !important; font-size: 0.65rem; }
     .cc3-name { font-size: 0.85rem; }
+    /* Bulle d'eau : zoom réduit sur mobile pour garder la clarté */
+    .cards-list .cc3-card .cc3-price-zoom { transform: scale(1.12); }
+    .cards-list .cc3-card .cc3-price-bubble { border-radius: 50% 50% 48% 52% / 55% 48% 55% 45%; }
 }
 
