@@ -8943,7 +8943,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
    ============================================================ */
 .cards-list.offers-stream {
     display: grid !important;
-    grid-template-columns: repeat(auto-fit, minmax(365px, 365px)) !important;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 380px)) !important;
     gap: 22px !important;
     justify-content: start !important;
     align-items: stretch !important;
@@ -10139,14 +10139,21 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
    OFFER CARD CC3 — design de l'agent (assets images)
    Dark par défaut + Light sous body.results-page.light
    ============================================================ */
+/* Neutraliser le padding/margin générique .cards-list div (12px partout)
+   qui gonflait chaque section et débordait la colonne de grille */
+.cards-list .cc3-card * {
+    padding: 0 !important;
+    margin: 0 !important;
+}
 .cards-list .cc3-card {
     position: relative;
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 9px;
     border-radius: 24px;
-    padding: 18px 18px 14px !important;
+    padding: 16px 16px 12px !important;
+    min-width: 0;
     background:
         radial-gradient(circle at 84% 29%, rgba(192, 136, 27, 0.12), transparent 21%),
         linear-gradient(135deg, #1c1d1e 0%, #111213 47%, #0b0c0d 100%);
@@ -10164,8 +10171,8 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .cc3-planet {
     position: absolute;
     right: -8px;
-    top: 60px;
-    width: 190px;
+    top: 58px;
+    width: 160px;
     pointer-events: none;
     z-index: 1;
     opacity: 0.9;
@@ -10227,7 +10234,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 6px 12px;
+    padding: 6px 12px !important;
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.125);
     background: rgba(24, 24, 24, 0.76);
@@ -10242,12 +10249,13 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-route {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
+    min-width: 0;
 }
 .cc3-flag-shell {
-    width: 52px;
-    height: 52px;
-    border-radius: 15px;
+    width: 44px;
+    height: 44px;
+    border-radius: 13px;
     display: grid;
     place-items: center;
     flex-shrink: 0;
@@ -10256,9 +10264,9 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 18px rgba(0, 0, 0, 0.25);
 }
 .cc3-flag {
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
+    width: 29px;
+    height: 29px;
+    border-radius: 7px;
     overflow: hidden;
     display: block;
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.3);
@@ -10278,21 +10286,21 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     font-size: 13px;
 }
 .cc3-place { min-width: 0; }
-.cc3-place-to { text-align: right; margin-left: auto; }
+.cc3-place-to { text-align: right; margin-left: auto !important; }
 .cc3-label {
     display: block;
     color: #908d88;
-    font-size: 0.55rem;
+    font-size: 0.52rem;
     line-height: 1;
     font-weight: 800;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    margin-bottom: 5px;
+    margin-bottom: 4px !important;
 }
 .cc3-country {
     display: block;
     color: #fffdf8;
-    font-size: 1.05rem;
+    font-size: 0.98rem;
     line-height: 1;
     font-weight: 800;
     letter-spacing: -0.02em;
@@ -10301,8 +10309,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     text-overflow: ellipsis;
 }
 .cc3-flight {
-    width: 74px;
-    height: 26px;
+    width: 70px;
+    height: 24px;
     flex-shrink: 0;
 }
 .cc3-flight path {
@@ -10326,44 +10334,46 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     align-items: center;
+    min-width: 0;
 }
 .cc3-detail {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 4px 8px;
+    gap: 8px;
+    padding: 2px 6px !important;
+    min-width: 0;
 }
 .cc3-detail + .cc3-detail {
     border-left: 1px solid rgba(255, 255, 255, 0.13);
 }
-.cc3-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 11px;
+.cards-list .cc3-card .cc3-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    color: #d29a22;
+    color: #d29a22 !important;
     border: 1px solid rgba(210, 154, 34, 0.2);
     background: rgba(255, 255, 255, 0.032);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 6px 14px rgba(0, 0, 0, 0.2);
 }
-.cc3-icon svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 1.9; fill: none; }
+.cc3-icon svg { width: 19px; height: 19px; stroke: currentColor; stroke-width: 1.9; fill: none; }
 .cc3-detail-txt { min-width: 0; }
 .cc3-d-label {
     display: block;
     color: #a9a49d;
-    font-size: 0.5rem;
+    font-size: 0.48rem;
     line-height: 1;
     font-weight: 800;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 3px !important;
     white-space: nowrap;
 }
 .cc3-value {
     color: #fffaf2;
-    font-size: 1rem;
+    font-size: 0.93rem;
     line-height: 1;
     font-weight: 900;
     letter-spacing: -0.02em;
@@ -10371,11 +10381,11 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 }
 .cc3-value .cc3-gold,
 .cc3-value .cc3-kg { color: #d29a22; }
-.cc3-value .cc3-kg { font-size: 0.85rem; margin-left: 1px; }
+.cc3-value .cc3-kg { font-size: 0.8rem; margin-left: 1px; }
 .cc3-price {
     display: block;
     color: #fffaf2;
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     line-height: 1;
     font-weight: 900;
     letter-spacing: -0.02em;
@@ -10384,11 +10394,11 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-inclusive {
     display: block;
     color: #e9ad2c;
-    font-size: 0.52rem;
+    font-size: 0.5rem;
     line-height: 1;
     font-weight: 700;
     font-style: italic;
-    margin-top: 4px;
+    margin-top: 3px !important;
     white-space: nowrap;
 }
 
@@ -10397,18 +10407,18 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
 }
-.cc3-profile { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.cc3-avatar {
-    width: 40px;
-    height: 40px;
+.cc3-profile { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.cards-list .cc3-card .cc3-avatar {
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    color: #fff;
-    font-size: 0.9rem;
+    color: #fff !important;
+    font-size: 0.82rem;
     font-weight: 800;
     background:
         radial-gradient(circle at 32% 23%, #f0c552 0 20%, transparent 42%),
@@ -10418,10 +10428,10 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 }
 .cc3-avatar-img { object-fit: cover; }
 .cc3-profile-txt { min-width: 0; }
-.cc3-name-line { display: flex; align-items: center; gap: 6px; }
+.cc3-name-line { display: flex; align-items: center; gap: 5px; }
 .cc3-name {
     color: #fffaf2;
-    font-size: 0.92rem;
+    font-size: 0.85rem;
     line-height: 1;
     font-weight: 900;
     letter-spacing: -0.02em;
@@ -10431,28 +10441,28 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 }
 .cc3-name em { color: #d29a22; font-style: italic; }
 .cc3-shield {
-    width: 15px;
-    height: 17px;
+    width: 14px;
+    height: 16px;
     color: #d29a22;
     flex-shrink: 0;
 }
 .cc3-meta {
     display: block;
     color: #aaa6a0;
-    font-size: 0.52rem;
+    font-size: 0.5rem;
     line-height: 1;
     font-weight: 800;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    margin-top: 5px;
+    margin-top: 4px !important;
     white-space: nowrap;
 }
 .cc3-cta {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 18px;
+    gap: 7px;
+    padding: 9px 14px !important;
+    border-radius: 15px;
     border: 0;
     flex-shrink: 0;
     color: #101010;
@@ -10461,7 +10471,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
         linear-gradient(135deg, #c18017, #e4aa2e 45%, #f0bd42 100%);
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.32);
     font-family: 'Hanken Grotesk', sans-serif;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 900;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -10469,7 +10479,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     transition: transform 0.2s ease, box-shadow 0.25s ease;
 }
 .cc3-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.32); }
-.cc3-cta svg { width: 16px; height: 16px; fill: #101010; }
+.cc3-cta svg { width: 15px; height: 15px; fill: #101010; }
 
 /* ── MODE CLAIR ── */
 body.results-page.light .cc3-card {
@@ -10504,7 +10514,7 @@ body.results-page.light .cc3-flight .cc3-plane { fill: #d29a22; filter: drop-sha
 body.results-page.light .cc3-rule { background: rgba(23, 23, 23, 0.09); }
 body.results-page.light .cc3-detail + .cc3-detail { border-left-color: rgba(23, 23, 23, 0.11); }
 body.results-page.light .cc3-icon {
-    color: #c89422;
+    color: #c89422 !important;
     border-color: rgba(210, 154, 34, 0.13);
     background: rgba(210, 154, 34, 0.075);
     box-shadow: 0 7px 14px rgba(68, 53, 21, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.78);
@@ -10520,19 +10530,20 @@ body.results-page.light .cc3-shield { color: #d29a22; }
 
 /* ── Responsive ── */
 @media (max-width: 760px) {
-    .cards-list .cc3-card { padding: 16px 14px 12px !important; border-radius: 20px; gap: 10px; }
-    .cc3-planet { width: 140px; top: 66px; }
-    .cc3-skyline { height: 72px; }
-    .cc3-country { font-size: 0.95rem; }
-    .cc3-flag-shell { width: 46px; height: 46px; }
-    .cc3-flag { width: 30px; height: 30px; }
-    .cc3-flight { width: 60px; }
-    .cc3-detail { gap: 7px; padding: 4px 5px; }
-    .cc3-icon { width: 32px; height: 32px; border-radius: 9px; }
-    .cc3-icon svg { width: 18px; height: 18px; }
-    .cc3-value { font-size: 0.88rem; }
-    .cc3-price { font-size: 0.82rem; }
-    .cc3-cta { padding: 9px 13px; font-size: 0.66rem; }
-    .cc3-avatar { width: 36px; height: 36px; }
+    .cards-list .cc3-card { padding: 14px 12px 10px !important; border-radius: 20px; gap: 8px; }
+    .cc3-planet { width: 110px; top: 58px; }
+    .cc3-skyline { height: 64px; }
+    .cc3-country { font-size: 0.9rem; }
+    .cc3-flag-shell { width: 40px; height: 40px; }
+    .cc3-flag { width: 26px; height: 26px; }
+    .cc3-flight { width: 56px; }
+    .cc3-detail { gap: 6px; padding: 2px 4px !important; }
+    .cc3-icon { width: 28px; height: 28px; border-radius: 8px; }
+    .cc3-icon svg { width: 16px; height: 16px; }
+    .cc3-value { font-size: 0.85rem; }
+    .cc3-price { font-size: 0.8rem; }
+    .cc3-cta { padding: 8px 11px !important; font-size: 0.62rem; }
+    .cc3-avatar { width: 32px; height: 32px; }
+    .cc3-name { font-size: 0.8rem; }
 }
 
