@@ -10418,7 +10418,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     filter: blur(0.7px);
 }
 .cards-list .cc3-card .water-lens {
-    --lens-size: 102px;
+    --lens-size: 112px;
     position: absolute;
     right: 7px;
     top: 50%;
@@ -10475,8 +10475,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     z-index: 2;
     display: flex;
     align-items: center;
-    gap: 8px;
-    width: 97px;
+    gap: 6px;
+    width: 104px;
     transform: translate(1px, 1px) scale(1.03);
     transform-origin: center;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.34));
@@ -10490,8 +10490,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     transform: rotate(-8deg) scaleX(1.16);
 }
 .cards-list .cc3-card .water-lens__icon {
-    width: 25px;
-    height: 25px;
+    width: 22px;
+    height: 22px;
     border: 0;
     color: #f4bd4a;
     background: rgba(255, 255, 255, 0.1);
@@ -10499,16 +10499,16 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 }
 .cards-list .cc3-card .water-lens .cc3-d-label {
     color: rgba(255, 250, 242, 0.74);
-    font-size: 0.37rem;
+    font-size: 0.4rem;
 }
 .cards-list .cc3-card .water-lens .cc3-price {
     color: #fffef8;
-    font-size: 0.74rem;
+    font-size: 0.9rem;
     letter-spacing: -0.01em;
 }
 .cards-list .cc3-card .water-lens .cc3-inclusive {
     color: #ffd889;
-    font-size: 0.42rem;
+    font-size: 0.46rem;
 }
 @keyframes lens-breathe {
     0%,
@@ -10699,12 +10699,20 @@ body.results-page.light .water-lens__icon {
 /* Lentille d'eau : réglage mobile étroit (agent) */
 @media (max-width: 460px) {
     .cards-list .cc3-card .water-lens {
-        --lens-size: 92px;
+        --lens-size: 100px;
         right: 5px;
     }
     .cards-list .cc3-card .water-lens__content {
-        width: 88px;
-        transform: translate(1px, 1px) scale(0.96);
+        width: 96px;
+        gap: 5px;
+        transform: translate(1px, 1px) scale(1);
+    }
+    .cards-list .cc3-card .water-lens__icon {
+        width: 20px;
+        height: 20px;
+    }
+    .cards-list .cc3-card .water-lens .cc3-price {
+        font-size: 0.8rem;
     }
 }
 
