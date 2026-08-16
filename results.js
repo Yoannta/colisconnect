@@ -365,9 +365,14 @@
         </div>
       </div>
       <div class="cc3-detail cc3-detail-price">
-        <div class="cc3-price-bubble">
-          <div class="cc3-price-zoom">
-            <div class="cc3-icon">
+        <div class="cc3-price-source" aria-hidden="true">
+          <span class="cc3-d-label">Prix / kg</span>
+          <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
+          <span class="cc3-inclusive">all inclusive</span>
+        </div>
+        <div class="water-lens" aria-label="Prix par kilogramme: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
+          <div class="water-lens__content">
+            <div class="cc3-icon water-lens__icon">
               <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19.5 19.5 5H34v14.5L19.5 34 5 19.5z"></path><circle cx="28" cy="11.5" r="2.3"></circle><path d="M31 6.5c3.2 1.6 4.9 4.1 5.1 7.5"></path></svg>
             </div>
             <div class="cc3-detail-txt">
