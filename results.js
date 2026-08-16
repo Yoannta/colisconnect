@@ -313,17 +313,6 @@
     <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
     <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
 
-    <header class="cc3-head">
-      <div class="cc3-logo">
-        <span class="cc3-logo-dot"></span>
-        <span class="cc3-logo-txt">COLIS<span>CONNECT</span></span>
-      </div>
-      <span class="cc3-date">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="16" rx="2.2"></rect><path d="M8 2.8v4.4M16 2.8v4.4M4 10h16"></path></svg>
-        ${window.CCCommon.escapeHtml(badgeDate)}
-      </span>
-    </header>
-
     <section class="cc3-route">
       <div class="cc3-flag-shell"><span class="cc3-flag cc3-flag-fr" aria-hidden="true"></span></div>
       <div class="cc3-place">

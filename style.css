@@ -10171,7 +10171,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .cc3-planet {
     position: absolute;
     right: -8px;
-    top: 46px;
+    top: 18px;
     width: 160px;
     pointer-events: none;
     z-index: 1;
@@ -10684,7 +10684,7 @@ body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 /* ── Responsive ── */
 @media (max-width: 760px) {
     .cards-list .cc3-card { padding: 18px 14px 12px !important; border-radius: 20px; gap: 11px; }
-    .cc3-planet { width: 110px; top: 46px; }
+    .cc3-planet { width: 110px; top: 18px; }
     .cc3-skyline { height: 64px; }
     .cc3-country { font-size: 0.95rem; }
     .cc3-flag-shell { width: 46px; height: 46px; }
