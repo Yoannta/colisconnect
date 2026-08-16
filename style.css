@@ -10418,7 +10418,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     filter: blur(0.7px);
 }
 .cards-list .cc3-card .water-lens {
-    --lens-size: 112px;
+    --lens-size: 120px;
     position: absolute;
     right: 7px;
     top: 50%;
@@ -10476,7 +10476,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: flex;
     align-items: center;
     gap: 6px;
-    width: 104px;
+    width: 112px;
     transform: translate(1px, 1px) scale(1.03);
     transform-origin: center;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.34));
@@ -10489,21 +10489,25 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     background: radial-gradient(circle at 42% 48%, rgba(8, 8, 8, 0.2), transparent 63%);
     transform: rotate(-8deg) scaleX(1.16);
 }
-.cards-list .cc3-card .water-lens__icon {
-    width: 22px;
-    height: 22px;
-    border: 0;
-    color: #f4bd4a;
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2);
+/* Réflexion : la planète vue à travers la goutte, grossie (effet loupe) */
+.cards-list .cc3-card .water-lens__reflection {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 160px;
+    transform: translate(-50%, -50%) scale(1.5);
+    filter: saturate(1.25) contrast(1.05);
+    pointer-events: none;
 }
+.cards-list .cc3-card .water-lens__reflection.cc3-dark { opacity: 0.85; }
+body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 .cards-list .cc3-card .water-lens .cc3-d-label {
     color: rgba(255, 250, 242, 0.74);
     font-size: 0.4rem;
 }
 .cards-list .cc3-card .water-lens .cc3-price {
     color: #fffef8;
-    font-size: 0.9rem;
+    font-size: 1.05rem;
     letter-spacing: -0.01em;
 }
 .cards-list .cc3-card .water-lens .cc3-inclusive {
@@ -10674,11 +10678,8 @@ body.results-page.light .water-lens::after {
 body.results-page.light .water-lens .cc3-d-label { color: rgba(60, 50, 30, 0.75); }
 body.results-page.light .water-lens .cc3-price { color: #1d1b17; }
 body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
-body.results-page.light .water-lens__icon {
-    color: #c89422;
-    background: rgba(255, 255, 255, 0.5);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
-}
+body.results-page.light .water-lens__reflection.cc3-dark { opacity: 0; }
+body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 
 /* ── Responsive ── */
 @media (max-width: 760px) {
@@ -10699,20 +10700,19 @@ body.results-page.light .water-lens__icon {
 /* Lentille d'eau : réglage mobile étroit (agent) */
 @media (max-width: 460px) {
     .cards-list .cc3-card .water-lens {
-        --lens-size: 100px;
+        --lens-size: 108px;
         right: 5px;
     }
     .cards-list .cc3-card .water-lens__content {
-        width: 96px;
-        gap: 5px;
+        width: 100px;
         transform: translate(1px, 1px) scale(1);
     }
-    .cards-list .cc3-card .water-lens__icon {
-        width: 20px;
-        height: 20px;
-    }
     .cards-list .cc3-card .water-lens .cc3-price {
-        font-size: 0.8rem;
+        font-size: 0.95rem;
+    }
+    .cards-list .cc3-card .water-lens__reflection {
+        width: 140px;
+        transform: translate(-50%, -50%) scale(1.35);
     }
 }
 
