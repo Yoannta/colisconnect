@@ -420,18 +420,6 @@ body.results-page.light .results-mobile-main-btn.active {
     border-color: #b8860b !important;
     color: #fff !important;
 }
-body.results-page.light .results-mobile-sub-btn {
-    color: #6b5a43 !important;
-}
-body.results-page.light .results-mobile-sub-switch {
-    border-color: rgba(150, 105, 25, 0.45) !important;
-}
-body.results-page.light .results-mobile-sub-btn + .results-mobile-sub-btn {
-    border-left-color: rgba(150, 105, 25, 0.3) !important;
-}
-body.results-page.light .results-mobile-sub-btn.active {
-    color: #1a1a1a !important;
-}
 
 /* Header partagé + nav mobile : clairs */
 body.results-page.light .site-header,
@@ -10013,67 +10001,72 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 
 /* 4. SOUS-SWITCH (Simple / Cargo) — cases à cocher alignées horizontalement */
 .results-mobile-sub-switch {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: stretch !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 0 !important;
-    background: transparent !important;
-    border: 1px solid rgba(212, 163, 69, 0.4) !important;
-    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid #f0d79d !important;
+    border-radius: 16px !important;
     padding: 0 !important;
-    box-shadow: none !important;
+    box-shadow: 0 6px 18px rgba(114, 81, 19, 0.08) !important;
     position: relative;
     overflow: hidden !important;
 }
-/* Trait vertical au milieu du rectangle : sépare Simple | Cargo */
-.results-mobile-sub-btn + .results-mobile-sub-btn {
-    border-left: 1px solid rgba(212, 163, 69, 0.25) !important;
-}
 .results-mobile-sub-btn {
-    flex: 1;
-    align-self: stretch !important;
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    color: #e2bfb0 !important;
-    font-family: 'Hanken Grotesk', sans-serif !important;
-    font-weight: 500 !important;
-    font-size: 0.85rem !important;
-    padding: 10px 6px !important;
+    min-height: 46px;
     display: flex !important;
     flex-direction: row-reverse !important;
     align-items: center !important;
     justify-content: center !important;
-    gap: 8px;
-    transition: all 0.25s ease;
+    gap: 10px;
+    color: #6b5a3d !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-weight: 800 !important;
+    font-size: 0.9rem !important;
+    padding: 0 !important;
+    transition: color 0.2s ease;
     cursor: pointer;
 }
+.results-mobile-sub-btn.active {
+    /* Jaune clair de l'agent : remplit TOUTE la moitié jusqu'aux bordures */
+    background: #fff4d9 !important;
+    color: #c98600 !important;
+    font-weight: 800 !important;
+    box-shadow: none !important;
+}
+/* Case à cocher façon agent : carré or dégradé + coche blanche */
 .results-mobile-sub-btn .sub-check {
-    width: 20px !important;
-    height: 20px !important;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px !important;
+    height: 24px !important;
     flex: 0 0 auto !important;
-    accent-color: #d4a017 !important;
+    border-radius: 8px;
+    border: 2px solid #c8c4bd;
+    background: #fff;
     cursor: pointer !important;
     margin: 0 !important;
-    border-radius: 4px;
+    display: grid;
+    place-items: center;
+}
+.results-mobile-sub-btn .sub-check:checked {
+    background: linear-gradient(145deg, #e3a100, #f3b000);
+    border-color: transparent;
+}
+.results-mobile-sub-btn .sub-check:checked::after {
+    content: "";
+    width: 12px;
+    height: 7px;
+    border-left: 2.5px solid #fff;
+    border-bottom: 2.5px solid #fff;
+    transform: rotate(-45deg) translateY(-1px);
 }
 .results-mobile-sub-btn .material-symbols-outlined {
     font-size: 1.15rem !important;
     line-height: 1;
-}
-.results-mobile-sub-btn.active {
-    /* Jaune doré CLAIR (plus clair que le CTA) — descend jusqu'aux bordures */
-    background: linear-gradient(135deg, #ecc878, #f2da9a 45%, #f9e9b8 100%) !important;
-    border-color: transparent !important;
-    color: #1a1a1a !important;
-    font-weight: 700 !important;
-    box-shadow: none !important;
-}
-.results-mobile-sub-btn.active .sub-check {
-    accent-color: #1a1a1a !important;
-}
-.results-mobile-sub-btn.active .material-symbols-outlined {
-    color: #1a1a1a !important;
 }
 
 /* 5. ÉTIQUETTE "Type de transporteur" */
