@@ -10439,7 +10439,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     place-items: center;
     /* Rectangle auto : épouse le prix, façon bouton */
     border-radius: 18px;
-    padding: 8px 16px 10px;
+    padding: 11px 18px 12px;
     overflow: hidden;
     color: #fffaf2;
     background:
@@ -10712,7 +10712,7 @@ body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 @media (max-width: 460px) {
     .cards-list .cc3-card .water-lens {
         right: 5px;
-        padding: 6px 12px 8px;
+        padding: 9px 14px 10px;
         border-radius: 14px;
     }
     .cards-list .cc3-card .water-lens__content {
