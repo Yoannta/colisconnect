@@ -10015,6 +10015,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .results-mobile-sub-switch {
     display: flex !important;
     flex-direction: row !important;
+    align-items: stretch !important;
     gap: 0 !important;
     background: transparent !important;
     border: 1px solid rgba(212, 163, 69, 0.4) !important;
@@ -10030,6 +10031,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 .results-mobile-sub-btn {
     flex: 1;
+    align-self: stretch !important;
     background: transparent !important;
     border: none !important;
     border-radius: 0 !important;
@@ -10060,7 +10062,8 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     line-height: 1;
 }
 .results-mobile-sub-btn.active {
-    background: linear-gradient(135deg, #c18017, #e4aa2e 45%, #f0bd42 100%) !important;
+    /* Jaune doré CLAIR (plus clair que le CTA) — descend jusqu'aux bordures */
+    background: linear-gradient(135deg, #ecc878, #f2da9a 45%, #f9e9b8 100%) !important;
     border-color: transparent !important;
     color: #1a1a1a !important;
     font-weight: 700 !important;
