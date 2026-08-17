@@ -10004,11 +10004,12 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 0 !important;
-    background: rgba(255, 255, 255, 0.7) !important;
-    border: 1px solid #f0d79d !important;
+    /* SOMBRE (défaut) : anthracite + bordure or */
+    background: rgba(23, 24, 27, 0.9) !important;
+    border: 1px solid rgba(212, 163, 69, 0.45) !important;
     border-radius: 16px !important;
     padding: 0 !important;
-    box-shadow: 0 6px 18px rgba(114, 81, 19, 0.08) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
     position: relative;
     overflow: hidden !important;
 }
@@ -10020,7 +10021,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     align-items: center !important;
     justify-content: center !important;
     gap: 10px;
-    color: #6b5a3d !important;
+    color: #b3a98f !important;
     background: transparent !important;
     border: none !important;
     border-radius: 0 !important;
@@ -10032,13 +10033,13 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     cursor: pointer;
 }
 .results-mobile-sub-btn.active {
-    /* Jaune clair de l'agent : remplit TOUTE la moitié jusqu'aux bordures */
-    background: #fff4d9 !important;
-    color: #c98600 !important;
+    /* SOMBRE : or foncé dégradé + texte or clair — remplit TOUTE la moitié */
+    background: linear-gradient(135deg, #6b5418, #8a6d1f) !important;
+    color: #ffd889 !important;
     font-weight: 800 !important;
     box-shadow: none !important;
 }
-/* Case à cocher façon agent : carré or dégradé + coche blanche */
+/* Case à cocher : sombre (vide = anthracite, cochée = or dégradé + coche blanche) */
 .results-mobile-sub-btn .sub-check {
     appearance: none;
     -webkit-appearance: none;
@@ -10046,8 +10047,8 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     height: 24px !important;
     flex: 0 0 auto !important;
     border-radius: 8px;
-    border: 2px solid #c8c4bd;
-    background: #fff;
+    border: 2px solid #4a4d52;
+    background: #1d1f22;
     cursor: pointer !important;
     margin: 0 !important;
     display: grid;
@@ -10068,6 +10069,24 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .results-mobile-sub-btn .material-symbols-outlined {
     font-size: 1.15rem !important;
     line-height: 1;
+}
+
+/* CLAIR : version de l'agent (crème + or clair) */
+body.results-page.light .results-mobile-sub-switch {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: #f0d79d !important;
+    box-shadow: 0 6px 18px rgba(114, 81, 19, 0.08) !important;
+}
+body.results-page.light .results-mobile-sub-btn {
+    color: #6b5a3d !important;
+}
+body.results-page.light .results-mobile-sub-btn.active {
+    background: #fff4d9 !important;
+    color: #c98600 !important;
+}
+body.results-page.light .results-mobile-sub-btn .sub-check {
+    border-color: #c8c4bd;
+    background: #fff;
 }
 
 /* 5. ÉTIQUETTE "Type de transporteur" */
