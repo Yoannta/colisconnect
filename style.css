@@ -10438,8 +10438,10 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: grid;
     place-items: center;
     /* Rectangle auto : épouse le prix, façon bouton */
-    border-radius: 18px;
+    border-radius: 22px;
     padding: 11px 18px 12px;
+    min-width: 240px;
+    min-height: 96px;
     overflow: hidden;
     color: #fffaf2;
     background:
@@ -10713,7 +10715,9 @@ body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
     .cards-list .cc3-card .water-lens {
         right: 5px;
         padding: 9px 14px 10px;
-        border-radius: 14px;
+        border-radius: 16px;
+        min-width: 210px;
+        min-height: 88px;
     }
     .cards-list .cc3-card .water-lens__content {
         transform: translate(1px, 1px) scale(1);
