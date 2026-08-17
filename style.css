@@ -10124,7 +10124,11 @@ body.results-page.light .results-mobile-main-btn:not(.active):hover {
     border-radius: 16px !important;
     padding: 0 !important;
     height: 52px !important;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
+    /* Ombre déposée : effet 3D (double couche + liseré haut intérieur) */
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.35),
+        0 12px 24px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     position: relative;
     overflow: hidden !important;
 }
@@ -10179,7 +10183,10 @@ body.results-page.light .results-mobile-main-btn:not(.active):hover {
 body.results-page.light .results-mobile-sub-switch {
     background: rgba(255, 255, 255, 0.7) !important;
     border-color: #f0d79d !important;
-    box-shadow: 0 6px 18px rgba(114, 81, 19, 0.08) !important;
+    box-shadow:
+        0 3px 8px rgba(114, 81, 19, 0.1),
+        0 12px 24px rgba(114, 81, 19, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 body.results-page.light .results-mobile-sub-btn {
     color: #6b5a3d !important;
