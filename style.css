@@ -10013,7 +10013,8 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     overflow: hidden !important;
 }
 .results-mobile-sub-btn {
-    min-height: 46px;
+    height: 100% !important;
+    min-height: 46px !important;
     display: flex !important;
     flex-direction: row-reverse !important;
     align-items: center !important;
