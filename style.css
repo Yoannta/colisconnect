@@ -10039,32 +10039,21 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     font-weight: 800 !important;
     box-shadow: none !important;
 }
-/* Case à cocher : sombre (vide = anthracite, cochée = or dégradé + coche blanche) */
+/* Case à cocher : native avec accent or — coche native visible, pas de bleu */
 .results-mobile-sub-btn .sub-check {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 24px !important;
-    height: 24px !important;
+    width: 22px !important;
+    height: 22px !important;
     flex: 0 0 auto !important;
-    border-radius: 8px;
-    border: 2px solid #4a4d52;
-    background: #1d1f22;
+    accent-color: #f3b000 !important;
     cursor: pointer !important;
     margin: 0 !important;
-    display: grid;
-    place-items: center;
+    outline: none !important;
+    box-shadow: none !important;
 }
-.results-mobile-sub-btn .sub-check:checked {
-    background: linear-gradient(145deg, #e3a100, #f3b000);
-    border-color: transparent;
-}
-.results-mobile-sub-btn .sub-check:checked::after {
-    content: "";
-    width: 12px;
-    height: 7px;
-    border-left: 2.5px solid #fff;
-    border-bottom: 2.5px solid #fff;
-    transform: rotate(-45deg) translateY(-1px);
+.results-mobile-sub-btn .sub-check:focus,
+.results-mobile-sub-btn .sub-check:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
 }
 .results-mobile-sub-btn .material-symbols-outlined {
     font-size: 1.15rem !important;
@@ -10083,10 +10072,6 @@ body.results-page.light .results-mobile-sub-btn {
 body.results-page.light .results-mobile-sub-btn.active {
     background: #fff4d9 !important;
     color: #c98600 !important;
-}
-body.results-page.light .results-mobile-sub-btn .sub-check {
-    border-color: #c8c4bd;
-    background: #fff;
 }
 
 /* 5. ÉTIQUETTE "Type de transporteur" */
