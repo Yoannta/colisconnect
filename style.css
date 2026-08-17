@@ -10009,6 +10009,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     border: 1px solid rgba(212, 163, 69, 0.45) !important;
     border-radius: 16px !important;
     padding: 0 !important;
+    height: 52px !important;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35) !important;
     position: relative;
     overflow: hidden !important;
@@ -10714,6 +10715,13 @@ body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
     }
     .cards-list .cc3-card .water-lens .cc3-price {
         font-size: 0.95rem;
+    }
+}
+
+/* ── Switch mobile étroit : un peu plus compact ── */
+@media (max-width: 460px) {
+    .results-mobile-sub-switch {
+        height: 48px !important;
     }
 }
 
