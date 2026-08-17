@@ -360,9 +360,6 @@
           <span class="cc3-inclusive">all inclusive</span>
         </div>
         <div class="water-lens" aria-label="Prix par kilogramme: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
-          <!-- Réflexion : la planète derrière la bulle, grossie comme à travers une loupe -->
-          <img class="water-lens__reflection cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
-          <img class="water-lens__reflection cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
           <div class="water-lens__content">
             <div class="cc3-detail-txt">
               <span class="cc3-d-label">Prix / kg</span>

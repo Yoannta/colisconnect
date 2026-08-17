@@ -10502,18 +10502,6 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     background: radial-gradient(circle at 42% 48%, rgba(8, 8, 8, 0.2), transparent 63%);
     transform: rotate(-8deg) scaleX(1.16);
 }
-/* Réflexion : la planète vue à travers la goutte, grossie (effet loupe) */
-.cards-list .cc3-card .water-lens__reflection {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 160px;
-    transform: translate(-50%, -50%) scale(1.5);
-    filter: saturate(1.25) contrast(1.05);
-    pointer-events: none;
-}
-.cards-list .cc3-card .water-lens__reflection.cc3-dark { opacity: 0.85; }
-body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 .cards-list .cc3-card .water-lens .cc3-d-label {
     color: rgba(255, 250, 242, 0.74);
     font-size: 0.4rem;
@@ -10691,8 +10679,6 @@ body.results-page.light .water-lens::after {
 body.results-page.light .water-lens .cc3-d-label { color: rgba(60, 50, 30, 0.75); }
 body.results-page.light .water-lens .cc3-price { color: #1d1b17; }
 body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
-body.results-page.light .water-lens__reflection.cc3-dark { opacity: 0; }
-body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 
 /* ── Responsive ── */
 @media (max-width: 760px) {
@@ -10724,10 +10710,6 @@ body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
     }
     .cards-list .cc3-card .water-lens .cc3-price {
         font-size: 0.95rem;
-    }
-    .cards-list .cc3-card .water-lens__reflection {
-        width: 140px;
-        transform: translate(-50%, -50%) scale(1.35);
     }
 }
 
