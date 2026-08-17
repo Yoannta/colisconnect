@@ -421,7 +421,13 @@ body.results-page.light .results-mobile-main-btn.active {
     color: #fff !important;
 }
 body.results-page.light .results-mobile-sub-btn {
-    color: #5a4632 !important;
+    color: #6b5a43 !important;
+}
+body.results-page.light .results-mobile-sub-switch {
+    border-color: rgba(150, 105, 25, 0.45) !important;
+}
+body.results-page.light .results-mobile-sub-btn + .results-mobile-sub-btn {
+    border-left-color: rgba(150, 105, 25, 0.3) !important;
 }
 body.results-page.light .results-mobile-sub-btn.active {
     color: #b8860b !important;
@@ -10009,13 +10015,18 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .results-mobile-sub-switch {
     display: flex !important;
     flex-direction: row !important;
-    gap: 8px !important;
+    gap: 0 !important;
     background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
+    border: 1px solid rgba(212, 163, 69, 0.4) !important;
+    border-radius: 14px !important;
+    padding: 4px !important;
     box-shadow: none !important;
     position: relative;
     overflow: visible !important;
+}
+/* Trait vertical au milieu du rectangle : sépare Simple | Cargo */
+.results-mobile-sub-btn + .results-mobile-sub-btn {
+    border-left: 1px solid rgba(212, 163, 69, 0.25) !important;
 }
 .results-mobile-sub-btn {
     flex: 1;
