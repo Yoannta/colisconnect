@@ -10432,15 +10432,14 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     filter: blur(0.7px);
 }
 .cards-list .cc3-card .water-lens {
-    --lens-size: 120px;
     position: absolute;
     right: 7px;
     top: 50%;
-    width: var(--lens-size);
-    height: var(--lens-size);
     display: grid;
     place-items: center;
-    border-radius: 54% 46% 49% 51% / 45% 53% 47% 55%;
+    /* Rectangle auto : épouse le prix, façon bouton */
+    border-radius: 18px;
+    padding: 8px 16px 10px;
     overflow: hidden;
     color: #fffaf2;
     background:
@@ -10453,10 +10452,9 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
         0 0 0 1px rgba(255, 255, 255, 0.14),
         inset 10px 13px 18px rgba(255, 255, 255, 0.22),
         inset -14px -17px 28px rgba(15, 23, 42, 0.34);
-    transform: translateY(-51%);
+    transform: translateY(-50%);
     backdrop-filter: blur(6px) saturate(1.65) contrast(1.1);
     -webkit-backdrop-filter: blur(6px) saturate(1.65) contrast(1.1);
-    animation: lens-breathe 5.5s ease-in-out infinite;
 }
 /* Reflets de lumière : fins, nets, dispersés */
 .cards-list .cc3-card .water-lens::before,
@@ -10490,7 +10488,6 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: flex;
     align-items: center;
     gap: 6px;
-    width: 112px;
     transform: translate(1px, 1px) scale(1.03);
     transform-origin: center;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.34));
@@ -10714,11 +10711,11 @@ body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 /* Lentille d'eau : réglage mobile étroit (agent) */
 @media (max-width: 460px) {
     .cards-list .cc3-card .water-lens {
-        --lens-size: 108px;
         right: 5px;
+        padding: 6px 12px 8px;
+        border-radius: 14px;
     }
     .cards-list .cc3-card .water-lens__content {
-        width: 100px;
         transform: translate(1px, 1px) scale(1);
     }
     .cards-list .cc3-card .water-lens .cc3-price {
