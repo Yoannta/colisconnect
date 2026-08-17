@@ -10730,6 +10730,75 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.32); }
 .cc3-cta svg { width: 15px; height: 15px; fill: #101010; }
 
+/* ============================================================
+   OR AMBRÉ PATINÉ (Burnished Amber Gold) — boutons dorés de la
+   page (switch du haut actif, Contacter, filtre actif)
+   Simple/Cargo EXCLUS (ils gardent leur style)
+   ============================================================ */
+.results-mobile-main-btn.active,
+.cards-list .cc3-card .cc3-cta,
+.results-nav-panel .filter-tab.active {
+    position: relative;
+    overflow: hidden;
+    color: #fffdf5 !important;
+    border: 1px solid rgba(255, 225, 138, 0.65) !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 25%, rgba(35, 23, 6, 0.18) 72%, rgba(18, 15, 9, 0.34) 100%),
+        linear-gradient(135deg, #f4b82a 0%, #e5a313 42%, #c98208 76%, #8a5807 100%) !important;
+    box-shadow:
+        0 10px 22px rgba(139, 88, 5, 0.28),
+        0 3px 0 rgba(74, 45, 5, 0.38),
+        inset 0 1px 0 rgba(255, 248, 202, 0.55),
+        inset 0 -7px 12px rgba(36, 22, 5, 0.22) !important;
+    text-shadow: 0 1px 1px rgba(40, 23, 3, 0.35);
+    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+/* Reflet lumineux coin sup. gauche + grain brossé */
+.results-mobile-main-btn.active::before,
+.cards-list .cc3-card .cc3-cta::before,
+.results-nav-panel .filter-tab.active::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 24% 8%, rgba(255, 249, 205, 0.42) 0%, rgba(255, 229, 144, 0.12) 28%, transparent 55%),
+        repeating-linear-gradient(112deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 5px);
+    opacity: 0.7;
+    mix-blend-mode: screen;
+}
+/* Ombre basse intérieure (patine noire subtile) */
+.results-mobile-main-btn.active::after,
+.cards-list .cc3-card .cc3-cta::after,
+.results-nav-panel .filter-tab.active::after {
+    content: "";
+    position: absolute;
+    left: 12%;
+    right: 12%;
+    bottom: 7px;
+    height: 14px;
+    pointer-events: none;
+    border-radius: 50%;
+    background: rgba(35, 21, 5, 0.18);
+    filter: blur(8px);
+}
+.results-mobile-main-btn.active:hover,
+.cards-list .cc3-card .cc3-cta:hover,
+.results-nav-panel .filter-tab.active:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.08) brightness(1.04);
+    box-shadow:
+        0 14px 28px rgba(139, 88, 5, 0.34),
+        0 3px 0 rgba(74, 45, 5, 0.38),
+        inset 0 1px 0 rgba(255, 248, 202, 0.65),
+        inset 0 -7px 12px rgba(36, 22, 5, 0.2) !important;
+}
+.results-mobile-main-btn.active:active,
+.cards-list .cc3-card .cc3-cta:active,
+.results-nav-panel .filter-tab.active:active {
+    transform: translateY(1px);
+}
+
 /* ── MODE CLAIR ── */
 body.results-page.light .cc3-card {
     border-color: rgba(20, 20, 20, 0.105);
