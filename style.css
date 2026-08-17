@@ -10438,10 +10438,10 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: grid;
     place-items: center;
     /* Rectangle auto : épouse le prix, façon bouton */
-    border-radius: 22px;
-    padding: 11px 18px 12px;
-    min-width: 240px;
-    min-height: 96px;
+    border-radius: 18px;
+    padding: 7px 12px 8px;
+    min-width: 120px;
+    min-height: 50px;
     overflow: hidden;
     color: #fffaf2;
     background:
@@ -10714,10 +10714,10 @@ body.results-page.light .water-lens__reflection.cc3-light { opacity: 0.85; }
 @media (max-width: 460px) {
     .cards-list .cc3-card .water-lens {
         right: 5px;
-        padding: 9px 14px 10px;
-        border-radius: 16px;
-        min-width: 210px;
-        min-height: 88px;
+        padding: 6px 10px 7px;
+        border-radius: 14px;
+        min-width: 105px;
+        min-height: 45px;
     }
     .cards-list .cc3-card .water-lens__content {
         transform: translate(1px, 1px) scale(1);
