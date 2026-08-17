@@ -9993,13 +9993,19 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     transition: color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 .results-mobile-main-btn + .results-mobile-main-btn {
-    border-left: 1px solid rgba(212, 163, 69, 0.28) !important;
+    /* Plus de trait au milieu : les deux moitiés se rejoignent à plat (switch) */
+    border-left: none !important;
 }
 .results-mobile-main-btn.active {
     color: #ffffff !important;
     background: linear-gradient(135deg, #e9a614, #f1b52b) !important;
-    border-radius: 84px !important;
+    /* Courbe uniquement sur le bord EXTÉRIEUR : l'or remplit toute la moitié */
+    border-radius: 84px 0 0 84px !important;
     box-shadow: 0 12px 24px rgba(192, 133, 10, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+/* Quand c'est la moitié DROITE qui est active, la courbe passe à droite */
+.results-mobile-main-btn + .results-mobile-main-btn.active {
+    border-radius: 0 84px 84px 0 !important;
 }
 .results-mobile-main-btn:not(.active):hover {
     background: rgba(255, 248, 230, 0.08);
@@ -10070,7 +10076,10 @@ body.results-page.light .results-mobile-main-btn:not(.active):hover {
         font-size: 16px;
     }
     .results-mobile-main-btn.active {
-        border-radius: 56px;
+        border-radius: 56px 0 0 56px !important;
+    }
+    .results-mobile-main-btn + .results-mobile-main-btn.active {
+        border-radius: 0 56px 56px 0 !important;
     }
 }
 /* Responsive ≤430 : mini */
@@ -10097,7 +10106,10 @@ body.results-page.light .results-mobile-main-btn:not(.active):hover {
         font-size: 13px;
     }
     .results-mobile-main-btn.active {
-        border-radius: 46px;
+        border-radius: 46px 0 0 46px !important;
+    }
+    .results-mobile-main-btn + .results-mobile-main-btn.active {
+        border-radius: 0 46px 46px 0 !important;
     }
 }
 
