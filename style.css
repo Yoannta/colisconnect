@@ -10118,18 +10118,16 @@ body.results-page.light .results-mobile-main-btn:not(.active):hover {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     gap: 0 !important;
-    /* SOMBRE (défaut) : anthracite + bordure or */
+    /* SOMBRE (défaut) : anthracite + bordure or.
+       PAS d'ombre 90° (soleil de face) — l'ombre directionnelle est sur le bloc parent */
     background: rgba(23, 24, 27, 0.9) !important;
     border: 1px solid rgba(212, 163, 69, 0.45) !important;
     border-radius: 16px !important;
     padding: 0 !important;
     height: 52px !important;
-    /* Ombre déposée : effet 3D (double couche + liseré haut intérieur) */
-    box-shadow:
-        0 3px 6px rgba(0, 0, 0, 0.35),
-        0 12px 24px rgba(0, 0, 0, 0.28),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     position: relative;
+    z-index: 1;
     overflow: hidden !important;
 }
 .results-mobile-sub-btn {
@@ -10183,10 +10181,7 @@ body.results-page.light .results-mobile-main-btn:not(.active):hover {
 body.results-page.light .results-mobile-sub-switch {
     background: rgba(255, 255, 255, 0.7) !important;
     border-color: #f0d79d !important;
-    box-shadow:
-        0 3px 8px rgba(114, 81, 19, 0.1),
-        0 12px 24px rgba(114, 81, 19, 0.12),
-        inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
 }
 body.results-page.light .results-mobile-sub-btn {
     color: #6b5a3d !important;
@@ -10194,6 +10189,30 @@ body.results-page.light .results-mobile-sub-btn {
 body.results-page.light .results-mobile-sub-btn.active {
     background: #fff4d9 !important;
     color: #c98600 !important;
+}
+
+/* ── Switch Simple/Cargo : OMBRE DIRECTIONNELLE (soleil à droite) ──
+   Trapèze incliné projeté vers la gauche, posé derrière le switch */
+.results-mobile-profile-block {
+    position: relative;
+}
+.results-mobile-profile-block::after {
+    content: "";
+    position: absolute;
+    top: 16px;
+    left: -30px;
+    right: 8px;
+    height: 22px;
+    pointer-events: none;
+    background: linear-gradient(270deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.2) 55%, transparent 88%);
+    border-radius: 8px;
+    filter: blur(8px);
+    /* Soleil à droite : l'ombre part en biais vers la gauche (trapèze) */
+    transform: skewX(-14deg) rotate(1.5deg);
+    transform-origin: right center;
+}
+body.results-page.light .results-mobile-profile-block::after {
+    background: linear-gradient(270deg, rgba(114, 81, 19, 0.3) 0%, rgba(114, 81, 19, 0.14) 55%, transparent 88%);
 }
 
 /* 5. ÉTIQUETTE "Type de transporteur" */
