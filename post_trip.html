@@ -1257,6 +1257,7 @@
                     m.insertBefore(field, modeBtn);
                     modeBtn.classList.add('hidden'); // le bouton choisi laisse sa place au champ
                     rowEl.setAttribute('data-mode', chosen);
+                    rowEl.setAttribute('data-mode-w', String(modeBtn.offsetWidth));
                     field.focus();
                 }
             });
@@ -1270,6 +1271,13 @@
                 if (!mode) return;
                 var m = rowEl.querySelector('.colis-price-modes');
                 var filled = e.target.value.trim() !== '';
+                // Quand le champ est rempli (l'autre bouton disparaît), il s'élargit
+                // pour occuper l'espace libéré ; s'il est vidé, il reprend la taille du bouton
+                if (filled) {
+                    e.target.style.width = '';
+                } else if (rowEl.getAttribute('data-mode-w')) {
+                    e.target.style.width = rowEl.getAttribute('data-mode-w') + 'px';
+                }
                 m.querySelectorAll('.price-mode-btn').forEach(function (b) {
                     if (b.getAttribute('data-mode') !== mode) {
                         b.classList.toggle('hidden', filled);
