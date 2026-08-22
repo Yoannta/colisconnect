@@ -438,7 +438,6 @@
             display: flex;
             align-items: center;
             gap: 12px;
-            flex-wrap: wrap;
             margin-bottom: 10px;
         }
         .colis-detail-row .colis-name-btn {
@@ -509,6 +508,64 @@
         .btn-add-type:hover {
             background: rgba(19,236,200,0.08);
             border-color: #13ecc8;
+        }
+        .colis-row-del {
+            flex-shrink: 0;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            line-height: 1;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .colis-row-del:hover {
+            color: #ff6b6b;
+            border-color: rgba(255,107,107,0.5);
+            background: rgba(255,107,107,0.1);
+        }
+        /* Mobile : la ligne tient sur UNE ligne (nom compact + modes à droite) */
+        @media (max-width: 800px) {
+            .colis-detail-row {
+                gap: 8px;
+            }
+            .colis-detail-row .colis-name-btn {
+                flex: 1 1 auto;
+                padding: 12px 12px;
+                font-size: 0.85rem;
+                min-width: 0;
+            }
+            .colis-name-btn .colis-name-label {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                min-width: 0;
+            }
+            .colis-name-input {
+                flex: 1 1 auto;
+                padding: 12px 12px;
+                font-size: 0.85rem;
+                min-width: 0;
+            }
+            .price-mode-btn {
+                padding: 7px 10px;
+                font-size: 0.72rem;
+            }
+            .price-or {
+                font-size: 0.7rem;
+            }
+            .price-field {
+                width: 110px;
+                padding: 9px 10px;
+                font-size: 0.8rem;
+            }
+            .colis-row-del {
+                width: 34px;
+                height: 34px;
+            }
         }
         .popup-title {
             font-size: 1.2rem;
@@ -853,6 +910,7 @@
                                             <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
                                             <input type="number" class="price-field hidden" data-row="0" placeholder="0" min="0" step="any">
                                         </div>
+                                        <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
                                     </div>
                                 </div>
                                 <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre type</button>
@@ -1101,7 +1159,8 @@
                     '<span class="price-or">ou</span>' +
                     '<button type="button" class="price-mode-btn" data-mode="qty" data-row="' + r + '">prix/quantité</button>' +
                     '<input type="number" class="price-field hidden" data-row="' + r + '" placeholder="0" min="0" step="any">' +
-                    '</div>';
+                    '</div>' +
+                    '<button type="button" class="colis-row-del" data-row="' + r + '" aria-label="Supprimer cette ligne">✕</button>';
                 rowsBox.appendChild(row);
             }
 
@@ -1116,6 +1175,12 @@
             }
 
             rowsBox.addEventListener('click', function (e) {
+                var delBtn = e.target.closest('.colis-row-del');
+                if (delBtn) {
+                    var rowToDel = delBtn.closest('.colis-detail-row');
+                    if (rowToDel) rowToDel.remove();
+                    return;
+                }
                 var nameBtn = e.target.closest('.colis-name-btn');
                 if (nameBtn) {
                     var label = nameBtn.querySelector('.colis-name-label').textContent;
@@ -1131,22 +1196,49 @@
                 }
                 var modeBtn = e.target.closest('.price-mode-btn');
                 if (modeBtn) {
-                    var r = modeBtn.getAttribute('data-row');
-                    var modesBox = modeBtn.parentElement;
+                    var rowEl = modeBtn.closest('.colis-detail-row');
+                    var m = rowEl.querySelector('.colis-price-modes');
                     var chosen = modeBtn.getAttribute('data-mode');
-                    var field = modesBox.querySelector('.price-field[data-row="' + r + '"]');
+                    var prev = rowEl.getAttribute('data-mode');
+                    if (prev === chosen) return;
+                    // Reset de l'ancien choix : champ vidé+masqué, tous les boutons reviennent
+                    var field = m.querySelector('.price-field');
+                    if (field) {
+                        field.value = '';
+                        field.classList.add('hidden');
+                    }
+                    m.querySelectorAll('.price-mode-btn').forEach(function (b) {
+                        b.classList.remove('hidden');
+                    });
+                    var or = m.querySelector('.price-or');
+                    if (or) or.classList.remove('hidden');
+                    // Choix du nouveau mode : le bouton devient un champ à remplir
+                    modeBtn.classList.add('hidden');
                     if (field) {
                         field.classList.remove('hidden');
                         field.placeholder = chosen === 'kilo' ? 'prix/kg (XOF)' : 'prix/unité (XOF)';
+                        field.focus();
                     }
-                    modeBtn.classList.add('hidden');
-                    modesBox.querySelectorAll('.price-mode-btn:not(.hidden)').forEach(function (b) {
-                        b.classList.add('hidden');
-                    });
-                    var or = modesBox.querySelector('.price-or');
-                    if (or) or.classList.add('hidden');
-                    if (field) field.focus();
+                    rowEl.setAttribute('data-mode', chosen);
                 }
+            });
+
+            // Tant que le champ choisi n'est pas rempli, l'autre bouton reste visible
+            rowsBox.addEventListener('input', function (e) {
+                if (!e.target.classList || !e.target.classList.contains('price-field')) return;
+                var rowEl = e.target.closest('.colis-detail-row');
+                if (!rowEl) return;
+                var mode = rowEl.getAttribute('data-mode');
+                if (!mode) return;
+                var m = rowEl.querySelector('.colis-price-modes');
+                var filled = e.target.value.trim() !== '';
+                m.querySelectorAll('.price-mode-btn').forEach(function (b) {
+                    if (b.getAttribute('data-mode') !== mode) {
+                        b.classList.toggle('hidden', filled);
+                    }
+                });
+                var or = m.querySelector('.price-or');
+                if (or) or.classList.toggle('hidden', filled);
             });
 
             rowsBox.addEventListener('keydown', function (e) {
