@@ -548,7 +548,7 @@
             .colis-detail-row .colis-name-btn {
                 flex: 0 1 auto;
                 padding: 10px 12px;
-                font-size: 0.78rem;
+                font-size: 0.78rem !important;
                 min-width: 0;
             }
             .colis-name-btn .colis-name-label {
@@ -560,7 +560,7 @@
             .colis-name-input {
                 flex: 1 1 auto;
                 padding: 10px 12px;
-                font-size: 0.78rem;
+                font-size: 0.78rem !important;
                 min-width: 0;
             }
             .colis-price-modes {
@@ -568,20 +568,22 @@
             }
             .price-mode-btn {
                 padding: 6px 8px;
-                font-size: 0.68rem;
+                font-size: 0.68rem !important;
             }
             /* Étiquettes compactes sur mobile (le texte DOM reste "prix/kilo" /
-               "prix/quantité" pour l'accessibilité et le contrat) */
-            .price-mode-btn[data-mode="kilo"] {
-                font-size: 0;
+               "prix/quantité" pour l'accessibilité et le contrat).
+               !important + spécificité : bat la règle anti-zoom runtime
+               `input, select, textarea, button { font-size: 16px !important }`. */
+            .price-mode-btn.price-mode-btn[data-mode="kilo"] {
+                font-size: 0 !important;
             }
             .price-mode-btn[data-mode="kilo"]::after {
                 content: "prix/kg";
                 font-size: 0.68rem;
                 font-weight: 700;
             }
-            .price-mode-btn[data-mode="qty"] {
-                font-size: 0;
+            .price-mode-btn.price-mode-btn[data-mode="qty"] {
+                font-size: 0 !important;
             }
             .price-mode-btn[data-mode="qty"]::after {
                 content: "prix/qté";
@@ -593,7 +595,7 @@
             }
             .price-field {
                 padding: 6px 8px;
-                font-size: 0.7rem;
+                font-size: 0.7rem !important;
             }
             .colis-row-del {
                 width: 30px;
