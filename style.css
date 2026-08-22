@@ -11,7 +11,7 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     z-index: 9999;
     transform: translateY(-100px);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease-out;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -8231,7 +8231,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     flex-direction: column;
     gap: 10px;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out, border-color 0.2s ease;
     overflow: hidden;
 }
 .offer-compact-card::before {
@@ -8241,7 +8241,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     height: 2px;
     background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.6), transparent);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
 }
 .offer-compact-card:hover {
     transform: translateY(-4px);
@@ -8433,12 +8433,15 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     border: 1px solid rgba(16, 185, 129, 0.3) !important;
     background: transparent !important;
     color: #10b981 !important;
-    transition: all 0.2s ease !important;
+    transition: transform 0.15s ease-out, background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease !important;
     cursor: pointer !important;
 }
 .oc-btn:hover {
     background: rgba(16, 185, 129, 0.1) !important;
     border-color: #10b981 !important;
+}
+.oc-btn:active {
+    transform: scale(0.96) !important;
 }
 
 /* Responsive mobile */
@@ -8519,7 +8522,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     color: #f0f7f6;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: background 0.15s ease, color 0.15s ease;
     border-bottom: 1px solid rgba(255,255,255,0.03);
 }
 .cc-suggestions-list li:last-child {
@@ -8588,6 +8591,9 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     border-color: rgba(167, 255, 231, 0.35);
     color: #aab4b1;
     transform: translateY(-1px);
+}
+.filter-tab:active {
+    transform: translateY(0) scale(0.96);
 }
 .filter-tab.active {
     background: linear-gradient(180deg, rgba(167, 255, 231, 0.22), rgba(167, 255, 231, 0.12));
@@ -8796,7 +8802,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 
 /* Animation d'ouverture du menu */
 .currency-dropdown-menu {
-    animation: currencyMenuIn 0.18s ease;
+    animation: currencyMenuIn 0.16s cubic-bezier(0.23, 1, 0.32, 1);
     transform-origin: top right;
 }
 @keyframes currencyMenuIn {
@@ -10671,9 +10677,13 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
         transform: translateY(-52%) rotate(1.2deg);
     }
 }
+/* ═══ Emil : prefers-reduced-motion — coupe le mouvement, garde opacité/couleur ═══ */
 @media (prefers-reduced-motion: reduce) {
-    .cards-list .cc3-card .water-lens {
-        animation: none;
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
 }
 
@@ -10931,6 +10941,15 @@ body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
 @media (max-width: 460px) {
     .results-mobile-sub-switch {
         height: 48px !important;
+    }
+}
+
+/* ═══ Emil : pas de lévitation au tap sur tactile (hover fantôme) ═══ */
+@media (hover: none) and (pointer: coarse) {
+    .offer-compact-card:hover,
+    .cards-list .cc3-card .cc3-cta:hover,
+    .results-nav-panel .filter-tab:hover {
+        transform: none !important;
     }
 }
 
