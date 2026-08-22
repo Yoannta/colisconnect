@@ -539,16 +539,17 @@
             border-color: rgba(255,107,107,0.5);
             background: rgba(255,107,107,0.1);
         }
-        /* Mobile : ligne compacte (wrap propre si vraiment étroit), zéro débordement */
+        /* Mobile : UNE ligne (case nom réduite + étiquettes mode compactes),
+           zéro débordement */
         @media (max-width: 800px) {
             .colis-detail-row {
                 gap: 8px;
             }
             .colis-detail-row .colis-name-btn {
-                flex: 1 1 auto;
-                padding: 12px 12px;
-                font-size: 0.85rem;
-                min-width: 110px;
+                flex: 0 1 auto;
+                padding: 10px 12px;
+                font-size: 0.78rem;
+                min-width: 0;
             }
             .colis-name-btn .colis-name-label {
                 overflow: hidden;
@@ -558,27 +559,45 @@
             }
             .colis-name-input {
                 flex: 1 1 auto;
-                padding: 12px 12px;
-                font-size: 0.85rem;
+                padding: 10px 12px;
+                font-size: 0.78rem;
                 min-width: 0;
             }
             .colis-price-modes {
                 gap: 6px;
             }
             .price-mode-btn {
-                padding: 7px 9px;
-                font-size: 0.72rem;
+                padding: 6px 8px;
+                font-size: 0.68rem;
+            }
+            /* Étiquettes compactes sur mobile (le texte DOM reste "prix/kilo" /
+               "prix/quantité" pour l'accessibilité et le contrat) */
+            .price-mode-btn[data-mode="kilo"] {
+                font-size: 0;
+            }
+            .price-mode-btn[data-mode="kilo"]::after {
+                content: "prix/kg";
+                font-size: 0.68rem;
+                font-weight: 700;
+            }
+            .price-mode-btn[data-mode="qty"] {
+                font-size: 0;
+            }
+            .price-mode-btn[data-mode="qty"]::after {
+                content: "prix/qté";
+                font-size: 0.68rem;
+                font-weight: 700;
             }
             .price-or {
-                font-size: 0.7rem;
+                font-size: 0.66rem;
             }
             .price-field {
-                padding: 7px 10px;
-                font-size: 0.72rem;
+                padding: 6px 8px;
+                font-size: 0.7rem;
             }
             .colis-row-del {
-                width: 32px;
-                height: 32px;
+                width: 30px;
+                height: 30px;
             }
         }
         .popup-title {
