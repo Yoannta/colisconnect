@@ -1254,10 +1254,10 @@
                     field.classList.remove('hidden');
                     field.placeholder = chosen === 'kilo' ? 'prix/kg (XOF)' : 'prix/unité (XOF)';
                     field.style.width = modeBtn.offsetWidth + 'px';
+                    rowEl.setAttribute('data-mode-w', String(modeBtn.offsetWidth)); // AVANT de masquer (offsetWidth serait 0 sinon)
                     m.insertBefore(field, modeBtn);
                     modeBtn.classList.add('hidden'); // le bouton choisi laisse sa place au champ
                     rowEl.setAttribute('data-mode', chosen);
-                    rowEl.setAttribute('data-mode-w', String(modeBtn.offsetWidth));
                     field.focus();
                 }
             });
