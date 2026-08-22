@@ -433,6 +433,83 @@
             border-color: var(--emerald-bright, #13ecc8);
             background: rgba(255,255,255,0.08);
         }
+        /* === Section Détails colis (nom du colis + prix/kilo ou prix/quantité) === */
+        .colis-detail-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .colis-detail-row .colis-name-btn {
+            width: auto;
+            flex: 1 1 220px;
+            min-width: 0;
+        }
+        .colis-name-input {
+            flex: 1 1 220px;
+            min-width: 0;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(19,236,200,0.4);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #f0f7f6;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .colis-price-modes {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        .price-mode-btn {
+            background: rgba(19,236,200,0.1);
+            border: 1px solid rgba(19,236,200,0.3);
+            border-radius: 20px;
+            color: #13ecc8;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 8px 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .price-mode-btn:hover {
+            background: rgba(19,236,200,0.2);
+        }
+        .price-or {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.8rem;
+        }
+        .price-field {
+            width: 150px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(19,236,200,0.45);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #f0f7f6;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .btn-add-type {
+            width: 100%;
+            background: transparent;
+            border: 1px dashed rgba(19,236,200,0.35);
+            border-radius: 12px;
+            padding: 10px 16px;
+            color: #13ecc8;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 2px;
+        }
+        .btn-add-type:hover {
+            background: rgba(19,236,200,0.08);
+            border-color: #13ecc8;
+        }
         .popup-title {
             font-size: 1.2rem;
             font-weight: 700;
@@ -762,6 +839,24 @@
                                     <span>▼</span>
                                 </button>
                             </div>
+                            <div class="form-group" id="colis-details-group">
+                                <label class="form-label">Détails colis <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                                <div id="colis-detail-rows">
+                                    <div class="colis-detail-row" data-row="0">
+                                        <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
+                                            <span class="colis-name-label">Nom du colis</span>
+                                            <span>▼</span>
+                                        </button>
+                                        <div class="colis-price-modes" data-row="0">
+                                            <button type="button" class="price-mode-btn" data-mode="kilo" data-row="0">prix/kilo</button>
+                                            <span class="price-or">ou</span>
+                                            <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
+                                            <input type="number" class="price-field hidden" data-row="0" placeholder="0" min="0" step="any">
+                                        </div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre type</button>
+                            </div>
                             <div class="form-group">
                                 <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
                                 <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
@@ -976,6 +1071,101 @@
                 choix</button>
         </div>
     </div>
+
+    <script>
+        /* === SECTION DÉTAILS COLIS — nom du colis + prix/kilo OU prix/quantité (exclusif) === */
+        (function () {
+            'use strict';
+            var rowsBox = document.getElementById('colis-detail-rows');
+            if (!rowsBox) return;
+
+            function esc(s) {
+                return String(s).replace(/[&<>"']/g, function (c) {
+                    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+                });
+            }
+
+            var rowSeq = 0;
+
+            function makeRow() {
+                rowSeq += 1;
+                var r = rowSeq;
+                var row = document.createElement('div');
+                row.className = 'colis-detail-row';
+                row.setAttribute('data-row', String(r));
+                row.innerHTML =
+                    '<button type="button" class="popup-trigger-btn colis-name-btn" data-row="' + r + '">' +
+                    '<span class="colis-name-label">Nom du colis</span><span>▼</span></button>' +
+                    '<div class="colis-price-modes" data-row="' + r + '">' +
+                    '<button type="button" class="price-mode-btn" data-mode="kilo" data-row="' + r + '">prix/kilo</button>' +
+                    '<span class="price-or">ou</span>' +
+                    '<button type="button" class="price-mode-btn" data-mode="qty" data-row="' + r + '">prix/quantité</button>' +
+                    '<input type="number" class="price-field hidden" data-row="' + r + '" placeholder="0" min="0" step="any">' +
+                    '</div>';
+                rowsBox.appendChild(row);
+            }
+
+            function commitName(input) {
+                var val = input.value.trim();
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'popup-trigger-btn colis-name-btn';
+                btn.setAttribute('data-row', input.getAttribute('data-row'));
+                btn.innerHTML = '<span class="colis-name-label">' + (val ? esc(val) : 'Nom du colis') + '</span><span>▼</span>';
+                input.replaceWith(btn);
+            }
+
+            rowsBox.addEventListener('click', function (e) {
+                var nameBtn = e.target.closest('.colis-name-btn');
+                if (nameBtn) {
+                    var label = nameBtn.querySelector('.colis-name-label').textContent;
+                    var input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'colis-name-input';
+                    input.setAttribute('data-row', nameBtn.getAttribute('data-row'));
+                    input.placeholder = 'Nom du colis';
+                    if (label && label !== 'Nom du colis') input.value = label;
+                    nameBtn.replaceWith(input);
+                    input.focus();
+                    return;
+                }
+                var modeBtn = e.target.closest('.price-mode-btn');
+                if (modeBtn) {
+                    var r = modeBtn.getAttribute('data-row');
+                    var modesBox = modeBtn.parentElement;
+                    var chosen = modeBtn.getAttribute('data-mode');
+                    var field = modesBox.querySelector('.price-field[data-row="' + r + '"]');
+                    if (field) {
+                        field.classList.remove('hidden');
+                        field.placeholder = chosen === 'kilo' ? 'prix/kg (XOF)' : 'prix/unité (XOF)';
+                    }
+                    modeBtn.classList.add('hidden');
+                    modesBox.querySelectorAll('.price-mode-btn:not(.hidden)').forEach(function (b) {
+                        b.classList.add('hidden');
+                    });
+                    var or = modesBox.querySelector('.price-or');
+                    if (or) or.classList.add('hidden');
+                    if (field) field.focus();
+                }
+            });
+
+            rowsBox.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' && e.target.classList && e.target.classList.contains('colis-name-input')) {
+                    e.preventDefault();
+                    commitName(e.target);
+                }
+            });
+
+            rowsBox.addEventListener('blur', function (e) {
+                if (e.target.classList && e.target.classList.contains('colis-name-input')) {
+                    commitName(e.target);
+                }
+            }, true);
+
+            var addBtn = document.getElementById('addColisTypeBtn');
+            if (addBtn) addBtn.addEventListener('click', makeRow);
+        })();
+    </script>
 
     <!-- Navigation Mobile Basse -->
     <div id="mobile-bottom-nav-root"></div>
