@@ -483,14 +483,20 @@
             font-size: 0.8rem;
         }
         .price-field {
-            width: 150px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(19,236,200,0.45);
-            border-radius: 12px;
-            padding: 10px 14px;
-            color: #f0f7f6;
-            font-size: 0.9rem;
+            width: 110px;
+            background: rgba(19,236,200,0.1);
+            border: 1px solid rgba(19,236,200,0.35);
+            border-radius: 20px;
+            padding: 8px 14px;
+            color: #13ecc8;
+            font-size: 0.85rem;
+            font-weight: 700;
             outline: none;
+            transition: all 0.2s;
+        }
+        .price-field:focus {
+            border-color: #13ecc8;
+            box-shadow: 0 0 0 2px rgba(19,236,200,0.15);
         }
         .btn-add-type {
             width: 100%;
@@ -558,9 +564,8 @@
                 font-size: 0.7rem;
             }
             .price-field {
-                width: 110px;
-                padding: 9px 10px;
-                font-size: 0.8rem;
+                padding: 7px 10px;
+                font-size: 0.72rem;
             }
             .colis-row-del {
                 width: 34px;
@@ -1201,25 +1206,28 @@
                     var chosen = modeBtn.getAttribute('data-mode');
                     var prev = rowEl.getAttribute('data-mode');
                     if (prev === chosen) return;
-                    // Reset de l'ancien choix : champ vidé+masqué, tous les boutons reviennent
                     var field = m.querySelector('.price-field');
+                    // Reset de l'ancien choix : champ vidé et remis à la fin du bloc, boutons restaurés
                     if (field) {
                         field.value = '';
                         field.classList.add('hidden');
+                        m.appendChild(field);
+                        field.style.width = '';
                     }
                     m.querySelectorAll('.price-mode-btn').forEach(function (b) {
                         b.classList.remove('hidden');
                     });
                     var or = m.querySelector('.price-or');
                     if (or) or.classList.remove('hidden');
-                    // Choix du nouveau mode : le bouton devient un champ à remplir
-                    modeBtn.classList.add('hidden');
-                    if (field) {
-                        field.classList.remove('hidden');
-                        field.placeholder = chosen === 'kilo' ? 'prix/kg (XOF)' : 'prix/unité (XOF)';
-                        field.focus();
-                    }
+                    // Nouveau choix : le bouton cliqué devient le champ EN PLACE
+                    // (même position dans le flux, même largeur → rien ne bouge autour)
+                    field.classList.remove('hidden');
+                    field.placeholder = chosen === 'kilo' ? 'prix/kg (XOF)' : 'prix/unité (XOF)';
+                    field.style.width = modeBtn.offsetWidth + 'px';
+                    m.insertBefore(field, modeBtn);
+                    modeBtn.classList.add('hidden'); // le bouton choisi laisse sa place au champ
                     rowEl.setAttribute('data-mode', chosen);
+                    field.focus();
                 }
             });
 
