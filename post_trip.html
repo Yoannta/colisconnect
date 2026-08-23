@@ -448,7 +448,7 @@
         }
         .colis-detail-row .colis-name-btn {
             width: auto;
-            flex: 1 1 220px;
+            flex: 1 1 auto;
             min-width: 0;
         }
         .colis-name-input {
@@ -539,16 +539,17 @@
             border-color: rgba(255,107,107,0.5);
             background: rgba(255,107,107,0.1);
         }
-        /* Mobile : UNE ligne (case nom réduite + étiquettes mode compactes),
-           zéro débordement */
-        @media (max-width: 800px) {
+        /* Mobile (≤560px) : DEUX lignes volontaires — L1 nom pleine largeur
+           (cohérent avec les autres champs), L2 modes à gauche + ✕ à droite.
+           Au-delà : UNE ligne (nom + modes + ✕). */
+        @media (max-width: 560px) {
             .colis-detail-row {
                 gap: 8px;
             }
             .colis-detail-row .colis-name-btn {
-                flex: 0 1 auto;
-                padding: 10px 12px;
-                font-size: 0.78rem !important;
+                flex: 1 1 100%;
+                padding: 14px 16px;
+                font-size: 0.9rem !important;
                 min-width: 0;
             }
             .colis-name-btn .colis-name-label {
@@ -558,48 +559,30 @@
                 min-width: 0;
             }
             .colis-name-input {
-                flex: 1 1 auto;
-                padding: 10px 12px;
-                font-size: 0.78rem !important;
+                flex: 1 1 100%;
+                padding: 14px 16px;
+                font-size: 0.9rem !important;
                 min-width: 0;
             }
             .colis-price-modes {
-                gap: 6px;
+                margin-left: 0;
+                gap: 10px;
             }
             .price-mode-btn {
-                padding: 6px 8px;
-                font-size: 0.68rem !important;
-            }
-            /* Étiquettes compactes sur mobile (le texte DOM reste "prix/kilo" /
-               "prix/quantité" pour l'accessibilité et le contrat).
-               !important + spécificité : bat la règle anti-zoom runtime
-               `input, select, textarea, button { font-size: 16px !important }`. */
-            .price-mode-btn.price-mode-btn[data-mode="kilo"] {
-                font-size: 0 !important;
-            }
-            .price-mode-btn[data-mode="kilo"]::after {
-                content: "prix/kg";
-                font-size: 0.68rem;
-                font-weight: 700;
-            }
-            .price-mode-btn.price-mode-btn[data-mode="qty"] {
-                font-size: 0 !important;
-            }
-            .price-mode-btn[data-mode="qty"]::after {
-                content: "prix/qté";
-                font-size: 0.68rem;
-                font-weight: 700;
+                padding: 9px 14px;
+                font-size: 0.82rem !important;
             }
             .price-or {
-                font-size: 0.66rem;
+                font-size: 0.78rem;
             }
             .price-field {
-                padding: 6px 8px;
-                font-size: 0.7rem !important;
+                padding: 9px 14px;
+                font-size: 0.85rem !important;
             }
             .colis-row-del {
-                width: 30px;
-                height: 30px;
+                margin-left: auto;
+                width: 38px;
+                height: 38px;
             }
         }
         .popup-title {
