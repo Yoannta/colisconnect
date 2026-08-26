@@ -3231,12 +3231,24 @@ input[data-country-select="true"]::placeholder {
     line-height: 1.2;
 }
 
-/* Une seule étape visible à la fois */
-.wizard-step {
-    display: none;
+/* Une seule étape visible à la fois
+   ⚠️ spécificité DOUBLÉE + !important : .post-trip-page .trip-section (0,2,0)
+   battait .wizard-step (0,1,0) → TOUTES les étapes étaient visibles en même temps */
+.post-trip-page .trip-form .wizard-step {
+    display: none !important;
 }
-.wizard-step.active {
-    display: grid;
+.post-trip-page .trip-form .wizard-step.active {
+    display: grid !important;
+    animation: wizard-step-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes wizard-step-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .post-trip-page .trip-form .wizard-step.active {
+        animation: none;
+    }
 }
 
 /* Navigation bas d'étape */
