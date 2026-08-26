@@ -23,6 +23,7 @@
         animatedNodes: Array.from(document.querySelectorAll("[data-animate]")),
         // Modal
         openBtn: document.getElementById("open-payment-method-btn"),
+        openBtn2: document.getElementById("open-payment-method-btn-2"),
         modal: document.getElementById("payment-method-modal"),
         closeBtn: document.getElementById("close-payment-modal-btn"),
         stepChoose: document.getElementById("pm-step-choose"),
@@ -62,6 +63,8 @@
 
     let selectedProfileTypeChoice = null;
     let selectedTransportMode = null;
+    // Bouton qui a ouvert la modale paiement ("Mon numero de contact" ou "Autre numero")
+    let paymentTrigger = null;
 
     // Ne fait plus rien immédiatement — le profil est mis à jour APRÈS publication
     async function updateProfileType(type) {
@@ -259,16 +262,22 @@
         if (els.paymentMethodInput) els.paymentMethodInput.value = paymentState.selectedMethod;
         if (els.paymentQrInput) els.paymentQrInput.value = paymentState.accountNumber;
 
-        if (els.paymentMethodLabel) {
+        // Met à jour le label du bouton qui a ouvert la modale (1er ou 2e)
+        const labelEl = paymentTrigger
+            ? paymentTrigger.querySelector(".pm-label")
+            : els.paymentMethodLabel;
+        if (labelEl) {
             const displayCode = els.indicatifInput?.value || "";
             const displayLocal = els.localNumberInput?.value || "";
-            els.paymentMethodLabel.innerHTML = `📞 Contact : <strong>${displayCode}</strong> ${displayLocal}`;
+            labelEl.innerHTML = `📞 Contact : <strong>${displayCode}</strong> ${displayLocal}`;
         }
         closeModal();
     }
 
     function bindModalEvents() {
-        els.openBtn?.addEventListener("click", openModal);
+        const openModalFrom = (btn) => { paymentTrigger = btn; openModal(); };
+        els.openBtn?.addEventListener("click", () => openModalFrom(els.openBtn));
+        els.openBtn2?.addEventListener("click", () => openModalFrom(els.openBtn2));
         els.closeBtn?.addEventListener("click", closeModal);
         els.modal?.addEventListener("click", (e) => {
             if (e.target === els.modal) closeModal();
@@ -473,6 +482,9 @@
             paymentState.selectedMethodName = null;
             paymentState.accountNumber = null;
             if (els.paymentMethodLabel) els.paymentMethodLabel.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Choisir mon moyen de paiement`;
+            document.querySelectorAll(".pm-label").forEach((l) => {
+                if (l !== els.paymentMethodLabel) l.innerHTML = els.paymentMethodLabel.innerHTML;
+            });
             window.location.href = "results.html";
         } catch (error) {
             if (error?.status === 401) {
