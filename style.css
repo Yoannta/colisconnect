@@ -3467,12 +3467,14 @@ input[data-country-select="true"]::placeholder {
 
 .post-trip-page .trip-form {
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* ⚠️ auto prenait le max-content (338px+) → débordement mobile */
     gap: 14px;
 }
 
 /* Sections du formulaire — cadres par groupe logique (Détails / Colis / Contact) */
 .post-trip-page .trip-section {
     display: grid;
+    grid-template-columns: minmax(0, 1fr); /* ⚠️ auto prenait le max-content → débordement mobile */
     gap: 10px;
     background: rgba(255,255,255,0.028);
     border: 1px solid rgba(255,255,255,0.07);
@@ -3491,9 +3493,19 @@ input[data-country-select="true"]::placeholder {
     opacity: 0.9;
 }
 
+/* ⚠️ Anti-débordement mobile : les inputs (intrinsèque ~250px) et leurs wrappers
+   d'autocomplete ne doivent JAMAIS gonfler un conteneur flex/grid étroit */
+.post-trip-page .form-input,
+.post-trip-page .cc-autocomplete-ctn,
+.post-trip-page .cc-input-wrapper,
+.post-trip-page .location-group .form-group {
+    min-width: 0;
+}
+
 /* ═══════ Wizard multi-étapes — stepper cercles + pointillés (style référence) ═══════ */
 .wizard-progress {
     display: flex;
+    min-width: 0; /* ⚠️ sinon le min-content gonfle la grille du form en mobile */
     padding: 14px 8px 12px;
     border-radius: 14px;
     background: rgba(255,255,255,0.03);
@@ -3502,6 +3514,7 @@ input[data-country-select="true"]::placeholder {
 }
 .wp-step {
     flex: 1;
+    min-width: 0; /* ⚠️ sinon les labels (ex. « Prix spéciaux ») gonflent le stepper → débordement mobile */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -3568,6 +3581,7 @@ input[data-country-select="true"]::placeholder {
 }
 .post-trip-page .trip-form .wizard-step.active {
     display: grid !important;
+    min-width: 0; /* ⚠️ min-width:auto (min-content du contenu) gonflait la grille du form en mobile */
     animation: wizard-step-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 @keyframes wizard-step-in {
@@ -3608,15 +3622,16 @@ input[data-country-select="true"]::placeholder {
     line-height: 1.35;
 }
 
-/* Pays / Ville sur 2 colonnes (comme la référence) */
+/* Pays / Ville sur 2 colonnes (comme la référence) — minmax(0,1fr) : les inputs
+   ne peuvent plus gonfler la colonne au-delà du conteneur (min-content intrinsèque) */
 .post-trip-page .location-group {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 10px;
 }
 @media (max-width: 480px) {
     .post-trip-page .location-group {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
@@ -3660,8 +3675,14 @@ input[data-country-select="true"]::placeholder {
     display: flex;
     gap: 10px;
 }
+@media (max-width: 480px) {
+    .post-trip-page .profile-select-grid {
+        flex-direction: column; /* cartes pleine largeur sur mobile (texte lisible) */
+    }
+}
 .post-trip-page .profile-select-btn {
     flex: 1;
+    min-width: 0; /* ⚠️ sinon le min-content (icône+texte+coche) gonfle la grille du form → débordement mobile */
     display: flex;
     align-items: center;
     gap: 10px;
@@ -3710,11 +3731,13 @@ input[data-country-select="true"]::placeholder {
     font-weight: 700;
     color: #fff;
     white-space: normal;
+    overflow-wrap: anywhere;
 }
 .post-trip-page .ps-sub {
     font-size: 0.68rem;
     color: var(--muted);
     line-height: 1.3;
+    overflow-wrap: anywhere; /* les mots longs rentrent à la ligne sur mobile étroit */
 }
 .post-trip-page .ps-check {
     margin-left: auto;
