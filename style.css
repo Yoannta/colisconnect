@@ -3174,6 +3174,100 @@ input[data-country-select="true"]::placeholder {
     opacity: 0.9;
 }
 
+/* ═══════ Wizard multi-étapes (barre de progression + pages) ═══════ */
+.wizard-progress {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 2px;
+}
+.wp-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 9px 4px 7px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    opacity: 0.5;
+    transition: all 0.2s ease;
+}
+.wp-step.active {
+    opacity: 1;
+    border-color: rgba(19,236,200,0.5);
+    background: rgba(19,236,200,0.08);
+}
+.wp-step.done {
+    opacity: 0.85;
+    border-color: rgba(19,236,200,0.25);
+}
+.wp-dot {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: rgba(255,255,255,0.07);
+    color: #cbd5d5;
+}
+.wp-step.active .wp-dot {
+    background: #13ecc8;
+    color: #061414;
+}
+.wp-step.done .wp-dot {
+    background: rgba(19,236,200,0.25);
+    color: #13ecc8;
+}
+.wp-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #9fb3af;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Une seule étape visible à la fois */
+.wizard-step {
+    display: none;
+}
+.wizard-step.active {
+    display: grid;
+}
+
+/* Navigation bas d'étape */
+.wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 4px;
+}
+.wizard-nav .btn {
+    min-width: 112px;
+}
+
+/* Question Oui/Non étape 3 */
+.wizard-question {
+    margin: 0;
+    font-size: 0.92rem;
+    color: var(--text, #e8f0ef);
+    font-weight: 500;
+}
+.wizard-yesno {
+    display: flex;
+    gap: 10px;
+}
+.wizard-yesno .btn {
+    min-width: 110px;
+}
+.wizard-yesno .btn.selected {
+    box-shadow: 0 0 0 2px rgba(19,236,200,0.4);
+}
+
 .post-trip-page .form-group label {
     display: block;
     margin-bottom: 6px;

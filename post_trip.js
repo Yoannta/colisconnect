@@ -735,6 +735,72 @@
         });
     }
 
+    // ═══════════ Wizard multi-étapes (4 pages + progression) ═══════════
+    function initWizard() {
+        const form = document.getElementById("trip-form");
+        if (!form) return;
+        const steps = Array.from(form.querySelectorAll(".wizard-step"));
+        const dots = Array.from(form.querySelectorAll(".wizard-progress .wp-step"));
+        const total = steps.length;
+        let current = 0;
+
+        function showStep(idx) {
+            if (idx < 0 || idx >= total) return;
+            current = idx;
+            steps.forEach((s, i) => s.classList.toggle("active", i === idx));
+            dots.forEach((d, i) => {
+                d.classList.toggle("active", i === idx);
+                d.classList.toggle("done", i < idx);
+            });
+            // Remonte au début du formulaire (sous le header sticky)
+            const t = form.getBoundingClientRect();
+            window.scrollTo({ top: window.scrollY + t.top - 80, behavior: "smooth" });
+        }
+
+        function goNext() {
+            // Validation minimale — étape 1 : pays de départ/arrivée + date requis
+            if (current === 0) {
+                const req = ["departure", "destination", "date-depart"];
+                for (const id of req) {
+                    const el = document.getElementById(id);
+                    if (el && !el.value.trim()) {
+                        el.focus();
+                        return;
+                    }
+                }
+            }
+            showStep(current + 1);
+        }
+
+        function goPrev() {
+            showStep(current - 1);
+        }
+
+        form.addEventListener("click", (e) => {
+            if (e.target.closest(".wizard-next")) goNext();
+            else if (e.target.closest(".wizard-prev")) goPrev();
+        });
+
+        // Étape 3 — question « prix spéciaux ? » : Oui → panneau, Non → masqué
+        const yesBtn = document.getElementById("special-yes");
+        const noBtn = document.getElementById("special-no");
+        const panel = document.getElementById("special-prices-panel");
+        if (yesBtn && noBtn && panel) {
+            yesBtn.addEventListener("click", () => {
+                panel.classList.remove("hidden");
+                yesBtn.classList.add("selected");
+                noBtn.classList.remove("selected");
+            });
+            noBtn.addEventListener("click", () => {
+                panel.classList.add("hidden");
+                noBtn.classList.add("selected");
+                yesBtn.classList.remove("selected");
+            });
+        }
+
+        showStep(0);
+    }
+
     async function bootstrap() {
         await window.CCCommon.init("post_trip");
 
@@ -768,6 +834,7 @@
         els.destination = document.getElementById("destination");
         bindModalEvents();
         bindEvents();
+        initWizard();
     }
 
     bootstrap().catch((error) => {

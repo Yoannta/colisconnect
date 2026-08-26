@@ -853,7 +853,16 @@
 
                 <section class="trip-form-card glass-panel" data-animate>
                     <form class="trip-form" id="trip-form">
-                        <div class="trip-section">
+                        <!-- Barre de progression du wizard -->
+                        <div class="wizard-progress" aria-label="Progression">
+                            <div class="wp-step active" data-wstep="1"><span class="wp-dot">1</span><span class="wp-label">Voyage</span></div>
+                            <div class="wp-step" data-wstep="2"><span class="wp-dot">2</span><span class="wp-label">Colis</span></div>
+                            <div class="wp-step" data-wstep="3"><span class="wp-dot">3</span><span class="wp-label">Prix spéciaux</span></div>
+                            <div class="wp-step" data-wstep="4"><span class="wp-dot">4</span><span class="wp-label">Contact</span></div>
+                        </div>
+
+                        <!-- Étape 1 : Détails du voyage -->
+                        <div class="trip-section wizard-step active" id="step-voyage">
                             <h3 class="trip-section-title">Détails du voyage</h3>
                         <div class="location-group" data-type="departure"></div>
                         <div class="location-group" data-type="destination"></div>
@@ -876,10 +885,13 @@
                                 </button>
                             </div>
                         </div>
-                        </div><!-- /trip-section Détails du voyage -->
-                        <!-- Champs additionnels (caches tant que le profil n est pas choisi) -->
-                        <div id="trip-extra-fields" class="hidden trip-section">
-                            <h3 class="trip-section-title">Votre colis</h3>
+                            <div class="wizard-nav">
+                                <button type="button" class="btn primary wizard-next">Continuer</button>
+                            </div>
+                        </div>
+                        <!-- Étape 2 : Espace & prix -->
+                        <div class="trip-section wizard-step" id="step-colis">
+                            <h3 class="trip-section-title">Espace & prix</h3>
                             <div class="form-row">
                                 <div class="form-group" id="kilos-group">
                                     <label for="kilos">Kilos disponibles</label>
@@ -913,6 +925,21 @@
                                     <button type="button" class="transport-mode-btn" data-mode="les_deux">✈️🚢 Les deux</button>
                                 </div>
                             </div>
+                            <div class="wizard-nav">
+                                <button type="button" class="btn secondary wizard-prev">Retour</button>
+                                <button type="button" class="btn primary wizard-next">Continuer</button>
+                            </div>
+                        </div><!-- /step-colis -->
+
+                        <!-- Étape 3 : Prix spéciaux -->
+                        <div class="trip-section wizard-step" id="step-special">
+                            <h3 class="trip-section-title">Prix spéciaux</h3>
+                            <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de colis ?</p>
+                            <div class="wizard-yesno">
+                                <button type="button" class="btn primary" id="special-yes">Oui</button>
+                                <button type="button" class="btn secondary" id="special-no">Non</button>
+                            </div>
+                            <div id="special-prices-panel" class="hidden">
                         <div class="form-group">
                             <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
                             <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
@@ -946,9 +973,16 @@
                                 <span>▼</span>
                             </button>
                         </div>
-                        </div><!-- /trip-extra-fields Votre colis -->
-                        <div class="trip-section">
-                            <h3 class="trip-section-title">Contact</h3>
+                        </div><!-- /special-prices-panel -->
+                        <div class="wizard-nav">
+                            <button type="button" class="btn secondary wizard-prev">Retour</button>
+                            <button type="button" class="btn primary wizard-next">Continuer</button>
+                        </div>
+                        </div><!-- /step-special -->
+
+                        <!-- Étape 4 : Contact -->
+                        <div class="trip-section wizard-step" id="step-contact">
+                        <h3 class="trip-section-title">Contact</h3>
                             <div class="form-group">
                                 <label>Comment le client vous contacte ?</label>
                                 <div id="payment-contact-rows">
@@ -965,8 +999,11 @@
                                 <input type="hidden" id="payment-method" name="paymentMethod">
                                 <input type="hidden" id="payment-qr" name="paymentQr">
                             </div>
-                        </div>
-                        <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
+                            <div class="wizard-nav">
+                                <button type="button" class="btn secondary wizard-prev">Retour</button>
+                                <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
+                            </div>
+                        </div><!-- /step-contact -->
                     </form>
                 </section>
             </section>
