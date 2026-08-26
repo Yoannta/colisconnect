@@ -529,17 +529,16 @@ body.post-trip-page.light .trip-section-title {
     opacity: 1;
 }
 
-/* Barre de progression */
-body.post-trip-page.light .wp-step {
-    background: rgba(255, 255, 255, 0.5) !important;
-    border-color: rgba(184, 134, 11, 0.18) !important;
+/* Barre de progression (stepper) */
+body.post-trip-page.light .wizard-progress {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.25) !important;
 }
-body.post-trip-page.light .wp-step.active {
-    border-color: rgba(184, 134, 11, 0.55) !important;
-    background: rgba(184, 134, 11, 0.10) !important;
+body.post-trip-page.light .wp-step + .wp-step::before {
+    border-top-color: rgba(184, 134, 11, 0.25) !important;
 }
-body.post-trip-page.light .wp-step.done {
-    border-color: rgba(184, 134, 11, 0.30) !important;
+body.post-trip-page.light .wp-step.done + .wp-step::before {
+    border-top-color: rgba(11, 143, 125, 0.5) !important;
 }
 body.post-trip-page.light .wp-dot {
     background: rgba(184, 134, 11, 0.12) !important;
@@ -550,11 +549,59 @@ body.post-trip-page.light .wp-step.active .wp-dot {
     color: #fff !important;
 }
 body.post-trip-page.light .wp-step.done .wp-dot {
-    background: rgba(184, 134, 11, 0.25) !important;
-    color: #8a6d1f !important;
+    background: rgba(11, 143, 125, 0.18) !important;
+    color: #0b6e61 !important;
 }
 body.post-trip-page.light .wp-label {
     color: #6d6252 !important;
+}
+body.post-trip-page.light .wp-step.active .wp-label {
+    color: #0b6e61 !important;
+}
+
+/* En-têtes de section + pied d'étape (clairs) */
+body.post-trip-page.light .tsh-icon {
+    background: rgba(184, 134, 11, 0.12) !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+}
+body.post-trip-page.light .trip-section-sub {
+    color: #6d6252 !important;
+}
+body.post-trip-page.light .wsi-text {
+    color: #6d6252 !important;
+}
+body.post-trip-page.light .wsi-gauge {
+    background: rgba(184, 134, 11, 0.15) !important;
+}
+body.post-trip-page.light .wsi-fill {
+    background: linear-gradient(90deg, #0d9c86, #0b8f7d) !important;
+}
+
+/* Cartes profil (claires) */
+body.post-trip-page.light .profile-select-btn {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+}
+body.post-trip-page.light .profile-select-btn:hover {
+    background: rgba(255, 255, 255, 0.95) !important;
+}
+body.post-trip-page.light .profile-select-btn.selected {
+    background: rgba(184, 134, 11, 0.12) !important;
+    border-color: rgba(184, 134, 11, 0.55) !important;
+}
+body.post-trip-page.light .ps-icon {
+    background: rgba(184, 134, 11, 0.1) !important;
+    border-color: rgba(184, 134, 11, 0.25) !important;
+}
+body.post-trip-page.light .ps-title {
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .ps-sub {
+    color: #6d6252 !important;
+}
+body.post-trip-page.light .ps-check {
+    background: #b8860b !important;
+    color: #fff !important;
 }
 body.post-trip-page.light .wizard-question {
     color: #3a2f1e !important;
@@ -3444,61 +3491,73 @@ input[data-country-select="true"]::placeholder {
     opacity: 0.9;
 }
 
-/* ═══════ Wizard multi-étapes (barre de progression + pages) ═══════ */
+/* ═══════ Wizard multi-étapes — stepper cercles + pointillés (style référence) ═══════ */
 .wizard-progress {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
+    display: flex;
+    padding: 14px 8px 12px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.07);
     margin-bottom: 2px;
 }
 .wp-step {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
-    padding: 9px 4px 7px;
-    border-radius: 12px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.06);
-    opacity: 0.5;
-    transition: all 0.2s ease;
+    gap: 6px;
+    position: relative;
+    opacity: 0.55;
+    transition: opacity 0.2s ease;
+}
+.wp-step + .wp-step::before {
+    content: "";
+    position: absolute;
+    top: 12px;
+    left: calc(-50% + 15px);
+    width: calc(100% - 30px);
+    border-top: 2px dashed rgba(255,255,255,0.14);
+}
+.wp-step.done + .wp-step::before {
+    border-top-color: rgba(19,236,200,0.45);
 }
 .wp-step.active {
     opacity: 1;
-    border-color: rgba(19,236,200,0.5);
-    background: rgba(19,236,200,0.08);
-}
-.wp-step.done {
-    opacity: 0.85;
-    border-color: rgba(19,236,200,0.25);
 }
 .wp-dot {
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    font-size: 0.72rem;
-    font-weight: 700;
+    font-size: 0.74rem;
+    font-weight: 800;
     background: rgba(255,255,255,0.07);
-    color: #cbd5d5;
+    color: #9fb3af;
+    position: relative;
+    z-index: 1;
+    transition: all 0.2s ease;
 }
 .wp-step.active .wp-dot {
     background: #13ecc8;
     color: #061414;
+    box-shadow: 0 0 0 4px rgba(19,236,200,0.16);
 }
 .wp-step.done .wp-dot {
-    background: rgba(19,236,200,0.25);
+    background: rgba(19,236,200,0.22);
     color: #13ecc8;
 }
 .wp-label {
     font-size: 0.6rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: #9fb3af;
     text-align: center;
     line-height: 1.2;
+}
+.wp-step.active .wp-label {
+    color: var(--emerald-bright);
 }
 
 /* Une seule étape visible à la fois
@@ -3519,6 +3578,163 @@ input[data-country-select="true"]::placeholder {
     .post-trip-page .trip-form .wizard-step.active {
         animation: none;
     }
+}
+
+/* En-tête de section (icône + titre + sous-titre) — style référence */
+.post-trip-page .trip-section-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.post-trip-page .tsh-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+    font-size: 1.05rem;
+    background: rgba(19,236,200,0.10);
+    border: 1px solid rgba(19,236,200,0.25);
+    flex-shrink: 0;
+}
+.post-trip-page .tsh-text {
+    min-width: 0;
+}
+.post-trip-page .trip-section-sub {
+    margin: 2px 0 0;
+    font-size: 0.76rem;
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+/* Pays / Ville sur 2 colonnes (comme la référence) */
+.post-trip-page .location-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+@media (max-width: 480px) {
+    .post-trip-page .location-group {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Pied d'étape : navigation + « Étape X sur 4 » + jauge */
+.post-trip-page .wizard-footer {
+    margin-top: 6px;
+}
+.post-trip-page .wizard-nav-end {
+    justify-content: flex-end;
+}
+.post-trip-page .wizard-step-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 10px;
+}
+.post-trip-page .wsi-text {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+.post-trip-page .wsi-gauge {
+    flex: 1;
+    max-width: 180px;
+    height: 6px;
+    border-radius: 99px;
+    background: rgba(255,255,255,0.08);
+    overflow: hidden;
+}
+.post-trip-page .wsi-fill {
+    display: block;
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #13ecc8, #10b981);
+    transition: width 0.3s ease;
+}
+
+/* Cartes profil (Voyageur / Entreprise) — style référence */
+.post-trip-page .profile-select-grid {
+    display: flex;
+    gap: 10px;
+}
+.post-trip-page .profile-select-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+    background: transparent;
+    border: 1px solid rgba(19,236,200,0.22);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    white-space: normal;
+}
+.post-trip-page .profile-select-btn:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(19,236,200,0.45);
+}
+.post-trip-page .profile-select-btn.selected {
+    background: rgba(19,236,200,0.10);
+    border-color: #13ecc8;
+}
+.post-trip-page .ps-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.09);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+.post-trip-page .profile-select-btn.selected .ps-icon {
+    background: rgba(19,236,200,0.18);
+    border-color: rgba(19,236,200,0.4);
+}
+.post-trip-page .ps-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.post-trip-page .ps-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    white-space: normal;
+}
+.post-trip-page .ps-sub {
+    font-size: 0.68rem;
+    color: var(--muted);
+    line-height: 1.3;
+}
+.post-trip-page .ps-check {
+    margin-left: auto;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.68rem;
+    font-weight: 800;
+    background: #13ecc8;
+    color: #061414;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+.post-trip-page .profile-select-btn.selected .ps-check {
+    opacity: 1;
+    transform: scale(1);
 }
 
 /* Navigation bas d'étape */

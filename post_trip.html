@@ -863,7 +863,13 @@
 
                         <!-- Étape 1 : Détails du voyage -->
                         <div class="trip-section wizard-step active" id="step-voyage">
-                            <h3 class="trip-section-title">Détails du voyage</h3>
+                            <div class="trip-section-head">
+                                <span class="tsh-icon">✈️</span>
+                                <div class="tsh-text">
+                                    <h3 class="trip-section-title">Détails du voyage</h3>
+                                    <p class="trip-section-sub">Indiquez votre itinéraire et la date de votre voyage.</p>
+                                </div>
+                            </div>
                         <div class="location-group" data-type="departure"></div>
                         <div class="location-group" data-type="destination"></div>
                         <datalist id="country-options-trip" data-country-list></datalist>
@@ -878,20 +884,42 @@
                             <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
                             <div class="profile-select-grid">
                                 <button type="button" class="profile-select-btn" id="btn-traveler-choice">
-                                    <span class="ps-title">Voyageur simple</span>
+                                    <span class="ps-icon">👤</span>
+                                    <span class="ps-body">
+                                        <span class="ps-title">Voyageur simple</span>
+                                        <span class="ps-sub">Je rentabilise mes kilos inutilisés</span>
+                                    </span>
+                                    <span class="ps-check">✓</span>
                                 </button>
                                 <button type="button" class="profile-select-btn" id="btn-cargo-choice">
-                                    <span class="ps-title">Entreprise cargo</span>
+                                    <span class="ps-icon">🏢</span>
+                                    <span class="ps-body">
+                                        <span class="ps-title">Entreprise / Cargo</span>
+                                        <span class="ps-sub">Je transporte régulièrement des colis</span>
+                                    </span>
+                                    <span class="ps-check">✓</span>
                                 </button>
                             </div>
                         </div>
-                            <div class="wizard-nav">
-                                <button type="button" class="btn primary wizard-next">Continuer</button>
+                            <div class="wizard-footer">
+                                <div class="wizard-nav wizard-nav-end">
+                                    <button type="button" class="btn primary wizard-next">Continuer →</button>
+                                </div>
+                                <div class="wizard-step-info">
+                                    <span class="wsi-text">Étape 1 sur 4</span>
+                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:25%"></span></div>
+                                </div>
                             </div>
                         </div>
                         <!-- Étape 2 : Espace & prix -->
                         <div class="trip-section wizard-step" id="step-colis">
-                            <h3 class="trip-section-title">Espace & prix</h3>
+                            <div class="trip-section-head">
+                                <span class="tsh-icon">📦</span>
+                                <div class="tsh-text">
+                                    <h3 class="trip-section-title">Espace & prix</h3>
+                                    <p class="trip-section-sub">Vos kilos disponibles et votre prix par kilo.</p>
+                                </div>
+                            </div>
                             <div class="form-row">
                                 <div class="form-group" id="kilos-group">
                                     <label for="kilos">Kilos disponibles</label>
@@ -925,15 +953,27 @@
                                     <button type="button" class="transport-mode-btn" data-mode="les_deux">✈️🚢 Les deux</button>
                                 </div>
                             </div>
-                            <div class="wizard-nav">
-                                <button type="button" class="btn secondary wizard-prev">Retour</button>
-                                <button type="button" class="btn primary wizard-next">Continuer</button>
+                            <div class="wizard-footer">
+                                <div class="wizard-nav">
+                                    <button type="button" class="btn secondary wizard-prev">← Retour</button>
+                                    <button type="button" class="btn primary wizard-next">Continuer →</button>
+                                </div>
+                                <div class="wizard-step-info">
+                                    <span class="wsi-text">Étape 2 sur 4</span>
+                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:50%"></span></div>
+                                </div>
                             </div>
                         </div><!-- /step-colis -->
 
                         <!-- Étape 3 : Prix spéciaux -->
                         <div class="trip-section wizard-step" id="step-special">
-                            <h3 class="trip-section-title">Prix spéciaux</h3>
+                            <div class="trip-section-head">
+                                <span class="tsh-icon">🏷️</span>
+                                <div class="tsh-text">
+                                    <h3 class="trip-section-title">Prix spéciaux</h3>
+                                    <p class="trip-section-sub">Des prix différents pour certains types de colis.</p>
+                                </div>
+                            </div>
                             <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de colis ?</p>
                             <div class="wizard-yesno">
                                 <button type="button" class="btn primary" id="special-yes">Oui</button>
@@ -974,17 +1014,28 @@
                                 <span>▼</span>
                             </button>
                         </div>
-                            <div class="wizard-nav">
-                            <button type="button" class="btn secondary wizard-prev">Retour</button>
-                            <button type="button" class="btn primary wizard-next">Continuer</button>
-                        </div>
+                            <div class="wizard-footer">
+                                <div class="wizard-nav">
+                                    <button type="button" class="btn secondary wizard-prev">← Retour</button>
+                                    <button type="button" class="btn primary wizard-next">Continuer →</button>
+                                </div>
+                                <div class="wizard-step-info">
+                                    <span class="wsi-text">Étape 3 sur 4</span>
+                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:75%"></span></div>
+                                </div>
+                            </div>
                         </div><!-- /step-special -->
 
                         <!-- Étape 4 : Contact -->
                         <div class="trip-section wizard-step" id="step-contact">
-                        <h3 class="trip-section-title">Contact</h3>
+                            <div class="trip-section-head">
+                                <span class="tsh-icon">📞</span>
+                                <div class="tsh-text">
+                                    <h3 class="trip-section-title">Contact</h3>
+                                    <p class="trip-section-sub">Comment le client vous contacte ?</p>
+                                </div>
+                            </div>
                             <div class="form-group">
-                                <label>Comment le client vous contacte ?</label>
                                 <div id="payment-contact-rows">
                                     <div class="payment-contact-row">
                                         <button type="button" id="open-payment-method-btn" class="btn secondary payment-method-btn contact-row-btn">
@@ -999,9 +1050,15 @@
                                 <input type="hidden" id="payment-method" name="paymentMethod">
                                 <input type="hidden" id="payment-qr" name="paymentQr">
                             </div>
-                            <div class="wizard-nav">
-                                <button type="button" class="btn secondary wizard-prev">Retour</button>
-                                <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
+                            <div class="wizard-footer">
+                                <div class="wizard-nav">
+                                    <button type="button" class="btn secondary wizard-prev">← Retour</button>
+                                    <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet →</button>
+                                </div>
+                                <div class="wizard-step-info">
+                                    <span class="wsi-text">Étape 4 sur 4</span>
+                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:100%"></span></div>
+                                </div>
                             </div>
                         </div><!-- /step-contact -->
                     </form>
