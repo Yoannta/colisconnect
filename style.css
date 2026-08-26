@@ -736,7 +736,7 @@ body.post-trip-page.light .wp-step + .wp-step::before {
     border-top-color: rgba(184, 134, 11, 0.25) !important;
 }
 body.post-trip-page.light .wp-step.done + .wp-step::before {
-    border-top-color: rgba(11, 143, 125, 0.5) !important;
+    border-top-color: rgba(184, 134, 11, 0.5) !important;
 }
 body.post-trip-page.light .wp-dot {
     background: rgba(184, 134, 11, 0.12) !important;
@@ -747,14 +747,14 @@ body.post-trip-page.light .wp-step.active .wp-dot {
     color: #fff !important;
 }
 body.post-trip-page.light .wp-step.done .wp-dot {
-    background: rgba(11, 143, 125, 0.18) !important;
-    color: #0b6e61 !important;
+    background: rgba(184, 134, 11, 0.25) !important;
+    color: #8a6d1f !important;
 }
 body.post-trip-page.light .wp-label {
     color: #6d6252 !important;
 }
 body.post-trip-page.light .wp-step.active .wp-label {
-    color: #0b6e61 !important;
+    color: #8a6d1f !important;
 }
 
 /* En-têtes de section + pied d'étape (clairs) */
@@ -772,7 +772,7 @@ body.post-trip-page.light .wsi-gauge {
     background: rgba(184, 134, 11, 0.15) !important;
 }
 body.post-trip-page.light .wsi-fill {
-    background: linear-gradient(90deg, #0d9c86, #0b8f7d) !important;
+    background: linear-gradient(90deg, #e9a614, #f1b52b) !important;
 }
 
 /* Cartes profil (claires) */
@@ -854,14 +854,14 @@ body.post-trip-page.light .profile-select-btn.selected {
 /* Modes de prix + suppression de ligne */
 body.post-trip-page.light .price-mode-btn {
     background: rgba(255, 255, 255, 0.6) !important;
-    border-color: rgba(11, 143, 125, 0.4) !important;
-    color: #0b8f7d !important;
+    border-color: rgba(184, 134, 11, 0.4) !important;
+    color: #8a6d1f !important;
 }
 body.post-trip-page.light .price-mode-btn.selected,
 body.post-trip-page.light .price-mode-btn:focus {
-    background: rgba(11, 143, 125, 0.14) !important;
-    border-color: rgba(11, 143, 125, 0.55) !important;
-    color: #0b6e61 !important;
+    background: rgba(184, 134, 11, 0.14) !important;
+    border-color: rgba(184, 134, 11, 0.55) !important;
+    color: #6d4f10 !important;
 }
 body.post-trip-page.light .price-or {
     color: #6d6252 !important;
@@ -873,7 +873,7 @@ body.post-trip-page.light .colis-row-del {
 }
 body.post-trip-page.light .price-field {
     background: rgba(255, 255, 255, 0.7) !important;
-    border-color: rgba(11, 143, 125, 0.4) !important;
+    border-color: rgba(184, 134, 11, 0.4) !important;
     color: #3a2f1e !important;
 }
 
@@ -899,11 +899,11 @@ body.post-trip-page.light .pm-label {
     color: #5a4632 !important;
 }
 
-/* CTA primaire : émeraude foncé lisible sur fond clair */
+/* CTA primaire : or (même style que results — plus d'émeraude) */
 body.post-trip-page.light .btn.primary {
-    background: linear-gradient(135deg, #0d9c86, #0b8f7d) !important;
+    background: linear-gradient(135deg, #e9a614, #f1b52b) !important;
     color: #fff !important;
-    box-shadow: 0 10px 22px -6px rgba(11, 143, 125, 0.45) !important;
+    box-shadow: 0 10px 22px -6px rgba(192, 133, 10, 0.45) !important;
 }
 
 /* Modales (types de colis) */
