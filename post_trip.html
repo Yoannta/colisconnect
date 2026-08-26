@@ -853,6 +853,8 @@
 
                 <section class="trip-form-card glass-panel" data-animate>
                     <form class="trip-form" id="trip-form">
+                        <div class="trip-section">
+                            <h3 class="trip-section-title">Détails du voyage</h3>
                         <div class="location-group" data-type="departure"></div>
                         <div class="location-group" data-type="destination"></div>
                         <datalist id="country-options-trip" data-country-list></datalist>
@@ -874,8 +876,10 @@
                                 </button>
                             </div>
                         </div>
+                        </div><!-- /trip-section Détails du voyage -->
                         <!-- Champs additionnels (caches tant que le profil n est pas choisi) -->
-                        <div id="trip-extra-fields" class="hidden">
+                        <div id="trip-extra-fields" class="hidden trip-section">
+                            <h3 class="trip-section-title">Votre colis</h3>
                             <div class="form-row">
                                 <div class="form-group" id="kilos-group">
                                     <label for="kilos">Kilos disponibles</label>
@@ -909,6 +913,42 @@
                                     <button type="button" class="transport-mode-btn" data-mode="les_deux">✈️🚢 Les deux</button>
                                 </div>
                             </div>
+                        <div class="form-group">
+                            <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                            <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
+                                <span id="selectedColisText">Choisir les types de colis</span>
+                                <span>▼</span>
+                            </button>
+                        </div>
+                        <div class="form-group" id="colis-details-group">
+                            <label class="form-label">Prix spéciaux pour certains types de colis <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                            <div id="colis-detail-rows">
+                                <div class="colis-detail-row" data-row="0">
+                                    <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
+                                        <span class="colis-name-label">Nom du colis</span>
+                                        <span>▼</span>
+                                    </button>
+                                    <div class="colis-price-modes" data-row="0">
+                                        <button type="button" class="price-mode-btn" data-mode="kilo" data-row="0">prix/kilo</button>
+                                        <span class="price-or">ou</span>
+                                        <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
+                                        <input type="number" class="price-field hidden" data-row="0" placeholder="0" min="0" step="any">
+                                    </div>
+                                    <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre type</button>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                            <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
+                                <span id="selectedRefusedText">Choisir les types refusés</span>
+                                <span>▼</span>
+                            </button>
+                        </div>
+                        </div><!-- /trip-extra-fields Votre colis -->
+                        <div class="trip-section">
+                            <h3 class="trip-section-title">Contact</h3>
                             <div class="form-group">
                                 <label>Comment le client vous contacte ?</label>
                                 <div id="payment-contact-rows">
@@ -925,41 +965,8 @@
                                 <input type="hidden" id="payment-method" name="paymentMethod">
                                 <input type="hidden" id="payment-qr" name="paymentQr">
                             </div>
-                            <div class="form-group">
-                                <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                                <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
-                                    <span id="selectedColisText">Choisir les types de colis</span>
-                                    <span>▼</span>
-                                </button>
-                            </div>
-                            <div class="form-group" id="colis-details-group">
-                                <label class="form-label">Prix spéciaux pour certains types de colis <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                                <div id="colis-detail-rows">
-                                    <div class="colis-detail-row" data-row="0">
-                                        <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
-                                            <span class="colis-name-label">Nom du colis</span>
-                                            <span>▼</span>
-                                        </button>
-                                        <div class="colis-price-modes" data-row="0">
-                                            <button type="button" class="price-mode-btn" data-mode="kilo" data-row="0">prix/kilo</button>
-                                            <span class="price-or">ou</span>
-                                            <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
-                                            <input type="number" class="price-field hidden" data-row="0" placeholder="0" min="0" step="any">
-                                        </div>
-                                        <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre type</button>
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                                <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
-                                    <span id="selectedRefusedText">Choisir les types refusés</span>
-                                    <span>▼</span>
-                                </button>
-                            </div>
-                            <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
                         </div>
+                        <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet</button>
                     </form>
                 </section>
             </section>

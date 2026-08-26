@@ -3150,7 +3150,28 @@ input[data-country-select="true"]::placeholder {
 
 .post-trip-page .trip-form {
     display: grid;
+    gap: 14px;
+}
+
+/* Sections du formulaire — cadres par groupe logique (Détails / Colis / Contact) */
+.post-trip-page .trip-section {
+    display: grid;
     gap: 10px;
+    background: rgba(255,255,255,0.028);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 14px;
+}
+
+.post-trip-page .trip-section-title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--emerald-bright);
+    opacity: 0.9;
 }
 
 .post-trip-page .form-group label {
