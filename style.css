@@ -443,6 +443,204 @@ body.results-page.light .demande-modal-card {
 }
 
 /* ============================================================
+   POST-TRIP — mode SOMBRE OBSIDIAN LUXE (aligné sur results.html)
+   Décision Yoyo 2026-08 : le thème PRINCIPAL du site = results.html
+   (noir + or/orangé). L'émeraude ne s'applique plus au post-trip.
+   ⚠️ Ce bloc doit rester AVANT le bloc clair (les règles .light
+   gagnent grâce à leurs !important).
+   ============================================================ */
+body.post-trip-page {
+    background-color: #050505;
+    background-image:
+        radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%),
+        conic-gradient(from 210deg at 50% -10%,
+            rgba(212,160,23,0.0) 0deg,
+            rgba(212,160,23,0.05) 40deg,
+            rgba(255,255,255,0.04) 90deg,
+            rgba(212,160,23,0.0) 140deg),
+        repeating-linear-gradient(115deg,
+            transparent 0px, transparent 90px,
+            rgba(212,160,23,0.045) 90px, rgba(212,160,23,0.045) 91px,
+            transparent 91px, transparent 180px),
+        radial-gradient(circle at 12% 8%, rgba(255,140,0,0.16) 0%, rgba(255,140,0,0.05) 22%, transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(212,160,23,0.10) 0%, rgba(212,160,23,0.03) 20%, transparent 42%),
+        linear-gradient(180deg, #0a0a0a 0%, #101010 40%, #161616 100%);
+    background-attachment: fixed;
+}
+body.post-trip-page .ambient-a {
+    background: radial-gradient(circle, rgba(255,140,0,0.14), transparent 70%);
+}
+body.post-trip-page .ambient-b {
+    background: radial-gradient(circle, rgba(212,160,23,0.10), transparent 70%);
+}
+body.post-trip-page .section-kicker {
+    color: #ffb347 !important;
+}
+body.post-trip-page .trip-section-title {
+    color: #ffb347;
+}
+body.post-trip-page .tsh-icon {
+    background: rgba(255,140,0,0.10);
+    border-color: rgba(255,140,0,0.30);
+}
+body.post-trip-page .trip-section {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,179,71,0.13);
+}
+/* Stepper */
+body.post-trip-page .wizard-progress {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,179,71,0.13);
+}
+body.post-trip-page .wp-step + .wp-step::before {
+    border-top-color: rgba(255,179,71,0.20);
+}
+body.post-trip-page .wp-step.done + .wp-step::before {
+    border-top-color: rgba(255,179,71,0.45);
+}
+body.post-trip-page .wp-step.active .wp-dot {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #1c1400;
+    box-shadow: 0 0 0 4px rgba(255,140,0,0.16);
+}
+body.post-trip-page .wp-step.done .wp-dot {
+    background: rgba(255,179,71,0.22);
+    color: #ffb347;
+}
+body.post-trip-page .wp-step.active .wp-label {
+    color: #ffb347;
+}
+/* Jauge d'étape */
+body.post-trip-page .wsi-gauge {
+    background: rgba(255,179,71,0.12);
+}
+body.post-trip-page .wsi-fill {
+    background: linear-gradient(90deg, #e9a614, #f1b52b);
+}
+/* Boutons */
+body.post-trip-page .btn.primary {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #1c1400;
+    box-shadow: 0 10px 22px -6px rgba(192,133,10,0.45);
+}
+body.post-trip-page .btn.primary:hover {
+    filter: brightness(1.08);
+}
+body.post-trip-page .btn.secondary {
+    background: rgba(255,140,0,0.06);
+    color: #fff;
+    border: 1px solid rgba(255,179,71,0.45);
+}
+body.post-trip-page .btn.secondary:hover {
+    background: rgba(255,179,71,0.12);
+    border-color: #ffb347;
+}
+body.post-trip-page .btn-add-type {
+    background: rgba(255,140,0,0.08);
+    border-color: rgba(255,179,71,0.35);
+    color: #d4a017;
+}
+body.post-trip-page .btn-add-type:hover {
+    background: rgba(255,140,0,0.14);
+}
+/* Cartes profil */
+body.post-trip-page .profile-select-btn {
+    border-color: rgba(255,140,0,0.28);
+}
+body.post-trip-page .profile-select-btn:hover {
+    background: rgba(255,179,71,0.06);
+    border-color: rgba(255,179,71,0.5);
+}
+body.post-trip-page .profile-select-btn.selected {
+    background: rgba(255,140,0,0.10);
+    border-color: #ffb347;
+}
+body.post-trip-page .profile-select-btn.selected .ps-icon {
+    background: rgba(255,140,0,0.18);
+    border-color: rgba(255,179,71,0.45);
+}
+body.post-trip-page .ps-check {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #1c1400;
+}
+/* Prix spéciaux + devise */
+body.post-trip-page .price-mode-btn {
+    border-color: rgba(255,140,0,0.35);
+    color: #ffb347;
+}
+body.post-trip-page .price-mode-btn.selected,
+body.post-trip-page .price-mode-btn:focus {
+    background: rgba(255,140,0,0.12);
+    border-color: #ffb347;
+    color: #ffd08a;
+}
+body.post-trip-page .price-field {
+    border-color: rgba(255,140,0,0.4);
+}
+body.post-trip-page .colis-row-del {
+    background: rgba(255,255,255,0.04);
+    color: #8a7a5f;
+    border-color: rgba(255,179,71,0.22);
+}
+body.post-trip-page .currency-toggle {
+    background: rgba(255,140,0,0.10) !important;
+    border: 1px solid rgba(255,179,71,0.35) !important;
+    color: #ffb347 !important;
+}
+body.post-trip-page .cc-custom-arrow {
+    color: #ffb347 !important;
+}
+body.post-trip-page .form-input:focus {
+    border-color: rgba(255,179,71,0.5) !important;
+    box-shadow: 0 0 0 3px rgba(255,140,0,0.12) !important;
+}
+body.post-trip-page .cc-suggestions-list {
+    border-color: rgba(255,179,71,0.3) !important;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(255,140,0,0.12) !important;
+}
+/* Contact */
+body.post-trip-page .payment-method-btn,
+body.post-trip-page .contact-row-btn {
+    border-color: rgba(255,179,71,0.30);
+}
+/* Modales types de colis */
+body.post-trip-page .popup-content {
+    background: #101010;
+    border-color: rgba(255,179,71,0.25);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+}
+body.post-trip-page .option-card {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,179,71,0.18);
+}
+body.post-trip-page .option-card.selected {
+    background: rgba(255,140,0,0.10);
+    border-color: #ffb347;
+}
+body.post-trip-page .option-card.selected .option-circle {
+    background: #ffb347;
+}
+body.post-trip-page .option-card.selected .option-text {
+    color: #ffd08a;
+}
+/* Modale paiement */
+body.post-trip-page .pt-modal-card {
+    background: #101010;
+    border-color: rgba(255,179,71,0.25);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+}
+body.post-trip-page .phone-prefix-select,
+body.post-trip-page .phone-input-row input {
+    background: #161616;
+    border-color: rgba(255,179,71,0.3);
+    color: #f7f2e9;
+}
+/* Question Oui/Non */
+body.post-trip-page .wizard-yesno .btn.selected {
+    box-shadow: 0 0 0 2px rgba(255,179,71,0.4);
+}
+
+/* ============================================================
    POST-TRIP — mode clair (body.post-trip-page.light)
    Même système « Gold Light » que results.html
    ============================================================ */
