@@ -482,12 +482,14 @@ label[for="city-edit-parcel-origin"],
 label[for="city-edit-parcel-destination"] {
     display: none !important;
 }
-/* post_trip.html — généré dynamiquement par initLocationFields */
+/* post_trip.html — champs ville VISIBLES (demande utilisateur 2026-08 :
+   « ajoute ville de départ / ville d'arrivée juste après les pays » — les
+   champs existaient déjà, générés par initLocationFields, masqués ici) */
 input[id^="city-departure"],
 input[id^="city-destination"],
 label[for^="city-departure"],
 label[for^="city-destination"] {
-    display: none !important;
+    display: block !important;
 }
 /* Cache les conteneurs .demande-field qui contiennent une ville */
 div.demande-field:has(> input[id^="city-demande"]),
