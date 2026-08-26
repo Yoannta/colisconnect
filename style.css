@@ -442,6 +442,276 @@ body.results-page.light .demande-modal-card {
     color: #3a2f1e !important;
 }
 
+/* ============================================================
+   POST-TRIP — mode clair (body.post-trip-page.light)
+   Même système « Gold Light » que results.html
+   ============================================================ */
+body.post-trip-page.light {
+    background-color: #f7f2e9;
+    background-image:
+        radial-gradient(ellipse at center, transparent 55%, rgba(212,160,23,0.10) 100%),
+        conic-gradient(from 210deg at 50% -10%,
+            rgba(212,160,23,0.0) 0deg,
+            rgba(212,160,23,0.07) 40deg,
+            rgba(255,255,255,0.9) 90deg,
+            rgba(212,160,23,0.0) 140deg),
+        repeating-linear-gradient(115deg,
+            transparent 0px, transparent 90px,
+            rgba(180,130,30,0.06) 90px, rgba(180,130,30,0.06) 91px,
+            transparent 91px, transparent 180px),
+        radial-gradient(circle at 12% 8%, rgba(255,170,60,0.22) 0%, rgba(255,170,60,0.06) 22%, transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(212,160,23,0.14) 0%, rgba(212,160,23,0.04) 20%, transparent 42%),
+        linear-gradient(180deg, #fdfaf4 0%, #f7f2e9 45%, #efe6d6 100%);
+}
+body.post-trip-page.light .ambient-a {
+    background: radial-gradient(circle, rgba(255,170,60,0.16), transparent 70%);
+}
+body.post-trip-page.light .ambient-b {
+    background: radial-gradient(circle, rgba(212,160,23,0.12), transparent 70%);
+}
+body.post-trip-page.light .theme-toggle {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(184, 134, 11, 0.5);
+    color: #8a6d1f;
+    box-shadow: 0 4px 18px rgba(184, 134, 11, 0.18);
+}
+
+/* Header partagé + nav mobile : clairs (comme results) */
+body.post-trip-page.light .site-header,
+body.post-trip-page.light .mobile-bottom-nav {
+    background: rgba(253, 250, 244, 0.92) !important;
+    border-color: rgba(184, 134, 11, 0.25) !important;
+}
+body.post-trip-page.light .site-header .nav-link,
+body.post-trip-page.light .mob-nav-item {
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .site-header .nav-link.is-active,
+body.post-trip-page.light .mob-nav-item.active {
+    color: #b8860b !important;
+}
+
+/* En-tête de page */
+body.post-trip-page.light .page-header h1 {
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .page-header p {
+    color: #6d6252 !important;
+}
+body.post-trip-page.light .section-kicker {
+    color: #b8860b !important;
+}
+
+/* Cartes glass : surface claire + bordure dorée subtile */
+body.post-trip-page.light .trip-benefits,
+body.post-trip-page.light .trip-form-card {
+    background: rgba(253, 250, 244, 0.9) !important;
+    border-color: rgba(184, 134, 11, 0.30) !important;
+    box-shadow: 0 18px 50px rgba(120, 90, 20, 0.10) !important;
+}
+body.post-trip-page.light .trip-benefits h3 {
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .trip-benefits li {
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .trip-benefits ion-icon {
+    color: #b8860b !important;
+}
+
+/* Sections wizard */
+body.post-trip-page.light .trip-section {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border-color: rgba(184, 134, 11, 0.22) !important;
+}
+body.post-trip-page.light .trip-section-title {
+    color: #b8860b !important;
+    opacity: 1;
+}
+
+/* Barre de progression */
+body.post-trip-page.light .wp-step {
+    background: rgba(255, 255, 255, 0.5) !important;
+    border-color: rgba(184, 134, 11, 0.18) !important;
+}
+body.post-trip-page.light .wp-step.active {
+    border-color: rgba(184, 134, 11, 0.55) !important;
+    background: rgba(184, 134, 11, 0.10) !important;
+}
+body.post-trip-page.light .wp-step.done {
+    border-color: rgba(184, 134, 11, 0.30) !important;
+}
+body.post-trip-page.light .wp-dot {
+    background: rgba(184, 134, 11, 0.12) !important;
+    color: #8a6d1f !important;
+}
+body.post-trip-page.light .wp-step.active .wp-dot {
+    background: #b8860b !important;
+    color: #fff !important;
+}
+body.post-trip-page.light .wp-step.done .wp-dot {
+    background: rgba(184, 134, 11, 0.25) !important;
+    color: #8a6d1f !important;
+}
+body.post-trip-page.light .wp-label {
+    color: #6d6252 !important;
+}
+body.post-trip-page.light .wizard-question {
+    color: #3a2f1e !important;
+}
+
+/* Champs de saisie : fond clair, texte sombre */
+body.post-trip-page.light .form-input,
+body.post-trip-page.light .cc-autocomplete-input {
+    background: #fffdf8 !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .form-group label {
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .input-with-suffix span {
+    color: #6d6252 !important;
+}
+
+/* Boutons secondaires / déclencheurs de popup */
+body.post-trip-page.light .btn.secondary,
+body.post-trip-page.light .popup-trigger-btn {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.45) !important;
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .btn.secondary:hover {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border-color: rgba(184, 134, 11, 0.6) !important;
+}
+body.post-trip-page.light .btn-add-type {
+    background: rgba(184, 134, 11, 0.10) !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #8a6d1f !important;
+}
+body.post-trip-page.light .btn-add-type:hover {
+    background: rgba(184, 134, 11, 0.16) !important;
+}
+
+/* Profil voyageur / entreprise */
+body.post-trip-page.light .profile-select-btn {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .profile-select-btn.selected {
+    background: rgba(184, 134, 11, 0.16) !important;
+    border-color: rgba(184, 134, 11, 0.55) !important;
+    color: #6d4f10 !important;
+}
+
+/* Modes de prix + suppression de ligne */
+body.post-trip-page.light .price-mode-btn {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border-color: rgba(11, 143, 125, 0.4) !important;
+    color: #0b8f7d !important;
+}
+body.post-trip-page.light .price-mode-btn.selected,
+body.post-trip-page.light .price-mode-btn:focus {
+    background: rgba(11, 143, 125, 0.14) !important;
+    border-color: rgba(11, 143, 125, 0.55) !important;
+    color: #0b6e61 !important;
+}
+body.post-trip-page.light .price-or {
+    color: #6d6252 !important;
+}
+body.post-trip-page.light .colis-row-del {
+    background: rgba(255, 255, 255, 0.6) !important;
+    color: #8a7a5f !important;
+    border-color: rgba(184, 134, 11, 0.25) !important;
+}
+body.post-trip-page.light .price-field {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(11, 143, 125, 0.4) !important;
+    color: #3a2f1e !important;
+}
+
+/* Devise */
+body.post-trip-page.light .currency-toggle {
+    background: rgba(184, 134, 11, 0.12) !important;
+    border-color: rgba(184, 134, 11, 0.4) !important;
+    color: #8a6d1f !important;
+}
+body.post-trip-page.light #currency-popover {
+    background: #fdfaf4 !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+}
+
+/* Contact */
+body.post-trip-page.light .payment-method-btn,
+body.post-trip-page.light .contact-row-btn {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.4) !important;
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .pm-label {
+    color: #5a4632 !important;
+}
+
+/* CTA primaire : émeraude foncé lisible sur fond clair */
+body.post-trip-page.light .btn.primary {
+    background: linear-gradient(135deg, #0d9c86, #0b8f7d) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 22px -6px rgba(11, 143, 125, 0.45) !important;
+}
+
+/* Modales (types de colis) */
+body.post-trip-page.light .popup-content {
+    background: #fdfaf4 !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    box-shadow: 0 24px 70px rgba(120, 90, 20, 0.22) !important;
+}
+body.post-trip-page.light .popup-title {
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .option-card {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.25) !important;
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .option-card.selected {
+    background: rgba(184, 134, 11, 0.12) !important;
+    border-color: rgba(184, 134, 11, 0.55) !important;
+}
+body.post-trip-page.light .option-card.selected .option-circle {
+    background: #b8860b !important;
+}
+body.post-trip-page.light .option-text {
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .option-card.selected .option-text {
+    color: #6d4f10 !important;
+}
+
+/* Modale paiement (numéro de contact) */
+body.post-trip-page.light .pt-modal-card {
+    background: #fdfaf4 !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    box-shadow: 0 24px 70px rgba(120, 90, 20, 0.22) !important;
+}
+body.post-trip-page.light .pm-title,
+body.post-trip-page.light .pm-subtitle {
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .phone-label {
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .phone-prefix-select,
+body.post-trip-page.light .phone-input-row input {
+    background: #fffdf8 !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .pt-modal-close {
+    color: #8a7a5f !important;
+}
+
 .hidden {
     display: none !important;
 }

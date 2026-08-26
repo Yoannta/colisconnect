@@ -1352,6 +1352,29 @@
 
     <!-- Navigation Mobile Basse -->
     <div id="mobile-bottom-nav-root"></div>
+
+    <!-- Basculer thème sombre/clair (même système que results.html — Gold Light) -->
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Basculer thème">
+        <span id="theme-toggle-icon" class="theme-toggle-icon">🌙</span>
+    </button>
+
+    <script>
+        (function () {
+            var body = document.body;
+            var btn = document.getElementById("theme-toggle");
+            var icon = document.getElementById("theme-toggle-icon");
+            var saved = localStorage.getItem("cc-theme");
+            if (saved === "light") {
+                body.classList.add("light");
+                icon.textContent = "☀️";
+            }
+            btn.addEventListener("click", function () {
+                var light = body.classList.toggle("light");
+                icon.textContent = light ? "☀️" : "🌙";
+                localStorage.setItem("cc-theme", light ? "light" : "dark");
+            });
+        })();
+    </script>
 </body>
 
 </html>
