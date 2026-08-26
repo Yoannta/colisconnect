@@ -23,7 +23,7 @@
         animatedNodes: Array.from(document.querySelectorAll("[data-animate]")),
         // Modal
         openBtn: document.getElementById("open-payment-method-btn"),
-        openBtn2: document.getElementById("open-payment-method-btn-2"),
+        addContactBtn: document.getElementById("addContactBtn"),
         modal: document.getElementById("payment-method-modal"),
         closeBtn: document.getElementById("close-payment-modal-btn"),
         stepChoose: document.getElementById("pm-step-choose"),
@@ -275,9 +275,39 @@
     }
 
     function bindModalEvents() {
-        const openModalFrom = (btn) => { paymentTrigger = btn; openModal(); };
-        els.openBtn?.addEventListener("click", () => openModalFrom(els.openBtn));
-        els.openBtn2?.addEventListener("click", () => openModalFrom(els.openBtn2));
+        // Délégation : chaque ligne de contact (fixe ou ajoutée) ouvre la modale ;
+        // le ✕ d'une ligne AJOUTÉE la supprime
+        const rowsBox = document.getElementById("payment-contact-rows");
+        if (rowsBox) {
+            rowsBox.addEventListener("click", (e) => {
+                const del = e.target.closest(".contact-row-del");
+                if (del) {
+                    const row = del.closest(".payment-contact-row");
+                    if (row && !row.querySelector("#open-payment-method-btn")) row.remove();
+                    return;
+                }
+                const btn = e.target.closest(".contact-row-btn");
+                if (btn) {
+                    paymentTrigger = btn;
+                    openModal();
+                }
+            });
+        }
+        // Bouton dynamique "+ Autre numéro" : crée une nouvelle ligne de contact
+        els.addContactBtn?.addEventListener("click", () => {
+            if (!rowsBox) return;
+            const row = document.createElement("div");
+            row.className = "payment-contact-row";
+            row.innerHTML = `
+                <button type="button" class="btn secondary payment-method-btn contact-row-btn">
+                    <span class="pm-label">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span>Mon numero de contact</span>
+                    </span>
+                </button>
+                <button type="button" class="colis-row-del contact-row-del" aria-label="Supprimer cette ligne" title="Supprimer cette ligne">✕</button>`;
+            rowsBox.appendChild(row);
+        });
         els.closeBtn?.addEventListener("click", closeModal);
         els.modal?.addEventListener("click", (e) => {
             if (e.target === els.modal) closeModal();
