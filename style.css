@@ -605,7 +605,24 @@ body.post-trip-page .currency-toggle {
     border: 1px solid rgba(255,179,71,0.35) !important;
     color: #ffb347 !important;
 }
-body.post-trip-page .cc-custom-arrow {
+/* ═══ Champs du formulaire — contours harmonisés sur .popup-trigger-btn (Yoyo 2026-08) ═══
+   Tous les champs des étapes 1-4 : radius 12px « circulaire », pleine largeur,
+   même padding/hauteur que le bouton « Choisir les types refusés ». */
+body.post-trip-page .trip-form .form-input {
+    border-radius: 12px;
+    padding: 14px 16px;
+    width: 100%; /* ⚠️ sans width:100% les inputs restent à leur largeur intrinsèque
+                   (~265px) et le suffixe « kg » sort du champ — le span est déjà
+                   en absolu à droite (right:12px) + padding-right:46px */
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #f0f7f6;
+}
+body.post-trip-page .trip-form .form-input::placeholder {
+    color: rgba(255,255,255,0.35);
+}
+/* #price garde sa largeur compacte inline (120px) : l'inline gagne sur le width:100% */
+body.post-trip-page .trip-form .cc-custom-arrow {
     color: #ffb347 !important;
 }
 body.post-trip-page .form-input:focus {
@@ -877,6 +894,14 @@ body.post-trip-page.light .wizard-question-box .wizard-yesno .btn.selected {
 }
 body.post-trip-page.light .special-sep {
     border-top-color: rgba(184, 134, 11, 0.18) !important;
+}
+
+body.post-trip-page.light .trip-form .form-input {
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+}
+body.post-trip-page.light .trip-form .form-input::placeholder {
+    color: #b3a68c !important;
 }
 
 /* Champs de saisie : fond clair, texte sombre */
