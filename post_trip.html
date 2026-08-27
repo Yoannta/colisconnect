@@ -466,13 +466,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-shrink: 0;
-            margin-left: auto;
+            flex: 1 1 0;
+            min-width: 0;
+            margin-left: 0;
         }
         .price-mode-btn {
             background: rgba(19,236,200,0.1);
             border: 1px solid rgba(19,236,200,0.3);
-            border-radius: 20px;
+            border-radius: 8px; /* bords ANGULAIRES (demande Yoyo — plus de pilules) */
             color: #13ecc8;
             font-size: 0.85rem;
             font-weight: 700;
@@ -480,6 +481,8 @@
             cursor: pointer;
             transition: all 0.2s;
             white-space: nowrap;
+            flex: 1 1 0;
+            text-align: center;
         }
         .price-mode-btn:hover {
             background: rgba(19,236,200,0.2);
@@ -487,18 +490,21 @@
         .price-or {
             color: rgba(255,255,255,0.35);
             font-size: 0.8rem;
+            flex-shrink: 0;
         }
         .price-field {
             width: 110px;
             background: rgba(19,236,200,0.1);
             border: 1px solid rgba(19,236,200,0.35);
-            border-radius: 20px;
+            border-radius: 8px; /* bords ANGULAIRES (demande Yoyo) */
             padding: 8px 14px;
             color: #13ecc8;
             font-size: 0.85rem;
             font-weight: 700;
             outline: none;
             transition: all 0.2s;
+            flex: 1 1 0; /* ⚠️ flex-basis 0 : l'inline width du JS est ignoré → le champ s'étend sur toute la ligne (demande Yoyo) */
+            min-width: 0;
         }
         .price-field:focus {
             border-color: #13ecc8;
