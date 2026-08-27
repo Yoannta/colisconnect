@@ -582,16 +582,18 @@ body.post-trip-page .price-mode-btn:focus {
     color: #ffd08a;
 }
 body.post-trip-page .price-field {
-    background: rgba(255,255,255,0.07);
-    border-color: rgba(255,179,71,0.6);
-    color: #ffd08a;
+    background: rgba(255,255,255,0.07) !important;
+    border: 1px solid rgba(255,179,71,0.6) !important;
+    color: #ffd08a !important;
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
 }
 body.post-trip-page .price-field::placeholder {
-    color: rgba(255,179,71,0.5);
+    color: rgba(255,179,71,0.5) !important;
 }
 body.post-trip-page .price-field:focus {
-    border-color: #ffb347;
-    box-shadow: 0 0 0 2px rgba(255,140,0,0.22);
+    border-color: #ffb347 !important;
+    box-shadow: 0 0 0 2px rgba(255,140,0,0.22) !important;
 }
 body.post-trip-page .colis-row-del {
     background: rgba(255,255,255,0.04);
@@ -946,7 +948,11 @@ body.post-trip-page.light .colis-row-del {
 body.post-trip-page.light .price-field {
     background: #fffdf8 !important;
     border-color: rgba(184, 134, 11, 0.6) !important;
+    border-style: solid !important;
+    border-width: 1px !important;
     color: #3a2f1e !important;
+    padding: 8px 14px !important;
+    font-size: 0.85rem !important;
 }
 
 /* Devise */
