@@ -563,10 +563,17 @@ body.post-trip-page .ps-check {
     background: linear-gradient(135deg, #e9a614, #f1b52b);
     color: #1c1400;
 }
-/* Prix spéciaux + devise */
+/* Prix spéciaux + devise — fond/contours BIEN VISIBLES (Yoyo : le champ cliqué
+   devenait transparent vert clair — le bg rgba(19,236,200,0.1) du CSS inline
+   et le bord 0.35 étaient quasi invisibles sur noir ; on surcharge TOUT) */
 body.post-trip-page .price-mode-btn {
-    border-color: rgba(255,140,0,0.35);
+    background: rgba(255,179,71,0.08);
+    border-color: rgba(255,179,71,0.5);
     color: #ffb347;
+}
+body.post-trip-page .price-mode-btn:hover {
+    background: rgba(255,179,71,0.14);
+    border-color: #ffb347;
 }
 body.post-trip-page .price-mode-btn.selected,
 body.post-trip-page .price-mode-btn:focus {
@@ -575,7 +582,16 @@ body.post-trip-page .price-mode-btn:focus {
     color: #ffd08a;
 }
 body.post-trip-page .price-field {
-    border-color: rgba(255,140,0,0.4);
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(255,179,71,0.6);
+    color: #ffd08a;
+}
+body.post-trip-page .price-field::placeholder {
+    color: rgba(255,179,71,0.5);
+}
+body.post-trip-page .price-field:focus {
+    border-color: #ffb347;
+    box-shadow: 0 0 0 2px rgba(255,140,0,0.22);
 }
 body.post-trip-page .colis-row-del {
     background: rgba(255,255,255,0.04);
@@ -910,13 +926,13 @@ body.post-trip-page.light .profile-select-btn.selected {
 /* Modes de prix + suppression de ligne */
 body.post-trip-page.light .price-mode-btn {
     background: rgba(255, 255, 255, 0.6) !important;
-    border-color: rgba(184, 134, 11, 0.4) !important;
+    border-color: rgba(184, 134, 11, 0.55) !important;
     color: #8a6d1f !important;
 }
 body.post-trip-page.light .price-mode-btn.selected,
 body.post-trip-page.light .price-mode-btn:focus {
     background: rgba(184, 134, 11, 0.14) !important;
-    border-color: rgba(184, 134, 11, 0.55) !important;
+    border-color: #b8860b !important;
     color: #6d4f10 !important;
 }
 body.post-trip-page.light .price-or {
@@ -928,8 +944,8 @@ body.post-trip-page.light .colis-row-del {
     border-color: rgba(184, 134, 11, 0.25) !important;
 }
 body.post-trip-page.light .price-field {
-    background: rgba(255, 255, 255, 0.7) !important;
-    border-color: rgba(184, 134, 11, 0.4) !important;
+    background: #fffdf8 !important;
+    border-color: rgba(184, 134, 11, 0.6) !important;
     color: #3a2f1e !important;
 }
 
