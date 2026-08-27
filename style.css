@@ -564,8 +564,8 @@ body.post-trip-page .ps-check {
     color: #1c1400;
 }
 /* Prix spéciaux + devise — fond/contours BIEN VISIBLES (Yoyo : le champ cliqué
-   devenait transparent vert clair — le bg rgba(19,236,200,0.1) du CSS inline
-   et le bord 0.35 étaient quasi invisibles sur noir ; on surcharge TOUT) */
+   devenait transparent vert clair — le fond du CSS inline (vert à 10 %) et le
+   bord à 35 % étaient quasi invisibles sur noir ; on surcharge TOUT) */
 body.post-trip-page .price-mode-btn {
     background: rgba(255,179,71,0.08);
     border-color: rgba(255,179,71,0.5);
