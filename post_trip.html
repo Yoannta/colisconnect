@@ -974,10 +974,12 @@
                                     <p class="trip-section-sub">Des prix différents pour certains types de colis.</p>
                                 </div>
                             </div>
-                            <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de colis ?</p>
-                            <div class="wizard-yesno">
-                                <button type="button" class="btn primary" id="special-yes">Oui</button>
-                                <button type="button" class="btn secondary" id="special-no">Non</button>
+                            <div class="wizard-question-box">
+                                <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de colis ?</p>
+                                <div class="wizard-yesno">
+                                    <button type="button" class="btn primary" id="special-yes">Oui</button>
+                                    <button type="button" class="btn secondary" id="special-no">Non</button>
+                                </div>
                             </div>
                         <div class="form-group">
                             <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
@@ -988,7 +990,6 @@
                         </div>
                             <div id="special-prices-panel" class="hidden">
                         <div class="form-group" id="colis-details-group">
-                            <label class="form-label">Prix spéciaux pour certains types de colis <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
                             <div id="colis-detail-rows">
                                 <div class="colis-detail-row" data-row="0">
                                     <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
@@ -1004,9 +1005,10 @@
                                     <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
                                 </div>
                             </div>
-                            <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre type</button>
+                            <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre prix spécial</button>
                         </div>
                             </div><!-- /special-prices-panel -->
+                        <div class="special-sep"></div>
                         <div class="form-group">
                             <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
                             <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">

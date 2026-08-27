@@ -635,9 +635,41 @@ body.post-trip-page .phone-input-row input {
     border-color: rgba(255,179,71,0.3);
     color: #f7f2e9;
 }
-/* Question Oui/Non */
-body.post-trip-page .wizard-yesno .btn.selected {
-    box-shadow: 0 0 0 2px rgba(255,179,71,0.4);
+/* Question Oui/Non — encadré + pilules segmentées (disposition maquette Stitch) */
+body.post-trip-page .wizard-question-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 14px;
+    padding: 14px;
+}
+body.post-trip-page .wizard-question-box .wizard-yesno .btn {
+    min-width: 0;
+    padding: 8px 24px;
+    border-radius: 999px;
+    background: transparent;
+    color: rgba(255,255,255,0.72);
+    border: 1px solid rgba(255,255,255,0.18);
+    box-shadow: none;
+}
+body.post-trip-page .wizard-question-box .wizard-yesno .btn:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,179,71,0.5);
+    color: #fff;
+}
+body.post-trip-page .wizard-question-box .wizard-yesno .btn.selected {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #1c1400;
+    border-color: transparent;
+    box-shadow: 0 6px 16px -4px rgba(192,133,10,0.5);
+}
+/* Séparateur (maquette Stitch) */
+body.post-trip-page .special-sep {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin: 4px 0 10px;
 }
 
 /* ============================================================
@@ -803,6 +835,30 @@ body.post-trip-page.light .ps-check {
 }
 body.post-trip-page.light .wizard-question {
     color: #3a2f1e !important;
+}
+body.post-trip-page.light .wizard-question-box {
+    background: #f5efe2 !important;
+    border-color: rgba(184, 134, 11, 0.18) !important;
+}
+body.post-trip-page.light .wizard-question-box .wizard-yesno .btn {
+    background: transparent !important;
+    color: #6d6252 !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    box-shadow: none !important;
+}
+body.post-trip-page.light .wizard-question-box .wizard-yesno .btn:hover {
+    background: rgba(184, 134, 11, 0.08) !important;
+    border-color: rgba(184, 134, 11, 0.6) !important;
+    color: #6d4f10 !important;
+}
+body.post-trip-page.light .wizard-question-box .wizard-yesno .btn.selected {
+    background: linear-gradient(135deg, #e9a614, #f1b52b) !important;
+    color: #fff !important;
+    border-color: transparent !important;
+    box-shadow: 0 6px 16px -4px rgba(192, 133, 10, 0.4) !important;
+}
+body.post-trip-page.light .special-sep {
+    border-top-color: rgba(184, 134, 11, 0.18) !important;
 }
 
 /* Champs de saisie : fond clair, texte sombre */
