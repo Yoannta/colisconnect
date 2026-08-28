@@ -715,6 +715,26 @@ body.post-trip-page .currency-opt-code {
 body.post-trip-page .currency-opt:hover {
     background: rgba(255,140,0,0.12);
 }
+/* Moyen de transport — bordure or VISIBLE (Yoyo : les 3 boutons « toujours dans
+   le style ancien » — bordure var(--line) 15% quasi invisible + texte clair sur
+   crème en mode clair) */
+body.post-trip-page .transport-mode-btn {
+    border-color: rgba(255,179,71,0.45);
+}
+body.post-trip-page.light .transport-mode-btn {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border-color: rgba(184, 134, 11, 0.45) !important;
+    color: #5a4632 !important;
+}
+body.post-trip-page.light .transport-mode-btn:hover {
+    background: rgba(184, 134, 11, 0.08) !important;
+    border-color: #b8860b !important;
+}
+body.post-trip-page.light .transport-mode-btn.selected {
+    background: rgba(184, 134, 11, 0.14) !important;
+    border-color: #b8860b !important;
+    color: #6d4f10 !important;
+}
 /* Modale paiement — aura or au focus (Yoyo : « truc lumineux vert de l'ancien style ») */
 body.post-trip-page .phone-main-input:focus {
     border-color: #ffb347 !important;
