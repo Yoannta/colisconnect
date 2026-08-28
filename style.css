@@ -450,6 +450,21 @@ body.results-page.light .demande-modal-card {
    gagnent grâce à leurs !important).
    ============================================================ */
 body.post-trip-page {
+    /* ═══ ÉPURATION des VARIABLES : le :root global est la palette « Emerald-Obsidian »
+       (--line, --emerald-bright, --px-focus… = émeraude) — on les re-définit en OR
+       pour post-trip pour que var(--line) & co ne résolvent plus en vert (Yoyo). */
+    --emerald-bright: #ffb347;
+    --emerald-glow: rgba(255, 179, 71, 0.15);
+    --emerald-deep: #4a3a10;
+    --line: rgba(255, 179, 71, 0.15);
+    --line-glow: rgba(255, 179, 71, 0.3);
+    --primary: #ffb347;
+    --secondary: #d4a017;
+    --accent: #ffb347;
+    --px-focus: 0 0 0 3px rgba(255, 179, 71, 0.4);
+    --px-glow: 0 0 30px rgba(255, 140, 0, 0.25);
+    --deep-glass-border: rgba(255, 179, 71, 0.15);
+    --muted: #b8b0a0;
     background-color: #050505;
     background-image:
         radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%),
