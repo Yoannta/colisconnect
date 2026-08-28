@@ -343,7 +343,7 @@
             // Simulation envoi SMS
             setTimeout(() => {
                 els.verifySmsBtn.innerHTML = "Envoyé ✓";
-                els.verifySmsBtn.style.color = "#13ecc8";
+                els.verifySmsBtn.style.color = "#ffb347";
                 els.otpSection?.classList.remove("hidden");
 
                 els.indicatifInput.disabled = true;
@@ -359,7 +359,7 @@
             const code = els.otpInput.value.trim();
             if (code === "123456") {
                 paymentState.isVerified = true;
-                els.otpSection.innerHTML = '<p style="color: #13ecc8; font-weight: 700; margin: 0;">✓ Jamais numéro vérifié avec succès</p>';
+                els.otpSection.innerHTML = '<p style="color: #ffb347; font-weight: 700; margin: 0;">✓ Jamais numéro vérifié avec succès</p>';
                 if (els.confirmBtn) els.confirmBtn.disabled = false;
             } else {
                 alert("Code invalide. Réessayez avec 123456.");

@@ -1088,6 +1088,41 @@ body.post-trip-page.light .option-text {
 body.post-trip-page.light .option-card.selected .option-text {
     color: #6d4f10 !important;
 }
+/* Popup types — boutons (épuration ancien thème : Yoyo « je veux nettoyer toute la page ») */
+body.post-trip-page.light .btn-add-trigger {
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #8a6d1f !important;
+}
+body.post-trip-page.light .btn-add-trigger:hover {
+    background: rgba(184, 134, 11, 0.08) !important;
+    border-color: #b8860b !important;
+}
+body.post-trip-page.light .custom-input {
+    background: #fffdf8 !important;
+    border-color: rgba(184, 134, 11, 0.35) !important;
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .custom-input:focus {
+    border-color: #b8860b !important;
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15) !important;
+}
+body.post-trip-page.light .btn-save-custom {
+    background: rgba(184, 134, 11, 0.1) !important;
+    border-color: rgba(184, 134, 11, 0.45) !important;
+    color: #6d4f10 !important;
+}
+body.post-trip-page.light .btn-save-custom:hover {
+    background: rgba(184, 134, 11, 0.18) !important;
+}
+body.post-trip-page.light .btn-validate {
+    background: rgba(184, 134, 11, 0.1) !important;
+    border-color: rgba(184, 134, 11, 0.5) !important;
+    color: #6d4f10 !important;
+}
+body.post-trip-page.light .btn-validate:hover {
+    background: rgba(184, 134, 11, 0.18) !important;
+    border-color: #b8860b !important;
+}
 
 /* Modale paiement (numéro de contact) */
 body.post-trip-page.light .pt-modal-card {
