@@ -743,6 +743,7 @@
         }
         .phone-input-row {
             display: flex;
+            flex-wrap: wrap; /* le bouton Vérifier passe SOUS le champ (Yoyo : caché sur certains écrans) */
             gap: 8px;
             align-items: stretch;
         }
@@ -771,23 +772,26 @@
             outline: none;
         }
         .phone-main-input:focus {
-            border-color: var(--emerald-bright, #13ecc8);
+            border-color: rgba(255,179,71,0.6); /* plus d'aura émeraude (Yoyo) */
+            box-shadow: 0 0 0 3px rgba(255,140,0,0.12);
         }
         .phone-verify-btn {
-            background: rgba(19,236,200,0.1);
-            border: 1px solid rgba(19,236,200,0.2);
+            flex: 1 1 100%; /* pleine largeur SOUS le numéro (Yoyo) */
+            justify-content: center;
+            background: rgba(255,179,71,0.08);
+            border: 1px solid rgba(255,179,71,0.5);
             border-radius: 12px;
-            padding: 0 16px;
-            color: #13ecc8;
-            font-size: 0.85rem;
-            font-weight: 600;
+            padding: 14px 16px;
+            color: #ffb347;
+            font-size: 0.9rem;
+            font-weight: 700;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s;
         }
         .phone-verify-btn:not(:disabled):hover {
-            background: rgba(19,236,200,0.2);
-            border-color: #13ecc8;
+            background: rgba(255,179,71,0.15);
+            border-color: #ffb347;
         }
         .phone-verify-btn:disabled {
             opacity: 0.4;
@@ -945,7 +949,7 @@
                                                 <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
                                             </button>
                                             <div id="currency-popover" class="currency-popover hidden glass-panel"
-                                                style="position: absolute; top: calc(100% + 8px); right: 0; width: 150px; z-index: 1000; padding: 8px; border: 1px solid rgba(19, 236, 200, 0.4); box-shadow: 0 10px 40px rgba(0,0,0,0.6);"></div>
+                                                style="position: absolute; top: calc(100% + 8px); right: 0; width: 150px; z-index: 1000; padding: 8px; border: 1px solid rgba(255, 179, 71, 0.35); box-shadow: 0 10px 40px rgba(0,0,0,0.6);"></div>
                                         </div>
                                         <input type="hidden" id="price-currency" value="">
                                     </div>

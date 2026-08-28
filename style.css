@@ -686,6 +686,25 @@ body.post-trip-page .phone-input-row input {
     border-color: rgba(255,179,71,0.3);
     color: #f7f2e9;
 }
+/* Popover devise — thème obsidian (Yoyo : « texte blanc sur fond presque blanc » +
+   bord émeraude de l'ancien CSS) */
+body.post-trip-page .currency-popover {
+    background: rgba(16,16,16,0.96);
+}
+body.post-trip-page .currency-opt-name {
+    color: #f0f7f6;
+}
+body.post-trip-page .currency-opt-code {
+    color: #ffb347;
+}
+body.post-trip-page .currency-opt:hover {
+    background: rgba(255,140,0,0.12);
+}
+/* Modale paiement — aura or au focus (Yoyo : « truc lumineux vert de l'ancien style ») */
+body.post-trip-page .phone-main-input:focus {
+    border-color: #ffb347 !important;
+    box-shadow: 0 0 0 3px rgba(255,140,0,0.15) !important;
+}
 /* Question Oui/Non — encadré + pilules segmentées (disposition maquette Stitch) */
 body.post-trip-page .wizard-question-box {
     display: flex;
@@ -1091,6 +1110,34 @@ body.post-trip-page.light .phone-input-row input {
 }
 body.post-trip-page.light .pt-modal-close {
     color: #8a7a5f !important;
+}
+/* Popover devise — mode clair */
+body.post-trip-page.light .currency-popover {
+    background: #fdfaf4 !important;
+    box-shadow: 0 10px 40px rgba(120, 90, 20, 0.18) !important;
+}
+body.post-trip-page.light .currency-opt-name {
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .currency-opt-code {
+    color: #8a6d1f !important;
+}
+body.post-trip-page.light .currency-opt:hover {
+    background: rgba(184, 134, 11, 0.12) !important;
+}
+/* Modale paiement — mode clair : aura or + bouton Vérifier visible */
+body.post-trip-page.light .phone-main-input:focus {
+    border-color: #b8860b !important;
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.15) !important;
+}
+body.post-trip-page.light .phone-verify-btn {
+    background: rgba(184, 134, 11, 0.1) !important;
+    border-color: rgba(184, 134, 11, 0.5) !important;
+    color: #6d4f10 !important;
+}
+body.post-trip-page.light .phone-verify-btn:not(:disabled):hover {
+    background: rgba(184, 134, 11, 0.18) !important;
+    border-color: #b8860b !important;
 }
 
 .hidden {
