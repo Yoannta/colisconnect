@@ -284,9 +284,10 @@
                 // Unité lisible : "par kilo" ou "par <type de colis>" (ex: 100 yuan par ordinateur)
                 const specialUnitLabel = (p) => (p.mode === "qty" ? ` par ${window.CCCommon.escapeHtml(p.type)}` : " par kilo");
                 // Une ligne de prix spécial : nom à gauche, prix en évidence, unité SOUS le prix
+                // (noms > 14 caractères : classe "long" → taille réduite + wrap, pour ne jamais déborder sur le prix)
                 const specialRow = (p) => `
         <div class="cc3-special-item">
-          <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
+          <span class="cc3-special-type${p.type && p.type.length > 14 ? " cc3-type-long" : ""}">${window.CCCommon.escapeHtml(p.type)}</span>
           <span class="cc3-special-price">${specialPriceDisplay(p.price)}</span>
           <span class="cc3-special-unit">${specialUnitLabel(p).trim()}</span>
         </div>`;
@@ -302,7 +303,7 @@
                     .filter(Boolean);
                 const refusedRow = (r) => `
         <div class="cc3-refused-item">
-          <span class="cc3-refused-name">${window.CCCommon.escapeHtml(r.name)}</span>
+          <span class="cc3-refused-name${r.name && r.name.length > 14 ? " cc3-refused-long" : ""}">${window.CCCommon.escapeHtml(r.name)}</span>
           ${r.note ? `<span class="cc3-refused-note">${window.CCCommon.escapeHtml(r.note)}</span>` : ""}
         </div>`;
                 // La zone (2 colonnes) n'existe que si au moins un des deux côtés a du contenu
