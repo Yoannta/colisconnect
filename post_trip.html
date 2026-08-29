@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=8"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=9"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
@@ -27,7 +27,7 @@
     <script defer src="standalone-common.js"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="datalist-helper.js"></script>
-    <script defer src="post_trip.js?v=9"></script>
+    <script defer src="post_trip.js?v=10"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -445,6 +445,10 @@
             gap: 12px;
             flex-wrap: wrap;
             margin-bottom: 10px;
+            background: rgba(255,255,255,0.045);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 12px;
+            padding: 10px 12px;
         }
         .colis-detail-row .colis-name-btn {
             width: auto;
@@ -1042,7 +1046,7 @@
                                     </div>
                                     <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
                                     <div class="special-price-line hidden" data-row="0">
-                                        <input type="number" class="price-field" data-row="0" placeholder="0" min="0" step="any">
+                                        <input type="number" class="price-field" data-row="0" placeholder="ex. 5 kg" min="0" step="any">
                                         <span class="special-price-currency">FCFA</span>
                                     </div>
                                 </div>
@@ -1363,7 +1367,7 @@
                     '</div>' +
                     '<button type="button" class="colis-row-del" data-row="' + r + '" aria-label="Supprimer cette ligne">✕</button>' +
                     '<div class="special-price-line hidden" data-row="' + r + '">' +
-                    '<input type="number" class="price-field" data-row="' + r + '" placeholder="0" min="0" step="any">' +
+                    '<input type="number" class="price-field" data-row="' + r + '" placeholder="ex. 5 kg" min="0" step="any">' +
                     '<span class="special-price-currency">FCFA</span>' +
                     '</div>';
                 rowsBox.appendChild(row);
@@ -1426,7 +1430,7 @@
                         var curSpan = line.querySelector('.special-price-currency');
                         if (curSpan) curSpan.textContent = cur;
                         if (field) {
-                            field.placeholder = chosen === 'kilo' ? 'prix/kg' : 'prix/unité';
+                            field.placeholder = chosen === 'kilo' ? 'ex. 5 kg' : 'ex. 5 ordinateurs';
                             field.focus();
                         }
                     }
