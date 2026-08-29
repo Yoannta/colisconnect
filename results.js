@@ -279,7 +279,8 @@
                 } catch (e) { specialPrices = []; }
                 const validSpecial = specialPrices.filter((p) => p && p.type && Number(p.price) > 0);
                 const specialPriceDisplay = (price) => formatAmount(convertCurrency(Number(price), baseCur, userCur), userCur);
-                const specialModeLabel = (mode) => (mode === "qty" ? "quantité" : "kg");
+                // Suffixe lisible : "par kilo" ou "par <type de colis>" (ex: 100 yuan par ordinateur)
+                const specialUnitLabel = (p) => (p.mode === "qty" ? ` par ${window.CCCommon.escapeHtml(p.type)}` : " par kilo");
 
                 const profilePhoto = String(offer.ownerProfilePhoto || offer.ownerAvatar || offer.avatar || "").trim();
                 const profileLabel = offerMode === "" ? "Voyageur" : "Transporteur Pro";
@@ -392,14 +393,14 @@
         ${validSpecial.slice(0, 2).map((p) => `
         <div class="cc3-special-item">
           <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
-          <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>/${specialModeLabel(p.mode)}</em></span>
+          <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>${specialUnitLabel(p)}</em></span>
         </div>`).join("")}
         ${validSpecial.length > 2 ? `
         <div class="cc3-special-more">
           ${validSpecial.slice(2).map((p) => `
           <div class="cc3-special-item">
             <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
-            <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>/${specialModeLabel(p.mode)}</em></span>
+            <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>${specialUnitLabel(p)}</em></span>
           </div>`).join("")}
         </div>` : ""}
       </div>

@@ -2496,6 +2496,7 @@
                     e.stopPropagation();
                     $input.value = p;
                     list.style.display = "none";
+                    $input.classList.remove("cc-country-invalid"); // choix valide → plus de rouge
                     $input.dispatchEvent(new Event("change", { bubbles: true }));
                 });
                 li.addEventListener("mouseenter", function () {
@@ -2563,6 +2564,7 @@
                     e.preventDefault();
                     $input.value = active.textContent;
                     list.style.display = "none";
+                    $input.classList.remove("cc-country-invalid"); // choix valide → plus de rouge
                     $input.dispatchEvent(new Event("change", { bubbles: true }));
                     return;
                 }
