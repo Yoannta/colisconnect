@@ -39,6 +39,10 @@
         otpSection: document.getElementById("pm-otp-section"),
         otpInput: document.getElementById("pm-otp-code"),
         confirmOtpBtn: document.getElementById("pm-confirm-otp-btn"),
+        // Popup succès publication
+        publishModal: document.getElementById("publish-success-modal"),
+        publishOkBtn: document.getElementById("publish-success-ok-btn"),
+        publishMsg: document.getElementById("publish-success-msg"),
         // Currency Custom
         currencyToggle: document.getElementById("currency-toggle-btn"),
         currencyPopover: document.getElementById("currency-popover"),
@@ -205,6 +209,14 @@
     function closeModal() {
         els.modal?.classList.add("hidden");
         document.body.style.overflow = "";
+    }
+
+    // Popup de succès du site (remplace l'alerte navigateur "yoannta.github.io says")
+    function showPublishSuccess(destination) {
+        if (els.publishMsg) {
+            els.publishMsg.textContent = `Votre trajet vers ${destination} a bien été publié.`;
+        }
+        els.publishModal?.classList.remove("hidden");
     }
 
     function showStep(step) {
@@ -413,6 +425,11 @@
         });
 
         els.confirmBtn?.addEventListener("click", confirmPaymentMethod);
+
+        // Popup succès : "Voir mes offres" redirige vers les résultats
+        els.publishOkBtn?.addEventListener("click", () => {
+            window.location.href = "results.html";
+        });
     }
 
     // ---- Submit trip ----
@@ -525,7 +542,6 @@
 
         try {
             const created = await window.CCCommon.api("/api/offers", { method: "POST", body: payload });
-            alert(`Offre publiee vers ${created?.destination || payload.destination}.`);
 
             // Mise à jour du profil APRÈS publication réussie
             if (selectedProfileTypeChoice) {
@@ -551,7 +567,8 @@
             document.querySelectorAll(".pm-label").forEach((l) => {
                 if (l !== els.paymentMethodLabel) l.innerHTML = els.paymentMethodLabel.innerHTML;
             });
-            window.location.href = "results.html";
+            // Popup de succès du site (remplace l'alerte navigateur) — redirection au clic
+            showPublishSuccess(created?.destination || payload.destination);
         } catch (error) {
             if (error?.status === 401) {
                 window.CCCommon.openAuthGate("post_trip.html");
