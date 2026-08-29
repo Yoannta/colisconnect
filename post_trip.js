@@ -775,28 +775,47 @@
                     }
                 }
             }
-            // Étape 2 : kilos + prix + devise OBLIGATOIRES (Yoyo 2026-08)
+            // Étape 2 : champs OBLIGATOIRES (Yoyo 2026-08) — MESSAGE par section manquante
             if (current === 1) {
                 const kilos = document.getElementById("kilos");
                 const price = document.getElementById("price");
                 const currency = document.getElementById("price-currency");
+                const currencyBtn = document.getElementById("currency-toggle-btn");
+                const kilosGroup = document.getElementById("kilos-group");
+                const transportSection = document.getElementById("transport-mode-section");
+                const errBox = document.getElementById("step2-errors");
                 const k = parseFloat(kilos.value);
                 const p = parseFloat(price.value);
                 const c = (currency.value || "").trim();
-                if (isNaN(k) || k <= 0) {
-                    markError(kilos);
-                    kilos.focus();
+
+                const kilosVisible = kilosGroup && !kilosGroup.classList.contains("hidden");
+                const transportVisible = transportSection && transportSection.style.display !== "none";
+                const kilosManque = kilosVisible && (isNaN(k) || k <= 0);
+                const priceManque = isNaN(p) || p <= 0;
+                const deviseManque = !c;
+                const transportManque = transportVisible && !document.querySelector(".transport-mode-btn.selected");
+
+                const manques = [];
+                if (kilosManque) manques.push("Veuillez mettre le nombre de kilos");
+                if (priceManque) manques.push("Veuillez mettre le prix par kilo");
+                if (deviseManque) manques.push("Veuillez choisir la devise");
+                if (transportManque) manques.push("Veuillez choisir le moyen de transport");
+
+                if (manques.length) {
+                    if (errBox) {
+                        errBox.innerHTML = manques.map(m => "<div>• " + m + "</div>").join("");
+                        errBox.classList.remove("hidden");
+                    }
+                    if (kilosManque) { markError(kilos); kilos.focus(); }
+                    else if (priceManque) { markError(price); price.focus(); }
+                    else if (deviseManque) { markError(currencyBtn); currencyBtn.focus(); }
+                    else if (transportManque) {
+                        const firstBtn = document.querySelector(".transport-mode-btn");
+                        if (firstBtn) firstBtn.focus();
+                    }
                     return;
                 }
-                if (isNaN(p) || p <= 0) {
-                    markError(price);
-                    price.focus();
-                    return;
-                }
-                if (!c) {
-                    markError(document.getElementById("currency-toggle-btn"));
-                    return;
-                }
+                if (errBox) errBox.classList.add("hidden");
             }
             showStep(current + 1);
         }

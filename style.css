@@ -740,6 +740,24 @@ body.post-trip-page .input-error {
     border-color: #ff6b6b !important;
     box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.25) !important;
 }
+/* Boîte de messages de validation (étape 2) — une ligne par section manquante */
+body.post-trip-page .step-errors {
+    background: rgba(255, 107, 107, 0.08);
+    border: 1px solid rgba(255, 107, 107, 0.4);
+    border-radius: 12px;
+    padding: 12px 14px;
+    color: #ff9a9a;
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+body.post-trip-page.light .step-errors {
+    background: #fdf0ef !important;
+    border-color: rgba(220, 80, 70, 0.4) !important;
+    color: #b34840 !important;
+}
 /* Modale paiement — aura or au focus (Yoyo : « truc lumineux vert de l'ancien style ») */
 body.post-trip-page .phone-main-input:focus {
     border-color: #ffb347 !important;
