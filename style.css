@@ -11596,96 +11596,141 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     overflow: hidden;
     text-overflow: ellipsis;
 }
-/* Prix spéciaux sur la carte */
-.cc3-special {
+/* Prix spéciaux + articles refusés sur la carte (zone compacte 2 colonnes) */
+.cc3-special-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 14px;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 10px 2px 2px;
+    padding: 10px 2px 4px;
 }
-.cc3-special-label {
+.cc3-special-label,
+.cc3-refused-label {
     display: block;
     font-size: 0.58rem;
     font-weight: 800;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: #908d88;
-    margin-bottom: 7px;
+    margin-bottom: 6px;
 }
-.cc3-special-list {
+.cc3-special-list,
+.cc3-refused-list {
     display: flex;
     flex-direction: column;
-    gap: 5px;
-}
-.cc3-special-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 10px;
-    padding: 6px 10px;
+    gap: 2px;
     min-width: 0;
 }
+/* Ligne prix spécial : nom à gauche, prix en évidence à droite, unité SOUS le prix */
+.cc3-special-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0 8px;
+    align-items: baseline;
+    padding: 3px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+    min-width: 0;
+}
+.cc3-special-item:last-child {
+    border-bottom: none;
+}
 .cc3-special-type {
-    font-size: 0.8rem;
+    grid-column: 1;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #e8e4dd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.cc3-special-price {
+    grid-column: 2;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #d29a22;
+    white-space: nowrap;
+    text-align: right;
+}
+.cc3-special-unit {
+    grid-column: 2;
+    font-size: 0.58rem;
+    font-weight: 600;
+    color: #908d88;
+    text-align: right;
+}
+/* Ligne article refusé : nom seul + précision discrète facultative */
+.cc3-refused-item {
+    padding: 3px 0;
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+    min-width: 0;
+}
+.cc3-refused-item:last-child {
+    border-bottom: none;
+}
+.cc3-refused-name {
+    display: block;
+    font-size: 0.78rem;
     font-weight: 600;
     color: #e8e4dd;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.cc3-special-price {
-    font-size: 0.82rem;
-    font-weight: 800;
-    color: #d29a22;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-.cc3-special-price em {
-    font-style: normal;
-    font-weight: 600;
-    font-size: 0.66rem;
+.cc3-refused-note {
+    display: block;
+    font-size: 0.58rem;
     color: #908d88;
 }
-.cc3-special-more {
-    display: none;
-    flex-direction: column;
-    gap: 5px;
+.cc3-empty-note {
+    font-size: 0.68rem;
+    font-style: italic;
+    color: #908d88;
+    padding: 3px 0;
 }
-.cc3-special.expanded .cc3-special-more {
-    display: flex;
+.cc3-special-more,
+.cc3-refused-more {
+    display: none;
+}
+.cc3-special-col.expanded .cc3-special-more,
+.cc3-refused-col.expanded .cc3-refused-more {
+    display: block;
 }
 .cc3-special-toggle {
     display: block;
-    margin: 8px auto 0;
+    margin: 6px auto 0;
     background: none;
     border: none;
     color: #d29a22;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
     cursor: pointer;
-    padding: 2px 10px;
+    padding: 2px 6px;
 }
 .cc3-special-toggle:hover {
     text-decoration: underline;
 }
-body.results-page.light .cc3-special {
+body.results-page.light .cc3-special-grid {
     border-top-color: rgba(23, 23, 23, 0.09);
 }
-body.results-page.light .cc3-special-label {
+body.results-page.light .cc3-special-label,
+body.results-page.light .cc3-refused-label {
     color: #5f5b55;
 }
-body.results-page.light .cc3-special-item {
-    background: rgba(23, 23, 23, 0.04);
-    border-color: rgba(23, 23, 23, 0.08);
+body.results-page.light .cc3-special-item,
+body.results-page.light .cc3-refused-item {
+    border-bottom-color: rgba(23, 23, 23, 0.09);
 }
-body.results-page.light .cc3-special-type {
+body.results-page.light .cc3-special-type,
+body.results-page.light .cc3-refused-name {
     color: #131313;
 }
 body.results-page.light .cc3-special-price {
     color: #c89422;
 }
-body.results-page.light .cc3-special-price em {
+body.results-page.light .cc3-special-unit,
+body.results-page.light .cc3-refused-note,
+body.results-page.light .cc3-empty-note {
     color: #8a857c;
 }
 body.results-page.light .cc3-special-toggle {

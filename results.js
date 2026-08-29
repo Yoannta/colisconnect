@@ -279,8 +279,32 @@
                 } catch (e) { specialPrices = []; }
                 const validSpecial = specialPrices.filter((p) => p && p.type && Number(p.price) > 0);
                 const specialPriceDisplay = (price) => formatAmount(convertCurrency(Number(price), baseCur, userCur), userCur);
-                // Suffixe lisible : "par kilo" ou "par <type de colis>" (ex: 100 yuan par ordinateur)
+                // Unité lisible : "par kilo" ou "par <type de colis>" (ex: 100 yuan par ordinateur)
                 const specialUnitLabel = (p) => (p.mode === "qty" ? ` par ${window.CCCommon.escapeHtml(p.type)}` : " par kilo");
+                // Une ligne de prix spécial : nom à gauche, prix en évidence, unité SOUS le prix
+                const specialRow = (p) => `
+        <div class="cc3-special-item">
+          <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
+          <span class="cc3-special-price">${specialPriceDisplay(p.price)}</span>
+          <span class="cc3-special-unit">${specialUnitLabel(p).trim()}</span>
+        </div>`;
+                // Articles refusés : chaîne "A, B (précision), C" → liste {name, note?}
+                const refusesItems = colisRefuses
+                    .split(",")
+                    .map((s) => {
+                        const t = s.trim();
+                        if (!t) return null;
+                        const m = t.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+                        return m ? { name: m[1].trim(), note: m[2].trim() } : { name: t, note: "" };
+                    })
+                    .filter(Boolean);
+                const refusedRow = (r) => `
+        <div class="cc3-refused-item">
+          <span class="cc3-refused-name">${window.CCCommon.escapeHtml(r.name)}</span>
+          ${r.note ? `<span class="cc3-refused-note">${window.CCCommon.escapeHtml(r.note)}</span>` : ""}
+        </div>`;
+                // La zone (2 colonnes) n'existe que si au moins un des deux côtés a du contenu
+                const hasSpecialZone = validSpecial.length > 0 || refusesItems.length > 0;
 
                 const profilePhoto = String(offer.ownerProfilePhoto || offer.ownerAvatar || offer.avatar || "").trim();
                 const profileLabel = offerMode === "" ? "Voyageur" : "Transporteur Pro";
@@ -386,25 +410,26 @@
       </div>
     </section>
 
-    ${validSpecial.length ? `
-    <section class="cc3-special">
-      <div class="cc3-special-head"><span class="cc3-special-label">Prix spéciaux</span></div>
-      <div class="cc3-special-list">
-        ${validSpecial.slice(0, 2).map((p) => `
-        <div class="cc3-special-item">
-          <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
-          <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>${specialUnitLabel(p)}</em></span>
-        </div>`).join("")}
-        ${validSpecial.length > 2 ? `
-        <div class="cc3-special-more">
-          ${validSpecial.slice(2).map((p) => `
-          <div class="cc3-special-item">
-            <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
-            <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>${specialUnitLabel(p)}</em></span>
-          </div>`).join("")}
-        </div>` : ""}
+    ${hasSpecialZone ? `
+    <section class="cc3-special-grid">
+      <div class="cc3-special-col">
+        <div class="cc3-special-label">Prix spéciaux</div>
+        ${validSpecial.length ? `
+        <div class="cc3-special-list">
+          ${validSpecial.slice(0, 2).map(specialRow).join("")}
+          ${validSpecial.length > 2 ? `<div class="cc3-special-more">${validSpecial.slice(2).map(specialRow).join("")}</div>` : ""}
+        </div>
+        ${validSpecial.length > 2 ? `<button type="button" class="cc3-special-toggle" data-cc-expand="special" aria-expanded="false">Voir plus ▾</button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
       </div>
-      ${validSpecial.length > 2 ? `<button type="button" class="cc3-special-toggle" aria-expanded="false" data-count="${validSpecial.length - 2}">Voir plus (${validSpecial.length - 2})</button>` : ""}
+      <div class="cc3-refused-col">
+        <div class="cc3-refused-label">Articles refusés</div>
+        ${refusesItems.length ? `
+        <div class="cc3-refused-list">
+          ${refusesItems.slice(0, 2).map(refusedRow).join("")}
+          ${refusesItems.length > 2 ? `<div class="cc3-refused-more">${refusesItems.slice(2).map(refusedRow).join("")}</div>` : ""}
+        </div>
+        ${refusesItems.length > 2 ? `<button type="button" class="cc3-special-toggle" data-cc-expand="refused" aria-expanded="false">Voir plus ▾</button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
+      </div>
     </section>` : ""}
 
     <footer class="cc3-foot">
@@ -759,14 +784,13 @@
         const specialList = document.getElementById("offers-list");
         if (specialList) {
             specialList.addEventListener("click", (event) => {
-                const specialToggle = event.target.closest(".cc3-special-toggle");
-                if (!specialToggle) return;
-                const section = specialToggle.closest(".cc3-special");
-                if (!section) return;
-                const expanded = section.classList.toggle("expanded");
-                specialToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-                const count = specialToggle.getAttribute("data-count") || "";
-                specialToggle.textContent = expanded ? "Cacher" : `Voir plus (${count})`;
+                const toggle = event.target.closest("[data-cc-expand]");
+                if (!toggle) return;
+                const col = toggle.closest(".cc3-special-col, .cc3-refused-col");
+                if (!col) return;
+                const expanded = col.classList.toggle("expanded");
+                toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+                toggle.textContent = expanded ? "Voir moins ▴" : "Voir plus ▾";
             });
         }
         document.getElementById("close-demande-modal")?.addEventListener("click", () => {
