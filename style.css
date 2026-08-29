@@ -11585,6 +11585,17 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.cc3-city {
+    display: block;
+    color: #908d88;
+    font-size: 0.72rem;
+    line-height: 1.15;
+    font-weight: 600;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .cc3-flight {
     width: 70px;
     height: 24px;
@@ -11971,6 +11982,7 @@ body.results-page.light .cc3-flag-shell {
 }
 body.results-page.light .cc3-label,
 body.results-page.light .cc3-d-label { color: #5f5b55; }
+body.results-page.light .cc3-city { color: #8a857c; }
 body.results-page.light .cc3-country,
 body.results-page.light .cc3-value,
 body.results-page.light .cc3-price,

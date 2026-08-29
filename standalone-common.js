@@ -645,7 +645,9 @@
                         baseCurrency: 'base_currency',
                         paymentMethod: 'payment_method',
                         paymentQr: 'payment_qr',
-                        referralCode: 'referral_code'
+                        referralCode: 'referral_code',
+                        cityDeparture: 'city_origin',
+                        cityDestination: 'city_destination'
                     };
                     const mappedBody = {};
                     for (const k in options.body) mappedBody[mapping[k] || k] = options.body[k];

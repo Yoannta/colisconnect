@@ -521,6 +521,8 @@
             title: `Trajet ${departureCountry} -> ${destinationCountry}`,
             origin: departureCountry,
             destination: destinationCountry,
+            cityDeparture: String(els.cityDeparture?.value || "").trim(),
+            cityDestination: String(els.cityDestination?.value || "").trim(),
             departureDate: String(els.dateDepart?.value || ""),
             availableKg: availableKg,
             pricePerKg: pricePerKg,

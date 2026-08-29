@@ -246,6 +246,8 @@
 
                 const originCountry = offer.origin || "Origine";
                 const destCountry = offer.destination || "Arrivée";
+                const originCity = String(offer.city_origin || offer.cityOrigin || "").trim();
+                const destCity = String(offer.city_destination || offer.cityDestination || "").trim();
                 const departureDate = String(offer.departureDate || "-");
                 let formattedDate = departureDate;
                 try {
@@ -318,6 +320,7 @@
       <div class="cc3-place">
         <span class="cc3-label">From</span>
         <span class="cc3-country">${window.CCCommon.escapeHtml(originCountry)}</span>
+        ${originCity ? `<span class="cc3-city">${window.CCCommon.escapeHtml(originCity)}</span>` : ""}
       </div>
       <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
         <path d="M2 47C50 11 105 8 181 45"></path>
@@ -328,6 +331,7 @@
       <div class="cc3-place cc3-place-to">
         <span class="cc3-label">To</span>
         <span class="cc3-country">${window.CCCommon.escapeHtml(destCountry)}</span>
+        ${destCity ? `<span class="cc3-city">${window.CCCommon.escapeHtml(destCity)}</span>` : ""}
       </div>
       <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag cc3-flag-sn" aria-hidden="true"></span></div>
     </section>
