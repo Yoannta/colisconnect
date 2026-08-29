@@ -735,6 +735,11 @@ body.post-trip-page.light .transport-mode-btn.selected {
     border-color: #b8860b !important;
     color: #6d4f10 !important;
 }
+/* Champ en erreur (validation wizard) — anneau rouge bref, comme cc-country-invalid */
+body.post-trip-page .input-error {
+    border-color: #ff6b6b !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.25) !important;
+}
 /* Modale paiement — aura or au focus (Yoyo : « truc lumineux vert de l'ancien style ») */
 body.post-trip-page .phone-main-input:focus {
     border-color: #ffb347 !important;

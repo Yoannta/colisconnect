@@ -757,6 +757,12 @@
             window.scrollTo({ top: window.scrollY + t.top - 80, behavior: "smooth" });
         }
 
+        function markError(el) {
+            if (!el) return;
+            el.classList.add("input-error");
+            setTimeout(() => el.classList.remove("input-error"), 1400);
+        }
+
         function goNext() {
             // Validation minimale — étape 1 : pays de départ/arrivée + date requis
             if (current === 0) {
@@ -767,6 +773,29 @@
                         el.focus();
                         return;
                     }
+                }
+            }
+            // Étape 2 : kilos + prix + devise OBLIGATOIRES (Yoyo 2026-08)
+            if (current === 1) {
+                const kilos = document.getElementById("kilos");
+                const price = document.getElementById("price");
+                const currency = document.getElementById("price-currency");
+                const k = parseFloat(kilos.value);
+                const p = parseFloat(price.value);
+                const c = (currency.value || "").trim();
+                if (isNaN(k) || k <= 0) {
+                    markError(kilos);
+                    kilos.focus();
+                    return;
+                }
+                if (isNaN(p) || p <= 0) {
+                    markError(price);
+                    price.focus();
+                    return;
+                }
+                if (!c) {
+                    markError(document.getElementById("currency-toggle-btn"));
+                    return;
                 }
             }
             showStep(current + 1);
