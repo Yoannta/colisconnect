@@ -222,6 +222,16 @@
         return;
     }
 
+    // Restaure la section OTP à son état initial (contrôles visibles, message retiré)
+    function resetOtpControls() {
+        if (!els.otpSection) return;
+        const wrap = els.otpSection.querySelector(".otp-input-wrap");
+        if (wrap) wrap.style.display = "";
+        els.otpSection.querySelector(".pm-otp-success")?.remove();
+        if (els.otpInput) els.otpInput.value = "";
+        els.otpSection.classList.add("hidden");
+    }
+
     function selectPaymentProvider(methodId, methodName) {
         paymentState.selectedMethod = methodId;
         paymentState.selectedMethodName = methodName;
@@ -232,8 +242,15 @@
             els.uploadTitle.textContent = "Votre numéro de contact";
         }
 
-        // Reset and show initial step
-        if (els.otpSection) els.otpSection.classList.add("hidden");
+        // Reset complet : section OTP restaurée + bouton SMS réinitialisé
+        // (sans ça, un 2e numéro gardait l'état "Envoyé ✓" et le vieux message
+        // de succès sans champ de code → impossible de valider)
+        resetOtpControls();
+        if (els.verifySmsBtn) {
+            els.verifySmsBtn.disabled = true;
+            els.verifySmsBtn.innerHTML = "Vérifier";
+            els.verifySmsBtn.style.color = "";
+        }
 
         if (els.indicatifInput) {
             els.indicatifInput.disabled = false;
@@ -323,15 +340,21 @@
             }
         };
 
-        els.indicatifInput?.addEventListener("change", updateVerifyButton);
+        // Si on change le numéro après l'avoir vérifié, on réinitialise la vérification
+        const resetVerificationIfNeeded = () => {
+            if (!paymentState.isVerified) return;
+            paymentState.isVerified = false;
+            resetOtpControls();
+            if (els.confirmBtn) els.confirmBtn.disabled = true;
+        };
+
+        els.indicatifInput?.addEventListener("change", () => {
+            updateVerifyButton();
+            resetVerificationIfNeeded();
+        });
         els.localNumberInput?.addEventListener("input", (e) => {
             updateVerifyButton();
-            // Si on change après avoir vérifié, on réinitialise
-            if (paymentState.isVerified) {
-                paymentState.isVerified = false;
-                els.otpSection?.classList.add("hidden");
-                if (els.confirmBtn) els.confirmBtn.disabled = true;
-            }
+            resetVerificationIfNeeded();
         });
 
         // Click "Vérifier" (SMS)
@@ -359,7 +382,20 @@
             const code = els.otpInput.value.trim();
             if (code === "123456") {
                 paymentState.isVerified = true;
-                els.otpSection.innerHTML = '<p style="color: #ffb347; font-weight: 700; margin: 0;">✓ Jamais numéro vérifié avec succès</p>';
+                // Message de succès SANS détruire le champ + bouton OTP.
+                // (L'ancien innerHTML supprimait les contrôles de la section →
+                // pour un 2e numéro, plus aucun champ de code ne s'affichait
+                // et "Enregistrer" restait bloqué.)
+                let status = els.otpSection.querySelector(".pm-otp-success");
+                if (!status) {
+                    status = document.createElement("p");
+                    status.className = "pm-otp-success";
+                    status.style.cssText = "color: #ffb347; font-weight: 700; margin: 0;";
+                    els.otpSection.appendChild(status);
+                }
+                status.textContent = "✓ Numéro vérifié avec succès";
+                const wrap = els.otpSection.querySelector(".otp-input-wrap");
+                if (wrap) wrap.style.display = "none";
                 if (els.confirmBtn) els.confirmBtn.disabled = false;
             } else {
                 alert("Code invalide. Réessayez avec 123456.");
