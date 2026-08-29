@@ -2312,8 +2312,32 @@
             showVilles(villes);
         });
 
+        // --- Validation stricte : la ville doit être choisie parmi les suggestions ---
+        function _normaliseVille(t) {
+            return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        }
+
+        function _villeValide(valeur) {
+            if (!valeur) return true; // champ vide = pas de contrainte
+            if (!_lastQuery) return true; // aucune recherche faite → valeur pré-remplie/intacte, on ne juge pas
+            const v = _normaliseVille(valeur);
+            return Array.from(list.querySelectorAll("li"))
+                .some(li => _normaliseVille(li.textContent) === v);
+        }
+
         cityInput.addEventListener("blur", () => {
+            // VIDAGE SYNCHRONE (le submit lit la valeur avant les setTimeout)
+            if (!_villeValide(cityInput.value)) cityInput.value = "";
             setTimeout(() => { list.style.display = "none"; }, 200);
+        });
+
+        // Entrée → soumettre seulement si la ville correspond à une suggestion affichée
+        cityInput.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter") return;
+            if (!_villeValide(cityInput.value)) {
+                e.preventDefault();
+                cityInput.value = "";
+            }
         });
 
         document.addEventListener("click", (e) => {
@@ -2505,20 +2529,20 @@
         });
 
         // À la perte de focus → valider et nettoyer
+        // VIDAGE SYNCHRONE : le submit lit la valeur AVANT les setTimeout différés,
+        // donc une valeur libre serait soumise si on attendait 200ms.
         $input.addEventListener("blur", function () {
-            setTimeout(() => {
-                const val = this.value.trim();
-                const isValid = val ? (COUNTRY_OPTIONS || []).some(c => normaliser(c) === normaliser(val)) : true;
-                if (!isValid) {
-                    this.value = "";
-                    this.classList.add("cc-country-invalid");
-                } else if (val) {
-                    const match = (COUNTRY_OPTIONS || []).find(c => normaliser(c) === normaliser(val));
-                    if (match) this.value = match;
-                    this.classList.remove("cc-country-invalid");
-                }
-                list.style.display = "none";
-            }, 200);
+            const val = this.value.trim();
+            const isValid = val ? (COUNTRY_OPTIONS || []).some(c => normaliser(c) === normaliser(val)) : true;
+            if (!isValid) {
+                this.value = "";
+                this.classList.add("cc-country-invalid");
+            } else if (val) {
+                const match = (COUNTRY_OPTIONS || []).find(c => normaliser(c) === normaliser(val));
+                if (match) this.value = match;
+                this.classList.remove("cc-country-invalid");
+            }
+            setTimeout(() => { list.style.display = "none"; }, 200);
         });
 
         // Navigation clavier ↑↓ + Entrée
@@ -2535,11 +2559,21 @@
                 e.preventDefault();
                 idx = Math.max(idx - 1, 0);
             } else if (e.key === "Enter") {
-                e.preventDefault();
                 if (active) {
+                    e.preventDefault();
                     $input.value = active.textContent;
                     list.style.display = "none";
                     $input.dispatchEvent(new Event("change", { bubbles: true }));
+                    return;
+                }
+                // Pas de suggestion active : on soumet seulement si la valeur est un pays valide,
+                // sinon on vide le champ et on bloque la soumission (pas de valeur libre)
+                const val = $input.value.trim();
+                const isValid = val ? (COUNTRY_OPTIONS || []).some(c => normaliser(c) === normaliser(val)) : false;
+                if (!isValid) {
+                    e.preventDefault();
+                    $input.value = "";
+                    this.classList.add("cc-country-invalid");
                 }
                 return;
             } else return;
