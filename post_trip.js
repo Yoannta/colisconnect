@@ -935,6 +935,8 @@
         // Réassigner les références car les champs sont créés dynamiquement
         els.departure = document.getElementById("departure");
         els.destination = document.getElementById("destination");
+        els.cityDeparture = document.getElementById("city-departure");
+        els.cityDestination = document.getElementById("city-destination");
         bindModalEvents();
         bindEvents();
         initWizard();

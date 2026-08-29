@@ -38,6 +38,8 @@
         offerEditForm: document.getElementById("offer-edit-form"),
         offerOrigin: document.getElementById("offer-origin"),
         offerDestination: document.getElementById("offer-destination"),
+        offerCityOrigin: document.getElementById("city-offer-origin"),
+        offerCityDestination: document.getElementById("city-offer-destination"),
         offerDepartureDate: document.getElementById("offer-departure-date"),
         offerAvailableKg: document.getElementById("offer-available-kg"),
         offerPricePerKg: document.getElementById("offer-price-per-kg"),
@@ -458,6 +460,8 @@
 
         if (els.offerOrigin) els.offerOrigin.value = offer.origin || "";
         if (els.offerDestination) els.offerDestination.value = offer.destination || "";
+        if (els.offerCityOrigin) els.offerCityOrigin.value = offer.city_origin || offer.cityOrigin || "";
+        if (els.offerCityDestination) els.offerCityDestination.value = offer.city_destination || offer.cityDestination || "";
         if (els.offerDepartureDate) els.offerDepartureDate.value = String(offer.departureDate || offer.departure_date || "");
         if (els.offerAvailableKg) els.offerAvailableKg.value = String(offer.availableKg ?? offer.available_kg ?? "");
         if (els.offerPricePerKg) els.offerPricePerKg.value = String(offer.pricePerKg ?? offer.price_per_kg ?? "");
@@ -517,6 +521,8 @@
         const payload = {
             origin: String(els.offerOrigin?.value || "").trim(),
             destination: String(els.offerDestination?.value || "").trim(),
+            city_origin: String(els.offerCityOrigin?.value || "").trim(),
+            city_destination: String(els.offerCityDestination?.value || "").trim(),
             departure_date: String(els.offerDepartureDate?.value || "").trim(),
             available_kg: Number(els.offerAvailableKg?.value || 0),
             price_per_kg: Number(els.offerPricePerKg?.value || 0),
