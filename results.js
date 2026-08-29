@@ -279,6 +279,8 @@
                 } catch (e) { specialPrices = []; }
                 const validSpecial = specialPrices.filter((p) => p && p.type && Number(p.price) > 0);
                 const specialPriceDisplay = (price) => formatAmount(convertCurrency(Number(price), baseCur, userCur), userCur);
+                const specialVisibleCount = 3;
+                const refusedVisibleCount = 2;
                 // Unité lisible : "par kilo" ou "par <type de colis>" (ex: 100 yuan par ordinateur)
                 const specialUnitLabel = (p) => (p.mode === "qty" ? ` par ${window.CCCommon.escapeHtml(p.type)}` : " par kilo");
                 // Une ligne de prix spécial : nom à gauche, prix en évidence, unité SOUS le prix
@@ -413,22 +415,40 @@
     ${hasSpecialZone ? `
     <section class="cc3-special-grid">
       <div class="cc3-special-col">
-        <div class="cc3-special-label">Prix spéciaux</div>
+        <div class="cc3-special-head">
+          <span class="cc3-section-icon cc3-section-icon-special" aria-hidden="true">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 6h15a2 2 0 0 1 2 2v15L18 34 6 22 17 6z"></path>
+              <circle cx="22.5" cy="13.5" r="2.8"></circle>
+            </svg>
+          </span>
+          <div class="cc3-special-label">Prix spéciaux</div>
+          ${validSpecial.length ? `<span class="cc3-section-count">${Math.min(validSpecial.length, specialVisibleCount)}/${validSpecial.length}</span>` : ""}
+        </div>
         ${validSpecial.length ? `
         <div class="cc3-special-list">
-          ${validSpecial.slice(0, 2).map(specialRow).join("")}
-          ${validSpecial.length > 2 ? `<div class="cc3-special-more">${validSpecial.slice(2).map(specialRow).join("")}</div>` : ""}
+          ${validSpecial.slice(0, specialVisibleCount).map(specialRow).join("")}
+          ${validSpecial.length > specialVisibleCount ? `<div class="cc3-special-more">${validSpecial.slice(specialVisibleCount).map(specialRow).join("")}</div>` : ""}
         </div>
-        ${validSpecial.length > 2 ? `<button type="button" class="cc3-special-toggle" data-cc-expand="special" aria-expanded="false">Voir plus ▾</button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
+        ${validSpecial.length > specialVisibleCount ? `<button type="button" class="cc3-special-toggle cc3-special-toggle-gold" data-cc-expand="special" data-more-label="Voir plus (${validSpecial.length - specialVisibleCount})" data-count-closed="${Math.min(validSpecial.length, specialVisibleCount)}/${validSpecial.length}" data-count-open="${validSpecial.length}/${validSpecial.length}" aria-expanded="false"><span class="cc3-toggle-label">Voir plus (${validSpecial.length - specialVisibleCount})</span><svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg></button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
       </div>
       <div class="cc3-refused-col">
-        <div class="cc3-refused-label">Articles refusés</div>
+        <div class="cc3-special-head">
+          <span class="cc3-section-icon cc3-section-icon-refused" aria-hidden="true">
+            <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="20" cy="20" r="13.5"></circle>
+              <path d="M11 11l18 18"></path>
+            </svg>
+          </span>
+          <div class="cc3-refused-label">Articles refusés</div>
+          ${refusesItems.length ? `<span class="cc3-section-count">${Math.min(refusesItems.length, refusedVisibleCount)}/${refusesItems.length}</span>` : ""}
+        </div>
         ${refusesItems.length ? `
         <div class="cc3-refused-list">
-          ${refusesItems.slice(0, 2).map(refusedRow).join("")}
-          ${refusesItems.length > 2 ? `<div class="cc3-refused-more">${refusesItems.slice(2).map(refusedRow).join("")}</div>` : ""}
+          ${refusesItems.slice(0, refusedVisibleCount).map(refusedRow).join("")}
+          ${refusesItems.length > refusedVisibleCount ? `<div class="cc3-refused-more">${refusesItems.slice(refusedVisibleCount).map(refusedRow).join("")}</div>` : ""}
         </div>
-        ${refusesItems.length > 2 ? `<button type="button" class="cc3-special-toggle" data-cc-expand="refused" aria-expanded="false">Voir plus ▾</button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
+        ${refusesItems.length > refusedVisibleCount ? `<button type="button" class="cc3-special-toggle cc3-special-toggle-red" data-cc-expand="refused" data-more-label="Voir plus (${refusesItems.length - refusedVisibleCount})" data-count-closed="${Math.min(refusesItems.length, refusedVisibleCount)}/${refusesItems.length}" data-count-open="${refusesItems.length}/${refusesItems.length}" aria-expanded="false"><span class="cc3-toggle-label">Voir plus (${refusesItems.length - refusedVisibleCount})</span><svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg></button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
       </div>
     </section>` : ""}
 
@@ -790,7 +810,12 @@
                 if (!col) return;
                 const expanded = col.classList.toggle("expanded");
                 toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-                toggle.textContent = expanded ? "Voir moins ▴" : "Voir plus ▾";
+                const moreLabel = toggle.getAttribute("data-more-label") || "Voir plus";
+                toggle.classList.toggle("is-expanded", expanded);
+                const label = toggle.querySelector(".cc3-toggle-label");
+                if (label) label.textContent = expanded ? "Voir moins" : moreLabel;
+                const count = col.querySelector(".cc3-section-count");
+                if (count) count.textContent = expanded ? (toggle.getAttribute("data-count-open") || count.textContent) : (toggle.getAttribute("data-count-closed") || count.textContent);
             });
         }
         document.getElementById("close-demande-modal")?.addEventListener("click", () => {
