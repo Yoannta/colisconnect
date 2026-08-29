@@ -11603,7 +11603,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     gap: 0;
     border-top: 1px solid rgba(255, 255, 255, 0.105);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 12px 0 11px !important;
+    padding: 8px 0 7px !important;
     min-width: 0;
 }
 .cc3-special-col,
@@ -11622,12 +11622,12 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     box-sizing: border-box;
     width: 100%;
     display: grid;
-    grid-template-columns: 30px minmax(0, 1fr);
+    grid-template-columns: 26px minmax(0, 1fr);
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     min-width: 0;
     padding-right: 42px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 5px !important;
 }
 .cc3-special-label,
 .cc3-refused-label {
@@ -11643,8 +11643,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     min-width: 0;
 }
 .cc3-section-icon {
-    width: 30px;
-    height: 30px;
+    width: 24px;
+    height: 24px;
     border-radius: 999px;
     display: grid;
     place-items: center;
@@ -11653,8 +11653,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 .cc3-section-icon svg {
-    width: 18px;
-    height: 18px;
+    width: 15px;
+    height: 15px;
     stroke-width: 2.15;
 }
 .cc3-section-icon-special {
@@ -11687,7 +11687,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-refused-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
     min-width: 0;
 }
 /* Ligne prix spécial : nom à gauche, prix en évidence à droite, unité SOUS le prix */
@@ -11696,8 +11696,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     grid-template-columns: 1fr auto;
     gap: 0 10px;
     align-items: center;
-    min-height: 46px;
-    padding: 7px 11px !important;
+    min-height: 32px;
+    padding: 4px 9px !important;
     border: 1px solid rgba(255, 255, 255, 0.105);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.035);
@@ -11738,8 +11738,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 }
 /* Ligne article refusé : nom seul + précision discrète facultative */
 .cc3-refused-item {
-    min-height: 46px;
-    padding: 7px 11px !important;
+    min-height: 32px;
+    padding: 4px 9px !important;
     border: 1px solid rgba(255, 255, 255, 0.105);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.035);
@@ -11764,7 +11764,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     font-size: 0.58rem;
     line-height: 1.15;
     color: #908d88;
-    margin-top: 3px !important;
+    margin-top: 2px !important;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -11772,10 +11772,10 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-empty-note {
     font-size: 0.68rem;
     color: #908d88;
-    min-height: 46px;
+    min-height: 32px;
     display: flex;
     align-items: center;
-    padding: 7px 11px !important;
+    padding: 4px 9px !important;
     border: 1px solid rgba(255, 255, 255, 0.105);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.03);
@@ -11788,7 +11788,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-refused-col.expanded .cc3-refused-more {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 .cc3-special-toggle {
     display: flex;
@@ -11796,8 +11796,8 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     justify-content: center;
     gap: 8px;
     width: 100%;
-    margin: 8px auto 0 !important;
-    padding: 7px 10px !important;
+    margin: 5px auto 0 !important;
+    padding: 5px 8px !important;
     background: rgba(255, 255, 255, 0.025);
     border: 1px dashed currentColor;
     border-radius: 9px;
@@ -11889,7 +11889,7 @@ body.results-page.light .cc3-special-toggle-red {
 
 /* Overrides necessaires face au reset global .cards-list .cc3-card * */
 .cards-list .cc3-card .cc3-special-grid {
-    padding: 12px 0 11px !important;
+    padding: 8px 0 7px !important;
 }
 .cards-list .cc3-card .cc3-special-col {
     padding-right: 12px !important;
@@ -11899,7 +11899,7 @@ body.results-page.light .cc3-special-toggle-red {
 }
 .cards-list .cc3-card .cc3-special-head {
     padding-right: 42px !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 5px !important;
 }
 .cards-list .cc3-card .cc3-section-count {
     padding: 3px 8px !important;
@@ -11907,14 +11907,14 @@ body.results-page.light .cc3-special-toggle-red {
 .cards-list .cc3-card .cc3-special-item,
 .cards-list .cc3-card .cc3-refused-item,
 .cards-list .cc3-card .cc3-empty-note {
-    padding: 7px 11px !important;
+    padding: 4px 9px !important;
 }
 .cards-list .cc3-card .cc3-refused-note {
-    margin-top: 3px !important;
+    margin-top: 2px !important;
 }
 .cards-list .cc3-card .cc3-special-toggle {
-    margin: 8px auto 0 !important;
-    padding: 7px 10px !important;
+    margin: 5px auto 0 !important;
+    padding: 5px 8px !important;
 }
 .cc3-flight {
     width: 70px;

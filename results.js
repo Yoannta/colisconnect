@@ -279,8 +279,8 @@
                 } catch (e) { specialPrices = []; }
                 const validSpecial = specialPrices.filter((p) => p && p.type && Number(p.price) > 0);
                 const specialPriceDisplay = (price) => formatAmount(convertCurrency(Number(price), baseCur, userCur), userCur);
-                const specialVisibleCount = 3;
-                const refusedVisibleCount = 2;
+                const specialVisibleCount = 1;
+                const refusedVisibleCount = 1;
                 // Unité lisible : "par kilo" ou "par <type de colis>" (ex: 100 yuan par ordinateur)
                 const specialUnitLabel = (p) => (p.mode === "qty" ? ` par ${window.CCCommon.escapeHtml(p.type)}` : " par kilo");
                 // Une ligne de prix spécial : nom à gauche, prix en évidence, unité SOUS le prix
