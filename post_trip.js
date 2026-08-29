@@ -517,12 +517,24 @@
             return;
         }
 
+        // Collecte des prix spéciaux (lignes de l'étape 3 — script inline du HTML)
+        const specialPrices = [];
+        document.querySelectorAll("#colis-detail-rows .colis-detail-row").forEach((row) => {
+            const type = row.querySelector(".colis-name-label")?.textContent?.trim();
+            const mode = row.getAttribute("data-mode");
+            const price = parseFloat(row.querySelector(".price-field")?.value);
+            if (type && type !== "Nom du colis" && mode && !isNaN(price) && price > 0) {
+                specialPrices.push({ type, mode, price });
+            }
+        });
+
         const payload = {
             title: `Trajet ${departureCountry} -> ${destinationCountry}`,
             origin: departureCountry,
             destination: destinationCountry,
             cityDeparture: String(els.cityDeparture?.value || "").trim(),
             cityDestination: String(els.cityDestination?.value || "").trim(),
+            specialPrices: specialPrices,
             departureDate: String(els.dateDepart?.value || ""),
             availableKg: availableKg,
             pricePerKg: pricePerKg,

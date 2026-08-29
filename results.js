@@ -271,6 +271,16 @@
                 const colisRefuses = String(offer.refused_colis_types || offer.refusedColisTypes || "").trim();
                 const hasColisInfo = colisAcceptes || colisRefuses;
 
+                // Prix spéciaux (JSONB ou chaîne JSON)
+                let specialPrices = [];
+                try {
+                    const sp = offer.special_prices || offer.specialPrices || [];
+                    specialPrices = Array.isArray(sp) ? sp : JSON.parse(sp || "[]");
+                } catch (e) { specialPrices = []; }
+                const validSpecial = specialPrices.filter((p) => p && p.type && Number(p.price) > 0);
+                const specialPriceDisplay = (price) => formatAmount(convertCurrency(Number(price), baseCur, userCur), userCur);
+                const specialModeLabel = (mode) => (mode === "qty" ? "quantité" : "kg");
+
                 const profilePhoto = String(offer.ownerProfilePhoto || offer.ownerAvatar || offer.avatar || "").trim();
                 const profileLabel = offerMode === "" ? "Voyageur" : "Transporteur Pro";
                 const profileIcon = offerMode === "" ? (isVerified ? "verified" : "person") : "local_shipping";
@@ -374,6 +384,27 @@
         </div>
       </div>
     </section>
+
+    ${validSpecial.length ? `
+    <section class="cc3-special">
+      <div class="cc3-special-head"><span class="cc3-special-label">Prix spéciaux</span></div>
+      <div class="cc3-special-list">
+        ${validSpecial.slice(0, 2).map((p) => `
+        <div class="cc3-special-item">
+          <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
+          <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>/${specialModeLabel(p.mode)}</em></span>
+        </div>`).join("")}
+        ${validSpecial.length > 2 ? `
+        <div class="cc3-special-more">
+          ${validSpecial.slice(2).map((p) => `
+          <div class="cc3-special-item">
+            <span class="cc3-special-type">${window.CCCommon.escapeHtml(p.type)}</span>
+            <span class="cc3-special-price">${specialPriceDisplay(p.price)}<em>/${specialModeLabel(p.mode)}</em></span>
+          </div>`).join("")}
+        </div>` : ""}
+      </div>
+      ${validSpecial.length > 2 ? `<button type="button" class="cc3-special-toggle" aria-expanded="false" data-count="${validSpecial.length - 2}">Voir plus (${validSpecial.length - 2})</button>` : ""}
+    </section>` : ""}
 
     <footer class="cc3-foot">
       <div class="cc3-profile">
@@ -722,6 +753,21 @@
 
     // Evenements de la modale demande de trajet (toujours attachee, meme hors bootstrap)
     document.addEventListener("DOMContentLoaded", () => {
+        // Toggle "Voir plus / Cacher" des prix spéciaux — attaché ici (indépendant de l'auth,
+        // car bootstrap s'arrête sur requireAuth() avant bindEvents pour les visiteurs)
+        const specialList = document.getElementById("offers-list");
+        if (specialList) {
+            specialList.addEventListener("click", (event) => {
+                const specialToggle = event.target.closest(".cc3-special-toggle");
+                if (!specialToggle) return;
+                const section = specialToggle.closest(".cc3-special");
+                if (!section) return;
+                const expanded = section.classList.toggle("expanded");
+                specialToggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+                const count = specialToggle.getAttribute("data-count") || "";
+                specialToggle.textContent = expanded ? "Cacher" : `Voir plus (${count})`;
+            });
+        }
         document.getElementById("close-demande-modal")?.addEventListener("click", () => {
             document.getElementById("demande-trajet-modal")?.classList.add("hidden");
         });

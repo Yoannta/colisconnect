@@ -11596,6 +11596,102 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     overflow: hidden;
     text-overflow: ellipsis;
 }
+/* Prix spéciaux sur la carte */
+.cc3-special {
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 10px 2px 2px;
+}
+.cc3-special-label {
+    display: block;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #908d88;
+    margin-bottom: 7px;
+}
+.cc3-special-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.cc3-special-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 10px;
+    padding: 6px 10px;
+    min-width: 0;
+}
+.cc3-special-type {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #e8e4dd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cc3-special-price {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #d29a22;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.cc3-special-price em {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.66rem;
+    color: #908d88;
+    margin-left: 2px;
+}
+.cc3-special-more {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+}
+.cc3-special.expanded .cc3-special-more {
+    display: flex;
+}
+.cc3-special-toggle {
+    display: block;
+    margin: 8px auto 0;
+    background: none;
+    border: none;
+    color: #d29a22;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 2px 10px;
+}
+.cc3-special-toggle:hover {
+    text-decoration: underline;
+}
+body.results-page.light .cc3-special {
+    border-top-color: rgba(23, 23, 23, 0.09);
+}
+body.results-page.light .cc3-special-label {
+    color: #5f5b55;
+}
+body.results-page.light .cc3-special-item {
+    background: rgba(23, 23, 23, 0.04);
+    border-color: rgba(23, 23, 23, 0.08);
+}
+body.results-page.light .cc3-special-type {
+    color: #131313;
+}
+body.results-page.light .cc3-special-price {
+    color: #c89422;
+}
+body.results-page.light .cc3-special-price em {
+    color: #8a857c;
+}
+body.results-page.light .cc3-special-toggle {
+    color: #b07f17;
+}
 .cc3-flight {
     width: 70px;
     height: 24px;
