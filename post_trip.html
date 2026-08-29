@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=7"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=8"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
@@ -27,7 +27,7 @@
     <script defer src="standalone-common.js"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="datalist-helper.js"></script>
-    <script defer src="post_trip.js?v=8"></script>
+    <script defer src="post_trip.js?v=9"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -509,6 +509,34 @@
         .price-field:focus {
             border-color: #ffb347;
             box-shadow: 0 0 0 2px rgba(255, 179, 71,0.15);
+        }
+        .price-mode-btn.active {
+            background: rgba(255, 179, 71,0.28);
+            border-color: #ffb347;
+            color: #ffd08a;
+            box-shadow: 0 0 0 2px rgba(255, 179, 71,0.15);
+        }
+        .special-price-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .special-price-line .price-field {
+            flex: 1 1 0;
+            width: auto;
+        }
+        .special-price-currency {
+            flex-shrink: 0;
+            background: rgba(255, 179, 71,0.12);
+            border: 1px solid rgba(255, 179, 71,0.35);
+            border-radius: 8px;
+            color: #ffb347;
+            font-size: 0.85rem;
+            font-weight: 800;
+            padding: 8px 14px;
+            white-space: nowrap;
         }
         .btn-add-type {
             width: 100%;
@@ -1011,9 +1039,12 @@
                                         <button type="button" class="price-mode-btn" data-mode="kilo" data-row="0">prix/kilo</button>
                                         <span class="price-or">ou</span>
                                         <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
-                                        <input type="number" class="price-field hidden" data-row="0" placeholder="0" min="0" step="any">
                                     </div>
                                     <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
+                                    <div class="special-price-line hidden" data-row="0">
+                                        <input type="number" class="price-field" data-row="0" placeholder="0" min="0" step="any">
+                                        <span class="special-price-currency">FCFA</span>
+                                    </div>
                                 </div>
                             </div>
                             <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre prix spécial</button>
@@ -1329,9 +1360,12 @@
                     '<button type="button" class="price-mode-btn" data-mode="kilo" data-row="' + r + '">prix/kilo</button>' +
                     '<span class="price-or">ou</span>' +
                     '<button type="button" class="price-mode-btn" data-mode="qty" data-row="' + r + '">prix/quantité</button>' +
-                    '<input type="number" class="price-field hidden" data-row="' + r + '" placeholder="0" min="0" step="any">' +
                     '</div>' +
-                    '<button type="button" class="colis-row-del" data-row="' + r + '" aria-label="Supprimer cette ligne">✕</button>';
+                    '<button type="button" class="colis-row-del" data-row="' + r + '" aria-label="Supprimer cette ligne">✕</button>' +
+                    '<div class="special-price-line hidden" data-row="' + r + '">' +
+                    '<input type="number" class="price-field" data-row="' + r + '" placeholder="0" min="0" step="any">' +
+                    '<span class="special-price-currency">FCFA</span>' +
+                    '</div>';
                 rowsBox.appendChild(row);
             }
 
@@ -1368,59 +1402,36 @@
                 var modeBtn = e.target.closest('.price-mode-btn');
                 if (modeBtn) {
                     var rowEl = modeBtn.closest('.colis-detail-row');
-                    var m = rowEl.querySelector('.colis-price-modes');
                     var chosen = modeBtn.getAttribute('data-mode');
                     var prev = rowEl.getAttribute('data-mode');
-                    if (prev === chosen) return;
-                    var field = m.querySelector('.price-field');
-                    // Reset de l'ancien choix : champ vidé et remis à la fin du bloc, boutons restaurés
-                    if (field) {
-                        field.value = '';
-                        field.classList.add('hidden');
-                        m.appendChild(field);
-                        field.style.width = '';
+                    if (prev === chosen) return; // mode déjà choisi
+                    var line = rowEl.querySelector('.special-price-line');
+                    var field = line ? line.querySelector('.price-field') : null;
+                    // Reset de l'ancien choix (changement de mode → champ vidé)
+                    if (prev) {
+                        rowEl.removeAttribute('data-mode');
+                        if (field) field.value = '';
                     }
-                    m.querySelectorAll('.price-mode-btn').forEach(function (b) {
-                        b.classList.remove('hidden');
+                    rowEl.querySelectorAll('.price-mode-btn').forEach(function (b) {
+                        b.classList.remove('active');
                     });
-                    var or = m.querySelector('.price-or');
-                    if (or) or.classList.remove('hidden');
-                    // Nouveau choix : le bouton cliqué devient le champ EN PLACE
-                    // (même position dans le flux, même largeur → rien ne bouge autour)
-                    field.classList.remove('hidden');
-                    field.placeholder = chosen === 'kilo' ? 'prix/kg (XOF)' : 'prix/unité (XOF)';
-                    field.style.width = modeBtn.offsetWidth + 'px';
-                    rowEl.setAttribute('data-mode-w', String(modeBtn.offsetWidth)); // AVANT de masquer (offsetWidth serait 0 sinon)
-                    m.insertBefore(field, modeBtn);
-                    modeBtn.classList.add('hidden'); // le bouton choisi laisse sa place au champ
+                    modeBtn.classList.add('active');
                     rowEl.setAttribute('data-mode', chosen);
-                    field.focus();
-                }
-            });
-
-            // Tant que le champ choisi n'est pas rempli, l'autre bouton reste visible
-            rowsBox.addEventListener('input', function (e) {
-                if (!e.target.classList || !e.target.classList.contains('price-field')) return;
-                var rowEl = e.target.closest('.colis-detail-row');
-                if (!rowEl) return;
-                var mode = rowEl.getAttribute('data-mode');
-                if (!mode) return;
-                var m = rowEl.querySelector('.colis-price-modes');
-                var filled = e.target.value.trim() !== '';
-                // Quand le champ est rempli (l'autre bouton disparaît), il s'élargit
-                // pour occuper l'espace libéré ; s'il est vidé, il reprend la taille du bouton
-                if (filled) {
-                    e.target.style.width = '110px';
-                } else if (rowEl.getAttribute('data-mode-w')) {
-                    e.target.style.width = rowEl.getAttribute('data-mode-w') + 'px';
-                }
-                m.querySelectorAll('.price-mode-btn').forEach(function (b) {
-                    if (b.getAttribute('data-mode') !== mode) {
-                        b.classList.toggle('hidden', filled);
+                    if (line) {
+                        // 3e ligne : champ prix + devise courante de l'offre (étape 2)
+                        line.classList.remove('hidden');
+                        var curEl = document.getElementById('price-currency');
+                        var cur = (curEl && curEl.value) ? curEl.value
+                            : (window.CCCommon && window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : 'FCFA');
+                        var curSpan = line.querySelector('.special-price-currency');
+                        if (curSpan) curSpan.textContent = cur;
+                        if (field) {
+                            field.placeholder = chosen === 'kilo' ? 'prix/kg' : 'prix/unité';
+                            field.focus();
+                        }
                     }
-                });
-                var or = m.querySelector('.price-or');
-                if (or) or.classList.toggle('hidden', filled);
+                    return;
+                }
             });
 
             rowsBox.addEventListener('keydown', function (e) {
