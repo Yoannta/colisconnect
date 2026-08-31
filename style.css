@@ -11626,7 +11626,6 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     align-items: center;
     gap: 5px;
     min-width: 0;
-    padding-right: 42px !important;
     margin-bottom: 5px !important;
 }
 .cc3-special-label,
@@ -11665,22 +11664,6 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     color: #df5757;
     background: rgba(223, 87, 87, 0.1);
     border-color: rgba(223, 87, 87, 0.38);
-}
-.cc3-section-count {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    transform: translateY(-50%);
-    min-width: 36px;
-    padding: 3px 8px !important;
-    border-radius: 7px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #9b978f;
-    font-size: 0.72rem;
-    line-height: 1;
-    font-weight: 700;
-    text-align: center;
-    white-space: nowrap;
 }
 .cc3-special-list,
 .cc3-refused-list {
@@ -11859,10 +11842,6 @@ body.results-page.light .cc3-section-icon-refused {
     background: rgba(217, 88, 88, 0.1);
     border-color: rgba(217, 88, 88, 0.3);
 }
-body.results-page.light .cc3-section-count {
-    background: rgba(28, 24, 16, 0.06);
-    color: #8d887f;
-}
 body.results-page.light .cc3-special-item,
 body.results-page.light .cc3-refused-item {
     border-color: rgba(23, 23, 23, 0.1);
@@ -11903,11 +11882,7 @@ body.results-page.light .cc3-special-toggle-red {
     padding-left: 12px !important;
 }
 .cards-list .cc3-card .cc3-special-head {
-    padding-right: 42px !important;
     margin-bottom: 5px !important;
-}
-.cards-list .cc3-card .cc3-section-count {
-    padding: 3px 8px !important;
 }
 .cards-list .cc3-card .cc3-special-item,
 .cards-list .cc3-card .cc3-refused-item,

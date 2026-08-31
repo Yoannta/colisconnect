@@ -424,14 +424,13 @@
             </svg>
           </span>
           <div class="cc3-special-label">Prix spéciaux</div>
-          ${validSpecial.length ? `<span class="cc3-section-count">${Math.min(validSpecial.length, specialVisibleCount)}/${validSpecial.length}</span>` : ""}
         </div>
         ${validSpecial.length ? `
         <div class="cc3-special-list">
           ${validSpecial.slice(0, specialVisibleCount).map(specialRow).join("")}
           ${validSpecial.length > specialVisibleCount ? `<div class="cc3-special-more">${validSpecial.slice(specialVisibleCount).map(specialRow).join("")}</div>` : ""}
         </div>
-        ${validSpecial.length > specialVisibleCount ? `<button type="button" class="cc3-special-toggle cc3-special-toggle-gold" data-cc-expand="special" data-more-label="Voir plus (${validSpecial.length - specialVisibleCount})" data-count-closed="${Math.min(validSpecial.length, specialVisibleCount)}/${validSpecial.length}" data-count-open="${validSpecial.length}/${validSpecial.length}" aria-expanded="false"><span class="cc3-toggle-label">Voir plus (${validSpecial.length - specialVisibleCount})</span><svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg></button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
+        ${validSpecial.length > specialVisibleCount ? `<button type="button" class="cc3-special-toggle cc3-special-toggle-gold" data-cc-expand="special" data-more-label="Voir plus (${validSpecial.length - specialVisibleCount})" aria-expanded="false"><span class="cc3-toggle-label">Voir plus (${validSpecial.length - specialVisibleCount})</span><svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg></button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
       </div>
       <div class="cc3-refused-col">
         <div class="cc3-special-head">
@@ -442,14 +441,13 @@
             </svg>
           </span>
           <div class="cc3-refused-label">Articles refusés</div>
-          ${refusesItems.length ? `<span class="cc3-section-count">${Math.min(refusesItems.length, refusedVisibleCount)}/${refusesItems.length}</span>` : ""}
         </div>
         ${refusesItems.length ? `
         <div class="cc3-refused-list">
           ${refusesItems.slice(0, refusedVisibleCount).map(refusedRow).join("")}
           ${refusesItems.length > refusedVisibleCount ? `<div class="cc3-refused-more">${refusesItems.slice(refusedVisibleCount).map(refusedRow).join("")}</div>` : ""}
         </div>
-        ${refusesItems.length > refusedVisibleCount ? `<button type="button" class="cc3-special-toggle cc3-special-toggle-red" data-cc-expand="refused" data-more-label="Voir plus (${refusesItems.length - refusedVisibleCount})" data-count-closed="${Math.min(refusesItems.length, refusedVisibleCount)}/${refusesItems.length}" data-count-open="${refusesItems.length}/${refusesItems.length}" aria-expanded="false"><span class="cc3-toggle-label">Voir plus (${refusesItems.length - refusedVisibleCount})</span><svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg></button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
+        ${refusesItems.length > refusedVisibleCount ? `<button type="button" class="cc3-special-toggle cc3-special-toggle-red" data-cc-expand="refused" data-more-label="Voir plus (${refusesItems.length - refusedVisibleCount})" aria-expanded="false"><span class="cc3-toggle-label">Voir plus (${refusesItems.length - refusedVisibleCount})</span><svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg></button>` : ""}` : `<div class="cc3-empty-note">Aucun</div>`}
       </div>
     </section>` : ""}
 
@@ -815,8 +813,6 @@
                 toggle.classList.toggle("is-expanded", expanded);
                 const label = toggle.querySelector(".cc3-toggle-label");
                 if (label) label.textContent = expanded ? "Voir moins" : moreLabel;
-                const count = col.querySelector(".cc3-section-count");
-                if (count) count.textContent = expanded ? (toggle.getAttribute("data-count-open") || count.textContent) : (toggle.getAttribute("data-count-closed") || count.textContent);
             });
         }
         document.getElementById("close-demande-modal")?.addEventListener("click", () => {
