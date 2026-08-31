@@ -11917,10 +11917,10 @@ body.results-page.light .cc3-special-toggle-red {
     background: rgba(255, 255, 255, 0.115);
 }
 
-/* ── Détails : 3 colonnes ── */
+/* ── Détails : Départ + Disponibilité sur 1 ligne, prix pleine largeur en dessous ── */
 .cc3-details {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
     min-width: 0;
 }
@@ -11992,30 +11992,34 @@ body.results-page.light .cc3-special-toggle-red {
 
 /* ── LENTILLE D'EAU (water-lens) — design de l'agent ── */
 .cards-list .cc3-card .cc3-detail-price {
+    grid-column: 1 / -1;
     position: relative;
     overflow: visible;
-    min-height: 78px;
+    min-height: 46px;
     justify-content: center;
     padding: 0 !important;
     z-index: 5;
+    border-left: none !important;
 }
 /* Source non grossie : le prix "réel" visible en transparence derrière la lentille */
 .cards-list .cc3-card .cc3-price-source {
+    position: absolute;
     transform: translateX(10px) scale(0.95);
     opacity: 0.2;
     filter: blur(0.7px);
 }
 .cards-list .cc3-card .water-lens {
-    position: absolute;
-    right: 7px;
-    top: 50%;
+    position: relative;
+    right: auto;
+    top: auto;
     display: grid;
     place-items: center;
-    /* Rectangle auto : épouse le prix, façon bouton */
+    /* Rectangle pleine largeur : épouse la ligne du bas */
+    width: 100%;
+    box-sizing: border-box;
     border-radius: 18px;
     padding: 7px 12px 8px;
-    min-width: 120px;
-    min-height: 50px;
+    min-height: 46px;
     overflow: hidden;
     color: #fffaf2;
     background:
@@ -12028,7 +12032,7 @@ body.results-page.light .cc3-special-toggle-red {
         0 0 0 1px rgba(255, 255, 255, 0.14),
         inset 10px 13px 18px rgba(255, 255, 255, 0.22),
         inset -14px -17px 28px rgba(15, 23, 42, 0.34);
-    transform: translateY(-50%);
+    transform: none;
     backdrop-filter: blur(6px) saturate(1.65) contrast(1.1);
     -webkit-backdrop-filter: blur(6px) saturate(1.65) contrast(1.1);
 }
@@ -12347,10 +12351,9 @@ body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
 /* Lentille d'eau : réglage mobile étroit (agent) */
 @media (max-width: 460px) {
     .cards-list .cc3-card .water-lens {
-        right: 5px;
+        right: auto;
         padding: 6px 10px 7px;
         border-radius: 14px;
-        min-width: 105px;
         min-height: 45px;
     }
     .cards-list .cc3-card .water-lens__content {
