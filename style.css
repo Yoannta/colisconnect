@@ -11922,6 +11922,7 @@ body.results-page.light .cc3-special-toggle-red {
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
+    row-gap: 10px;
     min-width: 0;
 }
 .cc3-detail {
