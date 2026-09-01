@@ -11617,11 +11617,10 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     min-width: 0;
     margin-bottom: 5px !important;
 }
-/* Bloc Articles refusés dans l'accordéon : séparé des prix spéciaux */
+/* Bloc Articles refusés dans l'accordéon : séparé des prix spéciaux (trait rouge retiré, Yoyo 2026-09) */
 .cc3-refused-block {
     margin-top: 6px;
     padding-top: 6px;
-    border-top: 1px dashed rgba(217, 88, 88, 0.32);
 }
 .cc3-refused-label {
     display: block;
@@ -11852,6 +11851,10 @@ body.results-page.light .cc3-special-toggle-gold {
 .cards-list .cc3-card .cc3-special-toggle {
     margin: 5px auto 0 !important;
     padding: 5px 8px !important;
+}
+/* Espace entre le bouton accordéon et le premier article spécial (Yoyo 2026-09) — seulement quand la grille est ouverte */
+.cards-list .cc3-card .cc3-special-grid.expanded .cc3-special-toggle {
+    margin-bottom: 10px !important;
 }
 .cc3-flight {
     width: 70px;
