@@ -747,6 +747,7 @@
         // Choix du type de profil
         document.getElementById("btn-traveler-choice")?.addEventListener("click", () => {
             selectedProfileTypeChoice = "traveler";
+            document.getElementById("step1-errors")?.classList.add("hidden");
             document.getElementById("btn-traveler-choice").classList.add("selected");
             document.getElementById("btn-cargo-choice")?.classList.remove("selected");
             selectedTransportMode = null;
@@ -759,6 +760,7 @@
 
         document.getElementById("btn-cargo-choice")?.addEventListener("click", () => {
             selectedProfileTypeChoice = "cargo";
+            document.getElementById("step1-errors")?.classList.add("hidden");
             document.getElementById("btn-cargo-choice").classList.add("selected");
             document.getElementById("btn-traveler-choice")?.classList.remove("selected");
 
@@ -833,11 +835,26 @@
         function goNext() {
             // Validation minimale — étape 1 : pays de départ/arrivée + date requis
             if (current === 0) {
+                const errBox1 = document.getElementById("step1-errors");
+                if (errBox1) errBox1.classList.add("hidden");
                 const req = ["departure", "destination", "date-depart"];
                 for (const id of req) {
                     const el = document.getElementById(id);
                     if (el && !el.value.trim()) {
                         el.focus();
+                        return;
+                    }
+                }
+                // Choix de profil obligatoire — bloquer si aucun des deux boutons (Yoyo 2026-09)
+                if (!selectedProfileTypeChoice) {
+                    const currentProfile = window.CCCommon.state?.user?.profile_type;
+                    if (currentProfile !== "traveler" && currentProfile !== "cargo") {
+                        if (errBox1) {
+                            errBox1.innerHTML = "<div>• Veuillez choisir votre profil : Voyageur simple ou Entreprise / Cargo</div>";
+                            errBox1.classList.remove("hidden");
+                        }
+                        const firstChoice = document.getElementById("btn-traveler-choice");
+                        if (firstChoice) { firstChoice.focus(); markError(firstChoice); }
                         return;
                     }
                 }
