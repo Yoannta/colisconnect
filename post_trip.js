@@ -457,15 +457,10 @@
             return;
         }
 
-        // Si l'utilisateur n'a pas cliqué sur un bouton, on regarde son profil existant
+        // Choix de profil obligatoire — pas de fallback profil compte (Yoyo 2026-09, strict)
         if (!selectedProfileTypeChoice) {
-            const currentProfile = window.CCCommon.state?.user?.profile_type;
-            if (currentProfile === "traveler" || currentProfile === "cargo") {
-                selectedProfileTypeChoice = currentProfile;
-            } else {
-                alert("Veuillez d'abord choisir votre type de profil (Voyageur simple ou Entreprise cargo).");
-                return;
-            }
+            alert("Veuillez d'abord choisir votre type de profil (Voyageur simple ou Entreprise cargo).");
+            return;
         }
 
         // Soumettre directement (les champs sont visibles)
@@ -845,18 +840,15 @@
                         return;
                     }
                 }
-                // Choix de profil obligatoire — bloquer si aucun des deux boutons (Yoyo 2026-09)
+                // Choix de profil obligatoire — bloquer si AUCUN choix effectué (Yoyo 2026-09, strict : pas de fallback profil compte)
                 if (!selectedProfileTypeChoice) {
-                    const currentProfile = window.CCCommon.state?.user?.profile_type;
-                    if (currentProfile !== "traveler" && currentProfile !== "cargo") {
-                        if (errBox1) {
-                            errBox1.innerHTML = "<div>• Veuillez choisir votre profil : Voyageur simple ou Entreprise / Cargo</div>";
-                            errBox1.classList.remove("hidden");
-                        }
-                        const firstChoice = document.getElementById("btn-traveler-choice");
-                        if (firstChoice) { firstChoice.focus(); markError(firstChoice); }
-                        return;
+                    if (errBox1) {
+                        errBox1.innerHTML = "<div>• Veuillez choisir votre profil : Voyageur simple ou Entreprise / Cargo</div>";
+                        errBox1.classList.remove("hidden");
                     }
+                    const firstChoice = document.getElementById("btn-traveler-choice");
+                    if (firstChoice) { firstChoice.focus(); markError(firstChoice); }
+                    return;
                 }
             }
             // Étape 2 : champs OBLIGATOIRES (Yoyo 2026-08) — MESSAGE par section manquante
