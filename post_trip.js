@@ -846,8 +846,13 @@
                         errBox1.innerHTML = "<div>• Veuillez choisir votre profil : Voyageur simple ou Entreprise / Cargo</div>";
                         errBox1.classList.remove("hidden");
                     }
+                    // Rouge sur LES DEUX boutons (Yoyo : sinon l'utilisateur croit qu'il doit cliquer uniquement sur Voyageur simple)
+                    ["btn-traveler-choice", "btn-cargo-choice"].forEach(id => {
+                        const btn = document.getElementById(id);
+                        if (btn) markError(btn);
+                    });
                     const firstChoice = document.getElementById("btn-traveler-choice");
-                    if (firstChoice) { firstChoice.focus(); markError(firstChoice); }
+                    if (firstChoice) firstChoice.focus();
                     return;
                 }
             }
