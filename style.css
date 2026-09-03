@@ -11385,19 +11385,24 @@ body.results-page.light .results-mobile-profile-block::after {
     color: #ffb693 !important;
 }
 
-/* 8. BOUTON FLOTTANT "Recherche" — orange Kinetic */
+/* 8. BOUTON FLOTTANT "Recherche" — doré ambré (harmonisé avec .cc3-cta Contacter, Yoyo 2026-09-03) */
 .mobile-mode .mobile-filter-trigger {
-    background: #ff6b00 !important;
-    border: none !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 25%, rgba(35, 23, 6, 0.18) 72%, rgba(18, 15, 9, 0.34) 100%),
+        linear-gradient(135deg, #f4b82a 0%, #e5a313 42%, #c98208 76%, #8a5807 100%) !important;
+    border: 1px solid rgba(255, 225, 138, 0.65) !important;
     border-radius: 9999px !important;
-    color: #fff !important;
+    color: #fffdf5 !important;
     font-family: 'Hanken Grotesk', sans-serif !important;
     font-weight: 700 !important;
     font-size: 0.85rem !important;
-    box-shadow: 0 8px 32px rgba(255, 107, 0, 0.35) !important;
+    text-shadow: 0 1px 1px rgba(40, 23, 3, 0.35);
+    box-shadow: 0 10px 22px rgba(139, 88, 5, 0.28), 0 3px 0 rgba(74, 45, 5, 0.38), inset 0 1px 0 rgba(255, 248, 202, 0.55), inset 0 -7px 12px rgba(36, 22, 5, 0.22) !important;
 }
 .mobile-mode .mobile-filter-trigger:active {
-    background: #e05e00 !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%, rgba(35, 23, 6, 0.25) 72%, rgba(18, 15, 9, 0.4) 100%),
+        linear-gradient(135deg, #e0a314 0%, #c98208 55%, #8a5807 100%) !important;
     transform: scale(0.96);
 }
 .mobile-mode .mobile-filter-trigger .material-symbols-outlined {
