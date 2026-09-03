@@ -12133,9 +12133,9 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-cta {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 9px !important;
-    border-radius: 15px;
+    gap: 5px;
+    padding: 12px 8px !important;
+    border-radius: 19px;
     border: 0;
     flex-shrink: 0;
     color: #101010;
@@ -12144,15 +12144,15 @@ body.results-page.light .cc3-special-toggle-gold {
         linear-gradient(135deg, #c18017, #e4aa2e 45%, #f0bd42 100%);
     box-shadow: 0 10px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.32);
     font-family: 'Hanken Grotesk', sans-serif;
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     font-weight: 900;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.25s ease;
 }
 .cc3-cta:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.32); }
-.cc3-cta svg { width: 15px; height: 15px; fill: #101010; }
+.cc3-cta svg { width: 13px; height: 13px; fill: #101010; }
 
 /* ============================================================
    OR AMBRÉ PATINÉ (Burnished Amber Gold) — boutons dorés de la
@@ -12305,7 +12305,7 @@ body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
     .cc3-detail { gap: 7px; padding: 3px 5px !important; }
     .cc3-value { font-size: 0.9rem; }
     .cc3-price { font-size: 0.85rem; }
-    .cc3-cta { padding: 8px 9px !important; font-size: 0.65rem; }
+    .cc3-cta { padding: 12px 8px !important; font-size: 0.62rem; }
     .cc3-name { font-size: 0.85rem; }
 }
 
