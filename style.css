@@ -12392,11 +12392,101 @@ body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
     }
 }
 
+/* ════════════════════════════════════════════════════════════════
+   10. ÉTAT VIDE DE LA RECHERCHE D'OFFRES — doré ambré (Yoyo 2026-09-04)
+   Template results.js (.empty-card.empty-state) : « Aucune offre
+   correspondante » + « Créez une demande de transport… » + CTA
+   « Faire une demande de trajet » (#btn-faire-demande-trajet).
+   Le fond sombre vient du bloc « 9. ÉTAT VIDE — Kinetic » et le fond
+   clair de « body.results-page.light #search-view .empty-state » :
+   ici on pose le padding/centrage (le .cards-list div { padding:12px;
+   text-align:left } historique écrasait .empty-card), les textes
+   ivoire/beige et le CTA en OR AMBRÉ PATINÉ (même langage que le
+   FAB Recherche / Contacter). Le CTA doré s'applique aux DEUX modes.
+   ════════════════════════════════════════════════════════════════ */
+#search-view .empty-state {
+    padding: 44px 24px 42px !important;
+    text-align: center !important;
+}
+#search-view .empty-state .empty-title {
+    margin: 0 !important;
+    color: #f2ece0 !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-size: 1.12rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.01em;
+    line-height: 1.35;
+}
+#search-view .empty-state .empty-sub {
+    margin: 10px auto 0 !important;
+    color: #a8987a !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-size: 0.86rem !important;
+    line-height: 1.55;
+    max-width: 340px;
+}
+#btn-faire-demande-trajet {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    margin-top: 22px !important;
+    padding: 12px 26px !important;
+    border: 1px solid rgba(255, 225, 138, 0.65) !important;
+    border-radius: 14px !important;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 25%, rgba(35, 23, 6, 0.18) 72%, rgba(18, 15, 9, 0.34) 100%),
+        linear-gradient(135deg, #f4b82a 0%, #e5a313 42%, #c98208 76%, #8a5807 100%) !important;
+    color: #fffdf5 !important;
+    font-family: 'Hanken Grotesk', sans-serif !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.02em;
+    text-shadow: 0 1px 1px rgba(40, 23, 3, 0.35);
+    box-shadow:
+        0 10px 22px rgba(139, 88, 5, 0.28),
+        0 3px 0 rgba(74, 45, 5, 0.38),
+        inset 0 1px 0 rgba(255, 248, 202, 0.55),
+        inset 0 -7px 12px rgba(36, 22, 5, 0.22) !important;
+    cursor: pointer;
+    transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+#btn-faire-demande-trajet:hover {
+    transform: translateY(-2px);
+    filter: saturate(1.08) brightness(1.04);
+    box-shadow:
+        0 14px 28px rgba(139, 88, 5, 0.34),
+        0 3px 0 rgba(74, 45, 5, 0.38),
+        inset 0 1px 0 rgba(255, 248, 202, 0.65),
+        inset 0 -7px 12px rgba(36, 22, 5, 0.2) !important;
+}
+#btn-faire-demande-trajet:active {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%, rgba(35, 23, 6, 0.25) 72%, rgba(18, 15, 9, 0.4) 100%),
+        linear-gradient(135deg, #e0a314 0%, #c98208 55%, #8a5807 100%) !important;
+    transform: translateY(1px) scale(0.98);
+}
+
+/* ── MODE CLAIR : textes lisibles sur fond crème, CTA doré aux ombres douces ── */
+body.results-page.light #search-view .empty-state .empty-title {
+    color: #3a2f1e !important;
+}
+body.results-page.light #search-view .empty-state .empty-sub {
+    color: #8a6d1f !important;
+}
+body.results-page.light #btn-faire-demande-trajet {
+    box-shadow:
+        0 12px 24px rgba(171, 120, 25, 0.28),
+        0 3px 0 rgba(150, 105, 20, 0.25),
+        inset 0 1px 0 rgba(255, 248, 202, 0.6),
+        inset 0 -7px 12px rgba(36, 22, 5, 0.18) !important;
+}
+
 /* ═══ Emil : pas de lévitation au tap sur tactile (hover fantôme) ═══ */
 @media (hover: none) and (pointer: coarse) {
     .offer-compact-card:hover,
     .cards-list .cc3-card .cc3-cta:hover,
-    .results-nav-panel .filter-tab:hover {
+    .results-nav-panel .filter-tab:hover,
+    #btn-faire-demande-trajet:hover {
         transform: none !important;
     }
 }

@@ -226,10 +226,10 @@
         // 3. Rendu
         if (!filteredOffers.length) {
             els.offersList.innerHTML = `
-                <div class="empty-card" style="grid-column:1/-1; background-color: var(--surface); border: 1px solid rgba(255,255,255,0.05); padding: 40px; border-radius: 12px; text-align: center;">
-                    <p style="margin: 0; color: #fff; font-size: 1.1rem; font-weight: 500;">Aucune offre correspondante.</p>
-                    <p style="color:var(--text-muted);font-size:0.85rem;margin:8px 0 16px;">Créez une demande de transport, si un voyageur est intéressé il vous contactera.</p>
-                    <button class="btn primary" id="btn-faire-demande-trajet" style="margin-top:12px; padding: 10px 20px; border-radius: 8px; cursor: pointer; border: 0; background-color: var(--emerald-bright); color: #000; font-weight: bold;">Faire une demande de trajet</button>
+                <div class="empty-card empty-state">
+                    <p class="empty-title">Aucune offre correspondante.</p>
+                    <p class="empty-sub">Créez une demande de transport, si un voyageur est intéressé il vous contactera.</p>
+                    <button type="button" id="btn-faire-demande-trajet">Faire une demande de trajet</button>
                 </div>`;
             setTimeout(() => {
                 document.getElementById("btn-faire-demande-trajet")?.addEventListener("click", () => {
