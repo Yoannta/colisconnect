@@ -10437,7 +10437,10 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     left: 0;
     right: 0;
     max-height: 92vh;
-    background: #1A1B1E;
+    background:
+        radial-gradient(circle at 84% 29%, rgba(192, 136, 27, 0.10), transparent 21%),
+        linear-gradient(135deg, #1c1d1e 0%, #111213 47%, #0b0c0d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px 20px 0 0;
     z-index: 1001;
     transform: translateY(100%);
@@ -10453,7 +10456,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     width: 36px;
     height: 4px;
     border-radius: 2px;
-    background: rgba(255,255,255,0.2);
+    background: rgba(232, 196, 120, 0.4);
     margin: 10px auto 6px;
     flex-shrink: 0;
 }
@@ -10467,7 +10470,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .mobile-filter-sheet .sheet-header h3 {
     font-size: 18px;
     font-weight: 700;
-    color: #fff;
+    color: #f2ece0;
     margin: 0;
 }
 .mobile-filter-sheet .sheet-close {
@@ -10478,16 +10481,16 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255,255,255,0.06);
+    background: rgba(232, 196, 120, 0.1);
     border: none;
     border-radius: 50%;
-    color: #b9cac4;
+    color: #d8c9a3;
     font-size: 20px;
     cursor: pointer;
     transition: background 0.2s;
 }
 .mobile-filter-sheet .sheet-close:active {
-    background: rgba(255,255,255,0.12);
+    background: rgba(232, 196, 120, 0.2);
 }
 
 /* Fields */
@@ -10504,7 +10507,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #a7ffe7;
+    color: #e0bc74;
     margin-bottom: 4px;
     padding-left: 2px;
 }
@@ -10525,7 +10528,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 .mobile-filter-fields .mf-field input:focus,
 .mobile-filter-fields .mf-field select:focus {
-    border-color: #a7ffe7;
+    border-color: #f4b82a;
 }
 
 /* Chips row */
@@ -10540,9 +10543,9 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     min-height: 44px;
     padding: 0 16px;
     border-radius: 22px;
-    border: 1px solid rgba(255,255,255,0.12);
+    border: 1px solid rgba(232, 196, 120, 0.28);
     background: transparent;
-    color: #b9cac4;
+    color: #cfc3a8;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -10556,9 +10559,9 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     transform: scale(0.96);
 }
 .mobile-filter-chips .mf-chip.is-active {
-    background: rgba(167, 255, 231, 0.1);
-    border-color: #a7ffe7;
-    color: #a7ffe7;
+    background: rgba(244, 184, 42, 0.12);
+    border-color: #f4b82a;
+    color: #f4b82a;
 }
 
 /* Active filters section */
@@ -10578,12 +10581,12 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #b9cac4;
+    color: #a8987a;
 }
 .mobile-filter-active .mfa-clear {
     background: none;
     border: none;
-    color: #ff8c42;
+    color: #f0b429;
     font-size: 12px;
     font-weight: 600;
     cursor: pointer;
@@ -10600,15 +10603,15 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: rgba(255,255,255,0.06);
+    background: rgba(244, 184, 42, 0.1);
     border-radius: 8px;
     font-size: 13px;
-    color: #e3e2e6;
+    color: #f0e2c8;
 }
 .mobile-filter-active .mfa-tag button {
     background: none;
     border: none;
-    color: #b9cac4;
+    color: #cbb78d;
     cursor: pointer;
     font-size: 16px;
     padding: 0 2px;
@@ -10628,21 +10631,73 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     width: 100%;
     height: 52px;
     min-height: 44px;
-    background: #a7ffe7;
-    border: none;
-    border-radius: 12px;
-    color: #00382e;
-    font-size: 16px;
-    font-weight: 700;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 25%, rgba(35, 23, 6, 0.18) 72%, rgba(18, 15, 9, 0.34) 100%),
+        linear-gradient(135deg, #f4b82a 0%, #e5a313 42%, #c98208 76%, #8a5807 100%);
+    border: 1px solid rgba(255, 225, 138, 0.65);
+    border-radius: 14px;
+    color: #fffdf5;
+    font-size: 15px;
+    font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
+    text-shadow: 0 1px 1px rgba(40, 23, 3, 0.35);
+    box-shadow: 0 10px 22px rgba(139, 88, 5, 0.28), 0 3px 0 rgba(74, 45, 5, 0.38), inset 0 1px 0 rgba(255, 248, 202, 0.55), inset 0 -7px 12px rgba(36, 22, 5, 0.22);
     transition: transform 0.15s, box-shadow 0.2s;
 }
 .mobile-filter-apply button:active {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, transparent 25%, rgba(35, 23, 6, 0.25) 72%, rgba(18, 15, 9, 0.4) 100%),
+        linear-gradient(135deg, #e0a314 0%, #c98208 55%, #8a5807 100%);
     transform: scale(0.97);
+}
+
+/* Filtre mobile — mode clair doré (refonte 2026-09, style du site) */
+body.results-page.light .mobile-filter-sheet .sheet-handle {
+    background: rgba(184, 134, 11, 0.45);
+}
+body.results-page.light .mobile-filter-sheet .sheet-header h3 {
+    color: #3a2f1e !important;
+}
+body.results-page.light .mobile-filter-sheet .sheet-close {
+    background: rgba(184, 134, 11, 0.12) !important;
+    color: #8a6d1f !important;
+}
+body.results-page.light .mobile-filter-fields .mf-field label {
+    color: #8a6d1f !important;
+}
+body.results-page.light .mobile-filter-fields .mf-field input:focus,
+body.results-page.light .mobile-filter-fields .mf-field select:focus {
+    border-color: #b8860b !important;
+}
+body.results-page.light .mobile-filter-chips .mf-chip {
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    color: #6d6252 !important;
+}
+body.results-page.light .mobile-filter-chips .mf-chip.is-active {
+    background: rgba(184, 134, 11, 0.14) !important;
+    border-color: #b8860b !important;
+    color: #6d4f10 !important;
+}
+body.results-page.light .mobile-filter-active .mfa-header span {
+    color: #6d6252 !important;
+}
+body.results-page.light .mobile-filter-active .mfa-clear {
+    color: #b8860b !important;
+}
+body.results-page.light .mobile-filter-active .mfa-tag {
+    background: rgba(184, 134, 11, 0.12) !important;
+    color: #3a2f1e !important;
+}
+body.results-page.light .mobile-filter-active .mfa-tag button {
+    color: #8a6d1f !important;
+}
+body.results-page.light .mobile-filter-apply button {
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(171, 120, 25, 0.28), 0 3px 0 rgba(120, 78, 8, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
 
 /* Slider bottom sheet */
