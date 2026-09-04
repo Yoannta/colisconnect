@@ -706,7 +706,7 @@
         }
         // Setup autocomplete pays pour la barre de recherche
         if (window.CCCommon.setupCountryInput) {
-            ["res-origin", "res-dest"].forEach(id => {
+            ["res-origin", "res-dest", "mf-origin", "mf-dest"].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) window.CCCommon.setupCountryInput(el);
             });
@@ -872,8 +872,6 @@
         active: {},
         overlay: document.getElementById("mobile-filter-overlay"),
         sheet: document.getElementById("mobile-filter-sheet"),
-        priceSheet: document.getElementById("slider-price-sheet"),
-        priceOverlay: document.getElementById("slider-price-overlay"),
         weightSheet: document.getElementById("slider-weight-sheet"),
         weightOverlay: document.getElementById("slider-weight-overlay"),
 
@@ -882,12 +880,25 @@
             document.getElementById("mf-close")?.addEventListener("click", () => this.close());
             this.overlay?.addEventListener("click", () => this.close());
 
-            document.getElementById("mf-origin")?.addEventListener("input", (e) => {
-                document.getElementById("res-origin").value = e.target.value;
-            });
-            document.getElementById("mf-dest")?.addEventListener("input", (e) => {
-                document.getElementById("res-dest").value = e.target.value;
-            });
+            // Miroirs mf → desktop : synchro sur "input" ET "change" (le helper pays
+            // setupCountryInput dispatch "change" au clic sur une suggestion — sans quoi
+            // le choix dans le sheet ne copierait pas la valeur vers res-origin/res-dest)
+            const mfOrigin = document.getElementById("mf-origin");
+            if (mfOrigin) {
+                const syncOrigin = (e) => {
+                    document.getElementById("res-origin").value = e.target.value;
+                };
+                mfOrigin.addEventListener("input", syncOrigin);
+                mfOrigin.addEventListener("change", syncOrigin);
+            }
+            const mfDest = document.getElementById("mf-dest");
+            if (mfDest) {
+                const syncDest = (e) => {
+                    document.getElementById("res-dest").value = e.target.value;
+                };
+                mfDest.addEventListener("input", syncDest);
+                mfDest.addEventListener("change", syncDest);
+            }
             document.getElementById("mf-date")?.addEventListener("change", (e) => {
                 document.getElementById("res-date").value = e.target.value;
             });
@@ -900,44 +911,27 @@
             const origOpen = this.open.bind(this);
             this.open = () => { syncFromDesktop(); origOpen(); };
 
-            document.querySelectorAll(".mf-chip[data-chip]").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    const chip = btn.dataset.chip;
-                    if (chip === "weight") this.openWeightSlider();
-                    else if (chip === "price") this.openPriceSlider();
-                    else if (chip === "verified" || chip === "urgent") {
-                        this.active[chip] = !this.active[chip];
-                        btn.classList.toggle("is-active", this.active[chip]);
-                        this.renderActiveTags();
-                    }
-                });
-            });
-
             document.getElementById("mf-apply")?.addEventListener("click", () => {
                 this.syncToDesktop();
                 this.close();
                 if (typeof loadOffers === "function") loadOffers();
             });
 
+            // « Effacer tout » : vide les filtres actifs + les champs du sheet ET leurs
+            // miroirs desktop, puis recharge les offres (le sheet reste ouvert)
             document.getElementById("mf-clear-all")?.addEventListener("click", () => {
                 this.active = {};
-                document.querySelectorAll(".mf-chip[data-chip]").forEach((b) => b.classList.remove("is-active"));
                 this.renderActiveTags();
+                ["mf-origin", "mf-dest", "mf-date"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
+                });
+                ["res-origin", "res-dest", "res-date"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
+                });
+                if (typeof loadOffers === "function") loadOffers();
             });
-
-            const priceInput = document.getElementById("slider-price-input");
-            const priceVal = document.getElementById("slider-price-value");
-            priceInput?.addEventListener("input", () => {
-                priceVal.textContent = Number(priceInput.value).toLocaleString("fr-FR") + " CFA";
-            });
-            document.getElementById("slider-price-ok")?.addEventListener("click", () => {
-                this.active.price = Number(priceInput.value);
-                document.getElementById("mf-chip-price").classList.add("is-active");
-                this.renderActiveTags();
-                this.closePriceSlider();
-            });
-            document.getElementById("slider-price-cancel")?.addEventListener("click", () => this.closePriceSlider());
-            this.priceOverlay?.addEventListener("click", () => this.closePriceSlider());
 
             const weightInput = document.getElementById("slider-weight-input");
             weightInput?.addEventListener("input", () => {
@@ -955,14 +949,6 @@
 
         open() { this.overlay?.classList.add("is-open"); this.sheet?.classList.add("is-open"); },
         close() { this.overlay?.classList.remove("is-open"); this.sheet?.classList.remove("is-open"); },
-
-        openPriceSlider() {
-            this.priceOverlay?.classList.add("is-open"); this.priceSheet?.classList.add("is-open");
-            const val = this.active.price || 100000;
-            document.getElementById("slider-price-input").value = val;
-            document.getElementById("slider-price-value").textContent = val.toLocaleString("fr-FR") + " CFA";
-        },
-        closePriceSlider() { this.priceOverlay?.classList.remove("is-open"); this.priceSheet?.classList.remove("is-open"); },
 
         openWeightSlider() {
             this.weightOverlay?.classList.add("is-open"); this.weightSheet?.classList.add("is-open");

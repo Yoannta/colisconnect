@@ -289,7 +289,7 @@
         }
     </style>
 
-    <link rel="stylesheet" href="style.css?v=23"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=24"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
 
@@ -306,7 +306,7 @@
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=13"></script>
+    <script defer src="results.js?v=14"></script>
 
 </head>
 
@@ -610,23 +610,16 @@
         <div class="mobile-filter-fields">
             <div class="mf-field">
                 <label>Départ</label>
-                <input type="text" id="mf-origin" placeholder="Ville ou pays" autocomplete="off">
+                <input type="text" id="mf-origin" placeholder="Pays" autocomplete="off">
             </div>
             <div class="mf-field">
                 <label>Arrivée</label>
-                <input type="text" id="mf-dest" placeholder="Ville ou pays" autocomplete="off">
+                <input type="text" id="mf-dest" placeholder="Pays" autocomplete="off">
             </div>
             <div class="mf-field">
                 <label>Date</label>
                 <input type="date" id="mf-date">
             </div>
-        </div>
-
-        <div class="mobile-filter-chips" id="mf-chips">
-            <button class="mf-chip" data-chip="price" id="mf-chip-price">
-                <span class="material-symbols-outlined" style="font-size:18px;">payments</span>
-                Prix max
-            </button>
         </div>
 
         <div class="mobile-filter-active" id="mf-active">
@@ -642,19 +635,6 @@
                 <span class="material-symbols-outlined" style="font-size:20px;">search</span>
                 Appliquer les filtres
             </button>
-        </div>
-    </div>
-
-    <!-- PRICE SLIDER SHEET -->
-    <div class="slider-sheet-overlay" id="slider-price-overlay"></div>
-    <div class="slider-sheet" id="slider-price-sheet">
-        <div class="slider-handle"></div>
-        <div class="slider-title">Prix max par kg</div>
-        <div class="slider-value" id="slider-price-value">100 000 CFA</div>
-        <input type="range" id="slider-price-input" min="0" max="500000" step="5000" value="100000">
-        <div class="slider-actions">
-            <button class="slider-cancel" id="slider-price-cancel">Annuler</button>
-            <button class="slider-ok" id="slider-price-ok">Appliquer</button>
         </div>
     </div>
 
