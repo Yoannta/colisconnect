@@ -168,6 +168,15 @@
             const hasWeight = d.weight_kg != null && d.weight_kg !== "";
             const hasDesc = !!(d.description && String(d.description).trim());
             const descTxt = esc(d.description);
+            const itemTypeTxt = d.item_type ? esc(String(d.item_type).trim()) : "";
+            const fmtNum = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
+            const budgetCur = d.currency || "XOF";
+            let budgetTxt = "";
+            if (d.max_price_per_kg != null && d.max_price_per_kg !== "") {
+                budgetTxt = `jusqu'a ${fmtNum(d.max_price_per_kg)} <span class="cc3-kg">${esc(budgetCur)}/kg</span>`;
+            } else if (d.max_price_total != null && d.max_price_total !== "") {
+                budgetTxt = `jusqu'a ${fmtNum(d.max_price_total)} <span class="cc3-kg">${esc(budgetCur)}</span>`;
+            }
 
             return (
 `<div class="offer-wrap">
@@ -219,14 +228,24 @@
           <span class="cc3-value">${hasWeight ? `${esc(d.weight_kg)} <span class="cc3-kg">kg</span>` : "Non précisé"}</span>
         </div>
       </div>
-      ${hasDesc ? `
+      ${hasDesc || itemTypeTxt ? `
       <div class="cc3-detail cc3-detail-price">
         <div class="cc3-icon">
           <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 20 5l16 7.5v15L20 35 4 27.5z"></path><path d="M4 12.5 20 20l16-7.5M20 20v15"></path></svg>
         </div>
         <div class="cc3-detail-txt">
           <span class="cc3-d-label">Colis</span>
-          <span class="cc3-value">${descTxt}</span>
+          <span class="cc3-value">${itemTypeTxt ? `<span class="cc3-gold">${itemTypeTxt}</span>${hasDesc ? ` &middot; ${descTxt}` : ""}` : descTxt}</span>
+        </div>
+      </div>` : ""}
+      ${budgetTxt ? `
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="20" cy="20" r="14"></circle><path d="M20 13.5v13M24.3 17c-.7-1.6-2.3-2.3-4.3-2.3-2.6 0-4.3 1.3-4.3 3.2 0 4.4 8.6 2.1 8.6 6.4 0 1.9-1.8 3.2-4.3 3.2-2.2 0-3.8-.9-4.6-2.4"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Budget</span>
+          <span class="cc3-value">${budgetTxt}</span>
         </div>
       </div>` : ""}
     </section>
@@ -326,6 +345,7 @@
             setTimeout(() => {
                 document.getElementById("btn-faire-demande-trajet")?.addEventListener("click", () => {
                     document.getElementById("demande-trajet-modal")?.classList.remove("hidden");
+                    window.resetDemandeWizard?.();
                 });
             }, 50);
             return;
@@ -860,6 +880,149 @@
         document.getElementById("demande-no-date-btn")?.addEventListener("click", () => {
             document.getElementById("demande-date").value = "";
         });
+
+        // ===== WIZARD DEMANDE : 3 étapes (Trajet → Colis & prix → Description) =====
+        const dmdStepError = document.getElementById("demande-step-error");
+        const dmdNextBtn = document.getElementById("demande-next-btn");
+        const dmdPrevBtn = document.getElementById("demande-prev-btn");
+        const dmdSubmitBtn = document.getElementById("demande-submit-btn");
+        const colisOverlay = document.getElementById("colisPopupOverlay");
+        const openColisBtn = document.getElementById("openColisPopupBtn");
+        const selectedColisText = document.getElementById("selectedColisText");
+        const colisGrid = document.getElementById("colisOptionsGrid");
+        const priceModeBtns = document.querySelectorAll("#demande-price-mode .dmd-price-mode-btn");
+        const dmdPriceHint = document.getElementById("demande-price-hint");
+        let demandeStep = 1;
+        let selectedDemandeType = null;   // type de colis choisi (valeur)
+        let demandePriceMode = "per_kg";   // per_kg | total
+
+        const dmdEscapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g,
+            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+        function dmdShowError(msg) {
+            if (!dmdStepError) return;
+            dmdStepError.textContent = msg;
+            dmdStepError.classList.toggle("show", Boolean(msg));
+        }
+
+        function dmdGoTo(step) {
+            demandeStep = step;
+            document.querySelectorAll("#demande-form .dmd-step").forEach((sec) => {
+                sec.classList.toggle("active", Number(sec.dataset.step) === step);
+            });
+            document.querySelectorAll("#demande-wizard-progress .dmd-progress-step").forEach((el) => {
+                const n = Number(el.dataset.dstep);
+                el.classList.toggle("active", n === step);
+                el.classList.toggle("done", n < step);
+                const dot = el.querySelector(".dmd-progress-dot");
+                if (dot) dot.textContent = n < step ? "✓" : String(n);
+            });
+            document.querySelectorAll("#demande-wizard-progress .dmd-progress-line i").forEach((bar, idx) => {
+                bar.style.width = (idx + 1 < step) ? "100%" : "0%";
+            });
+            const isLast = step >= 3;
+            if (dmdNextBtn) dmdNextBtn.style.display = isLast ? "none" : "";
+            if (dmdSubmitBtn) dmdSubmitBtn.style.display = isLast ? "" : "none";
+            if (dmdPrevBtn) dmdPrevBtn.style.visibility = step <= 1 ? "hidden" : "visible";
+            dmdShowError("");
+        }
+        window.resetDemandeWizard = () => { try { dmdGoTo(1); } catch (e) { /* modale absente */ } };
+
+        dmdNextBtn?.addEventListener("click", () => {
+            if (demandeStep === 1) {
+                const origin = document.getElementById("demande-origin")?.value?.trim();
+                const destination = document.getElementById("demande-destination")?.value?.trim();
+                if (!origin || !destination) {
+                    dmdShowError("Indiquez le pays de depart et le pays d'arrivee pour continuer.");
+                    return;
+                }
+                dmdGoTo(2);
+            } else if (demandeStep === 2) {
+                const kgRaw = document.getElementById("demande-kg")?.value;
+                const kg = parseInt(kgRaw, 10);
+                if (!kgRaw || isNaN(kg) || kg <= 0) {
+                    dmdShowError("Indiquez le poids approximatif du colis (en kilos).");
+                    return;
+                }
+                const priceRaw = document.getElementById("demande-price")?.value;
+                if (priceRaw !== undefined && String(priceRaw).trim() !== "" &&
+                    (!isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
+                    dmdShowError("Le montant propose n'est pas valide.");
+                    return;
+                }
+                dmdGoTo(3);
+            }
+        });
+        dmdPrevBtn?.addEventListener("click", () => {
+            if (demandeStep > 1) dmdGoTo(demandeStep - 1);
+        });
+
+        // Popup type de colis (single-select)
+        openColisBtn?.addEventListener("click", () => {
+            colisGrid?.querySelectorAll(".dmd-option-card").forEach((card) => {
+                card.classList.toggle("selected", card.dataset.value === (selectedDemandeType || ""));
+            });
+            const newInput = document.getElementById("newColisTypeInput");
+            if (newInput) newInput.value = "";
+            document.getElementById("customColisGroup")?.classList.remove("show");
+            colisOverlay?.classList.add("active");
+        });
+        colisGrid?.addEventListener("click", (e) => {
+            const card = e.target.closest(".dmd-option-card");
+            if (!card) return;
+            colisGrid.querySelectorAll(".dmd-option-card").forEach((c) => c.classList.remove("selected"));
+            card.classList.add("selected");
+        });
+        document.getElementById("toggleCustomColisBtn")?.addEventListener("click", () => {
+            document.getElementById("customColisGroup")?.classList.toggle("show");
+            document.getElementById("newColisTypeInput")?.focus();
+        });
+        document.getElementById("saveCustomColisBtn")?.addEventListener("click", () => {
+            const input = document.getElementById("newColisTypeInput");
+            const name = input?.value?.trim();
+            if (!name) return;
+            const card = document.createElement("div");
+            card.className = "dmd-option-card selected";
+            card.dataset.value = name;
+            card.innerHTML = `<span class="dmd-option-circle"></span><span class="dmd-option-text">${dmdEscapeHtml(name)}</span>`;
+            colisGrid?.querySelectorAll(".dmd-option-card").forEach((c) => c.classList.remove("selected"));
+            colisGrid?.appendChild(card);
+            input.value = "";
+            document.getElementById("customColisGroup")?.classList.remove("show");
+        });
+        document.getElementById("validateColisBtn")?.addEventListener("click", () => {
+            const sel = colisGrid?.querySelector(".dmd-option-card.selected");
+            if (sel) {
+                selectedDemandeType = sel.dataset.value || "";
+                if (selectedColisText) {
+                    selectedColisText.textContent = selectedDemandeType;
+                    selectedColisText.classList.add("has-value");
+                }
+            }
+            colisOverlay?.classList.remove("active");
+        });
+        colisOverlay?.addEventListener("click", (e) => {
+            if (e.target === colisOverlay) colisOverlay.classList.remove("active");
+        });
+
+        // Bascule prix : par kilo / par quantité
+        priceModeBtns.forEach((btn) => btn.addEventListener("click", () => {
+            priceModeBtns.forEach((b) => b.classList.remove("active"));
+            btn.classList.add("active");
+            demandePriceMode = btn.dataset.mode || "per_kg";
+            if (dmdPriceHint) {
+                dmdPriceHint.textContent = demandePriceMode === "per_kg"
+                    ? "Votre budget par kilo — le voyageur verra votre proposition."
+                    : "Votre budget total pour tout le colis — le voyageur verra votre proposition.";
+            }
+        }));
+        (function setDemandeCurrency() {
+            const curTag = document.getElementById("demande-price-currency");
+            if (curTag) {
+                curTag.textContent = state.userCurrency || window.CCCommon?.getUserCurrency?.() || "XOF";
+            }
+        })();
+
         document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
             const origin = document.getElementById("demande-origin")?.value?.trim();
             const destination = document.getElementById("demande-destination")?.value?.trim();
@@ -868,6 +1031,10 @@
             const kg = parseInt(document.getElementById("demande-kg")?.value, 10);
             const description = document.getElementById("demande-description")?.value?.trim();
             const dateLimite = document.getElementById("demande-date")?.value || null;
+            const itemType = selectedDemandeType || null;
+            const priceRaw = document.getElementById("demande-price")?.value;
+            const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
+            const priceVal = hasPrice ? Number(priceRaw) : null;
             if (!origin || !destination || !kg || !description) {
                 alert("Veuillez remplir tous les champs.");
                 return;
@@ -876,6 +1043,7 @@
             const submitBtn = document.getElementById("demande-submit-btn");
             try {
                 if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi..."; }
+                if (dmdPrevBtn) dmdPrevBtn.style.visibility = "hidden";
                 if (window.ccSupabase) {
                     const userId = window.CCCommon.state?.user?.id;
                     if (!userId) {
@@ -894,6 +1062,10 @@
                         origin_city: villeDepart || null,
                         destination_city: villeArrivee || null,
                         description,
+                        item_type: itemType,
+                        price_mode: hasPrice ? demandePriceMode : null,
+                        max_price_per_kg: (hasPrice && demandePriceMode === "per_kg") ? priceVal : null,
+                        max_price_total: (hasPrice && demandePriceMode === "total") ? priceVal : null,
                         status: "pending"
                     });
                     if (error) throw error;

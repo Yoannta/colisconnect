@@ -291,7 +291,7 @@
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=28"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=30"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
 
@@ -308,7 +308,7 @@
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=17"></script>
+    <script defer src="results.js?v=18"></script>
 
 </head>
 
@@ -543,51 +543,135 @@
             <div id="demande-modal-content">
                 <h2 style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Demande de trajet</h2>
                 <p class="demande-subtitle">Un voyageur vous contactera si votre demande l interesse.</p>
-                <div class="demande-form">
-                    <div class="demande-field">
-                        <label for="demande-origin">Pays de depart</label>
-                        <input type="text" id="demande-origin" class="demande-input" list="demande-country-list"
-                            placeholder="Ex: France" autocomplete="off">
+
+                <!-- Progression 3 étapes -->
+                <div class="dmd-progress" id="demande-wizard-progress" aria-hidden="true">
+                    <div class="dmd-progress-step active" data-dstep="1">
+                        <span class="dmd-progress-dot">1</span>
+                        <span class="dmd-progress-label">Trajet</span>
                     </div>
-                    <div class="demande-field">
-                        <label for="city-demande-origin">Ville de depart</label>
-                        <input type="text" id="city-demande-origin" class="demande-input" placeholder="Ex: Paris"
-                            autocomplete="off">
+                    <div class="dmd-progress-line"><i></i></div>
+                    <div class="dmd-progress-step" data-dstep="2">
+                        <span class="dmd-progress-dot">2</span>
+                        <span class="dmd-progress-label">Colis &amp; prix</span>
                     </div>
-                    <div class="demande-field">
-                        <label for="demande-destination">Pays d arrivee</label>
-                        <input type="text" id="demande-destination" class="demande-input" list="demande-country-list"
-                            placeholder="Ex: Senegal" autocomplete="off">
+                    <div class="dmd-progress-line"><i></i></div>
+                    <div class="dmd-progress-step" data-dstep="3">
+                        <span class="dmd-progress-dot">3</span>
+                        <span class="dmd-progress-label">Description</span>
                     </div>
-                    <div class="demande-field">
-                        <label for="city-demande-destination">Ville d'arrivee</label>
-                        <input type="text" id="city-demande-destination" class="demande-input" placeholder="Ex: Dakar"
-                            autocomplete="off">
-                    </div>
-                    <datalist id="demande-country-list"></datalist>
-                    <div class="demande-field">
-                        <label>Date limite</label>
-                        <div class="demande-date-row">
-                            <input type="date" id="demande-date" class="demande-input" style="flex:1;">
-                            <button type="button" class="demande-date-alt" id="demande-no-date-btn">Pas de date
-                                limite</button>
+                </div>
+
+                <form class="demande-form" id="demande-form" novalidate>
+                    <!-- ÉTAPE 1 — Trajet (pays, villes, date limite) -->
+                    <div class="dmd-step active" data-step="1">
+                        <div class="demande-field">
+                            <label for="demande-origin">Pays de depart</label>
+                            <input type="text" id="demande-origin" class="demande-input" list="demande-country-list"
+                                placeholder="Ex: France" autocomplete="off">
+                        </div>
+                        <div class="demande-field">
+                            <label for="city-demande-origin">Ville de depart</label>
+                            <input type="text" id="city-demande-origin" class="demande-input" placeholder="Ex: Paris"
+                                autocomplete="off">
+                        </div>
+                        <div class="demande-field">
+                            <label for="demande-destination">Pays d arrivee</label>
+                            <input type="text" id="demande-destination" class="demande-input" list="demande-country-list"
+                                placeholder="Ex: Senegal" autocomplete="off">
+                        </div>
+                        <div class="demande-field">
+                            <label for="city-demande-destination">Ville d'arrivee</label>
+                            <input type="text" id="city-demande-destination" class="demande-input" placeholder="Ex: Dakar"
+                                autocomplete="off">
+                        </div>
+                        <datalist id="demande-country-list"></datalist>
+                        <div class="demande-field">
+                            <label>Date limite</label>
+                            <div class="demande-date-row">
+                                <input type="date" id="demande-date" class="demande-input" style="flex:1;">
+                                <button type="button" class="demande-date-alt" id="demande-no-date-btn">Pas de date
+                                    limite</button>
+                            </div>
                         </div>
                     </div>
-                    <div class="demande-field">
-                        <label for="demande-kg">Environ combien de kilos ?</label>
-                        <input type="number" id="demande-kg" class="demande-input" placeholder="Ex: 10" min="1">
+
+                    <!-- ÉTAPE 2 — Colis : type, poids, prix proposé -->
+                    <div class="dmd-step" data-step="2">
+                        <div class="demande-field">
+                            <label for="openColisPopupBtn">Type de colis</label>
+                            <button type="button" id="openColisPopupBtn" class="demande-input dmd-colis-trigger">
+                                <span id="selectedColisText">Choisir le type de colis</span>
+                                <span class="dmd-caret">&#9662;</span>
+                            </button>
+                        </div>
+                        <div class="demande-field">
+                            <label for="demande-kg">Environ combien de kilos ?</label>
+                            <input type="number" id="demande-kg" class="demande-input" placeholder="Ex: 10" min="1">
+                        </div>
+                        <div class="demande-field">
+                            <label>Combien proposez-vous ? <span class="dmd-optional">(optionnel)</span></label>
+                            <div class="dmd-price-mode" id="demande-price-mode">
+                                <button type="button" class="dmd-price-mode-btn active" data-mode="per_kg">par kilo</button>
+                                <button type="button" class="dmd-price-mode-btn" data-mode="total">par quantite</button>
+                            </div>
+                            <div class="dmd-price-row">
+                                <input type="number" id="demande-price" class="demande-input dmd-price-input"
+                                    placeholder="Ex: 2500" min="0" step="any" inputmode="decimal">
+                                <span class="dmd-currency" id="demande-price-currency">XOF</span>
+                            </div>
+                            <p class="dmd-hint" id="demande-price-hint">Votre budget par kilo — le voyageur verra votre proposition.</p>
+                        </div>
                     </div>
-                    <div class="demande-field">
-                        <label for="demande-description">Decrivez le colis (nom, categorie, type)</label>
-                        <textarea id="demande-description" class="demande-input demande-textarea" rows="3"
-                            placeholder="Ex: Electronique, vetements, documents..."></textarea>
+
+                    <!-- ÉTAPE 3 — Description -->
+                    <div class="dmd-step" data-step="3">
+                        <div class="demande-field">
+                            <label for="demande-description">Decrivez le colis (nom, categorie, type)</label>
+                            <textarea id="demande-description" class="demande-input demande-textarea" rows="4"
+                                placeholder="Ex: Electronique, vetements, documents..."></textarea>
+                        </div>
                     </div>
-                    <button type="button" class="demande-submit" id="demande-submit-btn">Faire la demande</button>
-                    <p id="demande-feedback" class="hidden demande-feedback">✅ Un voyageur vous contactera.</p>
-                </div>
+
+                    <div class="dmd-error" id="demande-step-error" role="alert"></div>
+
+                    <div class="dmd-nav">
+                        <button type="button" class="dmd-btn dmd-btn-ghost" id="demande-prev-btn"
+                            style="visibility:hidden">Retour</button>
+                        <button type="button" class="dmd-btn dmd-btn-primary" id="demande-next-btn">Continuer</button>
+                        <button type="button" class="demande-submit" id="demande-submit-btn"
+                            style="display:none">Faire la demande</button>
+                        <p id="demande-feedback" class="hidden demande-feedback">✅ Un voyageur vous contactera.</p>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <!-- POPUP TYPE DE COLIS (demande de trajet) — single select -->
+    <div class="dmd-popup-overlay" id="colisPopupOverlay">
+        <div class="dmd-popup">
+            <div class="dmd-popup-title">📦 Quel type de colis ?</div>
+            <div class="dmd-options-grid" id="colisOptionsGrid">
+                <div class="dmd-option-card" data-value="Documents"><span class="dmd-option-circle"></span><span class="dmd-option-text">Documents</span></div>
+                <div class="dmd-option-card" data-value="Électronique"><span class="dmd-option-circle"></span><span class="dmd-option-text">Électronique</span></div>
+                <div class="dmd-option-card" data-value="Vêtements"><span class="dmd-option-circle"></span><span class="dmd-option-text">Vêtements</span></div>
+                <div class="dmd-option-card" data-value="Nourriture"><span class="dmd-option-circle"></span><span class="dmd-option-text">Nourriture</span></div>
+                <div class="dmd-option-card" data-value="Cosmétiques"><span class="dmd-option-circle"></span><span class="dmd-option-text">Cosmétiques</span></div>
+                <div class="dmd-option-card" data-value="Médicaments"><span class="dmd-option-circle"></span><span class="dmd-option-text">Médicaments</span></div>
+                <div class="dmd-option-card" data-value="Autres"><span class="dmd-option-circle"></span><span class="dmd-option-text">Autres</span></div>
+            </div>
+            <div class="dmd-add-custom">
+                <button type="button" class="dmd-add-trigger" id="toggleCustomColisBtn">+ Ajouter un type personnalise</button>
+                <div class="dmd-custom-group" id="customColisGroup">
+                    <input type="text" class="demande-input" id="newColisTypeInput" placeholder="Entrer le nom du type...">
+                    <button type="button" class="dmd-save-custom" id="saveCustomColisBtn">Ajouter</button>
+                </div>
+            </div>
+            <button type="button" class="dmd-popup-validate" id="validateColisBtn">Valider</button>
+        </div>
+    </div>
+
 
     <!-- MOBILE FILTER TRIGGER (visible only in mobile-mode) -->
     <button class="mobile-filter-trigger" id="mobile-filter-trigger" type="button">

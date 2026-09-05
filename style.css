@@ -12484,3 +12484,526 @@ body.results-page.light #btn-faire-demande-trajet {
     }
 }
 
+/* ============================================================
+   DEMANDE DE TRAJET — FORMULAIRE MULTI-ÉTAPES (wizard 3 pages)
+   Dark = émeraude (thème results sombre) / Light = or (mode clair)
+   Calqué sur le wizard de post_trip.html (Yoyo 2026-09)
+   ============================================================ */
+@keyframes dmdFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* ── Progression (dots 1→2→3) ── */
+.dmd-progress {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 2px 0 20px;
+}
+.dmd-progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    opacity: 0.45;
+    transition: opacity 0.25s;
+}
+.dmd-progress-step.active,
+.dmd-progress-step.done {
+    opacity: 1;
+}
+.dmd-progress-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #b0b0b0;
+    transition: all 0.25s;
+}
+.dmd-progress-step.active .dmd-progress-dot {
+    background: #13ecc8;
+    border-color: #13ecc8;
+    color: #00382e;
+    box-shadow: 0 0 12px rgba(19, 236, 200, 0.45);
+}
+.dmd-progress-step.done .dmd-progress-dot {
+    background: rgba(19, 236, 200, 0.14);
+    border-color: rgba(19, 236, 200, 0.5);
+    color: #a7ffe7;
+}
+.dmd-progress-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: #b0b0b0;
+    text-align: center;
+    text-transform: uppercase;
+}
+.dmd-progress-line {
+    flex: 1;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.09);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 11px;
+}
+.dmd-progress-line i {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: #13ecc8;
+    transition: width 0.3s ease;
+}
+
+/* ── Étapes ── */
+.dmd-step {
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+}
+.dmd-step.active {
+    display: flex;
+    animation: dmdFadeIn 0.25s ease;
+}
+
+/* ── Bouton déclencheur "Type de colis" ── */
+.dmd-colis-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    font-weight: 500;
+    color: #fff;
+    appearance: none;
+    -webkit-appearance: none;
+}
+.dmd-colis-trigger .dmd-caret {
+    opacity: 0.55;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+.dmd-colis-trigger #selectedColisText.has-value {
+    color: #a7ffe7;
+    font-weight: 600;
+}
+
+/* ── Mention optionnel ── */
+.dmd-optional {
+    font-size: 0.72rem;
+    font-weight: 500;
+    opacity: 0.65;
+}
+
+/* ── Bascule prix : par kilo / par quantité ── */
+.dmd-price-mode {
+    display: flex;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 4px;
+}
+.dmd-price-mode-btn {
+    flex: 1;
+    padding: 9px 8px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    color: #b0b0b0;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.dmd-price-mode-btn.active {
+    background: #13ecc8;
+    color: #00382e;
+    box-shadow: 0 2px 8px rgba(19, 236, 200, 0.3);
+}
+.dmd-price-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.dmd-price-input {
+    flex: 1;
+    min-width: 0;
+}
+.dmd-currency {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 13px;
+    color: #b0b0b0;
+    font-size: 0.85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.dmd-hint {
+    font-size: 0.74rem;
+    line-height: 1.35;
+    color: #8a8a8a;
+    margin: 0;
+}
+
+/* ── Erreur d'étape ── */
+.dmd-error {
+    display: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ff7b6b;
+    background: rgba(255, 107, 90, 0.1);
+    border: 1px solid rgba(255, 107, 90, 0.25);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 0;
+}
+.dmd-error.show {
+    display: block;
+}
+
+/* ── Navigation Retour / Continuer / Envoyer ── */
+.dmd-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 4px;
+}
+.dmd-btn {
+    flex: 1;
+    padding: 14px 16px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+.dmd-btn-ghost {
+    flex: 0 0 auto;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #b0b0b0;
+    padding: 14px 18px;
+}
+.dmd-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+.dmd-btn-primary {
+    background: #a7ffe7;
+    color: #00382e;
+}
+.dmd-btn-primary:hover {
+    background: #8cfada;
+    transform: translateY(-1px);
+}
+.dmd-nav .demande-submit {
+    flex: 1;
+    margin-top: 0;
+}
+.dmd-nav .demande-feedback {
+    width: 100%;
+}
+
+/* ── Popup "Type de colis" (overlay racine, au-dessus de la modale) ── */
+.dmd-popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 11000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 18px;
+}
+.dmd-popup-overlay.active {
+    display: flex;
+}
+.dmd-popup {
+    width: min(420px, 100%);
+    max-height: 84vh;
+    overflow-y: auto;
+    background: #1a1b1e;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+.dmd-popup-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 14px;
+    text-align: center;
+}
+.dmd-options-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.dmd-option-card {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 110px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 11px 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+}
+.dmd-option-card:hover {
+    background: rgba(19, 236, 200, 0.07);
+    border-color: rgba(19, 236, 200, 0.35);
+}
+.dmd-option-card.selected {
+    background: rgba(19, 236, 200, 0.12);
+    border-color: #13ecc8;
+    box-shadow: 0 0 0 1px rgba(19, 236, 200, 0.4);
+}
+.dmd-option-circle {
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+    transition: all 0.2s;
+}
+.dmd-option-card.selected .dmd-option-circle {
+    background: #13ecc8;
+    border-color: #13ecc8;
+    box-shadow: 0 0 6px rgba(19, 236, 200, 0.5);
+}
+.dmd-option-text {
+    font-size: 0.85rem;
+    color: #d0d0d0;
+}
+.dmd-option-card.selected .dmd-option-text {
+    color: #fff;
+    font-weight: 600;
+}
+.dmd-add-custom {
+    margin-bottom: 14px;
+}
+.dmd-add-trigger {
+    background: none;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #a7ffe7;
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.2s;
+}
+.dmd-add-trigger:hover {
+    background: rgba(19, 236, 200, 0.06);
+    border-color: #13ecc8;
+}
+.dmd-custom-group {
+    display: none;
+    gap: 8px;
+    margin-top: 8px;
+}
+.dmd-custom-group.show {
+    display: flex;
+}
+.dmd-custom-group .demande-input {
+    flex: 1;
+    min-width: 0;
+}
+.dmd-save-custom {
+    background: rgba(19, 236, 200, 0.14);
+    border: 1px solid rgba(19, 236, 200, 0.35);
+    border-radius: 10px;
+    padding: 10px 16px;
+    color: #a7ffe7;
+    font-size: 0.85rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+}
+.dmd-save-custom:hover {
+    background: rgba(19, 236, 200, 0.25);
+}
+.dmd-popup-validate {
+    width: 100%;
+    background: #13ecc8;
+    border: none;
+    border-radius: 12px;
+    padding: 14px;
+    color: #00382e;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.dmd-popup-validate:hover {
+    background: #8cfada;
+}
+
+/* ── Light (or) : la modale demande en mode clair ── */
+body.results-page.light .dmd-progress-dot {
+    background: rgba(184, 134, 11, 0.1);
+    border-color: rgba(184, 134, 11, 0.35);
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-progress-step.active .dmd-progress-dot {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(233, 166, 20, 0.45);
+}
+body.results-page.light .dmd-progress-step.done .dmd-progress-dot {
+    background: rgba(233, 166, 20, 0.16);
+    border-color: rgba(233, 166, 20, 0.5);
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-progress-label {
+    color: #8a7a5f;
+}
+body.results-page.light .dmd-progress-line {
+    background: rgba(184, 134, 11, 0.18);
+}
+body.results-page.light .dmd-progress-line i {
+    background: #e9a614;
+}
+body.results-page.light .dmd-colis-trigger #selectedColisText.has-value {
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-price-mode {
+    background: rgba(184, 134, 11, 0.08);
+    border-color: rgba(184, 134, 11, 0.22);
+}
+body.results-page.light .dmd-price-mode-btn {
+    color: #6d6252;
+}
+body.results-page.light .dmd-price-mode-btn.active {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(233, 166, 20, 0.35);
+}
+body.results-page.light .dmd-currency {
+    background: rgba(184, 134, 11, 0.1);
+    border-color: rgba(184, 134, 11, 0.25);
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-hint {
+    color: #9a8a6d;
+}
+body.results-page.light .dmd-error {
+    color: #c0392b;
+    background: rgba(192, 57, 43, 0.08);
+    border-color: rgba(192, 57, 43, 0.25);
+}
+body.results-page.light .dmd-btn-ghost {
+    background: rgba(184, 134, 11, 0.08);
+    border-color: rgba(184, 134, 11, 0.25);
+    color: #6d6252;
+}
+body.results-page.light .dmd-btn-ghost:hover {
+    background: rgba(184, 134, 11, 0.16);
+    color: #3a2f1e;
+}
+body.results-page.light .dmd-btn-primary {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #fff;
+}
+body.results-page.light .dmd-btn-primary:hover {
+    background: linear-gradient(135deg, #d99a0e, #e9a614);
+    transform: translateY(-1px);
+}
+body.results-page.light .dmd-popup {
+    background: #fdfaf4;
+    border-color: rgba(184, 134, 11, 0.25);
+}
+body.results-page.light .dmd-popup-title {
+    color: #3a2f1e;
+}
+body.results-page.light .dmd-option-card {
+    background: rgba(184, 134, 11, 0.06);
+    border-color: rgba(184, 134, 11, 0.2);
+}
+body.results-page.light .dmd-option-card:hover {
+    background: rgba(233, 166, 20, 0.12);
+    border-color: rgba(233, 166, 20, 0.45);
+}
+body.results-page.light .dmd-option-card.selected {
+    background: rgba(233, 166, 20, 0.16);
+    border-color: #e9a614;
+    box-shadow: 0 0 0 1px rgba(233, 166, 20, 0.45);
+}
+body.results-page.light .dmd-option-circle {
+    border-color: rgba(184, 134, 11, 0.45);
+}
+body.results-page.light .dmd-option-card.selected .dmd-option-circle {
+    background: #e9a614;
+    border-color: #e9a614;
+    box-shadow: 0 0 6px rgba(233, 166, 20, 0.5);
+}
+body.results-page.light .dmd-option-text {
+    color: #5a4632;
+}
+body.results-page.light .dmd-option-card.selected .dmd-option-text {
+    color: #3a2f1e;
+}
+body.results-page.light .dmd-add-trigger {
+    border-color: rgba(184, 134, 11, 0.35);
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-add-trigger:hover {
+    background: rgba(233, 166, 20, 0.08);
+    border-color: #e9a614;
+}
+body.results-page.light .dmd-save-custom {
+    background: rgba(233, 166, 20, 0.15);
+    border-color: rgba(233, 166, 20, 0.4);
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-save-custom:hover {
+    background: rgba(233, 166, 20, 0.25);
+}
+body.results-page.light .dmd-popup-validate {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #fff;
+}
+body.results-page.light .dmd-popup-validate:hover {
+    background: linear-gradient(135deg, #d99a0e, #e9a614);
+}
+body.results-page.light .demande-submit {
+    background: linear-gradient(135deg, #e9a614, #f1b52b);
+    color: #fff;
+}
+body.results-page.light .demande-submit:hover {
+    background: linear-gradient(135deg, #d99a0e, #e9a614);
+    transform: translateY(-1px);
+}
+
+
