@@ -733,65 +733,6 @@
         }
         syncProfileTypeButtons();
         syncMobilePrimaryButtons();
-        // Evenements de la modale demande
-        document.getElementById("close-demande-modal")?.addEventListener("click", () => {
-            document.getElementById("demande-trajet-modal")?.classList.add("hidden");
-        });
-        document.getElementById("demande-trajet-modal")?.addEventListener("click", (e) => {
-            if (e.target === document.getElementById("demande-trajet-modal")) {
-                document.getElementById("demande-trajet-modal")?.classList.add("hidden");
-            }
-        });
-        document.getElementById("demande-no-date-btn")?.addEventListener("click", () => {
-            document.getElementById("demande-date").value = "";
-        });
-        document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
-            const origin = document.getElementById("demande-origin")?.value?.trim();
-            const destination = document.getElementById("demande-destination")?.value?.trim();
-            const villeDepart = document.getElementById("city-demande-origin")?.value?.trim();
-            const villeArrivee = document.getElementById("city-demande-destination")?.value?.trim();
-            const kg = parseInt(document.getElementById("demande-kg")?.value, 10);
-            const description = document.getElementById("demande-description")?.value?.trim();
-            const dateLimite = document.getElementById("demande-date")?.value || null;
-            if (!origin || !destination || !kg || !description) {
-                alert("Veuillez remplir tous les champs.");
-                return;
-            }
-            const feedback = document.getElementById("demande-feedback");
-            const submitBtn = document.getElementById("demande-submit-btn");
-            try {
-                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi..."; }
-                if (window.ccSupabase) {
-                    await window.ccSupabase.from("parcel_requests").insert({
-                        user_id: window.CCCommon.state?.user?.id,
-                        title: `Demande ${origin} -> ${destination}`,
-                        origin,
-                        destination,
-                        weight_kg: kg,
-                        needed_by_date: dateLimite,
-                        currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
-                        origin_city: villeDepart || null,
-                        destination_city: villeArrivee || null,
-                        description,
-                        status: "pending"
-                    });
-                } else {
-                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg, description, dateLimite } });
-                }
-                if (feedback) {
-                    feedback.classList.remove("hidden");
-                }
-                if (submitBtn) submitBtn.classList.add("hidden");
-                // Fermer la modale apres 1.5s
-                setTimeout(() => {
-                    document.getElementById("demande-trajet-modal")?.classList.add("hidden");
-                }, 1500);
-            } catch (err) {
-                alert(err.message || "Erreur lors de la soumission.");
-                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
-            }
-        });
-        bindEvents();
         await loadOffers();
     }
 
