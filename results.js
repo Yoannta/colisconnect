@@ -148,19 +148,111 @@
         }
         const esc = (s) => window.CCCommon?.escapeHtml ? window.CCCommon.escapeHtml(String(s ?? "")) : String(s ?? "");
         els.offersList.innerHTML = items.map((d) => {
-            const route = (d.origin && d.destination)
-                ? esc(d.origin) + " → " + esc(d.destination)
-                : "Itinéraire à préciser";
-            const kg = d.weight_kg ? ` · ${esc(d.weight_kg)} kg` : "";
-            const date = d.needed_by_date ? ` · avant le ${esc(String(d.needed_by_date).slice(0, 10))}` : "";
+            const orName = esc(d.origin || "");
+            const destName = esc(d.destination || "");
+            const orCity = d.origin_city ? esc(d.origin_city) : "";
+            const destCity = d.destination_city ? esc(d.destination_city) : "";
+
+            // Date limite courte en français (ex: "25 sept. 2026")
+            let limitDate = "";
+            if (d.needed_by_date) {
+                try {
+                    const dl = new Date(String(d.needed_by_date).slice(0, 10) + "T00:00:00");
+                    if (!isNaN(dl.getTime())) {
+                        limitDate = dl.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+                    }
+                } catch (e) { /* fallback */ }
+                if (!limitDate) limitDate = esc(String(d.needed_by_date).slice(0, 10));
+            }
+
+            const hasWeight = d.weight_kg != null && d.weight_kg !== "";
+            const hasDesc = !!(d.description && String(d.description).trim());
+            const descTxt = esc(d.description);
+
             return (
-                '<div class="offer-card demande-card">' +
-                '<div class="demande-route">' + route + '</div>' +
-                '<div class="demande-meta">📦' + kg + date + '</div>' +
-                (d.description ? '<p class="demande-desc">' + esc(d.description) + '</p>' : "") +
-                '</div>'
-            );
-        }).join("");
+`<div class="offer-wrap">
+  <article class="cc3-card">
+    <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+    <section class="cc3-route">
+      <div class="cc3-flag-shell"><span class="cc3-flag" data-demande-flag data-cc-o="${orName}" data-role="origin" aria-hidden="true"></span></div>
+      <div class="cc3-place">
+        <span class="cc3-label">From</span>
+        <span class="cc3-country">${orName || "—"}</span>
+        ${orCity ? `<span class="cc3-city">${orCity}</span>` : ""}
+      </div>
+      <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+        <path d="M2 47C50 11 105 8 181 45"></path>
+        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+          <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+        </g>
+      </svg>
+      <div class="cc3-place cc3-place-to">
+        <span class="cc3-label">To</span>
+        <span class="cc3-country">${destName || "—"}</span>
+        ${destCity ? `<span class="cc3-city">${destCity}</span>` : ""}
+      </div>
+      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag" data-demande-flag data-cc-d="${destName}" data-role="dest" aria-hidden="true"></span></div>
+    </section>
+
+    <div class="cc3-rule"></div>
+
+    <section class="cc3-details">
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Date limite</span>
+          <span class="cc3-value">${limitDate ? `<span class="cc3-gold">${limitDate}</span>` : "Non précisée"}</span>
+        </div>
+      </div>
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Poids</span>
+          <span class="cc3-value">${hasWeight ? `${esc(d.weight_kg)} <span class="cc3-kg">kg</span>` : "Non précisé"}</span>
+        </div>
+      </div>
+      ${hasDesc ? `
+      <div class="cc3-detail cc3-detail-price">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 20 5l16 7.5v15L20 35 4 27.5z"></path><path d="M4 12.5 20 20l16-7.5M20 20v15"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Colis</span>
+          <span class="cc3-value">${descTxt}</span>
+        </div>
+      </div>` : ""}
+    </section>
+  </article>
+</div>`);
+        }).join("\n");
+
+        // Drapeaux : les demandes ne stockent pas de code pays -> résolution async (avec cache) sur le nom
+        hydrateDemandeFlags();
+    }
+
+    function hydrateDemandeFlags() {
+        if (!els.offersList) return;
+        const flagEls = els.offersList.querySelectorAll(".cc3-flag[data-demande-flag]");
+        if (!flagEls.length || !window.CCCommon?._getCountryCode) return;
+        flagEls.forEach((el) => {
+            const country = el.dataset.role === "dest" ? el.dataset.ccD : el.dataset.ccO;
+            if (!country) return;
+            window.CCCommon._getCountryCode(country)
+                .then((code) => {
+                    if (el.isConnected && /^[A-Za-z]{2}$/.test(String(code || ""))) {
+                        el.classList.add("fi", "fis", "fi-" + String(code).toLowerCase());
+                    }
+                })
+                .catch(() => { /* pays inconnu -> drapeau laissé vide */ });
+        });
     }
 
     function renderOffers() {
