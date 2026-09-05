@@ -1247,13 +1247,8 @@ input#est-ville-depart,
 input#est-ville-arrivee {
     display: none !important;
 }
-/* results.html — modale demande */
-input#city-demande-origin,
-input#city-demande-destination,
-label[for="city-demande-origin"],
-label[for="city-demande-destination"] {
-    display: none !important;
-}
+/* results.html — modale demande : champs ville VISIBLES (demande utilisateur
+   2026-09 : « ajoute les sections ville de depart et ville d'arrivee ») */
 /* dashboard.html — offre édition (label wrap input) */
 label.form-field:has(> input#city-offer-origin),
 label.form-field:has(> input#city-offer-destination) {
@@ -1282,8 +1277,8 @@ label[for^="city-departure"],
 label[for^="city-destination"] {
     display: block !important;
 }
-/* Cache les conteneurs .demande-field qui contiennent une ville */
-div.demande-field:has(> input[id^="city-demande"]),
+/* Cache les conteneurs .demande-field qui contiennent une ville
+   (results modale demande exclue : champs ville reactives 2026-09) */
 div.demande-field:has(> input[id^="city-dash-demande"]),
 div.demande-field:has(> input[id^="city-edit-parcel"]) {
     display: none !important;

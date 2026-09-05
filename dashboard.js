@@ -284,7 +284,7 @@
                 <div class="client-item-index">${i + 1}</div>
                 <div class="item-content">
                     <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                    <div class="item-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
+                    <div class="item-desc">${[item.city_origin, item.city_destination].filter(Boolean).map(c => window.CCCommon.escapeHtml(c)).join(" &rarr; ")}${item.city_origin || item.city_destination ? " &middot; " : ""}${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
                 </div>
                 <div style="display:flex;gap:6px;flex-shrink:0;">
                     <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>

@@ -748,6 +748,8 @@
         document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
             const origin = document.getElementById("demande-origin")?.value?.trim();
             const destination = document.getElementById("demande-destination")?.value?.trim();
+            const villeDepart = document.getElementById("city-demande-origin")?.value?.trim();
+            const villeArrivee = document.getElementById("city-demande-destination")?.value?.trim();
             const kg = parseInt(document.getElementById("demande-kg")?.value, 10);
             const description = document.getElementById("demande-description")?.value?.trim();
             const dateLimite = document.getElementById("demande-date")?.value || null;
@@ -768,6 +770,8 @@
                         weight_kg: kg,
                         needed_by_date: dateLimite,
                         currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
+                        origin_city: villeDepart || null,
+                        destination_city: villeArrivee || null,
                         description,
                         status: "pending"
                     });
@@ -825,6 +829,8 @@
         document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
             const origin = document.getElementById("demande-origin")?.value?.trim();
             const destination = document.getElementById("demande-destination")?.value?.trim();
+            const villeDepart = document.getElementById("city-demande-origin")?.value?.trim();
+            const villeArrivee = document.getElementById("city-demande-destination")?.value?.trim();
             const kg = parseInt(document.getElementById("demande-kg")?.value, 10);
             const description = document.getElementById("demande-description")?.value?.trim();
             const dateLimite = document.getElementById("demande-date")?.value || null;
@@ -851,6 +857,8 @@
                         weight_kg: kg,
                         needed_by_date: dateLimite || null,
                         currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
+                        origin_city: villeDepart || null,
+                        destination_city: villeArrivee || null,
                         description,
                         status: "pending"
                     });
