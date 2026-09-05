@@ -733,6 +733,7 @@
         }
         syncProfileTypeButtons();
         syncMobilePrimaryButtons();
+        bindEvents();
         await loadOffers();
     }
 
