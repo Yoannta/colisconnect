@@ -11085,6 +11085,10 @@ body.results-page.light .mobile-filter-apply button {
     color: #ff6b00;
     font-weight: 400;
     font-style: italic;
+    /* Toujours sur 2 lignes : le mot accentué (Cargo/Voyageurs/Demandes)
+       occupe sa propre ligne, le reste passe en dessous — quel que soit
+       l'écran (demande Yoyo : « toujours sur deux lignes ») */
+    display: block;
 }
 
 /* 3. ONGLETS PRINCIPAUX — pillules Kinetic */
