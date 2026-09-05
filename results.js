@@ -332,6 +332,11 @@
                 const iata = (name) => (String(name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]/g, '') || '???').slice(0, 3);
                 const codeFrom = iata(originCountry);
                 const codeDest = iata(destCountry);
+                // [FLAGS] Codes ISO stockés dans l'offre (option B) -> classe flag-icons fi-{code} 1x1
+                const ccCode = (v) => (/^[A-Za-z]{2}$/.test(String(v || "")) ? String(v).toLowerCase() : "");
+                const ccOrigin = ccCode(offer.originCountryCode || offer.origin_country_code);
+                const ccDest = ccCode(offer.destCountryCode || offer.destination_country_code);
+                const flagCls = (c) => (c ? ` fi fis fi-${c}` : "");
                 const routeIcon = offerMode === "" ? "flight_takeoff" : "local_shipping";
 
                 // Nom scindé (prénom + reste) pour le style "Yoann *Tato*"
@@ -356,7 +361,7 @@
     <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
 
     <section class="cc3-route">
-      <div class="cc3-flag-shell"><span class="cc3-flag cc3-flag-fr" aria-hidden="true"></span></div>
+      <div class="cc3-flag-shell"><span class="cc3-flag${flagCls(ccOrigin)}" aria-hidden="true"></span></div>
       <div class="cc3-place">
         <span class="cc3-label">From</span>
         <span class="cc3-country">${window.CCCommon.escapeHtml(originCountry)}</span>
@@ -373,7 +378,7 @@
         <span class="cc3-country">${window.CCCommon.escapeHtml(destCountry)}</span>
         ${destCity ? `<span class="cc3-city">${window.CCCommon.escapeHtml(destCity)}</span>` : ""}
       </div>
-      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag cc3-flag-sn" aria-hidden="true"></span></div>
+      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag${flagCls(ccDest)}" aria-hidden="true"></span></div>
     </section>
 
     <div class="cc3-rule"></div>

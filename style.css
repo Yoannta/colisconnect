@@ -11612,19 +11612,12 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
     display: block;
     box-shadow: 0 10px 18px rgba(0, 0, 0, 0.3);
 }
-.cc3-flag-fr { background: linear-gradient(90deg, #244a99 0 33.333%, #f7f7f3 33.333% 66.666%, #e3383d 66.666%); }
-.cc3-flag-sn {
-    position: relative;
-    background: linear-gradient(90deg, #1fa14c 0 33.333%, #f1df58 33.333% 66.666%, #e63a40 66.666%);
-}
-.cc3-flag-sn::before {
-    content: "\2605";
-    position: absolute;
-    inset: 0;
-    display: grid;
-    place-items: center;
-    color: #168d41;
-    font-size: 13px;
+/* [FLAGS] Drapeau réel (flag-icons) : classe fi-{code ISO} injectée dynamiquement par results.js.
+   Plus aucun drapeau en dur : FR / SN codés en CSS retirés. */
+.cc3-flag.fi.fis {
+    width: 29px;
+    height: 29px;
+    background-size: cover;
 }
 .cc3-place { min-width: 0; }
 .cc3-place-to { text-align: right; margin-left: auto !important; }
@@ -12365,6 +12358,7 @@ body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
     .cc3-country { font-size: 0.95rem; }
     .cc3-flag-shell { width: 46px; height: 46px; }
     .cc3-flag { width: 30px; height: 30px; }
+    .cc3-flag.fi.fis { width: 30px; height: 30px; }
     .cc3-flight { width: 60px; }
     .cc3-detail { gap: 7px; padding: 3px 5px !important; }
     .cc3-value { font-size: 0.9rem; }

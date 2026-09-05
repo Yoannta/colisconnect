@@ -523,10 +523,23 @@
             }
         });
 
+        // [CODES ISO] Résolution nom de pays -> code ISO (table countries, cache CCCommon)
+        // pour afficher les vrais drapeaux (option B robuste) sur les cartes d'offres.
+        const countryCodes = await Promise.all([
+            window.CCCommon?._getCountryCode
+                ? window.CCCommon._getCountryCode(departureCountry).catch(() => null)
+                : Promise.resolve(null),
+            window.CCCommon?._getCountryCode
+                ? window.CCCommon._getCountryCode(destinationCountry).catch(() => null)
+                : Promise.resolve(null)
+        ]);
+
         const payload = {
             title: `Trajet ${departureCountry} -> ${destinationCountry}`,
             origin: departureCountry,
             destination: destinationCountry,
+            originCountryCode: countryCodes[0],
+            destCountryCode: countryCodes[1],
             cityDeparture: String(els.cityDeparture?.value || "").trim(),
             cityDestination: String(els.cityDestination?.value || "").trim(),
             specialPrices: specialPrices,

@@ -648,7 +648,9 @@
                         referralCode: 'referral_code',
                         cityDeparture: 'city_origin',
                         cityDestination: 'city_destination',
-                        specialPrices: 'special_prices'
+                        specialPrices: 'special_prices',
+                        originCountryCode: 'origin_country_code',
+                        destCountryCode: 'destination_country_code'
                     };
                     const mappedBody = {};
                     for (const k in options.body) mappedBody[mapping[k] || k] = options.body[k];
@@ -686,6 +688,8 @@
                     pricePerKg: o.price_per_kg,
                     baseCurrency: o.base_currency,
                     departureDate: o.departure_date,
+                    originCountryCode: o.origin_country_code,
+                    destCountryCode: o.destination_country_code,
                     colisTypes: o.colis_types,
                     refusedColisTypes: o.refused_colis_types,
                     ownerName: o.profiles?.full_name || "Voyageur",
