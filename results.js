@@ -169,6 +169,15 @@
             const hasDesc = !!(d.description && String(d.description).trim());
             const descTxt = esc(d.description);
             const itemTypeTxt = d.item_type ? esc(String(d.item_type).trim()) : "";
+            const hasQty = d.quantity != null && d.quantity !== "";
+            let weightLabel = "Poids", weightValue = "Non précisé";
+            if (hasWeight) {
+                weightValue = `${esc(d.weight_kg)} <span class="cc3-kg">kg</span>`;
+            } else if (hasQty) {
+                weightLabel = "Quantité";
+                const qUnit = itemTypeTxt ? itemTypeTxt.toLowerCase() : "colis";
+                weightValue = `${esc(d.quantity)} <span class="cc3-kg">${qUnit}</span>`;
+            }
             const fmtNum = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
             const budgetCur = d.currency || "XOF";
             let budgetTxt = "";
@@ -224,8 +233,8 @@
           <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg>
         </div>
         <div class="cc3-detail-txt">
-          <span class="cc3-d-label">Poids</span>
-          <span class="cc3-value">${hasWeight ? `${esc(d.weight_kg)} <span class="cc3-kg">kg</span>` : "Non précisé"}</span>
+          <span class="cc3-d-label">${weightLabel}</span>
+          <span class="cc3-value">${weightValue}</span>
         </div>
       </div>
       ${hasDesc || itemTypeTxt ? `
@@ -926,7 +935,34 @@
             if (dmdPrevBtn) dmdPrevBtn.style.visibility = step <= 1 ? "hidden" : "visible";
             dmdShowError("");
         }
-        window.resetDemandeWizard = () => { try { dmdGoTo(1); } catch (e) { /* modale absente */ } };
+        window.resetDemandeWizard = () => {
+            try {
+                demandePriceMode = "per_kg";
+                priceModeBtns.forEach((b) => b.classList.toggle("active", b.dataset.mode === "per_kg"));
+                updateDemandeCondFields();
+                dmdGoTo(1);
+            } catch (e) { /* modale absente */ }
+        };
+
+        // Champ « combien » conditionnel : per_kg -> kilos ; total -> quantité du type choisi
+        function updateDemandeCondFields() {
+            const kgField = document.getElementById("demande-kg-field");
+            const qtyField = document.getElementById("demande-qty-field");
+            const isKg = demandePriceMode === "per_kg";
+            if (kgField) kgField.style.display = isKg ? "" : "none";
+            if (qtyField) qtyField.style.display = isKg ? "none" : "";
+            const qtyLabel = document.getElementById("demande-qty-label");
+            if (qtyLabel) {
+                qtyLabel.textContent = selectedDemandeType
+                    ? `Combien de ${selectedDemandeType} ?`
+                    : "Combien de colis ?";
+            }
+            if (dmdPriceHint) {
+                dmdPriceHint.textContent = isKg
+                    ? "Votre budget par kilo — le voyageur verra votre proposition."
+                    : "Votre budget total pour toute la quantite — le voyageur verra votre proposition.";
+            }
+        }
 
         dmdNextBtn?.addEventListener("click", () => {
             if (demandeStep === 1) {
@@ -938,11 +974,20 @@
                 }
                 dmdGoTo(2);
             } else if (demandeStep === 2) {
-                const kgRaw = document.getElementById("demande-kg")?.value;
-                const kg = parseInt(kgRaw, 10);
-                if (!kgRaw || isNaN(kg) || kg <= 0) {
-                    dmdShowError("Indiquez le poids approximatif du colis (en kilos).");
-                    return;
+                if (demandePriceMode === "per_kg") {
+                    const kgRaw = document.getElementById("demande-kg")?.value;
+                    const kg = Number(kgRaw);
+                    if (!kgRaw || !isFinite(kg) || kg <= 0) {
+                        dmdShowError("Indiquez le poids approximatif du colis (en kilos).");
+                        return;
+                    }
+                } else {
+                    const qtyRaw = document.getElementById("demande-qty")?.value;
+                    const qty = Number(qtyRaw);
+                    if (!qtyRaw || !isFinite(qty) || qty <= 0 || !Number.isInteger(qty)) {
+                        dmdShowError("Indiquez combien de colis vous souhaitez envoyer.");
+                        return;
+                    }
                 }
                 const priceRaw = document.getElementById("demande-price")?.value;
                 if (priceRaw !== undefined && String(priceRaw).trim() !== "" &&
@@ -998,6 +1043,7 @@
                     selectedColisText.textContent = selectedDemandeType;
                     selectedColisText.classList.add("has-value");
                 }
+                updateDemandeCondFields();
             }
             colisOverlay?.classList.remove("active");
         });
@@ -1005,16 +1051,12 @@
             if (e.target === colisOverlay) colisOverlay.classList.remove("active");
         });
 
-        // Bascule prix : par kilo / par quantité
+        // Bascule prix : par kilo / par quantité (conditionne le champ « combien »)
         priceModeBtns.forEach((btn) => btn.addEventListener("click", () => {
             priceModeBtns.forEach((b) => b.classList.remove("active"));
             btn.classList.add("active");
             demandePriceMode = btn.dataset.mode || "per_kg";
-            if (dmdPriceHint) {
-                dmdPriceHint.textContent = demandePriceMode === "per_kg"
-                    ? "Votre budget par kilo — le voyageur verra votre proposition."
-                    : "Votre budget total pour tout le colis — le voyageur verra votre proposition.";
-            }
+            updateDemandeCondFields();
         }));
         (function setDemandeCurrency() {
             const curTag = document.getElementById("demande-price-currency");
@@ -1028,14 +1070,20 @@
             const destination = document.getElementById("demande-destination")?.value?.trim();
             const villeDepart = document.getElementById("city-demande-origin")?.value?.trim();
             const villeArrivee = document.getElementById("city-demande-destination")?.value?.trim();
-            const kg = parseInt(document.getElementById("demande-kg")?.value, 10);
+            const kgRaw = document.getElementById("demande-kg")?.value;
+            const qtyRaw = document.getElementById("demande-qty")?.value;
+            const isKgMode = demandePriceMode === "per_kg";
+            const kgNum = Number(kgRaw);
+            const qtyNum = Number(qtyRaw);
+            const kgValid = !!kgRaw && isFinite(kgNum) && kgNum > 0;
+            const qtyValid = !!qtyRaw && isFinite(qtyNum) && qtyNum > 0 && Number.isInteger(qtyNum);
             const description = document.getElementById("demande-description")?.value?.trim();
             const dateLimite = document.getElementById("demande-date")?.value || null;
             const itemType = selectedDemandeType || null;
             const priceRaw = document.getElementById("demande-price")?.value;
             const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
             const priceVal = hasPrice ? Number(priceRaw) : null;
-            if (!origin || !destination || !kg || !description) {
+            if (!origin || !destination || !description || (isKgMode ? !kgValid : !qtyValid)) {
                 alert("Veuillez remplir tous les champs.");
                 return;
             }
@@ -1056,7 +1104,8 @@
                         title: `Demande ${origin} -> ${destination}`,
                         origin,
                         destination,
-                        weight_kg: kg,
+                        weight_kg: isKgMode ? kgNum : null,
+                        quantity: isKgMode ? null : qtyNum,
                         needed_by_date: dateLimite || null,
                         currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
                         origin_city: villeDepart || null,
@@ -1070,7 +1119,7 @@
                     });
                     if (error) throw error;
                 } else {
-                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg, description, dateLimite } });
+                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg: isKgMode ? kgNum : null, quantity: isKgMode ? null : qtyNum, description, dateLimite } });
                 }
                 console.log("Demande de trajet inseree avec succes!");
                 if (feedback) feedback.classList.remove("hidden");

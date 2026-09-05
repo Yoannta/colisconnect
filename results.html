@@ -308,7 +308,7 @@
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=18"></script>
+    <script defer src="results.js?v=19"></script>
 
 </head>
 
@@ -596,7 +596,7 @@
                         </div>
                     </div>
 
-                    <!-- ÉTAPE 2 — Colis : type, poids, prix proposé -->
+                    <!-- ÉTAPE 2 — Colis : type, mode de prix, combien (kg ou quantité), montant -->
                     <div class="dmd-step" data-step="2">
                         <div class="demande-field">
                             <label for="openColisPopupBtn">Type de colis</label>
@@ -606,15 +606,22 @@
                             </button>
                         </div>
                         <div class="demande-field">
-                            <label for="demande-kg">Environ combien de kilos ?</label>
-                            <input type="number" id="demande-kg" class="demande-input" placeholder="Ex: 10" min="1">
-                        </div>
-                        <div class="demande-field">
-                            <label>Combien proposez-vous ? <span class="dmd-optional">(optionnel)</span></label>
+                            <label>Comment proposez-vous le prix ?</label>
                             <div class="dmd-price-mode" id="demande-price-mode">
                                 <button type="button" class="dmd-price-mode-btn active" data-mode="per_kg">par kilo</button>
                                 <button type="button" class="dmd-price-mode-btn" data-mode="total">par quantite</button>
                             </div>
+                        </div>
+                        <div class="demande-field" id="demande-kg-field">
+                            <label for="demande-kg">Environ combien de kilos ?</label>
+                            <input type="number" id="demande-kg" class="demande-input" placeholder="Ex: 10" min="1" step="any" inputmode="decimal">
+                        </div>
+                        <div class="demande-field" id="demande-qty-field" style="display:none">
+                            <label for="demande-qty" id="demande-qty-label">Combien de colis ?</label>
+                            <input type="number" id="demande-qty" class="demande-input" placeholder="Ex: 5" min="1" step="1" inputmode="numeric">
+                        </div>
+                        <div class="demande-field">
+                            <label>Combien proposez-vous ? <span class="dmd-optional">(optionnel)</span></label>
                             <div class="dmd-price-row">
                                 <input type="number" id="demande-price" class="demande-input dmd-price-input"
                                     placeholder="Ex: 2500" min="0" step="any" inputmode="decimal">
