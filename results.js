@@ -895,18 +895,17 @@
         const dmdNextBtn = document.getElementById("demande-next-btn");
         const dmdPrevBtn = document.getElementById("demande-prev-btn");
         const dmdSubmitBtn = document.getElementById("demande-submit-btn");
-        const colisOverlay = document.getElementById("colisPopupOverlay");
-        const openColisBtn = document.getElementById("openColisPopupBtn");
-        const selectedColisText = document.getElementById("selectedColisText");
-        const colisGrid = document.getElementById("colisOptionsGrid");
         const priceModeBtns = document.querySelectorAll("#demande-price-mode .dmd-price-mode-btn");
         const dmdPriceHint = document.getElementById("demande-price-hint");
         let demandeStep = 1;
-        let selectedDemandeType = null;   // type de colis choisi (valeur)
         let demandePriceMode = "per_kg";   // per_kg | total
 
-        const dmdEscapeHtml = (s) => String(s ?? "").replace(/[&<>"']/g,
-            (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+        const nomColisInput = document.getElementById("demande-nom-colis");
+        // Nom du colis saisi librement (première lettre en minuscule pour « Combien de X ? »)
+        const getDemandeNom = () => {
+            const raw = (nomColisInput?.value || "").trim().replace(/\s+/g, " ");
+            return raw ? raw.replace(/^./, (c) => c.toLowerCase()) : "";
+        };
 
         function dmdShowError(msg) {
             if (!dmdStepError) return;
@@ -952,15 +951,33 @@
             if (kgField) kgField.style.display = isKg ? "" : "none";
             if (qtyField) qtyField.style.display = isKg ? "none" : "";
             const qtyLabel = document.getElementById("demande-qty-label");
-            if (qtyLabel) {
-                qtyLabel.textContent = selectedDemandeType
-                    ? `Combien de ${selectedDemandeType} ?`
-                    : "Combien de colis ?";
-            }
+            const nom = getDemandeNom();
+            if (qtyLabel) qtyLabel.textContent = nom ? `Combien de ${nom} ?` : "Combien de colis ?";
             if (dmdPriceHint) {
                 dmdPriceHint.textContent = isKg
                     ? "Votre budget par kilo — le voyageur verra votre proposition."
                     : "Votre budget total pour toute la quantite — le voyageur verra votre proposition.";
+            }
+            updateDemandePricePlaceholder(isKg);
+        }
+
+        // Placeholder du montant adapté au mode et au « combien » saisi :
+        // « pour 5 kilos » (par kilo) / « pour 5 document » (par quantité, nom du colis saisi).
+        function updateDemandePricePlaceholder(isKg) {
+            const priceInput = document.getElementById("demande-price");
+            if (!priceInput) return;
+            const raw = (isKg
+                ? document.getElementById("demande-kg")?.value
+                : document.getElementById("demande-qty")?.value) || "";
+            const v = Number(raw);
+            if (!raw || !isFinite(v) || v <= 0) {
+                priceInput.placeholder = "Ex: 2500";
+                return;
+            }
+            if (isKg) {
+                priceInput.placeholder = `pour ${v} kilo${v > 1 ? "s" : ""}`;
+            } else {
+                priceInput.placeholder = `pour ${v} ${getDemandeNom() || "colis"}`;
             }
         }
 
@@ -1002,53 +1019,10 @@
             if (demandeStep > 1) dmdGoTo(demandeStep - 1);
         });
 
-        // Popup type de colis (single-select)
-        openColisBtn?.addEventListener("click", () => {
-            colisGrid?.querySelectorAll(".dmd-option-card").forEach((card) => {
-                card.classList.toggle("selected", card.dataset.value === (selectedDemandeType || ""));
-            });
-            const newInput = document.getElementById("newColisTypeInput");
-            if (newInput) newInput.value = "";
-            document.getElementById("customColisGroup")?.classList.remove("show");
-            colisOverlay?.classList.add("active");
-        });
-        colisGrid?.addEventListener("click", (e) => {
-            const card = e.target.closest(".dmd-option-card");
-            if (!card) return;
-            colisGrid.querySelectorAll(".dmd-option-card").forEach((c) => c.classList.remove("selected"));
-            card.classList.add("selected");
-        });
-        document.getElementById("toggleCustomColisBtn")?.addEventListener("click", () => {
-            document.getElementById("customColisGroup")?.classList.toggle("show");
-            document.getElementById("newColisTypeInput")?.focus();
-        });
-        document.getElementById("saveCustomColisBtn")?.addEventListener("click", () => {
-            const input = document.getElementById("newColisTypeInput");
-            const name = input?.value?.trim();
-            if (!name) return;
-            const card = document.createElement("div");
-            card.className = "dmd-option-card selected";
-            card.dataset.value = name;
-            card.innerHTML = `<span class="dmd-option-circle"></span><span class="dmd-option-text">${dmdEscapeHtml(name)}</span>`;
-            colisGrid?.querySelectorAll(".dmd-option-card").forEach((c) => c.classList.remove("selected"));
-            colisGrid?.appendChild(card);
-            input.value = "";
-            document.getElementById("customColisGroup")?.classList.remove("show");
-        });
-        document.getElementById("validateColisBtn")?.addEventListener("click", () => {
-            const sel = colisGrid?.querySelector(".dmd-option-card.selected");
-            if (sel) {
-                selectedDemandeType = sel.dataset.value || "";
-                if (selectedColisText) {
-                    selectedColisText.textContent = selectedDemandeType;
-                    selectedColisText.classList.add("has-value");
-                }
-                updateDemandeCondFields();
-            }
-            colisOverlay?.classList.remove("active");
-        });
-        colisOverlay?.addEventListener("click", (e) => {
-            if (e.target === colisOverlay) colisOverlay.classList.remove("active");
+        // Le nom du colis et le champ « combien » (kg / quantité) pilotent en direct
+        // le libellé de quantité et le placeholder du montant (« pour 5 kilos » / « pour 5 document »).
+        ["demande-kg", "demande-qty", "demande-nom-colis"].forEach((id) => {
+            document.getElementById(id)?.addEventListener("input", () => updateDemandeCondFields());
         });
 
         // Bascule prix : par kilo / par quantité (conditionne le champ « combien »)
@@ -1079,7 +1053,7 @@
             const qtyValid = !!qtyRaw && isFinite(qtyNum) && qtyNum > 0 && Number.isInteger(qtyNum);
             const description = document.getElementById("demande-description")?.value?.trim();
             const dateLimite = document.getElementById("demande-date")?.value || null;
-            const itemType = selectedDemandeType || null;
+            const itemType = getDemandeNom() || null;
             const priceRaw = document.getElementById("demande-price")?.value;
             const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
             const priceVal = hasPrice ? Number(priceRaw) : null;

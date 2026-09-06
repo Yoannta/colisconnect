@@ -291,7 +291,7 @@
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=30"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=31"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
 
@@ -308,7 +308,7 @@
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=19"></script>
+    <script defer src="results.js?v=20"></script>
 
 </head>
 
@@ -596,14 +596,12 @@
                         </div>
                     </div>
 
-                    <!-- ÉTAPE 2 — Colis : type, mode de prix, combien (kg ou quantité), montant -->
+                    <!-- ÉTAPE 2 — Colis : nom, mode de prix, combien (kg ou quantité), montant -->
                     <div class="dmd-step" data-step="2">
                         <div class="demande-field">
-                            <label for="openColisPopupBtn">Type de colis</label>
-                            <button type="button" id="openColisPopupBtn" class="demande-input dmd-colis-trigger">
-                                <span id="selectedColisText">Choisir le type de colis</span>
-                                <span class="dmd-caret">&#9662;</span>
-                            </button>
+                            <label for="demande-nom-colis">Nom du colis</label>
+                            <input type="text" id="demande-nom-colis" class="demande-input"
+                                placeholder="Ex: document, vetements, chaussures..." maxlength="60" autocomplete="off">
                         </div>
                         <div class="demande-field">
                             <label>Comment proposez-vous le prix ?</label>
@@ -634,9 +632,9 @@
                     <!-- ÉTAPE 3 — Description -->
                     <div class="dmd-step" data-step="3">
                         <div class="demande-field">
-                            <label for="demande-description">Decrivez le colis (nom, categorie, type)</label>
+                            <label for="demande-description">Decrivez le colis (etat, contenu, fragile...)</label>
                             <textarea id="demande-description" class="demande-input demande-textarea" rows="4"
-                                placeholder="Ex: Electronique, vetements, documents..."></textarea>
+                                placeholder="Ex: fragile, en bon etat, contient des vetements..."></textarea>
                         </div>
                     </div>
 
@@ -654,31 +652,6 @@
             </div>
         </div>
     </div>
-
-    <!-- POPUP TYPE DE COLIS (demande de trajet) — single select -->
-    <div class="dmd-popup-overlay" id="colisPopupOverlay">
-        <div class="dmd-popup">
-            <div class="dmd-popup-title">📦 Quel type de colis ?</div>
-            <div class="dmd-options-grid" id="colisOptionsGrid">
-                <div class="dmd-option-card" data-value="Documents"><span class="dmd-option-circle"></span><span class="dmd-option-text">Documents</span></div>
-                <div class="dmd-option-card" data-value="Électronique"><span class="dmd-option-circle"></span><span class="dmd-option-text">Électronique</span></div>
-                <div class="dmd-option-card" data-value="Vêtements"><span class="dmd-option-circle"></span><span class="dmd-option-text">Vêtements</span></div>
-                <div class="dmd-option-card" data-value="Nourriture"><span class="dmd-option-circle"></span><span class="dmd-option-text">Nourriture</span></div>
-                <div class="dmd-option-card" data-value="Cosmétiques"><span class="dmd-option-circle"></span><span class="dmd-option-text">Cosmétiques</span></div>
-                <div class="dmd-option-card" data-value="Médicaments"><span class="dmd-option-circle"></span><span class="dmd-option-text">Médicaments</span></div>
-                <div class="dmd-option-card" data-value="Autres"><span class="dmd-option-circle"></span><span class="dmd-option-text">Autres</span></div>
-            </div>
-            <div class="dmd-add-custom">
-                <button type="button" class="dmd-add-trigger" id="toggleCustomColisBtn">+ Ajouter un type personnalise</button>
-                <div class="dmd-custom-group" id="customColisGroup">
-                    <input type="text" class="demande-input" id="newColisTypeInput" placeholder="Entrer le nom du type...">
-                    <button type="button" class="dmd-save-custom" id="saveCustomColisBtn">Ajouter</button>
-                </div>
-            </div>
-            <button type="button" class="dmd-popup-validate" id="validateColisBtn">Valider</button>
-        </div>
-    </div>
-
 
     <!-- MOBILE FILTER TRIGGER (visible only in mobile-mode) -->
     <button class="mobile-filter-trigger" id="mobile-filter-trigger" type="button">

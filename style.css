@@ -12574,34 +12574,19 @@ body.results-page.light #btn-faire-demande-trajet {
     animation: dmdFadeIn 0.25s ease;
 }
 
-/* ── Bouton déclencheur "Type de colis" ── */
-.dmd-colis-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    cursor: pointer;
-    text-align: left;
-    font-family: inherit;
-    font-weight: 500;
-    color: #fff;
-    appearance: none;
-    -webkit-appearance: none;
-}
-.dmd-colis-trigger .dmd-caret {
-    opacity: 0.55;
-    font-size: 0.8rem;
-    flex-shrink: 0;
-}
-.dmd-colis-trigger #selectedColisText.has-value {
-    color: #a7ffe7;
-    font-weight: 600;
-}
-
 /* ── Mention optionnel ── */
 .dmd-optional {
     font-size: 0.72rem;
     font-weight: 500;
+    opacity: 0.65;
+}
+
+/* ── Placeholder montant « pour X kilo(s)/colis » : s'adapte au champ, garde la place pour les chiffres ── */
+#demande-price::placeholder {
+    font-size: 0.78rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     opacity: 0.65;
 }
 
@@ -12722,153 +12707,6 @@ body.results-page.light #btn-faire-demande-trajet {
     width: 100%;
 }
 
-/* ── Popup "Type de colis" (overlay racine, au-dessus de la modale) ── */
-.dmd-popup-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 11000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 18px;
-}
-.dmd-popup-overlay.active {
-    display: flex;
-}
-.dmd-popup {
-    width: min(420px, 100%);
-    max-height: 84vh;
-    overflow-y: auto;
-    background: #1a1b1e;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 16px;
-    padding: 20px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
-}
-.dmd-popup-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #fff;
-    margin: 0 0 14px;
-    text-align: center;
-}
-.dmd-options-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 14px;
-}
-.dmd-option-card {
-    flex: 1 1 calc(50% - 8px);
-    min-width: 110px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    padding: 11px 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
-}
-.dmd-option-card:hover {
-    background: rgba(19, 236, 200, 0.07);
-    border-color: rgba(19, 236, 200, 0.35);
-}
-.dmd-option-card.selected {
-    background: rgba(19, 236, 200, 0.12);
-    border-color: #13ecc8;
-    box-shadow: 0 0 0 1px rgba(19, 236, 200, 0.4);
-}
-.dmd-option-circle {
-    width: 15px;
-    height: 15px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    flex-shrink: 0;
-    transition: all 0.2s;
-}
-.dmd-option-card.selected .dmd-option-circle {
-    background: #13ecc8;
-    border-color: #13ecc8;
-    box-shadow: 0 0 6px rgba(19, 236, 200, 0.5);
-}
-.dmd-option-text {
-    font-size: 0.85rem;
-    color: #d0d0d0;
-}
-.dmd-option-card.selected .dmd-option-text {
-    color: #fff;
-    font-weight: 600;
-}
-.dmd-add-custom {
-    margin-bottom: 14px;
-}
-.dmd-add-trigger {
-    background: none;
-    border: 1px dashed rgba(255, 255, 255, 0.18);
-    border-radius: 10px;
-    padding: 10px 14px;
-    color: #a7ffe7;
-    font-size: 0.85rem;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    width: 100%;
-    transition: all 0.2s;
-}
-.dmd-add-trigger:hover {
-    background: rgba(19, 236, 200, 0.06);
-    border-color: #13ecc8;
-}
-.dmd-custom-group {
-    display: none;
-    gap: 8px;
-    margin-top: 8px;
-}
-.dmd-custom-group.show {
-    display: flex;
-}
-.dmd-custom-group .demande-input {
-    flex: 1;
-    min-width: 0;
-}
-.dmd-save-custom {
-    background: rgba(19, 236, 200, 0.14);
-    border: 1px solid rgba(19, 236, 200, 0.35);
-    border-radius: 10px;
-    padding: 10px 16px;
-    color: #a7ffe7;
-    font-size: 0.85rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: all 0.2s;
-}
-.dmd-save-custom:hover {
-    background: rgba(19, 236, 200, 0.25);
-}
-.dmd-popup-validate {
-    width: 100%;
-    background: #13ecc8;
-    border: none;
-    border-radius: 12px;
-    padding: 14px;
-    color: #00382e;
-    font-size: 1rem;
-    font-weight: 700;
-    font-family: inherit;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.dmd-popup-validate:hover {
-    background: #8cfada;
-}
-
 /* ── Light (or) : la modale demande en mode clair ── */
 body.results-page.light .dmd-progress-dot {
     background: rgba(184, 134, 11, 0.1);
@@ -12894,9 +12732,6 @@ body.results-page.light .dmd-progress-line {
 }
 body.results-page.light .dmd-progress-line i {
     background: #e9a614;
-}
-body.results-page.light .dmd-colis-trigger #selectedColisText.has-value {
-    color: #8a6d1f;
 }
 body.results-page.light .dmd-price-mode {
     background: rgba(184, 134, 11, 0.08);
@@ -12940,64 +12775,6 @@ body.results-page.light .dmd-btn-primary:hover {
     background: linear-gradient(135deg, #d99a0e, #e9a614);
     transform: translateY(-1px);
 }
-body.results-page.light .dmd-popup {
-    background: #fdfaf4;
-    border-color: rgba(184, 134, 11, 0.25);
-}
-body.results-page.light .dmd-popup-title {
-    color: #3a2f1e;
-}
-body.results-page.light .dmd-option-card {
-    background: rgba(184, 134, 11, 0.06);
-    border-color: rgba(184, 134, 11, 0.2);
-}
-body.results-page.light .dmd-option-card:hover {
-    background: rgba(233, 166, 20, 0.12);
-    border-color: rgba(233, 166, 20, 0.45);
-}
-body.results-page.light .dmd-option-card.selected {
-    background: rgba(233, 166, 20, 0.16);
-    border-color: #e9a614;
-    box-shadow: 0 0 0 1px rgba(233, 166, 20, 0.45);
-}
-body.results-page.light .dmd-option-circle {
-    border-color: rgba(184, 134, 11, 0.45);
-}
-body.results-page.light .dmd-option-card.selected .dmd-option-circle {
-    background: #e9a614;
-    border-color: #e9a614;
-    box-shadow: 0 0 6px rgba(233, 166, 20, 0.5);
-}
-body.results-page.light .dmd-option-text {
-    color: #5a4632;
-}
-body.results-page.light .dmd-option-card.selected .dmd-option-text {
-    color: #3a2f1e;
-}
-body.results-page.light .dmd-add-trigger {
-    border-color: rgba(184, 134, 11, 0.35);
-    color: #8a6d1f;
-}
-body.results-page.light .dmd-add-trigger:hover {
-    background: rgba(233, 166, 20, 0.08);
-    border-color: #e9a614;
-}
-body.results-page.light .dmd-save-custom {
-    background: rgba(233, 166, 20, 0.15);
-    border-color: rgba(233, 166, 20, 0.4);
-    color: #8a6d1f;
-}
-body.results-page.light .dmd-save-custom:hover {
-    background: rgba(233, 166, 20, 0.25);
-}
-body.results-page.light .dmd-popup-validate {
-    background: linear-gradient(135deg, #e9a614, #f1b52b);
-    color: #fff;
-}
-body.results-page.light .dmd-popup-validate:hover {
-    background: linear-gradient(135deg, #d99a0e, #e9a614);
-}
-body.results-page.light .demande-submit {
     background: linear-gradient(135deg, #e9a614, #f1b52b);
     color: #fff;
 }
