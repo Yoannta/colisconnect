@@ -12003,6 +12003,42 @@ body.results-page.light .cc3-special-toggle-gold {
     white-space: nowrap;
 }
 
+/* ── Carte DEMANDE : phrase « Je veux envoyer … et je paye maximum … » ── */
+.cards-list .cc3-card .cc3-demand-phrase {
+    grid-column: 1 / -1;
+    border-left: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 4px 4px 2px !important;
+    min-height: 0;
+}
+.cc3-demand-phrase-txt {
+    margin: 0;
+    color: #fffaf2;
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    white-space: normal;
+    max-width: 100%;
+}
+.cc3-demand-phrase-txt .cc3-demand-hl {
+    color: #d29a22;
+    font-weight: 900;
+    white-space: nowrap;
+}
+.cc3-demand-desc {
+    margin: 0;
+    color: #9a948b;
+    font-size: 0.74rem;
+    font-weight: 500;
+    line-height: 1.45;
+    white-space: normal;
+    max-width: 100%;
+}
+
 /* ── LENTILLE D'EAU (water-lens) — design de l'agent ── */
 .cards-list .cc3-card .cc3-detail-price {
     grid-column: 1 / -1;
@@ -12344,6 +12380,9 @@ body.results-page.light .water-lens::after {
 body.results-page.light .water-lens .cc3-d-label { color: rgba(60, 50, 30, 0.75); }
 body.results-page.light .water-lens .cc3-price { color: #1d1b17; }
 body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
+body.results-page.light .cc3-demand-phrase-txt { color: #131313; }
+body.results-page.light .cc3-demand-phrase-txt .cc3-demand-hl { color: #c89422; }
+body.results-page.light .cc3-demand-desc { color: #7d776e; }
 
 /* ── Responsive ── */
 @media (max-width: 760px) {
@@ -12360,6 +12399,8 @@ body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
     .cc3-price { font-size: 0.85rem; }
     .cc3-cta { padding: 12px 8px !important; font-size: 0.62rem; }
     .cc3-name { font-size: 0.85rem; }
+    .cc3-demand-phrase-txt { font-size: 0.8rem; }
+    .cc3-demand-desc { font-size: 0.68rem; }
 }
 
 /* Lentille d'eau : réglage mobile étroit (agent) */

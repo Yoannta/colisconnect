@@ -166,26 +166,31 @@
             }
 
             const hasWeight = d.weight_kg != null && d.weight_kg !== "";
+            const hasQty = d.quantity != null && d.quantity !== "";
             const hasDesc = !!(d.description && String(d.description).trim());
             const descTxt = esc(d.description);
-            const itemTypeTxt = d.item_type ? esc(String(d.item_type).trim()) : "";
-            const hasQty = d.quantity != null && d.quantity !== "";
-            let weightLabel = "Poids", weightValue = "Non précisé";
-            if (hasWeight) {
-                weightValue = `${esc(d.weight_kg)} <span class="cc3-kg">kg</span>`;
-            } else if (hasQty) {
-                weightLabel = "Quantité";
-                const qUnit = itemTypeTxt ? itemTypeTxt.toLowerCase() : "colis";
-                weightValue = `${esc(d.quantity)} <span class="cc3-kg">${qUnit}</span>`;
-            }
+            const itemNoun = d.item_type ? String(d.item_type).trim().toLowerCase() : "";
             const fmtNum = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
-            const budgetCur = d.currency || "XOF";
-            let budgetTxt = "";
-            if (d.max_price_per_kg != null && d.max_price_per_kg !== "") {
-                budgetTxt = `jusqu'a ${fmtNum(d.max_price_per_kg)} <span class="cc3-kg">${esc(budgetCur)}/kg</span>`;
-            } else if (d.max_price_total != null && d.max_price_total !== "") {
-                budgetTxt = `jusqu'a ${fmtNum(d.max_price_total)} <span class="cc3-kg">${esc(budgetCur)}</span>`;
+
+            // Phrase du corps de carte (ligne après la date) :
+            //   quantité  -> "Je veux envoyer 2 ordinateur et je paye maximum 40 XOF"
+            //   par kilo  -> "Je veux envoyer 5 kilo de vêtement et je paye maximum 40 XOF"
+            let sendPart = "";
+            if (hasWeight) {
+                sendPart = `je veux envoyer <span class="cc3-demand-hl">${esc(d.weight_kg)} kilo${itemNoun ? ` de ${esc(itemNoun)}` : ""}</span>`;
+            } else if (hasQty) {
+                sendPart = `je veux envoyer <span class="cc3-demand-hl">${esc(d.quantity)} ${itemNoun ? esc(itemNoun) : "colis"}</span>`;
             }
+            const budgetCur = esc(d.currency || "XOF");
+            let budgetHl = "";
+            if (d.max_price_per_kg != null && d.max_price_per_kg !== "") {
+                budgetHl = `<span class="cc3-demand-hl">${fmtNum(d.max_price_per_kg)} ${budgetCur}/kg</span>`;
+            } else if (d.max_price_total != null && d.max_price_total !== "") {
+                budgetHl = `<span class="cc3-demand-hl">${fmtNum(d.max_price_total)} ${budgetCur}</span>`;
+            }
+            const phraseTxt = sendPart
+                ? "Je " + sendPart.slice(3) + (budgetHl ? " et je paye maximum " + budgetHl : "")
+                : (budgetHl ? "Je paye maximum " + budgetHl : "");
 
             return (
 `<div class="offer-wrap">
@@ -228,34 +233,10 @@
           <span class="cc3-value">${limitDate ? `<span class="cc3-gold">${limitDate}</span>` : "Non précisée"}</span>
         </div>
       </div>
-      <div class="cc3-detail">
-        <div class="cc3-icon">
-          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg>
-        </div>
-        <div class="cc3-detail-txt">
-          <span class="cc3-d-label">${weightLabel}</span>
-          <span class="cc3-value">${weightValue}</span>
-        </div>
-      </div>
-      ${hasDesc || itemTypeTxt ? `
-      <div class="cc3-detail cc3-detail-price">
-        <div class="cc3-icon">
-          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12.5 20 5l16 7.5v15L20 35 4 27.5z"></path><path d="M4 12.5 20 20l16-7.5M20 20v15"></path></svg>
-        </div>
-        <div class="cc3-detail-txt">
-          <span class="cc3-d-label">Colis</span>
-          <span class="cc3-value">${itemTypeTxt ? `<span class="cc3-gold">${itemTypeTxt}</span>${hasDesc ? ` &middot; ${descTxt}` : ""}` : descTxt}</span>
-        </div>
-      </div>` : ""}
-      ${budgetTxt ? `
-      <div class="cc3-detail">
-        <div class="cc3-icon">
-          <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="20" cy="20" r="14"></circle><path d="M20 13.5v13M24.3 17c-.7-1.6-2.3-2.3-4.3-2.3-2.6 0-4.3 1.3-4.3 3.2 0 4.4 8.6 2.1 8.6 6.4 0 1.9-1.8 3.2-4.3 3.2-2.2 0-3.8-.9-4.6-2.4"></path></svg>
-        </div>
-        <div class="cc3-detail-txt">
-          <span class="cc3-d-label">Budget</span>
-          <span class="cc3-value">${budgetTxt}</span>
-        </div>
+      ${phraseTxt || hasDesc ? `
+      <div class="cc3-detail cc3-demand-phrase">
+        ${phraseTxt ? `<p class="cc3-demand-phrase-txt">${phraseTxt}</p>` : ""}
+        ${hasDesc ? `<p class="cc3-demand-desc">${descTxt}</p>` : ""}
       </div>` : ""}
     </section>
   </article>
