@@ -291,7 +291,7 @@
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=32"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=33"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
 
@@ -308,7 +308,7 @@
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=21"></script>
+    <script defer src="results.js?v=22"></script>
 
 </head>
 
@@ -596,37 +596,46 @@
                         </div>
                     </div>
 
-                    <!-- ÉTAPE 2 — Colis : nom, mode de prix, combien (kg ou quantité), montant -->
+                    <!-- ÉTAPE 2 — Colis : un cadre par colis (nom, mode, combien, montant) + « Ajouter un autre colis » -->
                     <div class="dmd-step" data-step="2">
-                        <div class="demande-field">
-                            <label for="demande-nom-colis">Nom du colis</label>
-                            <input type="text" id="demande-nom-colis" class="demande-input"
-                                placeholder="Ex: document, vetements, chaussures..." maxlength="60" autocomplete="off">
-                        </div>
-                        <div class="demande-field">
-                            <label>Comment proposez-vous le prix ?</label>
-                            <div class="dmd-price-mode" id="demande-price-mode">
-                                <button type="button" class="dmd-price-mode-btn active" data-mode="per_kg">par kilo</button>
-                                <button type="button" class="dmd-price-mode-btn" data-mode="total">par quantite</button>
+                        <div class="dmd-colis-zone" id="demande-colis-rows">
+                            <div class="dmd-colis-box" data-colis="1">
+                                <div class="dmd-colis-box-head">
+                                    <span class="dmd-colis-title">Colis 1</span>
+                                    <button type="button" class="dmd-colis-del" title="Supprimer ce colis" aria-label="Supprimer ce colis">✕</button>
+                                </div>
+                                <div class="demande-field">
+                                    <label>Nom du colis</label>
+                                    <input type="text" class="demande-input dmd-colis-nom"
+                                        placeholder="Ex: document, vetements, chaussures..." maxlength="60" autocomplete="off">
+                                </div>
+                                <div class="demande-field">
+                                    <label>Comment proposez-vous le prix ?</label>
+                                    <div class="dmd-price-mode">
+                                        <button type="button" class="dmd-price-mode-btn active" data-mode="per_kg">par kilo</button>
+                                        <button type="button" class="dmd-price-mode-btn" data-mode="total">par quantite</button>
+                                    </div>
+                                </div>
+                                <div class="demande-field dmd-kg-field">
+                                    <label>Environ combien de kilos ?</label>
+                                    <input type="number" class="demande-input dmd-kg-input" placeholder="Ex: 10" min="1" step="any" inputmode="decimal">
+                                </div>
+                                <div class="demande-field dmd-qty-field" style="display:none">
+                                    <label class="dmd-qty-label">Combien de colis ?</label>
+                                    <input type="number" class="demande-input dmd-qty-input" placeholder="Ex: 5" min="1" step="1" inputmode="numeric">
+                                </div>
+                                <div class="demande-field">
+                                    <label>Combien proposez-vous ? <span class="dmd-optional">(optionnel)</span></label>
+                                    <div class="dmd-price-row">
+                                        <input type="number" class="demande-input dmd-price-input"
+                                            placeholder="Ex: 2500" min="0" step="any" inputmode="decimal">
+                                        <span class="dmd-currency dmd-colis-cur">XOF</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <div class="demande-field" id="demande-kg-field">
-                            <label for="demande-kg">Environ combien de kilos ?</label>
-                            <input type="number" id="demande-kg" class="demande-input" placeholder="Ex: 10" min="1" step="any" inputmode="decimal">
-                        </div>
-                        <div class="demande-field" id="demande-qty-field" style="display:none">
-                            <label for="demande-qty" id="demande-qty-label">Combien de colis ?</label>
-                            <input type="number" id="demande-qty" class="demande-input" placeholder="Ex: 5" min="1" step="1" inputmode="numeric">
-                        </div>
-                        <div class="demande-field">
-                            <label>Combien proposez-vous ? <span class="dmd-optional">(optionnel)</span></label>
-                            <div class="dmd-price-row">
-                                <input type="number" id="demande-price" class="demande-input dmd-price-input"
-                                    placeholder="Ex: 2500" min="0" step="any" inputmode="decimal">
-                                <span class="dmd-currency" id="demande-price-currency">XOF</span>
-                            </div>
-                            <p class="dmd-hint" id="demande-price-hint">Votre budget par kilo — le voyageur verra votre proposition.</p>
-                        </div>
+                        <button type="button" class="dmd-add-colis-btn" id="demande-add-colis-btn">+ Ajouter un autre colis</button>
+                        <p class="dmd-hint">Chaque colis a son propre budget — le voyageur verra chaque proposition.</p>
                     </div>
 
                     <!-- ÉTAPE 3 — Description -->

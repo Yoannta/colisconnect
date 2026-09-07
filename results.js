@@ -165,32 +165,58 @@
                 if (!limitDate) limitDate = esc(String(d.needed_by_date).slice(0, 10));
             }
 
-            const hasWeight = d.weight_kg != null && d.weight_kg !== "";
-            const hasQty = d.quantity != null && d.quantity !== "";
             const hasDesc = !!(d.description && String(d.description).trim());
             const descTxt = esc(d.description);
-            const itemNoun = d.item_type ? String(d.item_type).trim().toLowerCase() : "";
             const fmtNum = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
-
-            // Phrase du corps de carte (ligne après la date) :
-            //   quantité  -> "Je veux envoyer 2 ordinateur et je paye maximum 40 XOF"
-            //   par kilo  -> "Je veux envoyer 5 kilo de vêtement et je paye maximum 40 XOF"
-            let sendPart = "";
-            if (hasWeight) {
-                sendPart = `je veux envoyer <span class="cc3-demand-hl">${esc(d.weight_kg)} kilo${itemNoun ? ` de ${esc(itemNoun)}` : ""}</span>`;
-            } else if (hasQty) {
-                sendPart = `je veux envoyer <span class="cc3-demand-hl">${esc(d.quantity)} ${itemNoun ? esc(itemNoun) : "colis"}</span>`;
-            }
             const budgetCur = esc(d.currency || "XOF");
-            let budgetHl = "";
-            if (d.max_price_per_kg != null && d.max_price_per_kg !== "") {
-                budgetHl = `<span class="cc3-demand-hl">${fmtNum(d.max_price_per_kg)} ${budgetCur}/kg</span>`;
-            } else if (d.max_price_total != null && d.max_price_total !== "") {
-                budgetHl = `<span class="cc3-demand-hl">${fmtNum(d.max_price_total)} ${budgetCur}</span>`;
+
+            // Partie « envoyer » d'un colis : <span class="cc3-demand-hl">2 ordinateur</span>
+            const mkItemSendHl = (it) => {
+                const noun = it.item_type ? String(it.item_type).trim().toLowerCase() : "";
+                const hasW = it.weight_kg != null && it.weight_kg !== "";
+                const hasQ = it.quantity != null && it.quantity !== "";
+                if (hasW) return `<span class="cc3-demand-hl">${esc(it.weight_kg)} kilo${noun ? ` de ${esc(noun)}` : ""}</span>`;
+                if (hasQ) return `<span class="cc3-demand-hl">${esc(it.quantity)} ${noun ? esc(noun) : "colis"}</span>`;
+                return "";
+            };
+            // Partie « prix » d'un colis : <span class="cc3-demand-hl">20 EUR</span> (ou …/kg)
+            const mkItemPriceHl = (it) => {
+                if (it.max_price_per_kg != null && it.max_price_per_kg !== "") return `<span class="cc3-demand-hl">${fmtNum(it.max_price_per_kg)} ${budgetCur}/kg</span>`;
+                if (it.max_price_total != null && it.max_price_total !== "") return `<span class="cc3-demand-hl">${fmtNum(it.max_price_total)} ${budgetCur}</span>`;
+                return "";
+            };
+            // Ligne complète d'un colis (multi) : « 2 ordinateur — 20 EUR »
+            const mkItemRow = (it) => {
+                const s = mkItemSendHl(it);
+                const p = mkItemPriceHl(it);
+                if (!s && !p) return "";
+                return `<span class="cc3-demand-item">${s}${p ? ` — ${p}` : ""}</span>`;
+            };
+
+            // items (jsonb multi-colis) prioritaire ; sinon scalaires des anciennes demandes
+            const itemsRows = (Array.isArray(d.items) && d.items.length) ? d.items.map(mkItemRow).filter(Boolean) : null;
+            const isMulti = itemsRows !== null && itemsRows.length > 1;
+
+            let phraseTxt = "";
+            let demandLines = "";
+            if (isMulti) {
+                // « Je veux envoyer : » puis une ligne par colis (max 2 visibles, le reste derrière « Voir plus »)
+                const rowsHtml = itemsRows.slice(0, 2).join("");
+                const restN = itemsRows.length - 2;
+                const extraHtml = restN > 0
+                    ? itemsRows.slice(2).map((r) => r.replace('<span class="cc3-demand-item">', '<span class="cc3-demand-item cc3-demand-extra">')).join("")
+                    : "";
+                demandLines = `<span class="cc3-demand-lines"><span class="cc3-demand-intro">Je veux envoyer :</span>${rowsHtml}${extraHtml}</span>`;
+                if (restN > 0) demandLines += `<button type="button" class="cc3-demand-more" data-count="${restN}">Voir plus (${restN})</button>`;
+            } else {
+                // Phrase classique pour un seul colis (identique à l'ancienne)
+                const it = (Array.isArray(d.items) && d.items.length === 1) ? d.items[0] : d;
+                const sendHl = mkItemSendHl(it);
+                const priceHl = mkItemPriceHl(it);
+                phraseTxt = sendHl
+                    ? `Je veux envoyer ${sendHl}` + (priceHl ? ` et je paye maximum ${priceHl}` : "")
+                    : (priceHl ? `Je paye maximum ${priceHl}` : "");
             }
-            const phraseTxt = sendPart
-                ? "Je " + sendPart.slice(3) + (budgetHl ? " et je paye maximum " + budgetHl : "")
-                : (budgetHl ? "Je paye maximum " + budgetHl : "");
 
             return (
 `<div class="offer-wrap">
@@ -233,9 +259,10 @@
           <span class="cc3-value">${limitDate ? `<span class="cc3-gold">${limitDate}</span>` : "Non précisée"}</span>
         </div>
       </div>
-      ${phraseTxt || hasDesc ? `
+      ${phraseTxt || demandLines || hasDesc ? `
       <div class="cc3-detail cc3-demand-phrase">
         ${phraseTxt ? `<p class="cc3-demand-phrase-txt">${phraseTxt}</p>` : ""}
+        ${demandLines ? `<div class="cc3-demand-multi">${demandLines}</div>` : ""}
         ${hasDesc ? `<p class="cc3-demand-desc">${descTxt}</p>` : ""}
       </div>` : ""}
     </section>
@@ -245,6 +272,16 @@
 
         // Drapeaux : les demandes ne stockent pas de code pays -> résolution async (avec cache) sur le nom
         hydrateDemandeFlags();
+
+        // « Voir plus » : révèle les colis supplémentaires masqués d'une demande multi-colis
+        els.offersList.querySelectorAll(".cc3-demand-more").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const lines = btn.parentElement?.querySelector(".cc3-demand-lines");
+                if (!lines) return;
+                const isOpen = lines.classList.toggle("is-expanded");
+                btn.textContent = isOpen ? "Voir moins" : `Voir plus (${btn.dataset.count || ""})`;
+            });
+        });
     }
 
     function hydrateDemandeFlags() {
@@ -876,17 +913,76 @@
         const dmdNextBtn = document.getElementById("demande-next-btn");
         const dmdPrevBtn = document.getElementById("demande-prev-btn");
         const dmdSubmitBtn = document.getElementById("demande-submit-btn");
-        const priceModeBtns = document.querySelectorAll("#demande-price-mode .dmd-price-mode-btn");
-        const dmdPriceHint = document.getElementById("demande-price-hint");
         let demandeStep = 1;
-        let demandePriceMode = "per_kg";   // per_kg | total
 
-        const nomColisInput = document.getElementById("demande-nom-colis");
+        // ── Multi-colis : chaque colis = un cadre (nom, mode, combien, montant) ──
+        const colisZone = document.getElementById("demande-colis-rows");
+        const dmdAddColisBtn = document.getElementById("demande-add-colis-btn");
+
+        const getColisBoxes = () => (colisZone ? Array.from(colisZone.querySelectorAll(".dmd-colis-box")) : []);
+
         // Nom du colis saisi librement (première lettre en minuscule pour « Combien de X ? »)
-        const getDemandeNom = () => {
-            const raw = (nomColisInput?.value || "").trim().replace(/\s+/g, " ");
+        const getBoxNom = (box) => {
+            const raw = (box.querySelector(".dmd-colis-nom")?.value || "").trim().replace(/\s+/g, " ");
             return raw ? raw.replace(/^./, (c) => c.toLowerCase()) : "";
         };
+        const getBoxMode = (box) => box.querySelector(".dmd-price-mode-btn.active")?.dataset?.mode || "per_kg";
+
+        // Affiche kg ou quantité selon le mode, adapte le libellé (« Combien de X ? ») et
+        // le placeholder du montant (« pour 5 kilos » / « pour 5 document »)
+        function refreshBoxUi(box) {
+            if (!box) return;
+            const isKg = getBoxMode(box) === "per_kg";
+            const kgField = box.querySelector(".dmd-kg-field");
+            const qtyField = box.querySelector(".dmd-qty-field");
+            if (kgField) kgField.style.display = isKg ? "" : "none";
+            if (qtyField) qtyField.style.display = isKg ? "none" : "";
+            const nom = getBoxNom(box);
+            const qtyLabel = box.querySelector(".dmd-qty-label");
+            if (qtyLabel) qtyLabel.textContent = nom ? `Combien de ${nom} ?` : "Combien de colis ?";
+            const priceInput = box.querySelector(".dmd-price-input");
+            if (!priceInput) return;
+            const raw = (isKg ? box.querySelector(".dmd-kg-input")?.value : box.querySelector(".dmd-qty-input")?.value) || "";
+            const v = Number(raw);
+            if (!raw || !isFinite(v) || v <= 0) {
+                priceInput.placeholder = "Ex: 2500";
+            } else if (isKg) {
+                priceInput.placeholder = `pour ${v} kilo${v > 1 ? "s" : ""}`;
+            } else {
+                priceInput.placeholder = `pour ${v} ${nom || "colis"}`;
+            }
+        }
+
+        // Re-numérote « Colis 1 / Colis 2 … » et masque la croix quand il ne reste qu'un cadre
+        function renumberColisBoxes() {
+            const boxes = getColisBoxes();
+            boxes.forEach((box, i) => {
+                box.dataset.colis = String(i + 1);
+                const t = box.querySelector(".dmd-colis-title");
+                if (t) t.textContent = `Colis ${i + 1}`;
+                const del = box.querySelector(".dmd-colis-del");
+                if (del) del.style.display = boxes.length > 1 ? "" : "none";
+            });
+        }
+
+        // « Ajouter un autre colis » : clone du premier cadre, champs vidés, mode par kilo
+        function addColisBox() {
+            const first = getColisBoxes()[0];
+            if (!first || !colisZone) return;
+            const clone = first.cloneNode(true);
+            clone.querySelectorAll("input").forEach((inp) => { inp.value = ""; });
+            clone.querySelectorAll(".dmd-price-mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.mode === "per_kg"));
+            colisZone.appendChild(clone);
+            renumberColisBoxes();
+            refreshBoxUi(clone);
+            clone.querySelector(".dmd-colis-nom")?.focus();
+        }
+
+        function removeColisBox(box) {
+            if (!box || getColisBoxes().length <= 1) return;
+            box.remove();
+            renumberColisBoxes();
+        }
 
         function dmdShowError(msg) {
             if (!dmdStepError) return;
@@ -915,52 +1011,59 @@
             if (dmdPrevBtn) dmdPrevBtn.style.visibility = step <= 1 ? "hidden" : "visible";
             dmdShowError("");
         }
+
         window.resetDemandeWizard = () => {
             try {
-                demandePriceMode = "per_kg";
-                priceModeBtns.forEach((b) => b.classList.toggle("active", b.dataset.mode === "per_kg"));
-                updateDemandeCondFields();
+                // revenir à un seul cadre vierge (mode par kilo)
+                const boxes = getColisBoxes();
+                boxes.slice(1).forEach((b) => b.remove());
+                const first = getColisBoxes()[0];
+                if (first) {
+                    first.querySelectorAll("input").forEach((inp) => { inp.value = ""; });
+                    first.querySelectorAll(".dmd-price-mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.mode === "per_kg"));
+                    renumberColisBoxes();
+                    refreshBoxUi(first);
+                }
                 dmdGoTo(1);
             } catch (e) { /* modale absente */ }
         };
 
-        // Champ « combien » conditionnel : per_kg -> kilos ; total -> quantité du type choisi
-        function updateDemandeCondFields() {
-            const kgField = document.getElementById("demande-kg-field");
-            const qtyField = document.getElementById("demande-qty-field");
-            const isKg = demandePriceMode === "per_kg";
-            if (kgField) kgField.style.display = isKg ? "" : "none";
-            if (qtyField) qtyField.style.display = isKg ? "none" : "";
-            const qtyLabel = document.getElementById("demande-qty-label");
-            const nom = getDemandeNom();
-            if (qtyLabel) qtyLabel.textContent = nom ? `Combien de ${nom} ?` : "Combien de colis ?";
-            if (dmdPriceHint) {
-                dmdPriceHint.textContent = isKg
-                    ? "Votre budget par kilo — le voyageur verra votre proposition."
-                    : "Votre budget total pour toute la quantite — le voyageur verra votre proposition.";
-            }
-            updateDemandePricePlaceholder(isKg);
+        if (colisZone) {
+            // Bascule par kilo/par quantité + suppression d'un cadre (délégation)
+            colisZone.addEventListener("click", (e) => {
+                const modeBtn = e.target.closest(".dmd-price-mode-btn");
+                if (modeBtn) {
+                    const box = modeBtn.closest(".dmd-colis-box");
+                    if (!box) return;
+                    box.querySelectorAll(".dmd-price-mode-btn").forEach((b) => b.classList.remove("active"));
+                    modeBtn.classList.add("active");
+                    refreshBoxUi(box);
+                    return;
+                }
+                const delBtn = e.target.closest(".dmd-colis-del");
+                if (delBtn) {
+                    removeColisBox(delBtn.closest(".dmd-colis-box"));
+                    return;
+                }
+            });
+            // Nom + champ « combien » pilotent en direct libellé et placeholder du montant
+            colisZone.addEventListener("input", (e) => {
+                const box = e.target.closest(".dmd-colis-box");
+                if (!box) return;
+                if (e.target.classList.contains("dmd-colis-nom") ||
+                    e.target.classList.contains("dmd-kg-input") ||
+                    e.target.classList.contains("dmd-qty-input")) {
+                    refreshBoxUi(box);
+                }
+            });
         }
+        dmdAddColisBtn?.addEventListener("click", addColisBox);
 
-        // Placeholder du montant adapté au mode et au « combien » saisi :
-        // « pour 5 kilos » (par kilo) / « pour 5 document » (par quantité, nom du colis saisi).
-        function updateDemandePricePlaceholder(isKg) {
-            const priceInput = document.getElementById("demande-price");
-            if (!priceInput) return;
-            const raw = (isKg
-                ? document.getElementById("demande-kg")?.value
-                : document.getElementById("demande-qty")?.value) || "";
-            const v = Number(raw);
-            if (!raw || !isFinite(v) || v <= 0) {
-                priceInput.placeholder = "Ex: 2500";
-                return;
-            }
-            if (isKg) {
-                priceInput.placeholder = `pour ${v} kilo${v > 1 ? "s" : ""}`;
-            } else {
-                priceInput.placeholder = `pour ${v} ${getDemandeNom() || "colis"}`;
-            }
-        }
+        // Devise affichée sur chaque cadre
+        (function setDemandeCurrency() {
+            const cur = state.userCurrency || window.CCCommon?.getUserCurrency?.() || "XOF";
+            document.querySelectorAll(".dmd-colis-cur").forEach((tag) => { tag.textContent = cur; });
+        })();
 
         dmdNextBtn?.addEventListener("click", () => {
             if (demandeStep === 1) {
@@ -972,73 +1075,64 @@
                 }
                 dmdGoTo(2);
             } else if (demandeStep === 2) {
-                if (demandePriceMode === "per_kg") {
-                    const kgRaw = document.getElementById("demande-kg")?.value;
-                    const kg = Number(kgRaw);
-                    if (!kgRaw || !isFinite(kg) || kg <= 0) {
-                        dmdShowError("Indiquez le poids approximatif du colis (en kilos).");
+                // Validation : chaque cadre a son « combien » (kg ou quantité) ; le montant reste optionnel
+                const boxes = getColisBoxes();
+                if (!boxes.length) { dmdShowError("Ajoutez au moins un colis."); return; }
+                for (let i = 0; i < boxes.length; i++) {
+                    const box = boxes[i];
+                    const isKg = getBoxMode(box) === "per_kg";
+                    const raw = (isKg ? box.querySelector(".dmd-kg-input")?.value : box.querySelector(".dmd-qty-input")?.value) || "";
+                    const val = Number(raw);
+                    if (!raw || !isFinite(val) || val <= 0 || (!isKg && !Number.isInteger(val))) {
+                        dmdShowError(isKg
+                            ? `Indiquez le poids du colis n°${i + 1} (en kilos).`
+                            : `Indiquez combien de colis pour le colis n°${i + 1}.`);
                         return;
                     }
-                } else {
-                    const qtyRaw = document.getElementById("demande-qty")?.value;
-                    const qty = Number(qtyRaw);
-                    if (!qtyRaw || !isFinite(qty) || qty <= 0 || !Number.isInteger(qty)) {
-                        dmdShowError("Indiquez combien de colis vous souhaitez envoyer.");
+                    const priceRaw = box.querySelector(".dmd-price-input")?.value;
+                    if (priceRaw !== undefined && String(priceRaw).trim() !== "" &&
+                        (!isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
+                        dmdShowError(`Le montant propose du colis n°${i + 1} n'est pas valide.`);
                         return;
                     }
-                }
-                const priceRaw = document.getElementById("demande-price")?.value;
-                if (priceRaw !== undefined && String(priceRaw).trim() !== "" &&
-                    (!isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
-                    dmdShowError("Le montant propose n'est pas valide.");
-                    return;
                 }
                 dmdGoTo(3);
             }
         });
+
         dmdPrevBtn?.addEventListener("click", () => {
             if (demandeStep > 1) dmdGoTo(demandeStep - 1);
         });
-
-        // Le nom du colis et le champ « combien » (kg / quantité) pilotent en direct
-        // le libellé de quantité et le placeholder du montant (« pour 5 kilos » / « pour 5 document »).
-        ["demande-kg", "demande-qty", "demande-nom-colis"].forEach((id) => {
-            document.getElementById(id)?.addEventListener("input", () => updateDemandeCondFields());
-        });
-
-        // Bascule prix : par kilo / par quantité (conditionne le champ « combien »)
-        priceModeBtns.forEach((btn) => btn.addEventListener("click", () => {
-            priceModeBtns.forEach((b) => b.classList.remove("active"));
-            btn.classList.add("active");
-            demandePriceMode = btn.dataset.mode || "per_kg";
-            updateDemandeCondFields();
-        }));
-        (function setDemandeCurrency() {
-            const curTag = document.getElementById("demande-price-currency");
-            if (curTag) {
-                curTag.textContent = state.userCurrency || window.CCCommon?.getUserCurrency?.() || "XOF";
-            }
-        })();
 
         document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
             const origin = document.getElementById("demande-origin")?.value?.trim();
             const destination = document.getElementById("demande-destination")?.value?.trim();
             const villeDepart = document.getElementById("city-demande-origin")?.value?.trim();
             const villeArrivee = document.getElementById("city-demande-destination")?.value?.trim();
-            const kgRaw = document.getElementById("demande-kg")?.value;
-            const qtyRaw = document.getElementById("demande-qty")?.value;
-            const isKgMode = demandePriceMode === "per_kg";
-            const kgNum = Number(kgRaw);
-            const qtyNum = Number(qtyRaw);
-            const kgValid = !!kgRaw && isFinite(kgNum) && kgNum > 0;
-            const qtyValid = !!qtyRaw && isFinite(qtyNum) && qtyNum > 0 && Number.isInteger(qtyNum);
             const description = document.getElementById("demande-description")?.value?.trim();
             const dateLimite = document.getElementById("demande-date")?.value || null;
-            const itemType = getDemandeNom() || null;
-            const priceRaw = document.getElementById("demande-price")?.value;
-            const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
-            const priceVal = hasPrice ? Number(priceRaw) : null;
-            if (!origin || !destination || !description || (isKgMode ? !kgValid : !qtyValid)) {
+            // Un objet de colis par cadre : chaque colis garde son propre mode et son propre prix
+            const boxes = getColisBoxes();
+            const items = boxes.map((box) => {
+                const isKg = getBoxMode(box) === "per_kg";
+                const nomRaw = getBoxNom(box);
+                const valRaw = (isKg ? box.querySelector(".dmd-kg-input") : box.querySelector(".dmd-qty-input"))?.value;
+                const valNum = Number(valRaw);
+                const priceRaw = box.querySelector(".dmd-price-input")?.value;
+                const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
+                const priceVal = hasPrice ? Number(priceRaw) : null;
+                return {
+                    item_type: nomRaw || null,
+                    price_mode: hasPrice ? (isKg ? "per_kg" : "total") : null,
+                    weight_kg: isKg ? valNum : null,
+                    quantity: isKg ? null : valNum,
+                    max_price_per_kg: hasPrice && isKg ? priceVal : null,
+                    max_price_total: hasPrice && !isKg ? priceVal : null
+                };
+            });
+            const first = items[0] || {};
+            const firstOk = (first.weight_kg != null && first.weight_kg > 0) || (first.quantity != null && first.quantity > 0);
+            if (!origin || !destination || !description || !items.length || !firstOk) {
                 alert("Veuillez remplir tous les champs.");
                 return;
             }
@@ -1059,22 +1153,25 @@
                         title: `Demande ${origin} -> ${destination}`,
                         origin,
                         destination,
-                        weight_kg: isKgMode ? kgNum : null,
-                        quantity: isKgMode ? null : qtyNum,
+                        weight_kg: first.weight_kg ?? null,
+                        quantity: first.quantity ?? null,
                         needed_by_date: dateLimite || null,
                         currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
                         origin_city: villeDepart || null,
                         destination_city: villeArrivee || null,
                         description,
-                        item_type: itemType,
-                        price_mode: hasPrice ? demandePriceMode : null,
-                        max_price_per_kg: (hasPrice && demandePriceMode === "per_kg") ? priceVal : null,
-                        max_price_total: (hasPrice && demandePriceMode === "total") ? priceVal : null,
+                        item_type: first.item_type || null,
+                        price_mode: first.price_mode,
+                        max_price_per_kg: first.max_price_per_kg ?? null,
+                        max_price_total: first.max_price_total ?? null,
+                        items,
                         status: "pending"
                     });
                     if (error) throw error;
                 } else {
-                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg: isKgMode ? kgNum : null, quantity: isKgMode ? null : qtyNum, description, dateLimite } });
+                    // Dégradé sans Supabase : l'API historique ne porte qu'un colis (le premier)
+                    if (items.length > 1) console.warn("Mode API historique : seul le premier colis de la demande est envoye.");
+                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg: first.weight_kg ?? null, quantity: first.quantity ?? null, description, dateLimite } });
                 }
                 console.log("Demande de trajet inseree avec succes!");
                 if (feedback) feedback.classList.remove("hidden");

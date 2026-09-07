@@ -9931,7 +9931,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     padding: 28px 24px !important;
 }
 .demande-subtitle {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: #b0b0b0;
     margin: 8px 0 20px 0;
     line-height: 1.4;
@@ -9947,7 +9947,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     gap: 6px;
 }
 .demande-field label {
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 600;
     color: #b0b0b0;
 }
@@ -9957,7 +9957,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     border-radius: 10px;
     padding: 12px 14px;
     color: #fff;
-    font-size: 0.95rem;
+    font-size: 1rem;
     outline: none;
     box-sizing: border-box;
     width: 100%;
@@ -9981,7 +9981,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     border-radius: 10px;
     padding: 12px 14px;
     color: #a7ffe7;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
     white-space: nowrap;
@@ -12623,8 +12623,8 @@ body.results-page.light #btn-faire-demande-trajet {
 }
 
 /* ── Placeholder montant « pour X kilo(s)/colis » : s'adapte au champ, garde la place pour les chiffres ── */
-#demande-price::placeholder {
-    font-size: 0.78rem;
+.dmd-price-input::placeholder {
+    font-size: 0.82rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -12647,7 +12647,7 @@ body.results-page.light #btn-faire-demande-trajet {
     background: transparent;
     border-radius: 7px;
     color: #b0b0b0;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: 600;
     font-family: inherit;
     cursor: pointer;
@@ -12674,16 +12674,150 @@ body.results-page.light #btn-faire-demande-trajet {
     border-radius: 10px;
     padding: 12px 13px;
     color: #b0b0b0;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
 }
 .dmd-hint {
-    font-size: 0.74rem;
+    font-size: 0.8rem;
     line-height: 1.35;
     color: #8a8a8a;
     margin: 0;
+}
+
+/* ── Multi-colis : chaque colis dans un petit cadre (style voyageur) ── */
+.dmd-colis-zone {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.dmd-colis-box {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 14px;
+    padding: 12px 12px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+}
+.dmd-colis-box-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin: -6px 0 -8px;
+}
+.dmd-colis-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: #13ecc8;
+}
+.dmd-colis-del {
+    background: none;
+    border: none;
+    color: #8a8a8a;
+    font-size: 0.95rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+.dmd-colis-del:hover {
+    color: #ff7b6b;
+    background: rgba(255, 107, 90, 0.12);
+}
+.dmd-add-colis-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px dashed rgba(255, 255, 255, 0.22);
+    border-radius: 12px;
+    padding: 11px 14px;
+    color: #13ecc8;
+    font-size: 0.92rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.dmd-add-colis-btn:hover {
+    background: rgba(19, 236, 200, 0.08);
+    border-color: rgba(19, 236, 200, 0.5);
+}
+body.results-page.light .dmd-colis-box {
+    background: rgba(184, 134, 11, 0.05);
+    border-color: rgba(184, 134, 11, 0.22);
+}
+body.results-page.light .dmd-colis-title {
+    color: #b8860b;
+}
+body.results-page.light .dmd-colis-del {
+    color: #9a7b2e;
+}
+body.results-page.light .dmd-colis-del:hover {
+    color: #d35c4a;
+    background: rgba(211, 92, 74, 0.12);
+}
+body.results-page.light .dmd-add-colis-btn {
+    background: rgba(184, 134, 11, 0.05);
+    border-color: rgba(184, 134, 11, 0.35);
+    color: #b8860b;
+}
+
+/* ── Carte demande multi-colis : « Je veux envoyer : » puis une ligne par colis
+     (alignées sous les colis, pas sous l'intro) ; max 2 visibles + « Voir plus » ── */
+.cc3-demand-multi {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cc3-demand-lines {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.35em;
+    row-gap: 3px;
+    align-items: baseline;
+}
+.cc3-demand-lines .cc3-demand-intro {
+    grid-column: 1;
+    grid-row: 1;
+    white-space: nowrap;
+}
+.cc3-demand-lines .cc3-demand-item {
+    grid-column: 2;
+    display: block;
+    min-width: 0;
+}
+.cc3-demand-item.cc3-demand-extra {
+    display: none;
+}
+.cc3-demand-lines.is-expanded .cc3-demand-item.cc3-demand-extra {
+    display: block;
+}
+.cc3-demand-more {
+    align-self: flex-start;
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: #13ecc8;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+.cc3-demand-more:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
+body.results-page.light .cc3-demand-more {
+    color: #b8860b;
 }
 
 /* ── Erreur d'étape ── */
