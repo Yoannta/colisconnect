@@ -12774,6 +12774,19 @@ body.results-page.light .dmd-add-colis-btn {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    margin: 0;
+    color: #fffaf2;
+    font-size: 0.86rem;
+    font-weight: 600;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    white-space: normal;
+    max-width: 100%;
+}
+.cc3-demand-multi .cc3-demand-hl {
+    color: #d29a22;
+    font-weight: 900;
+    white-space: nowrap;
 }
 .cc3-demand-lines {
     display: grid;
@@ -12818,6 +12831,17 @@ body.results-page.light .dmd-add-colis-btn {
 }
 body.results-page.light .cc3-demand-more {
     color: #b8860b;
+}
+body.results-page.light .cc3-demand-multi {
+    color: #131313;
+}
+body.results-page.light .cc3-demand-multi .cc3-demand-hl {
+    color: #c89422;
+}
+@media (max-width: 760px) {
+    .cc3-demand-multi {
+        font-size: 0.8rem;
+    }
 }
 
 /* ── Erreur d'étape ── */
