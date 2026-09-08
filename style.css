@@ -11996,6 +11996,21 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-value .cc3-gold,
 .cc3-value .cc3-kg { color: #d29a22; }
 .cc3-value .cc3-kg { font-size: 0.8rem; margin-left: 1px; }
+
+/* [CARGO] Dates supplémentaires sur la carte offre — chips dans la cellule "Autres dates" */
+.cc3-value-dates { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.cc3-date-chip {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.5;
+    background: rgba(255, 179, 71, 0.14);
+    border: 1px solid rgba(255, 179, 71, 0.35);
+    color: inherit;
+    white-space: nowrap;
+}
 .cc3-price {
     display: block;
     color: #fffaf2;

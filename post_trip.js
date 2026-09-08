@@ -10,6 +10,9 @@
         cityDeparture: document.getElementById("city-departure"),
         cityDestination: document.getElementById("city-destination"),
         dateDepart: document.getElementById("date-depart"),
+        addTripDateBtn: document.getElementById("addTripDateBtn"),
+        tripExtraDatesWrap: document.getElementById("trip-extra-dates-wrap"),
+        tripExtraDates: document.getElementById("trip-extra-dates"),
         kilos: document.getElementById("kilos"),
         price: document.getElementById("price"),
         priceCurrencyInput: document.getElementById("price-currency"),  // [MULTI-CURRENCY]
@@ -172,6 +175,50 @@
         els.dateDepart.min = `${yyyy}-${mm}-${dd}`;
     }
 
+    // ---- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet ----
+    function clearExtraTripDates() {
+        if (els.tripExtraDates) els.tripExtraDates.innerHTML = "";
+    }
+
+    function setExtraTripDatesVisible(visible) {
+        if (els.tripExtraDatesWrap) els.tripExtraDatesWrap.classList.toggle("hidden", !visible);
+        if (!visible) clearExtraTripDates();
+    }
+
+    function addExtraTripDateRow() {
+        const box = els.tripExtraDates;
+        if (!box) return;
+        const row = document.createElement("div");
+        row.className = "trip-extra-date-row";
+        const input = document.createElement("input");
+        input.type = "date";
+        input.className = "form-input trip-extra-date";
+        if (els.dateDepart?.min) input.min = els.dateDepart.min;
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "colis-row-del";
+        del.setAttribute("aria-label", "Supprimer cette date");
+        del.textContent = "✕";
+        row.appendChild(input);
+        row.appendChild(del);
+        box.appendChild(row);
+        input.focus();
+    }
+
+    // Date principale + dates supplémentaires (cargo) → UNE offre portant toutes les dates
+    function collectTripDates() {
+        const dates = [];
+        const main = String(els.dateDepart?.value || "").trim();
+        if (main) dates.push(main);
+        if (selectedProfileTypeChoice === "cargo") {
+            document.querySelectorAll("#trip-extra-dates .trip-extra-date").forEach((inp) => {
+                const v = String(inp.value || "").trim();
+                if (v) dates.push(v);
+            });
+        }
+        return dates;
+    }
+
     function initReveal() {
         if (!els.animatedNodes.length) return;
         const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -212,9 +259,12 @@
     }
 
     // Popup de succès du site (remplace l'alerte navigateur "yoannta.github.io says")
-    function showPublishSuccess(destination) {
+    function showPublishSuccess(destination, count) {
         if (els.publishMsg) {
-            els.publishMsg.textContent = `Votre trajet vers ${destination} a bien été publié.`;
+            const n = Number(count) || 1;
+            els.publishMsg.textContent = n > 1
+                ? `Vos ${n} trajets vers ${destination} ont bien été publiés.`
+                : `Votre trajet vers ${destination} a bien été publié.`;
         }
         els.publishModal?.classList.remove("hidden");
     }
@@ -473,6 +523,12 @@
 
         // Verifier la limite de publication par type (mode="" pour voyageur, mode!=="" pour cargo)
         const isCargo = selectedProfileTypeChoice === "cargo";
+        // [ENTREPRISE / CARGO] Dates multiples : collecte de la date principale + dates ajoutées
+        const tripDates = collectTripDates();
+        if (!tripDates.length) {
+            alert("Veuillez choisir une date de voyage.");
+            return;
+        }
         try {
             const myOffers = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
             const activeOffers = (myOffers?.items || []).filter(o => String(o.status || "").toLowerCase() === "active");
@@ -543,7 +599,7 @@
             cityDeparture: String(els.cityDeparture?.value || "").trim(),
             cityDestination: String(els.cityDestination?.value || "").trim(),
             specialPrices: specialPrices,
-            departureDate: String(els.dateDepart?.value || ""),
+            // departureDate (principale) + extraDates (supplémentaires) ajoutés avant l'insertion
             availableKg: availableKg,
             pricePerKg: pricePerKg,
             baseCurrency: els.priceCurrencyInput?.value || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR"),  // [MULTI-CURRENCY]
@@ -563,7 +619,16 @@
         }
 
         try {
-            const created = await window.CCCommon.api("/api/offers", { method: "POST", body: payload });
+            // [ENTREPRISE / CARGO] UNE seule offre par trajet : la date la plus proche devient
+            // departure_date (tri/affichage corrects), les dates suivantes partent dans extra_dates
+            // et sont affichées dans la cellule "Autres dates" de la carte d'offre.
+            const uniqueDates = Array.from(new Set(
+                tripDates.map((s) => String(s || "").trim()).filter(Boolean)
+            )).sort(); // ISO aaaa-mm-jj : tri lexicographique = tri chronologique
+            const created = await window.CCCommon.api("/api/offers", {
+                method: "POST",
+                body: { ...payload, departureDate: uniqueDates[0], extraDates: uniqueDates.slice(1) }
+            });
 
             // Mise à jour du profil APRÈS publication réussie
             if (selectedProfileTypeChoice) {
@@ -581,6 +646,7 @@
             }
 
             els.form?.reset();
+            clearExtraTripDates();
             localStorage.removeItem("cc_trip_draft");
             paymentState.selectedMethod = null;
             paymentState.selectedMethodName = null;
@@ -590,7 +656,7 @@
                 if (l !== els.paymentMethodLabel) l.innerHTML = els.paymentMethodLabel.innerHTML;
             });
             // Popup de succès du site (remplace l'alerte navigateur) — redirection au clic
-            showPublishSuccess(created?.destination || payload.destination);
+            showPublishSuccess(created?.destination || payload.destination, 1);
         } catch (error) {
             if (error?.status === 401) {
                 window.CCCommon.openAuthGate("post_trip.html");
@@ -764,6 +830,8 @@
             document.getElementById("kilos-group")?.classList.remove("hidden");
             document.getElementById("transport-mode-section").style.display = "none";
             document.querySelectorAll(".transport-mode-btn").forEach(b => b.classList.remove("selected"));
+            // [CARGO] dates multiples : masquées pour le voyageur simple
+            setExtraTripDatesVisible(false);
         });
 
         document.getElementById("btn-cargo-choice")?.addEventListener("click", () => {
@@ -775,6 +843,17 @@
             document.getElementById("trip-extra-fields")?.classList.remove("hidden");
             document.getElementById("kilos-group")?.classList.add("hidden");
             document.getElementById("transport-mode-section").style.display = "block";
+            // [CARGO] dates multiples : bouton « Ajouter une autre date » visible
+            setExtraTripDatesVisible(true);
+        });
+
+        // [CARGO] « Ajouter une autre date » : nouvelle ligne supprimable pour le même trajet
+        els.addTripDateBtn?.addEventListener("click", addExtraTripDateRow);
+        els.tripExtraDates?.addEventListener("click", (e) => {
+            const del = e.target.closest(".colis-row-del");
+            if (!del) return;
+            const row = del.closest(".trip-extra-date-row");
+            if (row) row.remove();
         });
 
         els.choiceCargo?.addEventListener("click", () => {
@@ -867,6 +946,48 @@
                     const firstChoice = document.getElementById("btn-traveler-choice");
                     if (firstChoice) firstChoice.focus();
                     return;
+                }
+
+                // [ENTREPRISE / CARGO] Dates multiples : chaque ligne ajoutée doit être
+                // remplie, à partir d'aujourd'hui, et sans doublon (même date saisie 2×).
+                if (selectedProfileTypeChoice === "cargo") {
+                    const extraInputs = Array.from(document.querySelectorAll("#trip-extra-dates .trip-extra-date"));
+                    if (extraInputs.length) {
+                        const minDate = els.dateDepart?.min || "";
+                        const seen = new Set();
+                        const mainVal = String(els.dateDepart?.value || "").trim();
+                        if (mainVal) seen.add(mainVal);
+                        let invalidInput = null;
+                        let invalidMsg = "";
+                        for (const inp of extraInputs) {
+                            const v = String(inp.value || "").trim();
+                            if (!v) {
+                                invalidInput = inp;
+                                invalidMsg = "Remplissez ou supprimez la date ajoutée (ligne vide).";
+                                break;
+                            }
+                            if (minDate && v < minDate) {
+                                invalidInput = inp;
+                                invalidMsg = "Les dates supplémentaires doivent être aujourd'hui ou plus tard.";
+                                break;
+                            }
+                            if (seen.has(v)) {
+                                invalidInput = inp;
+                                invalidMsg = "Cette date est déjà saisie — choisissez une autre date.";
+                                break;
+                            }
+                            seen.add(v);
+                        }
+                        if (invalidInput) {
+                            if (errBox1) {
+                                errBox1.innerHTML = "<div>• " + invalidMsg + "</div>";
+                                errBox1.classList.remove("hidden");
+                            }
+                            markError(invalidInput);
+                            invalidInput.focus();
+                            return;
+                        }
+                    }
                 }
             }
             // Étape 2 : champs OBLIGATOIRES (Yoyo 2026-08) — MESSAGE par section manquante

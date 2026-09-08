@@ -405,6 +405,25 @@
                 const priceDisplay = formatAmount(convertedPrice, userCur);
                 const offerMode = String(offer.mode || "").trim();
 
+                // [CARGO] Dates supplémentaires (jsonb) : triées puis formatées en chips courtes
+                let extraDateValues = [];
+                try {
+                    const raw = offer.extraDates || offer.extra_dates || [];
+                    const arr = Array.isArray(raw) ? raw : JSON.parse(raw || "[]");
+                    extraDateValues = (Array.isArray(arr) ? arr : [])
+                        .map((s) => String(s || "").trim())
+                        .filter(Boolean)
+                        .sort();
+                } catch (e) { extraDateValues = []; }
+                const fmtExtraDate = (iso) => {
+                    try {
+                        const d = new Date(iso);
+                        if (!isNaN(d.getTime())) return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+                    } catch (e) { /* fallback */ }
+                    return iso;
+                };
+                const extraDateChips = extraDateValues.map(fmtExtraDate);
+
                 // Colis acceptés / refusés
                 const colisAcceptes = String(offer.colis_types || offer.colisTypes || "").trim();
                 const colisRefuses = String(offer.refused_colis_types || offer.refusedColisTypes || "").trim();
@@ -541,7 +560,16 @@
           <span class="cc3-d-label">Disponibilité</span>
           <span class="cc3-value">${availableKg} <span class="cc3-kg">kg</span></span>
         </div>
-      </div>` : ""}
+      </div>` : (extraDateChips.length ? `
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28M20 21.5v9M15.5 26h9"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Autres dates</span>
+          <span class="cc3-value cc3-value-dates">${extraDateChips.map((chip) => `<span class="cc3-date-chip">${window.CCCommon.escapeHtml(chip)}</span>`).join("")}</span>
+        </div>
+      </div>` : "")}
       <div class="cc3-detail cc3-detail-price">
         <div class="cc3-price-source" aria-hidden="true">
           <span class="cc3-d-label">Prix / kg</span>

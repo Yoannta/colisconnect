@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=10"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=11"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
@@ -27,7 +27,7 @@
     <script defer src="standalone-common.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="datalist-helper.js"></script>
-    <script defer src="post_trip.js?v=14"></script>
+    <script defer src="post_trip.js?v=16"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -559,6 +559,26 @@
             background: rgba(255, 179, 71,0.08);
             border-color: #ffb347;
         }
+
+        /* [ENTREPRISE / CARGO] Dates multiples — lignes ajoutées par « Ajouter une autre date » */
+        #trip-extra-dates-wrap {
+            margin-top: 10px;
+        }
+        .trip-extra-date-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .trip-extra-date-row .trip-extra-date {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .trip-extra-dates-hint {
+            margin: 8px 0 0;
+            font-size: 0.78rem;
+            opacity: 0.6;
+        }
         .colis-row-del {
             flex-shrink: 0;
             width: 38px;
@@ -913,16 +933,8 @@
                                 </div>
                             </div>
                             <div id="step1-errors" class="step-errors hidden" role="alert"></div>
-                        <div class="location-group" data-type="departure"></div>
-                        <div class="location-group" data-type="destination"></div>
-                        <datalist id="country-options-trip" data-country-list></datalist>
 
-                        <div class="form-group">
-                            <label for="date-depart">Date du voyage</label>
-                            <input type="date" id="date-depart" class="form-input" required>
-                        </div>
-
-                        <!-- Choix du type de profil -->
+                        <!-- Choix du type de profil — en tête de l'étape 1 -->
                         <div id="profile-choice-section" class="form-group">
                             <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
                             <div class="profile-select-grid">
@@ -942,6 +954,21 @@
                                     </span>
                                     <span class="ps-check">✓</span>
                                 </button>
+                            </div>
+                        </div>
+
+                        <div class="location-group" data-type="departure"></div>
+                        <div class="location-group" data-type="destination"></div>
+                        <datalist id="country-options-trip" data-country-list></datalist>
+
+                        <div class="form-group">
+                            <label for="date-depart">Date du voyage</label>
+                            <input type="date" id="date-depart" class="form-input" required>
+                            <!-- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet (mêmes départ/destination) -->
+                            <div id="trip-extra-dates-wrap" class="hidden">
+                                <div id="trip-extra-dates" class="trip-extra-dates"></div>
+                                <button type="button" class="btn-add-type" id="addTripDateBtn">+ Ajouter une autre date</button>
+                                <p class="trip-extra-dates-hint">Même itinéraire, même destination — toutes vos dates apparaîtront sur une seule annonce.</p>
                             </div>
                         </div>
                             <div class="wizard-footer">
