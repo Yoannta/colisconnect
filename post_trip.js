@@ -180,14 +180,26 @@
         if (els.tripExtraDates) els.tripExtraDates.innerHTML = "";
     }
 
+    // [CARGO] Au plus 2 dates supplémentaires par trajet (bouton désactivé au-delà)
+    const MAX_EXTRA_DATES = 2;
+
+    function updateExtraDatesAddBtn() {
+        const btn = els.addTripDateBtn;
+        if (!btn) return;
+        const count = els.tripExtraDates?.querySelectorAll(".trip-extra-date-row").length || 0;
+        btn.disabled = count >= MAX_EXTRA_DATES;
+    }
+
     function setExtraTripDatesVisible(visible) {
         if (els.tripExtraDatesWrap) els.tripExtraDatesWrap.classList.toggle("hidden", !visible);
         if (!visible) clearExtraTripDates();
+        if (visible) updateExtraDatesAddBtn();
     }
 
     function addExtraTripDateRow() {
         const box = els.tripExtraDates;
         if (!box) return;
+        if (box.querySelectorAll(".trip-extra-date-row").length >= MAX_EXTRA_DATES) return;
         const row = document.createElement("div");
         row.className = "trip-extra-date-row";
         const input = document.createElement("input");
@@ -202,6 +214,7 @@
         row.appendChild(input);
         row.appendChild(del);
         box.appendChild(row);
+        updateExtraDatesAddBtn();
         input.focus();
     }
 
@@ -854,6 +867,7 @@
             if (!del) return;
             const row = del.closest(".trip-extra-date-row");
             if (row) row.remove();
+            updateExtraDatesAddBtn();
         });
 
         els.choiceCargo?.addEventListener("click", () => {

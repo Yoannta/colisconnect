@@ -27,7 +27,7 @@
     <script defer src="standalone-common.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="datalist-helper.js"></script>
-    <script defer src="post_trip.js?v=16"></script>
+    <script defer src="post_trip.js?v=17"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -558,6 +558,10 @@
         .btn-add-type:hover {
             background: rgba(255, 179, 71,0.08);
             border-color: #ffb347;
+        }
+        .btn-add-type:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
         }
 
         /* [ENTREPRISE / CARGO] Dates multiples — lignes ajoutées par « Ajouter une autre date » */

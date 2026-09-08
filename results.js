@@ -567,7 +567,7 @@
         </div>
         <div class="cc3-detail-txt">
           <span class="cc3-d-label">Autres dates</span>
-          <span class="cc3-value cc3-value-dates">${extraDateChips.map((chip) => `<span class="cc3-date-chip">${window.CCCommon.escapeHtml(chip)}</span>`).join("")}</span>
+          <span class="cc3-value cc3-value-dates">${extraDateChips.map((chip) => `<span class="cc3-gold">${window.CCCommon.escapeHtml(chip)}</span>`).join("")}</span>
         </div>
       </div>` : "")}
       <div class="cc3-detail cc3-detail-price">
