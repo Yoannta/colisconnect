@@ -532,6 +532,7 @@
           <span class="cc3-value"><span class="cc3-gold">${window.CCCommon.escapeHtml(shortDate)}</span></span>
         </div>
       </div>
+      ${offerMode === "" ? `
       <div class="cc3-detail">
         <div class="cc3-icon">
           <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg>
@@ -540,7 +541,7 @@
           <span class="cc3-d-label">Disponibilité</span>
           <span class="cc3-value">${availableKg} <span class="cc3-kg">kg</span></span>
         </div>
-      </div>
+      </div>` : ""}
       <div class="cc3-detail cc3-detail-price">
         <div class="cc3-price-source" aria-hidden="true">
           <span class="cc3-d-label">Prix / kg</span>

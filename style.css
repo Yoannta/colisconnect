@@ -1090,6 +1090,19 @@ body.post-trip-page.light .price-field {
     font-size: 0.85rem !important;
 }
 
+/* Champ nom de colis (édition inline du panneau prix spéciaux) — la surcharge
+   thème clair manquait : en light il gardait le style sombre (texte #f0f7f6
+   blanc-verdâtre pâle sur fond clair → illisible quand on tape). Même
+   traitement que .price-field : fond clair + texte sombre. */
+body.post-trip-page.light .colis-name-input {
+    background: #fffdf8 !important;
+    border-color: rgba(184, 134, 11, 0.6) !important;
+    color: #3a2f1e !important;
+}
+body.post-trip-page.light .colis-name-input::placeholder {
+    color: #b3a68c !important;
+}
+
 /* Devise */
 body.post-trip-page.light .currency-toggle {
     background: rgba(184, 134, 11, 0.12) !important;
