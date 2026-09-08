@@ -214,8 +214,8 @@
                 const sendHl = mkItemSendHl(it);
                 const priceHl = mkItemPriceHl(it);
                 phraseTxt = sendHl
-                    ? `Je veux envoyer ${sendHl}` + (priceHl ? ` et je paye maximum ${priceHl}` : "")
-                    : (priceHl ? `Je paye maximum ${priceHl}` : "");
+                    ? `Je veux envoyer ${sendHl}` + (priceHl ? ` et je peux payer environ ${priceHl}` : "")
+                    : (priceHl ? `Je peux payer environ ${priceHl}` : "");
             }
 
             return (

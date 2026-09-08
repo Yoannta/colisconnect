@@ -12003,7 +12003,7 @@ body.results-page.light .cc3-special-toggle-gold {
     white-space: nowrap;
 }
 
-/* ── Carte DEMANDE : phrase « Je veux envoyer … et je paye maximum … » ── */
+/* ── Carte DEMANDE : phrase « Je veux envoyer … et je peux payer environ … » ── */
 .cards-list .cc3-card .cc3-demand-phrase {
     grid-column: 1 / -1;
     border-left: none !important;
