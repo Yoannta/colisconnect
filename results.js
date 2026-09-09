@@ -510,6 +510,14 @@
                     }
                 } catch (e) { /* fallback */ }
 
+                // [CARGO] Cellule Départ : la date principale + les dates supplémentaires
+                // empilées SOUS elle dans la même cellule (un seul logo à gauche ;
+                // l'empilement fait comprendre qu'il y a plusieurs dates de départ)
+                const dateLine = (txt) => `<span class="cc3-gold cc3-date-line">${window.CCCommon.escapeHtml(txt)}</span>`;
+                const departValueHtml = extraDateChips.length
+                    ? `<span class="cc3-value cc3-value-dates">${dateLine(shortDate)}${extraDateChips.map(dateLine).join("")}</span>`
+                    : `<span class="cc3-value"><span class="cc3-gold">${window.CCCommon.escapeHtml(shortDate)}</span></span>`;
+
                 return `
 <div class="offer-wrap">
   <article class="cc3-card">
@@ -548,7 +556,7 @@
         </div>
         <div class="cc3-detail-txt">
           <span class="cc3-d-label">Départ</span>
-          <span class="cc3-value"><span class="cc3-gold">${window.CCCommon.escapeHtml(shortDate)}</span></span>
+          ${departValueHtml}
         </div>
       </div>
       ${offerMode === "" ? `
@@ -560,16 +568,7 @@
           <span class="cc3-d-label">Disponibilité</span>
           <span class="cc3-value">${availableKg} <span class="cc3-kg">kg</span></span>
         </div>
-      </div>` : (extraDateChips.length ? `
-      <div class="cc3-detail">
-        <div class="cc3-icon">
-          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28M20 21.5v9M15.5 26h9"></path></svg>
-        </div>
-        <div class="cc3-detail-txt">
-          <span class="cc3-d-label">Autres dates</span>
-          <span class="cc3-value cc3-value-dates">${extraDateChips.map((chip) => `<span class="cc3-gold">${window.CCCommon.escapeHtml(chip)}</span>`).join("")}</span>
-        </div>
-      </div>` : "")}
+      </div>` : ""}
       <div class="cc3-detail cc3-detail-price">
         <div class="cc3-price-source" aria-hidden="true">
           <span class="cc3-d-label">Prix / kg</span>

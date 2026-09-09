@@ -11997,8 +11997,11 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-value .cc3-kg { color: #d29a22; }
 .cc3-value .cc3-kg { font-size: 0.8rem; margin-left: 1px; }
 
-/* [CARGO] Dates supplémentaires — même style or (cc3-gold) que la date principale */
-.cc3-value-dates { display: inline-flex; gap: 6px; }
+/* [CARGO] Dates du départ — la date principale et les dates supplémentaires
+   empilées SOUS elle dans la même cellule « Départ » (un seul logo à gauche ;
+   l'empilement fait comprendre qu'il y a plusieurs dates de départ possibles) */
+.cc3-value-dates { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.cc3-value-dates .cc3-date-line { display: block; line-height: 1.25; white-space: nowrap; }
 .cc3-price {
     display: block;
     color: #fffaf2;

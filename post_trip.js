@@ -634,7 +634,7 @@
         try {
             // [ENTREPRISE / CARGO] UNE seule offre par trajet : la date la plus proche devient
             // departure_date (tri/affichage corrects), les dates suivantes partent dans extra_dates
-            // et sont affichées dans la cellule "Autres dates" de la carte d'offre.
+            // et sont affichées empilées dans la cellule "Départ" de la carte d'offre.
             const uniqueDates = Array.from(new Set(
                 tripDates.map((s) => String(s || "").trim()).filter(Boolean)
             )).sort(); // ISO aaaa-mm-jj : tri lexicographique = tri chronologique
