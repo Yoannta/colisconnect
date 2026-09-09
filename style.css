@@ -11960,6 +11960,11 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-detail + .cc3-detail {
     border-left: 1px solid rgba(255, 255, 255, 0.13);
 }
+/* [CARGO] Carte avec PLUSIEURS dates de départ : la colonne Départ garde la
+   largeur de ses dates (toujours sur UNE seule ligne), la colonne de droite
+   (Disponibilité) prend l'espace restant — les dates ne doivent JAMAIS
+   passer à la ligne, quelle que soit la largeur de la carte */
+.cc3-details--multi { grid-template-columns: auto minmax(0, 1fr); }
 .cards-list .cc3-card .cc3-icon {
     width: 32px;
     height: 32px;
@@ -11998,11 +12003,12 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-value .cc3-kg { font-size: 0.8rem; margin-left: 1px; }
 
 /* [CARGO] Dates du départ — la date principale + les dates supplémentaires
-   alignées sur UNE MÊME ligne (un seul logo à gauche ; les « · » séparent
-   chaque date pour montrer qu'il y a plusieurs dates de départ possibles) */
-.cc3-value-dates { display: inline-flex; align-items: baseline; flex-wrap: wrap; }
+   sur UNE SEULE LIGNE : aucun retour à la ligne (flex-wrap interdit).
+   Si la place manque, c'est la grille (.cc3-details--multi) qui élargit
+   la colonne Départ, jamais les dates qui se replient */
+.cc3-value-dates { display: inline-flex; align-items: baseline; }
 .cc3-value-dates .cc3-date-line { white-space: nowrap; }
-.cc3-value-dates .cc3-date-line + .cc3-date-line::before { content: "·"; margin: 0 7px; opacity: .55; }
+.cc3-value-dates .cc3-date-line + .cc3-date-line::before { content: "·"; margin: 0 6px; opacity: .55; }
 .cc3-price {
     display: block;
     color: #fffaf2;
@@ -12444,6 +12450,12 @@ body.results-page.light .cc3-demand-desc { color: #7d776e; }
     .results-mobile-sub-switch {
         height: 48px !important;
     }
+    /* [CARGO] Dates multiples très à l'étroit : les cellules passent l'une
+       sous l'autre (Départ puis Disponibilité) pour laisser aux dates toute
+       la largeur de la carte sur UNE seule ligne */
+    .cc3-details--multi { grid-template-columns: 1fr; }
+    .cc3-details--multi .cc3-detail + .cc3-detail { border-left: 0; }
+    body.results-page.light .cc3-details--multi .cc3-detail + .cc3-detail { border-left: 0; }
 }
 
 /* ════════════════════════════════════════════════════════════════
