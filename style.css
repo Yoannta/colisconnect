@@ -12009,6 +12009,9 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-value-dates { display: inline-flex; align-items: baseline; }
 .cc3-value-dates .cc3-date-line { white-space: nowrap; }
 .cc3-value-dates .cc3-date-line + .cc3-date-line::before { content: "·"; margin: 0 6px; opacity: .55; }
+/* La DERNIÈRE date supplémentaire est précédée de « et » (au lieu de « · ») :
+   « 12 sept. · 19 sept. et 26 sept. » — plus lisible pour l'utilisateur */
+.cc3-value-dates .cc3-date-line + .cc3-date-line:last-child::before { content: "et"; opacity: .9; }
 .cc3-price {
     display: block;
     color: #fffaf2;

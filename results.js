@@ -511,7 +511,9 @@
                 } catch (e) { /* fallback */ }
 
                 // [CARGO] Cellule Départ : la date principale + les dates supplémentaires
-                // alignées sur UNE même ligne (un seul logo ; « · » entre chaque date)
+                // alignées sur UNE même ligne (un seul logo ; « · » entre les dates et
+                // « et » devant la DERNIÈRE pour la lisibilité). Dès qu'il y a PLUSIEURS
+                // dates, le label passe de « Départ » à « J'ai des voyages le : »
                 const dateLine = (txt) => `<span class="cc3-gold cc3-date-line">${window.CCCommon.escapeHtml(txt)}</span>`;
                 const departValueHtml = extraDateChips.length
                     ? `<span class="cc3-value cc3-value-dates">${dateLine(shortDate)}${extraDateChips.map(dateLine).join("")}</span>`
@@ -554,7 +556,7 @@
           <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
         </div>
         <div class="cc3-detail-txt">
-          <span class="cc3-d-label">Départ</span>
+          <span class="cc3-d-label">${extraDateChips.length ? "J'ai des voyages le :" : "Départ"}</span>
           ${departValueHtml}
         </div>
       </div>
