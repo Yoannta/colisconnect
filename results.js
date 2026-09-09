@@ -511,8 +511,7 @@
                 } catch (e) { /* fallback */ }
 
                 // [CARGO] Cellule Départ : la date principale + les dates supplémentaires
-                // empilées SOUS elle dans la même cellule (un seul logo à gauche ;
-                // l'empilement fait comprendre qu'il y a plusieurs dates de départ)
+                // alignées sur UNE même ligne (un seul logo ; « · » entre chaque date)
                 const dateLine = (txt) => `<span class="cc3-gold cc3-date-line">${window.CCCommon.escapeHtml(txt)}</span>`;
                 const departValueHtml = extraDateChips.length
                     ? `<span class="cc3-value cc3-value-dates">${dateLine(shortDate)}${extraDateChips.map(dateLine).join("")}</span>`
