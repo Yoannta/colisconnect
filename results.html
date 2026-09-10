@@ -206,8 +206,8 @@
 
         article.offer-compact-card:hover {
             transform: translateY(-4px) !important;
-            box-shadow: 0 10px 30px rgba(167, 255, 231, 0.08) !important;
-            border-color: rgba(167, 255, 231, 0.4) !important;
+            box-shadow: 0 10px 30px rgba(255, 179, 71, 0.08) !important;
+            border-color: rgba(255, 179, 71, 0.4) !important;
         }
 
         article.offer-compact-card::before {
@@ -217,7 +217,7 @@
             left: 0;
             right: 0;
             height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(167, 255, 231, 0.5), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 179, 71, 0.5), transparent);
             opacity: 0;
             transition: opacity 0.3s ease;
         }
@@ -238,7 +238,7 @@
             font-size: 28px !important;
             font-weight: 700 !important;
             font-family: 'Space Grotesk', sans-serif !important;
-            color: #a7ffe7 !important;
+            color: var(--emerald-bright, #ffb347) !important;
             line-height: 1 !important;
         }
 
@@ -263,20 +263,20 @@
             width: 40px !important;
             height: 40px !important;
             border-radius: 50% !important;
-            background: rgba(167, 255, 231, 0.08) !important;
-            border: 1px solid rgba(167, 255, 231, 0.15) !important;
+            background: rgba(255, 179, 71, 0.08) !important;
+            border: 1px solid rgba(255, 179, 71, 0.15) !important;
             cursor: pointer !important;
             transition: all 0.2s ease !important;
             flex-shrink: 0 !important;
         }
 
         article.offer-compact-card:hover button[data-reserve-offer] {
-            background: rgba(167, 255, 231, 0.18) !important;
-            border-color: rgba(167, 255, 231, 0.5) !important;
+            background: rgba(255, 179, 71, 0.18) !important;
+            border-color: rgba(255, 179, 71, 0.5) !important;
         }
 
         article.offer-compact-card button[data-reserve-offer] .material-symbols-outlined {
-            color: #a7ffe7 !important;
+            color: var(--emerald-bright, #ffb347) !important;
             font-size: 20px !important;
         }
     </style>
