@@ -12650,11 +12650,9 @@ body.results-page.light #btn-faire-demande-trajet {
     animation: dmdFadeIn 0.25s ease;
 }
 
-/* ── Mention optionnel ── */
-.dmd-optional {
-    font-size: 0.72rem;
-    font-weight: 500;
-    opacity: 0.65;
+/* ── Libellé « Combien proposez-vous pour X ? » : la ligne peut s'allonger, on garde le tout sur une ligne aérée ── */
+.dmd-price-label {
+    line-height: 1.35;
 }
 
 /* ── Placeholder montant « pour X kilo(s)/colis » : s'adapte au champ, garde la place pour les chiffres ── */
@@ -12803,8 +12801,8 @@ body.results-page.light .dmd-add-colis-btn {
     color: #b8860b;
 }
 
-/* ── Carte demande multi-colis : « Je veux envoyer : » puis une ligne par colis
-     (alignées sous les colis, pas sous l'intro) ; max 2 visibles + « Voir plus » ── */
+/* ── Carte demande multi-colis : UNE phrase par colis (« Je veux envoyer 12 kilo de valise à 20 EUR »),
+     max 2 phrases visibles + « … » + bouton « Voir plus » (la carte ne grandit pas) ── */
 .cc3-demand-multi {
     display: flex;
     flex-direction: column;
@@ -12824,27 +12822,29 @@ body.results-page.light .dmd-add-colis-btn {
     white-space: nowrap;
 }
 .cc3-demand-lines {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    column-gap: 0.35em;
+    display: flex;
+    flex-direction: column;
     row-gap: 3px;
-    align-items: baseline;
+    align-items: flex-start;
+    max-width: 100%;
 }
-.cc3-demand-lines .cc3-demand-intro {
-    grid-column: 1;
-    grid-row: 1;
-    white-space: nowrap;
-}
-.cc3-demand-lines .cc3-demand-item {
-    grid-column: 2;
+.cc3-demand-lines .cc3-demand-sentence {
     display: block;
     min-width: 0;
+    max-width: 100%;
 }
-.cc3-demand-item.cc3-demand-extra {
+.cc3-demand-ellipsis {
+    margin-left: 0.15em;
+    opacity: 0.75;
+}
+.cc3-demand-sentence.cc3-demand-extra {
     display: none;
 }
-.cc3-demand-lines.is-expanded .cc3-demand-item.cc3-demand-extra {
+.cc3-demand-lines.is-expanded .cc3-demand-sentence.cc3-demand-extra {
     display: block;
+}
+.cc3-demand-lines.is-expanded .cc3-demand-ellipsis {
+    display: none;
 }
 .cc3-demand-more {
     align-self: flex-start;

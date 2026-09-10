@@ -170,43 +170,55 @@
             const fmtNum = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
             const budgetCur = esc(d.currency || "XOF");
 
-            // Partie « envoyer » d'un colis : <span class="cc3-demand-hl">2 ordinateur</span>
+            // Partie « envoyer » d'un colis : <span class="cc3-demand-hl">12 kilo de valise</span>
             const mkItemSendHl = (it) => {
                 const noun = it.item_type ? String(it.item_type).trim().toLowerCase() : "";
                 const hasW = it.weight_kg != null && it.weight_kg !== "";
                 const hasQ = it.quantity != null && it.quantity !== "";
                 if (hasW) return `<span class="cc3-demand-hl">${esc(it.weight_kg)} kilo${noun ? ` de ${esc(noun)}` : ""}</span>`;
-                if (hasQ) return `<span class="cc3-demand-hl">${esc(it.quantity)} ${noun ? esc(noun) : "colis"}</span>`;
+                if (hasQ) {
+                    const q = Number(it.quantity);
+                    // « 2 ordinateurs » (pluriel simple, sauf nom déjà terminé par s/x/z)
+                    const nounTxt = noun ? (q > 1 && !/[sxz]$/i.test(noun) ? `${noun}s` : noun) : "colis";
+                    return `<span class="cc3-demand-hl">${esc(it.quantity)} ${esc(nounTxt)}</span>`;
+                }
                 return "";
             };
-            // Partie « prix » d'un colis : <span class="cc3-demand-hl">20 EUR</span> (ou …/kg)
+            // Partie « prix » d'un colis : <span class="cc3-demand-hl">20 EUR</span>
+            // Le montant saisi vaut pour le LOT complet (« combien pour 12 kg ? ») -> jamais de « /kg »
             const mkItemPriceHl = (it) => {
-                if (it.max_price_per_kg != null && it.max_price_per_kg !== "") return `<span class="cc3-demand-hl">${fmtNum(it.max_price_per_kg)} ${budgetCur}/kg</span>`;
-                if (it.max_price_total != null && it.max_price_total !== "") return `<span class="cc3-demand-hl">${fmtNum(it.max_price_total)} ${budgetCur}</span>`;
-                return "";
+                const raw = (it.max_price_per_kg != null && it.max_price_per_kg !== "") ? it.max_price_per_kg
+                    : (it.max_price_total != null && it.max_price_total !== "") ? it.max_price_total
+                    : null;
+                return raw === null ? "" : `<span class="cc3-demand-hl">${fmtNum(raw)} ${budgetCur}</span>`;
             };
-            // Ligne complète d'un colis (multi) : « 2 ordinateur — 20 EUR »
-            const mkItemRow = (it) => {
+            // Phrase complète d'un colis (multi) : « Je veux envoyer 12 kilo de valise à 20 EUR »
+            const mkItemSentence = (it) => {
                 const s = mkItemSendHl(it);
                 const p = mkItemPriceHl(it);
-                if (!s && !p) return "";
-                return `<span class="cc3-demand-item">${s}${p ? ` — ${p}` : ""}</span>`;
+                if (s && p) return `Je veux envoyer ${s} à ${p}`;
+                if (s) return `Je veux envoyer ${s}`;
+                if (p) return `Je peux payer ${p}`;
+                return "";
             };
 
             // items (jsonb multi-colis) prioritaire ; sinon scalaires des anciennes demandes
-            const itemsRows = (Array.isArray(d.items) && d.items.length) ? d.items.map(mkItemRow).filter(Boolean) : null;
-            const isMulti = itemsRows !== null && itemsRows.length > 1;
+            const sentences = (Array.isArray(d.items) && d.items.length) ? d.items.map(mkItemSentence).filter(Boolean) : [];
+            const isMulti = sentences.length > 1;
 
+            // Au-delà de 2 phrases : la carte ne grandit pas, on affiche « … » + « Voir plus »
+            const VISIBLE_SENTENCES = 2;
             let phraseTxt = "";
             let demandLines = "";
             if (isMulti) {
-                // « Je veux envoyer : » puis une ligne par colis (max 2 visibles, le reste derrière « Voir plus »)
-                const rowsHtml = itemsRows.slice(0, 2).join("");
-                const restN = itemsRows.length - 2;
-                const extraHtml = restN > 0
-                    ? itemsRows.slice(2).map((r) => r.replace('<span class="cc3-demand-item">', '<span class="cc3-demand-item cc3-demand-extra">')).join("")
+                const restN = sentences.length - VISIBLE_SENTENCES;
+                const visible = sentences.slice(0, VISIBLE_SENTENCES).map((s, i, arr) =>
+                    `<span class="cc3-demand-sentence">${s}${restN > 0 && i === arr.length - 1 ? '<span class="cc3-demand-ellipsis" aria-hidden="true">…</span>' : ""}</span>`
+                ).join("");
+                const extra = restN > 0
+                    ? sentences.slice(VISIBLE_SENTENCES).map((s) => `<span class="cc3-demand-sentence cc3-demand-extra">${s}</span>`).join("")
                     : "";
-                demandLines = `<span class="cc3-demand-lines"><span class="cc3-demand-intro">Je veux envoyer :</span>${rowsHtml}${extraHtml}</span>`;
+                demandLines = `<span class="cc3-demand-lines">${visible}${extra}</span>`;
                 if (restN > 0) demandLines += `<button type="button" class="cc3-demand-more" data-count="${restN}">Voir plus (${restN})</button>`;
             } else {
                 // Phrase classique pour un seul colis (identique à l'ancienne)
@@ -273,10 +285,10 @@
         // Drapeaux : les demandes ne stockent pas de code pays -> résolution async (avec cache) sur le nom
         hydrateDemandeFlags();
 
-        // « Voir plus » : révèle les colis supplémentaires masqués d'une demande multi-colis
+        // « Voir plus » : révèle les phrases supplémentaires masquées d'une demande multi-colis
         els.offersList.querySelectorAll(".cc3-demand-more").forEach((btn) => {
             btn.addEventListener("click", () => {
-                const lines = btn.parentElement?.querySelector(".cc3-demand-lines");
+                const lines = btn.closest(".cc3-demand-multi")?.querySelector(".cc3-demand-lines");
                 if (!lines) return;
                 const isOpen = lines.classList.toggle("is-expanded");
                 btn.textContent = isOpen ? "Voir moins" : `Voir plus (${btn.dataset.count || ""})`;
@@ -973,12 +985,27 @@
             if (!priceInput) return;
             const raw = (isKg ? box.querySelector(".dmd-kg-input")?.value : box.querySelector(".dmd-qty-input")?.value) || "";
             const v = Number(raw);
-            if (!raw || !isFinite(v) || v <= 0) {
+            const vOk = Boolean(raw) && isFinite(v) && v > 0;
+            if (!vOk) {
                 priceInput.placeholder = "Ex: 2500";
             } else if (isKg) {
                 priceInput.placeholder = `pour ${v} kilo${v > 1 ? "s" : ""}`;
             } else {
                 priceInput.placeholder = `pour ${v} ${nom || "colis"}`;
+            }
+            // Libellé dynamique : « Combien proposez-vous pour 12 kg de vêtements ? » /
+            // « Combien proposez-vous pour 2 ordinateurs ? » (le montant = prix du lot complet)
+            const priceLabel = box.querySelector(".dmd-price-label");
+            if (priceLabel) {
+                const vTxt = Number.isInteger(v) ? String(v) : v.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+                if (!vOk) {
+                    priceLabel.textContent = "Combien proposez-vous ?";
+                } else if (isKg) {
+                    priceLabel.textContent = `Combien proposez-vous pour ${vTxt} kg${nom ? ` de ${nom}` : ""} ?`;
+                } else {
+                    const q = v > 1 && nom && !/[sxz]$/i.test(nom) ? `${nom}s` : nom;
+                    priceLabel.textContent = `Combien proposez-vous pour ${vTxt} ${q || "colis"} ?`;
+                }
             }
         }
 
@@ -1087,6 +1114,8 @@
             });
         }
         dmdAddColisBtn?.addEventListener("click", addColisBox);
+        // État initial : libellé + placeholder cohérents avec les champs déjà remplis
+        getColisBoxes().forEach(refreshBoxUi);
 
         // Devise affichée sur chaque cadre
         (function setDemandeCurrency() {
