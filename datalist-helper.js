@@ -13,18 +13,19 @@
             z-index: 2147483647;
             background: rgba(10, 15, 20, 0.95);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(19, 236, 200, 0.3);
+            border: 1px solid rgba(255, 179, 71, 0.3);
+            border-color: color-mix(in srgb, var(--emerald-bright, #ffb347) 30%, transparent);
             border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(19, 236, 200, 0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px color-mix(in srgb, var(--emerald-bright, #ffb347) 10%, transparent);
             max-height: 280px;
             overflow-y: auto;
             margin-top: 4px;
             scrollbar-width: thin;
-            scrollbar-color: #13ecc8 transparent;
+            scrollbar-color: var(--emerald-bright, #ffb347) transparent;
             animation: ccFadeIn 0.15s ease-out;
         }
         .cc-autocomplete-container::-webkit-scrollbar { width: 6px; }
-        .cc-autocomplete-container::-webkit-scrollbar-thumb { background: #13ecc8; border-radius: 10px; }
+        .cc-autocomplete-container::-webkit-scrollbar-thumb { background: var(--emerald-bright, #ffb347); border-radius: 10px; }
         
         .cc-autocomplete-item {
             padding: 12px 16px;
@@ -39,8 +40,9 @@
         }
         .cc-autocomplete-item:last-child { border-bottom: none; }
         .cc-autocomplete-item:hover, .cc-autocomplete-item.is-selected {
-            background: rgba(19, 236, 200, 0.15);
-            color: #13ecc8;
+            background: rgba(255, 179, 71, 0.15);
+            background: color-mix(in srgb, var(--emerald-bright, #ffb347) 15%, transparent);
+            color: var(--emerald-bright, #ffb347);
             padding-left: 20px;
         }
         @keyframes ccFadeIn {

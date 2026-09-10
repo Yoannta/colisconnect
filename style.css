@@ -62,6 +62,39 @@
     --font-body: "Space Grotesk", "Inter", sans-serif;
 }
 
+/* ============================================================
+   PAGE RÉSULTATS — FIN DE L'ANCIENNE PALETTE ÉMERAUDE (2026-09)
+   Le :root global est la palette « Emerald-Obsidian » : --emerald-bright,
+   --line, --px-focus… y valent du VERT/MENTHE. La page résultats a été
+   repassée en OR par ~150 surcharges ponctuelles, mais tout ce qui n'était
+   pas surchargé sortait encore vert (classe .light comme sombre).
+   On redéfinit donc les variables directement sur le body de la page :
+   un seul endroit à changer, plus aucun var(--…) vert possible.
+   Même principe que body.post-trip-page (plus bas dans ce fichier).
+   ============================================================ */
+body.results-page {
+    --emerald-bright: #ffb347;
+    --emerald-glow: rgba(255, 179, 71, 0.15);
+    --emerald-deep: #4a3a10;
+    --line: rgba(255, 179, 71, 0.15);
+    --line-glow: rgba(255, 179, 71, 0.30);
+    --px-focus: 0 0 0 3px rgba(255, 179, 71, 0.35);
+    --px-glow: 0 0 30px rgba(255, 140, 0, 0.25);
+    --deep-glass-border: rgba(255, 179, 71, 0.15);
+}
+
+/* Variante thème clair : or plus foncé pour rester lisible sur le crème */
+body.results-page.light {
+    --emerald-bright: #b8860b;
+    --emerald-glow: rgba(184, 134, 11, 0.12);
+    --emerald-deep: #8a6410;
+    --line: rgba(184, 134, 11, 0.18);
+    --line-glow: rgba(184, 134, 11, 0.30);
+    --px-focus: 0 0 0 3px rgba(184, 134, 11, 0.25);
+    --px-glow: 0 0 30px rgba(184, 134, 11, 0.20);
+    --deep-glass-border: rgba(184, 134, 11, 0.18);
+}
+
 /* Radical Accessibility & Focus-First */
 :focus-visible {
     outline: none;
@@ -2395,7 +2428,7 @@ html.cc-nav-ready .mobile-bottom-nav {
     padding: 6px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     animation: fadeInSlide 0.2s ease-out;
-    border: 1px solid rgba(19, 236, 200, 0.3);
+    border: 1px solid rgba(255, 179, 71, 0.3);
 }
 
 .currency-popover.hidden {
@@ -2413,7 +2446,7 @@ html.cc-nav-ready .mobile-bottom-nav {
 }
 
 .currency-opt:hover {
-    background: rgba(19, 236, 200, 0.15);
+    background: rgba(255, 179, 71, 0.15);
 }
 
 .currency-opt-name {
@@ -3462,7 +3495,7 @@ input[data-country-select="true"]::placeholder {
 
     /* ── Cartes de demandes (section "Voir les demandes") ── */
     .demande-card {
-        border: 1px solid rgba(167, 255, 231, 0.18);
+        border: 1px solid rgba(255, 179, 71, 0.18);
         border-radius: 14px;
         padding: 14px 16px;
         background: rgba(255, 255, 255, 0.03);
@@ -3529,13 +3562,13 @@ input[data-country-select="true"]::placeholder {
     }
 
     .results-mobile-main-btn.active {
-        background: rgba(167, 255, 231, 0.08);
-        border-color: rgba(167, 255, 231, 0.3);
-        color: #a7ffe7;
+        background: rgba(255, 179, 71, 0.08);
+        border-color: rgba(255, 179, 71, 0.3);
+        color: var(--emerald-bright);
     }
 
     .results-mobile-main-btn.active .material-symbols-outlined {
-        color: #a7ffe7;
+        color: var(--emerald-bright);
     }
 
     /* ── Rangée du bas : cadre rectangulaire unique avec switch glissant ── */
@@ -3557,8 +3590,8 @@ input[data-country-select="true"]::placeholder {
         left: 4px;
         width: calc(50% - 4px);
         height: calc(100% - 8px);
-        background: rgba(167, 255, 231, 0.08);
-        border: 1px solid rgba(167, 255, 231, 0.2);
+        background: rgba(255, 179, 71, 0.08);
+        border: 1px solid rgba(255, 179, 71, 0.2);
         border-radius: 10px;
         transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         pointer-events: none;
@@ -3602,13 +3635,13 @@ input[data-country-select="true"]::placeholder {
     }
 
     .results-mobile-sub-btn.active {
-        color: #a7ffe7;
+        color: var(--emerald-bright);
         background: transparent;
         border: none;
     }
 
     .results-mobile-sub-btn.active .material-symbols-outlined {
-        color: #a7ffe7;
+        color: var(--emerald-bright);
     }
 
     .results-mobile-brand {
@@ -9631,7 +9664,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     right: 0.7rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--emerald-bright, #13ecc8);
+    color: var(--emerald-bright);
     font-size: 0.7rem;
     cursor: pointer;
     opacity: 0.6;
@@ -9770,8 +9803,8 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
     line-height: 1;
 }
 .filter-tab:hover {
-    background: rgba(19, 236, 200, 0.08);
-    border-color: rgba(167, 255, 231, 0.35);
+    background: rgba(255, 179, 71, 0.08);
+    border-color: rgba(255, 179, 71, 0.35);
     color: #aab4b1;
     transform: translateY(-1px);
 }
@@ -9779,10 +9812,10 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
     transform: translateY(0) scale(0.96);
 }
 .filter-tab.active {
-    background: linear-gradient(180deg, rgba(167, 255, 231, 0.22), rgba(167, 255, 231, 0.12));
-    border-color: rgba(167, 255, 231, 0.7);
+    background: linear-gradient(180deg, rgba(255, 179, 71, 0.22), rgba(255, 179, 71, 0.12));
+    border-color: rgba(255, 179, 71, 0.7);
     color: #c5cdca;
-    box-shadow: 0 10px 24px rgba(19, 236, 200, 0.15);
+    box-shadow: 0 10px 24px rgba(255, 179, 71, 0.15);
 }
 .filter-tab.filter-tab-disabled,
 .filter-tab:disabled {
@@ -9814,24 +9847,8 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-.mobile-filter-toggle-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px;
-    padding: 8px 14px;
-    color: #a7ffe7;
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s;
-}
-.mobile-filter-toggle-btn:hover {
-    background: rgba(167,255,231,0.1);
-    border-color: rgba(167,255,231,0.3);
-}
+.
+.
 .mobile-filter-icon {
     width: 16px;
     height: 16px;
@@ -9869,7 +9886,7 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
     z-index: 100 !important;
 }
 .currency-trigger-btn {
-    color: #a7ffe7;
+    color: var(--emerald-bright);
     background: rgba(0,0,0,0.4);
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 8px;
@@ -9882,7 +9899,7 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
     transition: all 0.2s;
 }
 .currency-trigger-btn:hover {
-    border-color: rgba(167,255,231,0.5);
+    border-color: rgba(255,179,71,0.5);
 }
 .currency-bracket {
     opacity: 0.5;
@@ -9890,11 +9907,11 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
 }
 .currency-val {
     font-weight: 700;
-    color: #a7ffe7;
+    color: var(--emerald-bright);
 }
 .currency-arrow {
     font-size: 0.65rem;
-    color: #a7ffe7;
+    color: var(--emerald-bright);
     margin-left: 2px;
 }
 .currency-dropdown-menu {
@@ -10170,7 +10187,7 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
 
 .cards-list.offers-stream .offer-compact-card:hover {
     transform: translateY(-2px) !important;
-    border-color: rgba(167, 255, 231, 0.28) !important;
+    border-color: rgba(255, 179, 71, 0.28) !important;
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22) !important;
 }
 
@@ -10379,9 +10396,9 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
     display: grid !important;
     place-items: center !important;
     border-radius: 999px !important;
-    border: 1px solid rgba(157, 255, 231, 0.45) !important;
-    background: rgba(157, 255, 231, 0.1) !important;
-    color: #a7ffe7 !important;
+    border: 1px solid rgba(255, 179, 71, 0.45) !important;
+    background: rgba(255, 179, 71, 0.1) !important;
+    color: var(--emerald-bright) !important;
     object-fit: cover;
     font-size: 12px !important;
     font-weight: 800 !important;
@@ -10441,7 +10458,7 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
 
 .offer-compact-card .oc-btn:hover,
 .offer-compact-card .oc-btn:focus-visible {
-    background: rgba(167, 255, 231, 0.18) !important;
+    background: rgba(255, 179, 71, 0.18) !important;
     transform: translateX(2px);
     outline: none;
 }
@@ -10787,7 +10804,7 @@ body.results-page.light .mobile-filter-apply button {
     text-align: center;
     font-size: 36px;
     font-weight: 700;
-    color: #a7ffe7;
+    color: var(--emerald-bright);
     font-family: 'Space Grotesk', sans-serif;
     margin-bottom: 20px;
 }
@@ -10806,9 +10823,9 @@ body.results-page.light .mobile-filter-apply button {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #a7ffe7;
+    background: var(--emerald-bright);
     border: 3px solid #1A1B1E;
-    box-shadow: 0 0 10px rgba(167,255,231,0.3);
+    box-shadow: 0 0 10px rgba(255,179,71,0.3);
     cursor: pointer;
 }
 .slider-sheet .slider-actions {
@@ -10834,7 +10851,7 @@ body.results-page.light .mobile-filter-apply button {
     color: #b9cac4;
 }
 .slider-sheet .slider-actions .slider-ok {
-    background: #a7ffe7;
+    background: var(--emerald-bright);
     color: #00382e;
 }
 
@@ -10845,7 +10862,7 @@ body.results-page.light .mobile-filter-apply button {
 }
 .mobile-empty-state .empty-icon {
     font-size: 64px;
-    color: rgba(167,255,231,0.2);
+    color: rgba(255,179,71,0.2);
     margin-bottom: 16px;
 }
 .mobile-empty-state h3 {
@@ -10862,10 +10879,10 @@ body.results-page.light .mobile-filter-apply button {
 .mobile-empty-state button {
     min-height: 44px;
     padding: 0 24px;
-    background: rgba(167,255,231,0.1);
-    border: 1px solid rgba(167,255,231,0.3);
+    background: rgba(255,179,71,0.1);
+    border: 1px solid rgba(255,179,71,0.3);
     border-radius: 10px;
-    color: #a7ffe7;
+    color: var(--emerald-bright);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
@@ -10886,16 +10903,16 @@ body.results-page.light .mobile-filter-apply button {
     min-height: 44px;
     padding: 0 16px;
     background: #000000;
-    border: 1px solid rgba(167,255,231,0.5);
+    border: 1px solid rgba(255,179,71,0.5);
     border-radius: 10px;
-    color: #a7ffe7;
+    color: var(--emerald-bright);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     box-shadow: 0 4px 20px rgba(0,0,0,0.6);
 }
 .mobile-mode .mobile-filter-trigger:active {
-    background: rgba(167,255,231,0.15);
+    background: rgba(255,179,71,0.15);
 }
 
 /* Results count */
@@ -12678,15 +12695,15 @@ body.results-page.light #btn-faire-demande-trajet {
     transition: all 0.25s;
 }
 .dmd-progress-step.active .dmd-progress-dot {
-    background: #13ecc8;
-    border-color: #13ecc8;
+    background: var(--emerald-bright);
+    border-color: var(--emerald-bright);
     color: #00382e;
-    box-shadow: 0 0 12px rgba(19, 236, 200, 0.45);
+    box-shadow: 0 0 12px rgba(255, 179, 71, 0.45);
 }
 .dmd-progress-step.done .dmd-progress-dot {
-    background: rgba(19, 236, 200, 0.14);
-    border-color: rgba(19, 236, 200, 0.5);
-    color: #a7ffe7;
+    background: rgba(255, 179, 71, 0.14);
+    border-color: rgba(255, 179, 71, 0.5);
+    color: var(--emerald-bright);
 }
 .dmd-progress-label {
     font-size: 0.6rem;
@@ -12708,7 +12725,7 @@ body.results-page.light #btn-faire-demande-trajet {
     display: block;
     height: 100%;
     width: 0;
-    background: #13ecc8;
+    background: var(--emerald-bright);
     transition: width 0.3s ease;
 }
 
@@ -12761,9 +12778,9 @@ body.results-page.light #btn-faire-demande-trajet {
     white-space: nowrap;
 }
 .dmd-price-mode-btn.active {
-    background: #13ecc8;
+    background: var(--emerald-bright);
     color: #00382e;
-    box-shadow: 0 2px 8px rgba(19, 236, 200, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 179, 71, 0.3);
 }
 .dmd-price-row {
     display: flex;
@@ -12820,7 +12837,7 @@ body.results-page.light #btn-faire-demande-trajet {
     font-weight: 700;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: #13ecc8;
+    color: var(--emerald-bright);
 }
 .dmd-colis-del {
     background: none;
@@ -12843,7 +12860,7 @@ body.results-page.light #btn-faire-demande-trajet {
     border: 1px dashed rgba(255, 255, 255, 0.22);
     border-radius: 12px;
     padding: 11px 14px;
-    color: #13ecc8;
+    color: var(--emerald-bright);
     font-size: 0.92rem;
     font-weight: 600;
     font-family: inherit;
@@ -12851,8 +12868,8 @@ body.results-page.light #btn-faire-demande-trajet {
     transition: all 0.2s;
 }
 .dmd-add-colis-btn:hover {
-    background: rgba(19, 236, 200, 0.08);
-    border-color: rgba(19, 236, 200, 0.5);
+    background: rgba(255, 179, 71, 0.08);
+    border-color: rgba(255, 179, 71, 0.5);
 }
 body.results-page.light .dmd-colis-box {
     background: rgba(184, 134, 11, 0.05);
@@ -12925,7 +12942,7 @@ body.results-page.light .dmd-add-colis-btn {
     border: none;
     padding: 0;
     margin: 0;
-    color: #13ecc8;
+    color: var(--emerald-bright);
     font-size: 0.72rem;
     font-weight: 600;
     font-family: inherit;
@@ -13090,6 +13107,42 @@ body.results-page.light .demande-submit {
 body.results-page.light .demande-submit:hover {
     background: linear-gradient(135deg, #d99a0e, #e9a614);
     transform: translateY(-1px);
+}
+
+/* ============================================================
+   PAGE RÉSULTATS — composants PARTAGÉS (fond d'ambiance, nav, en-tête) :
+   dernier nettoyage des restes émeraude SUR CETTE PAGE.
+   Scopé à body.results-page → les autres pages (dashboard, chat,
+   post-trip…) gardent leur palette intacte.
+   ============================================================ */
+body.results-page .ambient-a {
+    background: radial-gradient(circle, var(--emerald-glow), transparent 70%);
+}
+
+body.results-page .nav-link.is-active {
+    background: var(--emerald-glow);
+    box-shadow: inset 0 -3px 0 var(--line-glow);
+}
+
+/* Boutons « Se connecter » / modales d'auth : l'ancien CSS finissait en vert */
+body.results-page .btn.primary {
+    background: linear-gradient(135deg, var(--emerald-bright), #d99a0e);
+}
+
+body.results-page .btn.secondary {
+    background: var(--emerald-glow);
+    border-color: var(--line-glow);
+    color: var(--emerald-bright);
+}
+
+body.results-page .user-trigger {
+    border-color: var(--line-glow);
+}
+
+body.results-page .user-trigger:hover,
+body.results-page .user-dropdown button:hover,
+body.results-page .lang-toggle:hover {
+    background: var(--emerald-glow);
 }
 
 
