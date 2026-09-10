@@ -946,8 +946,25 @@
                 document.getElementById("demande-trajet-modal")?.classList.add("hidden");
             }
         });
-        document.getElementById("demande-no-date-btn")?.addEventListener("click", () => {
-            document.getElementById("demande-date").value = "";
+        // « Pas de date limite » : choix explicite, mémorisé.
+        // Règle (Yoyo) : étape 1 = une date limite OU ce choix, sinon on ne continue pas.
+        const dmdNoDateBtn = document.getElementById("demande-no-date-btn");
+        const dmdDateInput = document.getElementById("demande-date");
+        let dmdNoDate = false;
+        function applyNoDateChoice() {
+            dmdNoDateBtn?.classList.toggle("active", dmdNoDate);
+        }
+        dmdNoDateBtn?.addEventListener("click", () => {
+            dmdNoDate = !dmdNoDate;
+            if (dmdNoDate && dmdDateInput) dmdDateInput.value = "";
+            dmdDateInput?.classList.remove("dmd-invalid");
+            dmdShowError("");
+            applyNoDateChoice();
+        });
+        dmdDateInput?.addEventListener("change", () => {
+            if ((dmdDateInput.value || "").trim()) { dmdNoDate = false; applyNoDateChoice(); }
+            dmdDateInput.classList.remove("dmd-invalid");
+            dmdShowError("");
         });
 
         // ===== WIZARD DEMANDE : 3 étapes (Trajet → Colis & prix → Description) =====
@@ -1081,6 +1098,9 @@
                     renumberColisBoxes();
                     refreshBoxUi(first);
                 }
+                dmdNoDate = false;
+                applyNoDateChoice();
+                document.querySelectorAll("#demande-form .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
                 dmdGoTo(1);
             } catch (e) { /* modale absente */ }
         };
@@ -1126,12 +1146,27 @@
 
         dmdNextBtn?.addEventListener("click", () => {
             if (demandeStep === 1) {
-                const origin = document.getElementById("demande-origin")?.value?.trim();
-                const destination = document.getElementById("demande-destination")?.value?.trim();
-                if (!origin || !destination) {
-                    dmdShowError("Indiquez le pays de depart et le pays d'arrivee pour continuer.");
+                // Etape 1 (trajet) : AUCUN champ optionnel ici -> pays + ville (depart et arrivee)
+                // obligatoires, et pour la date : une date limite OU « Pas de date limite » (Yoyo).
+                const readVal = (id) => (document.getElementById(id)?.value || "").trim();
+                const missing = [];
+                if (!readVal("demande-origin")) missing.push({ id: "demande-origin", label: "le pays de depart" });
+                if (!readVal("city-demande-origin")) missing.push({ id: "city-demande-origin", label: "la ville de depart" });
+                if (!readVal("demande-destination")) missing.push({ id: "demande-destination", label: "le pays d'arrivee" });
+                if (!readVal("city-demande-destination")) missing.push({ id: "city-demande-destination", label: "la ville d'arrivee" });
+                if (!readVal("demande-date") && !dmdNoDate) {
+                    missing.push({ id: "demande-date", label: "la date limite (ou touchez « Pas de date limite »)" });
+                }
+                document.querySelectorAll("#demande-form .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
+                if (missing.length) {
+                    missing.forEach((m) => document.getElementById(m.id)?.classList.add("dmd-invalid"));
+                    document.getElementById(missing[0].id)?.focus?.();
+                    dmdShowError(missing.length === 1
+                        ? `Indiquez ${missing[0].label} pour continuer.`
+                        : `A completer : ${missing.map((m) => m.label).join(", ")}.`);
                     return;
                 }
+                dmdShowError("");
                 dmdGoTo(2);
             } else if (demandeStep === 2) {
                 // Validation : chaque cadre a son « combien » (kg ou quantité) ; le montant reste optionnel

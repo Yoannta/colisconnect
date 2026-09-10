@@ -380,6 +380,32 @@ body.results-page.light .demande-input {
     border-color: rgba(184, 134, 11, 0.35) !important;
     color: #3a2f1e !important;
 }
+/* Thème clair : le formulaire de demande suit la palette or (plus d'émeraude/menthe) */
+body.results-page.light .demande-input:focus {
+    border-color: #b8860b !important;
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.18) !important;
+}
+body.results-page.light .demande-input.dmd-invalid {
+    border-color: #c0392b !important;
+    box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.12) !important;
+}
+body.results-page.light .demande-date-alt {
+    background: rgba(184, 134, 11, 0.08) !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    color: #8a6d1f !important;
+}
+body.results-page.light .demande-date-alt:hover {
+    background: rgba(184, 134, 11, 0.16) !important;
+    border-color: rgba(184, 134, 11, 0.45) !important;
+}
+body.results-page.light .demande-date-alt.active {
+    background: rgba(184, 134, 11, 0.2) !important;
+    border-color: #b8860b !important;
+    color: #5c4a12 !important;
+}
+body.results-page.light .demande-feedback {
+    color: #8a6d1f !important;
+}
 body.results-page.light .currency-trigger-btn {
     background: rgba(255, 255, 255, 0.7) !important;
     border-color: rgba(184, 134, 11, 0.45) !important;
@@ -9656,6 +9682,43 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 .cc-suggestions-list::-webkit-scrollbar { width: 6px; }
 .cc-suggestions-list::-webkit-scrollbar-thumb { background: #13ecc8; border-radius: 10px; }
+
+/* ── results.html : la liste pays/ville et sa flèche passent à l'or (plus d'émeraude) ── */
+body.results-page .cc-custom-arrow {
+    color: #ffb347;
+}
+body.results-page .cc-suggestions-list {
+    border-color: rgba(255, 179, 71, 0.3);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 179, 71, 0.1);
+}
+body.results-page .cc-suggestions-list li:hover,
+body.results-page .cc-suggestions-list li.active {
+    background: rgba(255, 179, 71, 0.15);
+    color: #ffc46b;
+}
+body.results-page .cc-suggestions-list::-webkit-scrollbar-thumb {
+    background: #ffb347;
+}
+body.results-page.light .cc-custom-arrow {
+    color: #b8860b;
+}
+body.results-page.light .cc-suggestions-list {
+    background: #fffdf8;
+    border-color: rgba(184, 134, 11, 0.35);
+    box-shadow: 0 15px 35px rgba(60, 45, 10, 0.18);
+}
+body.results-page.light .cc-suggestions-list li {
+    color: #3a2f1e;
+    border-bottom-color: rgba(184, 134, 11, 0.12);
+}
+body.results-page.light .cc-suggestions-list li:hover,
+body.results-page.light .cc-suggestions-list li.active {
+    background: rgba(184, 134, 11, 0.14);
+    color: #6b5314;
+}
+body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
+    background: #b8860b;
+}
 .cc-country-invalid {
     border-color: #ff4444 !important;
     box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2) !important;
@@ -9976,7 +10039,12 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     width: 100%;
 }
 .demande-input:focus {
-    border-color: var(--emerald-bright, #13ecc8);
+    border-color: #ffb347;
+    box-shadow: 0 0 0 3px rgba(255, 179, 71, 0.15);
+}
+.demande-input.dmd-invalid {
+    border-color: rgba(255, 107, 90, 0.85) !important;
+    box-shadow: 0 0 0 3px rgba(255, 107, 90, 0.14);
 }
 .demande-textarea {
     resize: vertical;
@@ -9989,11 +10057,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     align-items: center;
 }
 .demande-date-alt {
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255, 179, 71, 0.06);
+    border: 1px solid rgba(255, 179, 71, 0.22);
     border-radius: 10px;
     padding: 12px 14px;
-    color: #a7ffe7;
+    color: #ffc46b;
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
@@ -10001,15 +10069,20 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     transition: all 0.2s;
 }
 .demande-date-alt:hover {
-    background: rgba(167,255,231,0.08);
-    border-color: rgba(167,255,231,0.3);
+    background: rgba(255, 179, 71, 0.14);
+    border-color: rgba(255, 179, 71, 0.45);
+}
+.demande-date-alt.active {
+    background: rgba(255, 179, 71, 0.2);
+    border-color: #ffb347;
+    color: #ffe6c0;
 }
 .demande-submit {
-    background: #a7ffe7;
+    background: linear-gradient(135deg, #f4b82a, #e5a313 55%, #c98208);
     border: none;
     border-radius: 12px;
     padding: 14px 20px;
-    color: #00382e;
+    color: #fffdf5;
     font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
@@ -10017,13 +10090,13 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     margin-top: 8px;
 }
 .demande-submit:hover {
-    background: #8cfada;
+    background: linear-gradient(135deg, #ffc93c, #e5a313 55%, #d18f0c);
     transform: translateY(-1px);
 }
 .demande-feedback {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #13ecc8;
+    color: #ffc46b;
     text-align: center;
     margin-top: 8px;
 }
@@ -12926,11 +12999,11 @@ body.results-page.light .cc3-demand-multi .cc3-demand-hl {
     color: #fff;
 }
 .dmd-btn-primary {
-    background: #a7ffe7;
-    color: #00382e;
+    background: linear-gradient(135deg, #f4b82a, #e5a313 55%, #c98208);
+    color: #fffdf5;
 }
 .dmd-btn-primary:hover {
-    background: #8cfada;
+    background: linear-gradient(135deg, #ffc93c, #e5a313 55%, #d18f0c);
     transform: translateY(-1px);
 }
 .dmd-nav .demande-submit {
@@ -13009,6 +13082,8 @@ body.results-page.light .dmd-btn-primary:hover {
     background: linear-gradient(135deg, #d99a0e, #e9a614);
     transform: translateY(-1px);
 }
+/* (bloc orphelin réparé : ce sélecteur avait disparu, la règle ne s'appliquait pas) */
+body.results-page.light .demande-submit {
     background: linear-gradient(135deg, #e9a614, #f1b52b);
     color: #fff;
 }
