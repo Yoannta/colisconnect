@@ -192,13 +192,14 @@
                     : null;
                 return raw === null ? "" : `<span class="cc3-demand-hl">${fmtNum(raw)} ${budgetCur}</span>`;
             };
-            // Phrase complète d'un colis (multi) : « Je veux envoyer 12 kilo de valise à 20 EUR »
+            // Phrase complète d'un colis (multi) : même tournure que la carte simple
+            // « Je veux envoyer 12 kilo de valise et je peux payer environ 20 EUR »
             const mkItemSentence = (it) => {
                 const s = mkItemSendHl(it);
                 const p = mkItemPriceHl(it);
-                if (s && p) return `Je veux envoyer ${s} à ${p}`;
+                if (s && p) return `Je veux envoyer ${s} et je peux payer environ ${p}`;
                 if (s) return `Je veux envoyer ${s}`;
-                if (p) return `Je peux payer ${p}`;
+                if (p) return `Je peux payer environ ${p}`;
                 return "";
             };
 
