@@ -14,6 +14,8 @@
     const convertCurrency = window.CCCommon.convertCurrency;
     const formatAmount = window.CCCommon.formatAmount;
     const COUNTRY_CURRENCIES = window.CCCommon.COUNTRY_CURRENCIES;
+    // Acronyme local pour les libelles ("FCFA" et non "XOF") : jamais de code ISO a l'ecran
+    const displayCur = (code) => window.CCCommon?.currencySymbol?.(code) || code || "";
 
     const els = {
         offersList: document.getElementById("offers-list")
@@ -167,10 +169,11 @@
 
             const hasDesc = !!(d.description && String(d.description).trim());
             const descTxt = esc(d.description);
-            const fmtNum = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
-            // Acronyme local ("FCFA" et non "XOF") : meme logique que le reste de la page
-            const budgetCode = d.currency || "XOF";
-            const budgetCur = esc(window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(budgetCode) : budgetCode);
+            // DEVISE UNIQUE a l'ecran, comme les cartes d'offres : celle du pays de l'utilisateur.
+            // Le montant publie peut etre dans n'importe quelle devise (choisie par colis dans le
+            // formulaire) -> on convertit avec les taux partages (meme convertCurrency que les offres).
+            // Repli si le profil n'a pas de pays : devise de getUserCurrency(), sinon XOF.
+            const userCur = state.userCurrency || window.CCCommon.getUserCurrency?.() || "XOF";
 
             // Partie « envoyer » d'un colis : <span class="cc3-demand-hl">12 kilo de valise</span>
             const mkItemSendHl = (it) => {
@@ -186,13 +189,24 @@
                 }
                 return "";
             };
-            // Partie « prix » d'un colis : <span class="cc3-demand-hl">20 EUR</span>
+            // Partie « prix » d'un colis : <span class="cc3-demand-hl">13 200 FCFA</span>
             // Le montant saisi vaut pour le LOT complet (« combien pour 12 kg ? ») -> jamais de « /kg »
             const mkItemPriceHl = (it) => {
                 const raw = (it.max_price_per_kg != null && it.max_price_per_kg !== "") ? it.max_price_per_kg
                     : (it.max_price_total != null && it.max_price_total !== "") ? it.max_price_total
                     : null;
-                return raw === null ? "" : `<span class="cc3-demand-hl">${fmtNum(raw)} ${budgetCur}</span>`;
+                if (raw === null) return "";
+                // Devise publiee : celle du colis (choisie dans le formulaire), sinon celle de la
+                // demande, sinon XOF. Les tres vieilles demandes n'ont que max_price_per_kg + currency.
+                const fromCur = String((it && it.currency) || d.currency || "XOF").toUpperCase();
+                // Taux manquant (devise absente de la table / hors ligne) : on n'invente pas un 1:1,
+                // on affiche le montant publie dans sa devise d'origine.
+                const rates = window.CCCommon.EXCHANGE_RATES || {};
+                if (fromCur !== userCur && (!rates[fromCur] || !rates[userCur])) {
+                    return `<span class="cc3-demand-hl">${esc(formatAmount(Number(raw), fromCur))}</span>`;
+                }
+                const shown = formatAmount(convertCurrency(Number(raw), fromCur, userCur), userCur);
+                return `<span class="cc3-demand-hl">${esc(shown)}</span>`;
             };
             // Phrase complète d'un colis (multi) : même tournure que la carte simple
             // « Je veux envoyer 12 kilo de valise et je peux payer environ 20 EUR »
@@ -763,9 +777,11 @@
             const val = item.getAttribute("data-value");
             if (val) {
                 state.userCurrency = val;
-                if (valSpan) valSpan.textContent = val;
+                // Acronyme local a l'ecran ("FCFA"), jamais le code ISO
+                if (valSpan) valSpan.textContent = displayCur(val);
                 menuEl.classList.add("hidden");
-                renderOffers();
+                // Les deux listes affichent la devise choisie : on redessine celle qui est visible
+                setMobilePrimaryMode(state.mobilePrimaryMode);
             }
         });
 
@@ -778,7 +794,7 @@
 
         // Initialize display value
         if (state.userCurrency && valSpan) {
-            valSpan.textContent = state.userCurrency;
+            valSpan.textContent = displayCur(state.userCurrency);
         }
     }
 
@@ -867,7 +883,7 @@
         }
         const valSpan = document.getElementById("current-currency-val");
         if (valSpan) {
-            valSpan.textContent = state.userCurrency;
+            valSpan.textContent = displayCur(state.userCurrency);
         }
 
         // Remplir le datalist des pays pour la modale
@@ -901,6 +917,10 @@
         syncProfileTypeButtons();
         syncMobilePrimaryButtons();
         bindEvents();
+        // Les cartes (offres ET demandes) affichent des montants convertis dans la devise de
+        // l'utilisateur : on attend les taux partages avant le premier rendu, sinon une carte
+        // en devise etrangere s'afficherait avec un faux taux (loadExchangeRates est non bloquant).
+        try { await window.CCCommon.loadExchangeRates?.(); } catch (e) { /* fallback interne */ }
         await loadOffers();
     }
 
