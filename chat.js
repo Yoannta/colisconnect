@@ -542,6 +542,17 @@
         if (thread?.id) { state.activeThreadId = thread.id; await openThread(thread.id); }
     }
 
+    // Meme chose depuis une carte DEMANDE (results.html) : le fil est cree/reutilise par le pont,
+    // qui y ecrit le contexte de la demande en premier message systeme.
+    async function ensureConversationForRequest(requestId) {
+        if (!requestId) return;
+        const numericId = Number(requestId);
+        if (!Number.isFinite(numericId) || numericId <= 0) return;
+        const thread = await window.CCCommon.api("/api/conversations/by-request", { method: "POST", body: { requestId: numericId } });
+        await loadConversations();
+        if (thread?.id) { state.activeThreadId = thread.id; await openThread(thread.id); }
+    }
+
     // ---- Anti-Leak ----
     function detectLeakClient(text) {
         if (!text) return false;
@@ -929,8 +940,10 @@
 
         const params = new URLSearchParams(window.location.search || "");
         const offerId = params.get("offerId");
+        const requestId = params.get("requestId");
 
         if (offerId) await ensureConversationForOffer(offerId);
+        else if (requestId) await ensureConversationForRequest(requestId);
         else await loadConversations();
 
         setTimeout(() => { window.CCCommon?.syncNotificationBadges?.(); }, 1500);

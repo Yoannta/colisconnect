@@ -121,9 +121,13 @@
         let items = [];
         try {
             if (window.ccSupabase) {
+                // Nom/photo du demandeur : lisibles seulement par un utilisateur connecte (RLS profiles)
+                const ownerCols = window.CCCommon?.state?.user
+                    ? "*, owner:profiles!parcel_requests_user_id_fkey(full_name, is_verified, profile_type, profile_photo)"
+                    : "*";
                 const { data, error } = await window.ccSupabase
                     .from("parcel_requests")
-                    .select("*")
+                    .select(ownerCols)
                     .eq("status", "pending")
                     .order("created_at", { ascending: false });
                 if (error) throw error;
@@ -138,6 +142,37 @@
         }
         state.demands = items;
         renderDemands();
+    }
+
+    // Footer de carte partage (carte voyageur ET carte demande) : profil + bouton « Contacter ».
+    // Sans dataAttr, le bouton devient un libelle inactif (ex. sa propre demande).
+    function cc3CardFooter(opts) {
+        const eh = (value) => window.CCCommon.escapeHtml(String(value === undefined || value === null ? "" : value));
+        const name = String(opts.name || "").trim();
+        const parts = name.split(/\s+/).filter(Boolean);
+        const firstName = parts[0] || "";
+        const lastName = parts.slice(1).join(" ");
+        const initials = getInitials(name);
+        const btn = opts.dataAttr
+            ? `<button class="cc3-cta" type="button" ${opts.dataAttr} aria-label="${eh(opts.ariaLabel)}">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
+        <span>Contacter</span>
+      </button>`
+            : `<span class="cc3-cta" aria-disabled="true"><span>${eh(opts.inactiveLabel)}</span></span>`;
+        return `
+    <footer class="cc3-foot">
+      <div class="cc3-profile">
+        ${opts.photo ? `<img class="cc3-avatar cc3-avatar-img" src="${eh(opts.photo)}" alt="">` : `<span class="cc3-avatar">${eh(initials)}</span>`}
+        <div class="cc3-profile-txt">
+          <div class="cc3-name-line">
+            <span class="cc3-name">${eh(firstName)} <em>${eh(lastName)}</em></span>
+            ${opts.isVerified ? `<svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>` : ""}
+          </div>
+          <span class="cc3-meta">${eh(opts.label)}</span>
+        </div>
+      </div>
+      ${btn}
+    </footer>`;
     }
 
     function renderDemands() {
@@ -169,6 +204,8 @@
 
             const hasDesc = !!(d.description && String(d.description).trim());
             const descTxt = esc(d.description);
+            // Sa propre demande : pas de bouton inutile (le pont refuserait le contact)
+            const isOwnDemand = !!window.CCCommon?.state?.user?.id && d.user_id === window.CCCommon.state.user.id;
             // DEVISE UNIQUE a l'ecran, comme les cartes d'offres : celle du pays de l'utilisateur.
             // Le montant publie peut etre dans n'importe quelle devise (choisie par colis dans le
             // formulaire) -> on convertit avec les taux partages (meme convertCurrency que les offres).
@@ -295,6 +332,16 @@
         ${hasDesc ? `<p class="cc3-demand-desc">${descTxt}</p>` : ""}
       </div>` : ""}
     </section>
+
+    ${cc3CardFooter({
+      photo: d.owner ? d.owner.profile_photo : "",
+      name: (d.owner && d.owner.full_name) || "Demandeur",
+      isVerified: !!(d.owner && d.owner.is_verified),
+      label: "Expéditeur",
+      dataAttr: isOwnDemand ? "" : `data-contact-request="${d.id}"`,
+      ariaLabel: `Contacter ${(d.owner && d.owner.full_name) || "ce demandeur"}`,
+      inactiveLabel: "Votre demande"
+    })}
   </article>
 </div>`);
         }).join("\n");
@@ -647,22 +694,14 @@
       </div>
     </section>` : ""}
 
-    <footer class="cc3-foot">
-      <div class="cc3-profile">
-        ${profilePhoto ? `<img class="cc3-avatar cc3-avatar-img" src="${window.CCCommon.escapeHtml(profilePhoto)}" alt="">` : `<span class="cc3-avatar">${window.CCCommon.escapeHtml(initials)}</span>`}
-        <div class="cc3-profile-txt">
-          <div class="cc3-name-line">
-            <span class="cc3-name">${window.CCCommon.escapeHtml(firstName)} <em>${window.CCCommon.escapeHtml(lastName)}</em></span>
-            ${isVerified ? `<svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>` : ""}
-          </div>
-          <span class="cc3-meta">${window.CCCommon.escapeHtml(profileLabel)}</span>
-        </div>
-      </div>
-      <button class="cc3-cta" type="button" data-reserve-offer="${offer.id}" aria-label="Contacter ${window.CCCommon.escapeHtml(offer.ownerName || "ce voyageur")}">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
-        <span>Contacter</span>
-      </button>
-    </footer>
+    ${cc3CardFooter({
+      photo: profilePhoto,
+      name: offer.ownerName || "Voyageur",
+      isVerified: isVerified,
+      label: profileLabel,
+      dataAttr: `data-reserve-offer="${offer.id}"`,
+      ariaLabel: `Contacter ${offer.ownerName || "ce voyageur"}`
+    })}
   </article>
 </div>`;
             })
@@ -691,6 +730,18 @@
             }
         }
 
+        window.location.href = target;
+    }
+
+    // Contact depuis une carte DEMANDE : ouvre (ou cree) le fil de chat avec le demandeur.
+    // Le fil n'a pas de colonne pour porter la demande -> son contexte est ecrit en premier message.
+    function startDemandContact(requestId) {
+        const id = Number(requestId);
+        if (!Number.isFinite(id) || id <= 0) return;
+        const demand = (state.demands || []).find((item) => Number(item.id) === id);
+        if (demand && window.CCCommon.state?.user?.id && demand.user_id === window.CCCommon.state.user.id) return;
+        const target = `chat.html?requestId=${encodeURIComponent(String(id))}`;
+        if (!window.CCCommon.requireAuth(target)) return;
         window.location.href = target;
     }
 
@@ -803,6 +854,11 @@
 
         if (els.offersList) {
             els.offersList.addEventListener("click", (event) => {
+                const demandBtn = event.target.closest("button[data-contact-request]");
+                if (demandBtn) {
+                    startDemandContact(Number(demandBtn.getAttribute("data-contact-request")));
+                    return;
+                }
                 const button = event.target.closest("button[data-reserve-offer]");
                 if (!button) return;
                 const offerId = Number(button.getAttribute("data-reserve-offer"));

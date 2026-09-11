@@ -558,6 +558,31 @@
         }
     }
 
+    // Texte du premier message d'un fil ouvert depuis une demande : porte le contexte de la
+    // demande, faute de colonne dediee sur chat_threads (voir /api/conversations/by-request).
+    function demandeContextText(demande) {
+        const txt = (value) => String(value == null ? "" : value).trim();
+        const label = (pays, ville) => {
+            const p = txt(pays);
+            const v = txt(ville);
+            if (!p && !v) return "";
+            return v ? `${p}${p ? " " : ""}(${v})` : p;
+        };
+        const from = label(demande.origin, demande.origin_city) || "origine non precisee";
+        const to = label(demande.destination, demande.destination_city) || "destination non precisee";
+        let texte = `Demande de transport : ${from} vers ${to}`;
+        const brut = txt(demande.needed_by_date);
+        if (brut) {
+            let jour = brut.slice(0, 10);
+            try {
+                const d = new Date(`${jour}T00:00:00`);
+                if (!isNaN(d.getTime())) jour = d.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+            } catch (e) { /* garde la date brute */ }
+            texte += ` - date limite ${jour}`;
+        }
+        return `Conversation ouverte depuis une demande de transport. ${texte}.`;
+    }
+
     async function threadModerationContext(threadId) {
         try {
             const { data, error } = await window.ccSupabase
@@ -838,6 +863,45 @@
                         }
                     }
                     return thread;
+                }
+                // Fil de chat ouvert depuis une DEMANDE (parcel_request) : le pont by-offer ne
+                // s'applique pas (une demande n'a pas d'offre). chat_threads.offer_id reste nul :
+                // aucune colonne ne lie une demande au fil, donc le contexte de la demande est
+                // ecrit en premier message systeme, visible des deux cotes.
+                if (p.includes("/by-request") && options.method === "POST") {
+                    const requestId = Number(options.body?.requestId);
+                    if (!Number.isFinite(requestId) || requestId <= 0) throw new Error("Demande introuvable");
+                    const { data: demande, error: demandeErr } = await window.ccSupabase
+                        .from('parcel_requests').select('*').eq('id', requestId).single();
+                    if (demandeErr || !demande) throw new Error("Demande introuvable");
+                    if (demande.user_id === state.user?.id) throw new Error("C'est votre propre demande.");
+
+                    // Un fil par paire d'utilisateurs : on reutilise le fil deja ouvert depuis une demande
+                    const { data: existing } = await window.ccSupabase.from('chat_threads').select('*')
+                        .eq('user_id', state.user?.id)
+                        .eq('offer_owner_id', demande.user_id)
+                        .is('offer_id', null)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+                    let demandThread = Array.isArray(existing) ? existing[0] : existing;
+                    if (!demandThread) {
+                        const { data: createdThread, error: threadErr } = await window.ccSupabase.from('chat_threads').insert([{
+                            user_id: state.user?.id,
+                            offer_owner_id: demande.user_id,
+                            offer_id: null,
+                            reservation_id: null
+                        }]).select().single();
+                        if (threadErr) throw threadErr;
+                        demandThread = createdThread;
+                        const { error: msgErr } = await window.ccSupabase.from('chat_messages').insert({
+                            thread_id: demandThread.id,
+                            sender_user_id: null,
+                            sender_type: 'system',
+                            text: demandeContextText(demande)
+                        });
+                        if (msgErr) console.warn("Contexte de la demande non ecrit dans le fil :", msgErr);
+                    }
+                    return demandThread;
                 }
                 const threadMatch = path.match(/\/api\/conversations\/([^\/\?]+)\/messages/);
                 if (threadMatch && options.method === "POST") {
