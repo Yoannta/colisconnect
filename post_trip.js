@@ -1,6 +1,8 @@
 (() => {
     const COUNTRY_OPTIONS = window.CCCommon.COUNTRY_OPTIONS;
     const COUNTRY_CURRENCIES = window.CCCommon.COUNTRY_CURRENCIES;
+    // [MULTI-CURRENCY] Acronyme local affiche a l'utilisateur ("FCFA" et non "XOF")
+    const ccSym = (code) => (window.CCCommon && window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(code) : code);
 
 
     const els = {
@@ -122,7 +124,7 @@
         if (els.currencyPopover) {
             els.currencyPopover.innerHTML = options.map(o => `
                 <div class="currency-opt" data-value="${o.value}">
-                    <span class="currency-opt-name">${o.value}</span>
+                    <span class="currency-opt-name">${ccSym(o.value)}</span>
                     <span class="currency-opt-code">${o.label}</span>
                 </div>
             `).join("");
@@ -132,8 +134,12 @@
                     e.stopPropagation();
                     const val = opt.dataset.value;
                     if (els.priceCurrencyInput) els.priceCurrencyInput.value = val;
-                    if (els.currentCurrencyText) els.currentCurrencyText.textContent = val;
+                    if (els.currentCurrencyText) els.currentCurrencyText.textContent = ccSym(val);
                     els.currencyPopover.classList.add("hidden");
+                    // Les badges "prix special" affichent la devise : on les rafraichit
+                    if (window.ccRefreshUniteLabel) {
+                        document.querySelectorAll(".colis-detail-row").forEach(function (r) { window.ccRefreshUniteLabel(r); });
+                    }
                 });
             });
         }
@@ -146,7 +152,7 @@
             // On ne force pas le premier si rien n'est sélectionné au départ pour garder "Devise"
             if (current !== "" && options.length > 0) {
                 els.priceCurrencyInput.value = options[0].value;
-                if (els.currentCurrencyText) els.currentCurrencyText.textContent = options[0].value;
+                if (els.currentCurrencyText) els.currentCurrencyText.textContent = ccSym(options[0].value);
             }
         }
     }

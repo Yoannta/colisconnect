@@ -347,7 +347,7 @@
             return `<div class="client-discussion-item ${threadId ? 'clickable' : ''}" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}" ${threadId ? `data-thread-id="${window.CCCommon.escapeHtml(threadId)}"` : ""}>
                 <div class="item-content">
                     <div class="item-name">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
-                    <div class="item-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""}${item.total_amount ? " - " + item.total_amount + " FCFA" : ""} | ${statusLabel}</div>
+                    <div class="item-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""}${item.total_amount ? " - " + window.CCCommon.formatAmount(item.total_amount, item.offers?.base_currency || getUserCurrency()) : ""} | ${statusLabel}</div>
                 </div>
                 <span class="pill-${isDelivered ? 'green' : 'yellow'}" style="font-size:10px;padding:2px 8px;border-radius:8px;flex-shrink:0;">${statusLabel}</span>
                 ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}" style="margin-left:8px;border-color:var(--line);color:var(--text);">Livrer</button>` : ""}
@@ -404,7 +404,7 @@
                 .eq("user_id", user.id)
                 .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
             window.ccSupabase ? window.ccSupabase.from("reservations")
-                .select("*, offers(origin, destination)")
+                .select("*, offers(origin, destination, base_currency)")
                 .eq("user_id", user.id)
                 .in("status", ["paid", "en_cours", "livre"])
                 .order("updated_at", { ascending: false }) : Promise.resolve({ data: [] })
@@ -1166,7 +1166,7 @@
                 const user = window.CCCommon.state?.user;
                 const userCountry = user?.country || user?.user_metadata?.country || "";
                 const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || getUserCurrency();
-                currencyBadge.textContent = currency;
+                currencyBadge.textContent = window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(currency) : currency;
             }
         });
 

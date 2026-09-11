@@ -902,11 +902,14 @@
                         if (thread) {
                             const { data: reservation } = await window.ccSupabase
                                 .from("reservations")
-                                .select("kg, total_amount")
+                                .select("kg, total_amount, offers(base_currency)")
                                 .eq("id", resId)
                                 .maybeSingle();
                             const kgInfo = reservation?.kg > 0 ? `\nKilos réservés : ${reservation.kg} kg` : "";
-                            const amountInfo = reservation?.total_amount > 0 ? `\nMontant : ${reservation.total_amount} FCFA` : "";
+                            const amtCurrency = reservation?.offers?.base_currency
+                                || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "XOF");
+                            const amountInfo = reservation?.total_amount > 0
+                                ? `\nMontant : ${window.CCCommon.formatAmount(reservation.total_amount, amtCurrency)}` : "";
                             await window.ccSupabase.from("chat_messages").insert({
                                 thread_id: thread.id,
                                 text: `✅ PAIEMENT VALIDÉ !\nRéférence : ${ref}${kgInfo}${amountInfo}\n\nLe paiement a été reçu avec succès.`,

@@ -1412,12 +1412,16 @@
                 var curSpan = rowEl.querySelector('.special-price-currency');
                 if (!mode || !curSpan) return;
                 var curEl = document.getElementById('price-currency');
-                var cur = (curEl && curEl.value) ? curEl.value : 'FCFA';
+                var code = (curEl && curEl.value) ? curEl.value : 'FCFA';
+                var cur = (window.CCCommon && window.CCCommon.currencySymbol) ? window.CCCommon.currencySymbol(code) : code;
                 var nameEl = rowEl.querySelector('.colis-name-label');
                 var nom = nameEl ? nameEl.textContent.trim() : '';
                 var unite = mode === 'kilo' ? 'kilo' : (nom && nom !== 'Nom du colis' ? nom : 'unité');
                 curSpan.textContent = cur + ' par ' + unite;
             }
+
+            // Expose pour rafraichir les badges quand la devise change (voir post_trip.js)
+            window.ccRefreshUniteLabel = refreshUniteLabel;
 
             function commitName(input) {
                 var val = input.value.trim();
