@@ -14,9 +14,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+    <!-- Design « Obsidian Luxe / Gold Light » : même feuille de style que results.html -->
+    <link rel="stylesheet" href="style.css?v=46">
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
@@ -29,7 +35,7 @@
     <script defer src="standalone-common.js?v=4"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script defer src="chat.js?v=58"></script>
+    <script defer src="chat.js?v=59"></script>
 </head>
 
 <body class="chat-page">
@@ -276,6 +282,35 @@
     </div>
 
     <div id="mobile-bottom-nav-root"></div>
+
+    <!-- Bascule de thème (Obsidian Luxe / Gold Light) — même bouton que results.html -->
+    <button id="theme-toggle" class="theme-toggle" aria-label="Changer de thème" title="Thème clair / sombre">
+        <span class="theme-toggle-icon">🌙</span>
+    </button>
+
+    <script>
+        (function () {
+            var btn = document.getElementById('theme-toggle');
+            var icon = btn ? btn.querySelector('.theme-toggle-icon') : null;
+            var root = document.body;
+            var saved = null;
+            try { saved = localStorage.getItem('cc-theme'); } catch (e) { }
+            if (saved === 'light') root.classList.add('light');
+            function paint() {
+                if (!icon) return;
+                icon.textContent = root.classList.contains('light') ? '☀️' : '🌙';
+            }
+            paint();
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    root.classList.toggle('light');
+                    var isLight = root.classList.contains('light');
+                    try { localStorage.setItem('cc-theme', isLight ? 'light' : 'dark'); } catch (e) { }
+                    paint();
+                });
+            }
+        })();
+    </script>
 </body>
 
 </html>

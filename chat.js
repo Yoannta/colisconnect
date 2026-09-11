@@ -80,11 +80,15 @@
         if (!isMobileView()) return;
         els.chatSidebar?.classList.add('mobile-hidden');
         els.chatPanel?.classList.add('mobile-active');
+        // Masque la barre de navigation + la bascule de thème sur mobile :
+        // la zone de saisie du chat occupe tout le bas de l'écran.
+        document.body.classList.add('chat-conv-open');
     }
     function showListView() {
         if (!isMobileView()) return;
         els.chatSidebar?.classList.remove('mobile-hidden');
         els.chatPanel?.classList.remove('mobile-active');
+        document.body.classList.remove('chat-conv-open');
     }
     function showNotification(message, type = "info") {
         const toast = document.createElement("div");

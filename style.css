@@ -70,9 +70,11 @@
    pas surchargé sortait encore vert (classe .light comme sombre).
    On redéfinit donc les variables directement sur le body de la page :
    un seul endroit à changer, plus aucun var(--…) vert possible.
-   Même principe que body.post-trip-page (plus bas dans ce fichier).
+   Même principe que body.post-trip-page (plus bas dans ce fichier),
+   étendu à body.chat-page (chat.html, alignement 2026-09).
    ============================================================ */
-body.results-page {
+body.results-page,
+body.chat-page {
     --emerald-bright: #ffb347;
     --emerald-glow: rgba(255, 179, 71, 0.15);
     --emerald-deep: #4a3a10;
@@ -84,7 +86,8 @@ body.results-page {
 }
 
 /* Variante thème clair : or plus foncé pour rester lisible sur le crème */
-body.results-page.light {
+body.results-page.light,
+body.chat-page.light {
     --emerald-bright: #b8860b;
     --emerald-glow: rgba(184, 134, 11, 0.12);
     --emerald-deep: #8a6410;
@@ -191,7 +194,8 @@ button {
    Testé via bg-test.html (v2) — appliqué sur .results-page
    ROLLBACK : git reset --hard ROLLBACK-OBSIDIAN
    ============================================================ */
-body.results-page {
+body.results-page,
+body.chat-page {
     background-color: #050505;
     background-image:
         radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%),
@@ -211,7 +215,8 @@ body.results-page {
 }
 
 /* Ligne d'or fine en haut de page */
-body.results-page::before {
+body.results-page::before,
+body.chat-page::before {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -226,10 +231,12 @@ body.results-page::before {
 }
 
 /* Orbes d'ambiance : respiration lente (doré au lieu du vert) */
-body.results-page .ambient-a {
+body.results-page .ambient-a,
+body.chat-page .ambient-a {
     background: radial-gradient(circle, rgba(255,140,0,0.12), transparent 70%);
 }
-body.results-page .ambient-b {
+body.results-page .ambient-b,
+body.chat-page .ambient-b {
     background: radial-gradient(circle, rgba(212,160,23,0.09), transparent 70%);
 }
 
@@ -321,7 +328,8 @@ body.results-page.light {
         radial-gradient(circle at 88% 92%, rgba(212,160,23,0.14) 0%, rgba(212,160,23,0.04) 20%, transparent 42%),
         linear-gradient(180deg, #fdfaf4 0%, #f7f2e9 45%, #efe6d6 100%);
 }
-body.results-page.light::before {
+body.results-page.light::before,
+body.chat-page.light::before {
     background: linear-gradient(90deg,
         transparent 0%,
         rgba(212,160,23,0.0) 15%,
@@ -329,16 +337,19 @@ body.results-page.light::before {
         rgba(212,160,23,0.0) 85%,
         transparent 100%);
 }
-body.results-page.light .ambient-a {
+body.results-page.light .ambient-a,
+body.chat-page.light .ambient-a {
     background: radial-gradient(circle, rgba(255,170,60,0.16), transparent 70%);
 }
-body.results-page.light .ambient-b {
+body.results-page.light .ambient-b,
+body.chat-page.light .ambient-b {
     background: radial-gradient(circle, rgba(212,160,23,0.12), transparent 70%);
 }
 body.results-page.light .gd {
     background: radial-gradient(circle, rgba(212,150,40,0.95), rgba(212,150,40,0.0) 70%);
 }
-body.results-page.light .theme-toggle {
+body.results-page.light .theme-toggle,
+body.chat-page.light .theme-toggle {
     background: rgba(255, 255, 255, 0.75);
     border-color: rgba(184, 134, 11, 0.5);
     color: #8a6d1f;
@@ -13294,3 +13305,442 @@ body.results-page .lang-toggle:hover {
 }
 
 
+
+/* ==========================================================================
+   PAGE CHAT — OBSIDIAN LUXE (sombre) / GOLD LIGHT (clair)       2026-09
+   Alignement sur results.html : palette or (variables redéfinies sur le
+   body), surfaces des cartes .cc3-*, même typo (Hanken Grotesk) et mêmes
+   rayons. Le bloc .chat-* historique (~l.8350, émeraude codée en dur) reste
+   la base de MISE EN PAGE (grille/flex/scroll) ; ici on reprend TOUTES les
+   couleurs + la nav partagée, pour les 2 thèmes.
+   Scopé à body.chat-page → aucune autre page n'est touchée.
+   ========================================================================== */
+
+/* ── 1. Variables + typo ────────────────────────────────────────────────── */
+body.chat-page {
+    --text: #f2ece1;
+    --muted: #b0a795;
+    --secondary: #d4a017;
+    --accent: #ffb347;
+    --surface: rgba(255, 255, 255, 0.03);
+    --surface-strong: rgba(12, 12, 13, 0.94);
+    font-family: 'Hanken Grotesk', var(--font-title);
+}
+body.chat-page.light {
+    --text: #3a2f1e;
+    --muted: #6d6252;
+    --secondary: #b8860b;
+    --accent: #a9760a;
+    --surface: rgba(255, 255, 255, 0.72);
+    --surface-strong: rgba(253, 250, 244, 0.95);
+}
+
+/* ── 2. Navigation partagée (header + barre mobile) : or au lieu du vert ── */
+body.chat-page .nav-link.is-active {
+    background: var(--emerald-glow);
+    box-shadow: inset 0 -3px 0 var(--line-glow);
+}
+body.chat-page .nav-link:hover { color: var(--emerald-bright); }
+body.chat-page .btn.primary {
+    background: linear-gradient(135deg, var(--emerald-bright), #d99a0e);
+}
+body.chat-page .btn.secondary {
+    background: var(--emerald-glow);
+    border-color: var(--line-glow);
+    color: var(--emerald-bright);
+}
+body.chat-page .user-chip { border-color: var(--line-glow); }
+body.chat-page .user-chip:hover { background: var(--emerald-glow); }
+body.chat-page .mobile-bottom-nav {
+    background: linear-gradient(180deg, rgba(20, 18, 14, 0.94), rgba(12, 11, 10, 0.96));
+    border-top-color: rgba(255, 179, 71, 0.16);
+}
+body.chat-page .mob-nav-item { color: rgba(242, 236, 225, 0.5); }
+body.chat-page .mob-nav-item.active { color: #ffb347; }
+
+/* ── 3. Colonne des conversations ───────────────────────────────────────── */
+body.chat-page .chat-sidebar {
+    border-right: 1px solid rgba(255, 179, 71, 0.14);
+    background: linear-gradient(180deg, rgba(21, 20, 17, 0.92) 0%, rgba(11, 11, 10, 0.96) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+body.chat-page .chat-sidebar-header {
+    background: rgba(255, 179, 71, 0.035);
+    border-bottom: 1px solid rgba(255, 179, 71, 0.12);
+}
+body.chat-page .chat-sidebar-title-row h2 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-family: 'Hanken Grotesk', var(--font-title);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #f8f5ef;
+}
+body.chat-page .chat-sidebar-title-row h2::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #f0c35a, #b87b10);
+    box-shadow: 0 0 12px rgba(210, 154, 34, 0.45);
+}
+body.chat-page .chat-icon-btn { color: #b0a795; }
+body.chat-page .chat-icon-btn:hover { background: rgba(255, 179, 71, 0.10); color: #ffb347; }
+body.chat-page .chat-search-bar {
+    background: rgba(255, 255, 255, 0.035);
+    border: 1px solid rgba(255, 179, 71, 0.18);
+    color: #b0a795;
+}
+body.chat-page .chat-search-bar:focus-within {
+    border-color: rgba(255, 179, 71, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.10);
+}
+body.chat-page .chat-search-bar input { color: #f2ece1; }
+body.chat-page .chat-search-bar input::placeholder { color: #8f8674; }
+body.chat-page .chat-section-label { color: #c9a45c; letter-spacing: 0.1em; }
+body.chat-page .chat-admin-inbox::-webkit-scrollbar-thumb { background: rgba(255, 179, 71, 0.22); }
+body.chat-page .chat-admin-item {
+    background: rgba(255, 179, 71, 0.05);
+    border: 1px solid rgba(255, 179, 71, 0.18);
+    border-radius: 14px;
+}
+body.chat-page .chat-admin-item-text { color: #b0a795; }
+body.chat-page .chat-conv-list::-webkit-scrollbar-thumb { background: rgba(255, 179, 71, 0.22); }
+body.chat-page .chat-conv-item { border-bottom: 1px solid rgba(255, 179, 71, 0.07); }
+body.chat-page .chat-conv-item:hover { background: rgba(255, 179, 71, 0.05); }
+body.chat-page .chat-conv-item.is-active {
+    background: linear-gradient(90deg, rgba(255, 179, 71, 0.13), rgba(255, 179, 71, 0.02));
+    border-left: 3px solid #e9a614;
+}
+body.chat-page .conv-avatar {
+    font-family: 'Hanken Grotesk', var(--font-title);
+    font-weight: 800;
+    font-size: 0.9rem;
+    letter-spacing: 0;
+    color: #fff9ec;
+    background:
+        radial-gradient(circle at 68% 26%, rgba(255, 236, 176, 0.55), transparent 44%),
+        linear-gradient(135deg, #e0a326 0%, #c1851a 46%, #8a5a09 100%);
+}
+body.chat-page .conv-avatar.status-voyageur-paye {
+    background: linear-gradient(135deg, #d9663f, #a83a1c);
+}
+body.chat-page .conv-avatar.status-colisconnect-paye {
+    background:
+        radial-gradient(circle at 68% 26%, rgba(255, 240, 200, 0.5), transparent 46%),
+        linear-gradient(135deg, #f4c754 0%, #d29a22 50%, #9c6a0c 100%);
+}
+body.chat-page .conv-status-pill {
+    background: rgba(255, 179, 71, 0.14);
+    color: #ffca63;
+}
+body.chat-page .chat-conv-item .status-voyageur-paye + .conv-info .conv-status-pill {
+    background: rgba(217, 102, 63, 0.16);
+    color: #f0a184;
+}
+body.chat-page .chat-conv-item .status-colisconnect-paye + .conv-info .conv-status-pill {
+    background: rgba(212, 160, 23, 0.16);
+    color: #ffca63;
+}
+body.chat-page .conv-name { color: #f8f5ef; }
+body.chat-page .conv-time { color: #8f8674; }
+body.chat-page .conv-preview { color: rgba(242, 236, 225, 0.5); }
+body.chat-page .chat-empty-conv { color: #8f8674; }
+
+/* ── 4. Panneau de conversation ─────────────────────────────────────────── */
+body.chat-page .chat-panel {
+    background:
+        radial-gradient(ellipse at 72% 16%, rgba(212, 160, 23, 0.055) 0%, transparent 62%),
+        linear-gradient(180deg, #0d0d0e 0%, #0a0a0b 60%, #080808 100%);
+}
+body.chat-page .chat-empty-state { color: #8f8674; }
+body.chat-page .chat-empty-state h3 {
+    font-family: 'Hanken Grotesk', var(--font-title);
+    color: #f8f5ef;
+    opacity: 0.55;
+    font-weight: 700;
+}
+body.chat-page .chat-empty-icon { color: #d4a017; opacity: 0.18; }
+body.chat-page .chat-panel-header {
+    background: rgba(13, 13, 14, 0.94);
+    border-bottom: 1px solid rgba(255, 179, 71, 0.12);
+}
+body.chat-page .chat-back-btn { color: #b0a795; }
+body.chat-page .chat-back-btn:hover { background: rgba(255, 179, 71, 0.10); color: #ffb347; }
+body.chat-page .chat-panel-avatar {
+    font-family: 'Hanken Grotesk', var(--font-title);
+    font-weight: 800;
+    color: #fff9ec;
+    background:
+        radial-gradient(circle at 68% 26%, rgba(255, 236, 176, 0.55), transparent 44%),
+        linear-gradient(135deg, #e0a326 0%, #c1851a 46%, #8a5a09 100%);
+}
+body.chat-page .chat-panel-contact-name { color: #f8f5ef; font-weight: 700; }
+body.chat-page .chat-panel-contact-sub { color: #8f8674; }
+
+/* Boutons d'action dorés (Payer / Réserver) — même recette que .cc3-cta */
+body.chat-page .cta-pay-btn,
+body.chat-page .banner-action-btn,
+body.chat-page .chat-send-btn {
+    position: relative;
+    overflow: hidden;
+    color: #fffdf5;
+    border: 1px solid rgba(255, 225, 138, 0.65);
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, transparent 25%, rgba(35, 23, 6, 0.18) 72%, rgba(18, 15, 9, 0.34) 100%),
+        linear-gradient(135deg, #f4b82a 0%, #e5a313 42%, #c98208 76%, #8a5807 100%);
+    box-shadow:
+        0 10px 22px rgba(139, 88, 5, 0.28),
+        inset 0 1px 0 rgba(255, 248, 202, 0.55),
+        inset 0 -7px 12px rgba(36, 22, 5, 0.22);
+    text-shadow: 0 1px 1px rgba(40, 23, 3, 0.35);
+    font-family: 'Hanken Grotesk', var(--font-title);
+    font-weight: 900;
+}
+body.chat-page .cta-pay-btn:hover,
+body.chat-page .banner-action-btn:hover,
+body.chat-page .chat-send-btn:hover {
+    opacity: 1;
+    transform: translateY(-1px);
+    filter: saturate(1.08) brightness(1.04);
+}
+body.chat-page .chat-send-btn svg { stroke: #fffdf5; }
+
+/* ── 5. Messages ────────────────────────────────────────────────────────── */
+body.chat-page .chat-messages-zone::-webkit-scrollbar-thumb { background: rgba(255, 179, 71, 0.2); }
+body.chat-page .chat-bubble-user {
+    background: linear-gradient(135deg, #e9a614 0%, #f1b52b 100%);
+    color: #1c1400;
+    box-shadow: 0 8px 20px rgba(139, 88, 5, 0.22);
+}
+body.chat-page .chat-bubble-user .chat-msg-time { color: rgba(28, 20, 0, 0.6); }
+body.chat-page .chat-bubble-traveler {
+    background: linear-gradient(135deg, #1c1d1e 0%, #111213 100%);
+    border: 1px solid rgba(255, 255, 255, 0.105);
+    color: #f2ece1;
+}
+body.chat-page .chat-bubble-traveler .chat-msg-time { color: rgba(242, 236, 225, 0.42); }
+body.chat-page .chat-bubble-system {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 179, 71, 0.14);
+    color: #b0a795;
+}
+body.chat-page .chat-bubble-reversal,
+body.chat-page .msg-reversal {
+    background: rgba(255, 179, 71, 0.07) !important;
+    border: 1px solid rgba(255, 179, 71, 0.24) !important;
+}
+body.chat-page .reversal-amount { color: #ffca63; }
+body.chat-page .reversal-qr-pending { color: rgba(242, 236, 225, 0.45); }
+body.chat-page .chat-no-messages { color: #8f8674; }
+
+/* ── 6. Barre de saisie ─────────────────────────────────────────────────── */
+body.chat-page .chat-input-bar {
+    background: rgba(13, 13, 14, 0.94);
+    border-top: 1px solid rgba(255, 179, 71, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+body.chat-page .chat-input-bar input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 179, 71, 0.18);
+    color: #f2ece1;
+}
+body.chat-page .chat-input-bar input::placeholder { color: #8f8674; }
+body.chat-page .chat-input-bar input:focus {
+    border-color: rgba(255, 179, 71, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+}
+
+/* ── 7. Bandeau d'info + tutoriel ───────────────────────────────────────── */
+body.chat-page .chat-info-banner {
+    background: rgba(255, 179, 71, 0.06);
+    border: 1px solid rgba(255, 179, 71, 0.18);
+    color: #b0a795;
+}
+body.chat-page .chat-info-banner .banner-text strong { color: #ffb347; }
+body.chat-page .chat-info-banner.tutorial-focus {
+    background: rgba(255, 179, 71, 0.14) !important;
+    border: 1px solid #ffb347;
+    box-shadow: 0 0 30px rgba(255, 179, 71, 0.45);
+}
+body.chat-page .banner-action-btn.highlight-mode {
+    background: linear-gradient(135deg, #f4b82a, #c98208) !important;
+    color: #2a1c02 !important;
+    box-shadow: 0 0 25px rgba(255, 179, 71, 0.75);
+}
+
+/* ── 8. Mobile : panneau plein écran (classes réellement émises par
+   chat.js : .mobile-hidden / .mobile-active — .is-open était morte) ────── */
+@media (max-width: 800px) {
+    /* la barre de navigation (64px) flotte au-dessus de la liste :
+       on réserve la place pour que le dernier fil ne soit pas masqué */
+    body.chat-page .chat-conv-list,
+    body.chat-page .chat-admin-inbox { padding-bottom: 76px; }
+    body.chat-page .chat-sidebar.mobile-hidden { display: none; }
+    body.chat-page .chat-panel.mobile-active {
+        transform: translateX(0);
+        background: linear-gradient(180deg, #0d0d0e 0%, #0a0a0b 100%);
+    }
+    body.chat-page .chat-sidebar { background: linear-gradient(180deg, #14130f 0%, #0b0b0a 100%); }
+}
+/* Conversation ouverte : la barre du bas et la bascule de thème laissent la
+   place à la zone de saisie (classe posée par chat.js) */
+body.chat-page.chat-conv-open .mobile-bottom-nav,
+body.chat-page.chat-conv-open .theme-toggle { display: none !important; }
+
+/* ==========================================================================
+   MODE CLAIR — GOLD LIGHT
+   ========================================================================== */
+body.chat-page.light .site-header,
+body.chat-page.light .mobile-bottom-nav {
+    background: rgba(253, 250, 244, 0.92) !important;
+    border-color: rgba(184, 134, 11, 0.25) !important;
+    box-shadow: 0 10px 30px rgba(184, 134, 11, 0.10) !important;
+}
+body.chat-page.light .site-header .nav-link,
+body.chat-page.light .mob-nav-item { color: #5a4632 !important; }
+body.chat-page.light .site-header .nav-link.is-active,
+body.chat-page.light .mob-nav-item.active { color: #b8860b !important; }
+body.chat-page.light .brand-name {
+    /* le raccourci `background` remet background-clip à border-box :
+       on remet donc le découpage sur le texte, sinon = pavé doré */
+    background: linear-gradient(90deg, #7a5a12, #b8860b);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+body.chat-page.light .brand-sub { color: #6d6252 !important; }
+body.chat-page.light .user-chip { color: #5a4632 !important; border-color: rgba(184, 134, 11, 0.35) !important; }
+body.chat-page.light .btn.ghost { color: #5a4632; }
+body.chat-page.light .btn.secondary { color: #8a6d1f; }
+body.chat-page.light .nav-notif-wrapper .plus-btn,
+body.chat-page.light .mobile-bottom-nav .plus-btn { color: #fffdf5; }
+
+body.chat-page.light .chat-sidebar {
+    border-right: 1px solid rgba(184, 134, 11, 0.22);
+    background: rgba(253, 250, 244, 0.94);
+}
+body.chat-page.light .chat-sidebar-header {
+    background: rgba(184, 134, 11, 0.05);
+    border-bottom: 1px solid rgba(184, 134, 11, 0.16);
+}
+body.chat-page.light .chat-sidebar-title-row h2 { color: #3a2f1e; }
+body.chat-page.light .chat-icon-btn { color: #6d6252; }
+body.chat-page.light .chat-icon-btn:hover { background: rgba(184, 134, 11, 0.10); color: #b8860b; }
+body.chat-page.light .chat-search-bar {
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(184, 134, 11, 0.28);
+    color: #6d6252;
+}
+body.chat-page.light .chat-search-bar:focus-within {
+    border-color: rgba(184, 134, 11, 0.6);
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.12);
+}
+body.chat-page.light .chat-search-bar input { color: #3a2f1e; }
+body.chat-page.light .chat-search-bar input::placeholder { color: #8b8070; }
+body.chat-page.light .chat-section-label { color: #a9760a; }
+body.chat-page.light .chat-admin-item {
+    background: rgba(184, 134, 11, 0.07);
+    border: 1px solid rgba(184, 134, 11, 0.20);
+}
+body.chat-page.light .chat-admin-item-text { color: #6d6252; }
+body.chat-page.light .chat-conv-list::-webkit-scrollbar-thumb,
+body.chat-page.light .chat-admin-inbox::-webkit-scrollbar-thumb { background: rgba(184, 134, 11, 0.25); }
+body.chat-page.light .chat-conv-item { border-bottom: 1px solid rgba(184, 134, 11, 0.12); }
+body.chat-page.light .chat-conv-item:hover { background: rgba(184, 134, 11, 0.07); }
+body.chat-page.light .chat-conv-item.is-active {
+    background: linear-gradient(90deg, rgba(184, 134, 11, 0.14), rgba(184, 134, 11, 0.02));
+    border-left: 3px solid #b8860b;
+}
+body.chat-page.light .conv-status-pill { background: rgba(184, 134, 11, 0.14); color: #8a6d1f; }
+body.chat-page.light .chat-conv-item .status-voyageur-paye + .conv-info .conv-status-pill {
+    background: rgba(217, 102, 63, 0.14);
+    color: #a83a1c;
+}
+body.chat-page.light .chat-conv-item .status-colisconnect-paye + .conv-info .conv-status-pill {
+    background: rgba(184, 134, 11, 0.16);
+    color: #8a6d1f;
+}
+body.chat-page.light .conv-name { color: #3a2f1e; }
+body.chat-page.light .conv-time { color: #8b8070; }
+body.chat-page.light .conv-preview { color: rgba(58, 47, 30, 0.62); }
+body.chat-page.light .chat-empty-conv { color: #8b8070; }
+
+body.chat-page.light .chat-panel {
+    background:
+        radial-gradient(ellipse at 72% 16%, rgba(212, 160, 23, 0.07) 0%, transparent 62%),
+        linear-gradient(180deg, #fdfaf4 0%, #faf6ee 60%, #f5efe3 100%);
+}
+body.chat-page.light .chat-empty-state { color: #8b8070; }
+body.chat-page.light .chat-empty-state h3 { color: #6d6252; opacity: 0.85; }
+body.chat-page.light .chat-empty-icon { color: #b8860b; opacity: 0.25; }
+body.chat-page.light .chat-panel-header {
+    background: rgba(253, 250, 244, 0.96);
+    border-bottom: 1px solid rgba(184, 134, 11, 0.16);
+}
+body.chat-page.light .chat-back-btn { color: #6d6252; }
+body.chat-page.light .chat-back-btn:hover { background: rgba(184, 134, 11, 0.10); color: #b8860b; }
+body.chat-page.light .chat-panel-contact-name { color: #3a2f1e; }
+body.chat-page.light .chat-panel-contact-sub { color: #8b8070; }
+body.chat-page.light .chat-messages-zone::-webkit-scrollbar-thumb { background: rgba(184, 134, 11, 0.25); }
+body.chat-page.light .chat-bubble-user {
+    background: linear-gradient(135deg, #c9880b 0%, #e0a326 100%);
+    color: #fffdf5;
+    box-shadow: 0 8px 20px rgba(139, 88, 5, 0.18);
+}
+body.chat-page.light .chat-bubble-user .chat-msg-time { color: rgba(255, 253, 245, 0.75); }
+body.chat-page.light .chat-bubble-traveler {
+    background: #ffffff;
+    border: 1px solid rgba(184, 134, 11, 0.22);
+    color: #3a2f1e;
+    box-shadow: 0 6px 16px rgba(64, 54, 37, 0.06);
+}
+body.chat-page.light .chat-bubble-traveler .chat-msg-time { color: rgba(58, 47, 30, 0.5); }
+body.chat-page.light .chat-bubble-system {
+    background: rgba(184, 134, 11, 0.07);
+    border: 1px solid rgba(184, 134, 11, 0.18);
+    color: #6d6252;
+}
+body.chat-page.light .chat-bubble-reversal,
+body.chat-page.light .msg-reversal {
+    background: rgba(184, 134, 11, 0.06) !important;
+    border: 1px solid rgba(184, 134, 11, 0.22) !important;
+}
+body.chat-page.light .reversal-amount { color: #8a6d1f; }
+body.chat-page.light .reversal-qr-pending { color: rgba(58, 47, 30, 0.5); }
+body.chat-page.light .chat-no-messages { color: #8b8070; }
+body.chat-page.light .chat-input-bar {
+    background: rgba(253, 250, 244, 0.96);
+    border-top: 1px solid rgba(184, 134, 11, 0.16);
+}
+body.chat-page.light .chat-input-bar input {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(184, 134, 11, 0.28);
+    color: #3a2f1e;
+}
+body.chat-page.light .chat-input-bar input::placeholder { color: #8b8070; }
+body.chat-page.light .chat-input-bar input:focus {
+    border-color: rgba(184, 134, 11, 0.6);
+    box-shadow: 0 0 0 3px rgba(184, 134, 11, 0.12);
+}
+body.chat-page.light .chat-info-banner {
+    background: rgba(184, 134, 11, 0.07);
+    border: 1px solid rgba(184, 134, 11, 0.22);
+    color: #6d6252;
+}
+body.chat-page.light .chat-info-banner .banner-text strong { color: #a9760a; }
+body.chat-page.light .chat-info-banner.tutorial-focus {
+    background: rgba(184, 134, 11, 0.14) !important;
+    border: 1px solid #b8860b;
+    box-shadow: 0 0 30px rgba(184, 134, 11, 0.35);
+}
+@media (max-width: 800px) {
+    body.chat-page.light .chat-sidebar { background: rgba(253, 250, 244, 0.98); }
+    body.chat-page.light .chat-panel.mobile-active {
+        background: linear-gradient(180deg, #fdfaf4 0%, #f7f2e9 100%);
+    }
+}
