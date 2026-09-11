@@ -314,6 +314,103 @@
             .trim();
     }
 
+    /**
+     * Noms et acronymes de devises (par code ISO).
+     * Ce sont les acronymes utilisés DANS le pays, pas le code ISO :
+     * XOF -> "FCFA" (Cote d'Ivoire, Senegal...), jamais "XOF".
+     * Le code ISO reste la reference technique cote back-end / Supabase.
+     */
+    const CURRENCY_META = {
+        XOF: { symbol: "FCFA", name: "Franc CFA (BCEAO)" },
+        XAF: { symbol: "FCFA", name: "Franc CFA (BEAC)" },
+        GNF: { symbol: "FG", name: "Franc guinéen" },
+        NGN: { symbol: "\u20a6", name: "Naira nigérian" },
+        GHS: { symbol: "GH\u20b5", name: "Cedi ghanéen" },
+        CDF: { symbol: "FC", name: "Franc congolais" },
+        RWF: { symbol: "FRw", name: "Franc rwandais" },
+        KES: { symbol: "KSh", name: "Shilling kényan" },
+        TZS: { symbol: "TSh", name: "Shilling tanzanien" },
+        UGX: { symbol: "USh", name: "Shilling ougandais" },
+        MAD: { symbol: "DH", name: "Dirham marocain" },
+        DZD: { symbol: "DA", name: "Dinar algérien" },
+        TND: { symbol: "DT", name: "Dinar tunisien" },
+        EGP: { symbol: "E\u00a3", name: "Livre égyptienne" },
+        ZAR: { symbol: "R", name: "Rand sud-africain" },
+        MGA: { symbol: "Ar", name: "Ariary malgache" },
+        ETB: { symbol: "Br", name: "Birr éthiopien" },
+        MRU: { symbol: "UM", name: "Ouguiya mauritanien" },
+        CVE: { symbol: "Esc", name: "Escudo cap-verdien" },
+        EUR: { symbol: "\u20ac", name: "Euro" },
+        USD: { symbol: "$", name: "Dollar americain" },
+        GBP: { symbol: "\u00a3", name: "Livre sterling" },
+        CHF: { symbol: "CHF", name: "Franc suisse" },
+        CAD: { symbol: "CA$", name: "Dollar canadien" },
+        CNY: { symbol: "\u00a5", name: "Yuan chinois" },
+        JPY: { symbol: "\u00a5", name: "Yen japonais" },
+        INR: { symbol: "\u20b9", name: "Rupie indienne" },
+        BRL: { symbol: "R$", name: "Réal brésilien" },
+        RUB: { symbol: "\u20bd", name: "Rouble russe" },
+        TRY: { symbol: "\u20ba", name: "Livre turque" },
+        AED: { symbol: "AED", name: "Dirham des Émirats" },
+        SAR: { symbol: "SAR", name: "Riyal saoudien" },
+        QAR: { symbol: "QR", name: "Riyal qatari" },
+        MXN: { symbol: "Mex$", name: "Peso mexicain" },
+        ARS: { symbol: "AR$", name: "Peso argentin" },
+        COP: { symbol: "COL$", name: "Peso colombien" },
+        PLN: { symbol: "z\u0142", name: "Zloty polonais" },
+        SEK: { symbol: "kr", name: "Couronne suédoise" },
+        NOK: { symbol: "kr", name: "Couronne norvégienne" },
+        DKK: { symbol: "kr", name: "Couronne danoise" },
+        AUD: { symbol: "AU$", name: "Dollar australien" },
+        NZD: { symbol: "NZ$", name: "Dollar néo-zélandais" },
+        KRW: { symbol: "\u20a9", name: "Won sud-coréen" },
+        IDR: { symbol: "Rp", name: "Rupiah indonésienne" },
+        VND: { symbol: "\u20ab", name: "Dong vietnamien" },
+        THB: { symbol: "\u0e3f", name: "Baht thaïlandais" },
+        MYR: { symbol: "RM", name: "Ringgit malaisien" },
+        PHP: { symbol: "\u20b1", name: "Peso philippin" },
+        SGD: { symbol: "S$", name: "Dollar de Singapour" },
+        BDT: { symbol: "Tk", name: "Taka bangladais" },
+        PKR: { symbol: "Rs", name: "Rupie pakistanaise" }
+    };
+
+    // Symbole court a afficher a cote d'un montant ("25 000 FCFA").
+    // Devise absente de la table -> symbole du navigateur -> code ISO.
+    function currencySymbol(code) {
+        const key = String(code || "").toUpperCase();
+        const meta = CURRENCY_META[key];
+        if (meta) return meta.symbol;
+        try {
+            const part = new Intl.NumberFormat("fr-FR", {
+                style: "currency", currency: key, currencyDisplay: "narrowSymbol"
+            }).formatToParts(12500).find((p) => p.type === "currency");
+            if (part && part.value && part.value.trim() && part.value.trim() !== key) return part.value.trim();
+        } catch (e) { /* devise inconnue du navigateur */ }
+        return key;
+    }
+
+    // Nom lisible ("Franc CFA (BCEAO)") pour les listes de choix.
+    function currencyName(code) {
+        const key = String(code || "").toUpperCase();
+        const meta = CURRENCY_META[key];
+        if (meta) return meta.name;
+        try {
+            if (typeof Intl !== "undefined" && Intl.DisplayNames) {
+                const label = new Intl.DisplayNames(["fr"], { type: "currency" }).of(key);
+                if (label && label !== key) return label.charAt(0).toUpperCase() + label.slice(1);
+            }
+        } catch (e) { /* ignore */ }
+        return "Devise " + key;
+    }
+
+    // Libelle complet pour un choix : "Franc CFA (BCEAO) - FCFA"
+    function currencyLabel(code) {
+        const key = String(code || "").toUpperCase();
+        const sym = currencySymbol(key);
+        const name = currencyName(key);
+        return sym && sym !== key ? name + " - " + sym : name;
+    }
+
     function getSmartRoundedAmount(amount, currency) {
         currency = String(currency || "").toUpperCase();
         // Groupe 1 : Centaine supérieure (ex: Afrique de l'Ouest/Centrale)
@@ -333,22 +430,20 @@
     }
 
     function formatAmount(amount, currency) {
-        const rounded = getSmartRoundedAmount(amount, currency);
-        const isLowValue = ["XOF", "XAF", "GNF", "NGN", "RWF", "CDF", "MGA"].includes(currency);
+        const code = String(currency || "").toUpperCase();
+        const rounded = getSmartRoundedAmount(amount, code);
+        const isLowValue = ["XOF", "XAF", "GNF", "NGN", "RWF", "CDF", "MGA"].includes(code);
 
-        const symbols = { EUR: '€', USD: '$', GBP: '£', CNY: '¥', JPY: '¥', XOF: ' FCFA', XAF: ' FCFA', NGN: 'â‚¦' };
-        const sym = symbols[currency] || ` ${currency}`;
-
-        const formatted = new Intl.NumberFormat('fr-FR', {
+        const formatted = new Intl.NumberFormat("fr-FR", {
             minimumFractionDigits: 0,
             maximumFractionDigits: isLowValue ? 0 : 2
         }).format(rounded);
 
-        if (['EUR', 'USD', 'GBP', 'CNY', 'JPY'].includes(currency)) {
-            const internationalSymbols = { EUR: '€', USD: '$', GBP: '£', CNY: '¥', JPY: '¥' };
-            return `${internationalSymbols[currency]}${formatted}`;
+        // Devises dont le symbole se place avant le montant (affichage existant conserve)
+        if (["EUR", "USD", "GBP", "CNY", "JPY"].includes(code)) {
+            return currencySymbol(code) + formatted;
         }
-        return `${formatted}${sym}`;
+        return formatted + " " + currencySymbol(code);
     }
 
     /**
@@ -2656,6 +2751,10 @@
         startNotifPolling,
         stopNotifPolling,
         formatAmount,
+        CURRENCY_META,
+        currencySymbol,
+        currencyName,
+        currencyLabel,
         convertCurrency,
         getSmartRoundedAmount,
         getUserCurrency,

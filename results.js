@@ -689,29 +689,12 @@
 
         const exchangeRates = window.CCCommon?.EXCHANGE_RATES || {};
 
-        const CUR_DETAILS = {
-            EUR: { symbol: '€', name: 'Euro' },
-            XOF: { symbol: 'FCFA', name: 'Franc CFA (BCEAO)' },
-            USD: { symbol: '$', name: 'Dollar US' },
-            CAD: { symbol: '$', name: 'Dollar Canadien' },
-            GBP: { symbol: '£', name: 'Livre Sterling' },
-            CHF: { symbol: 'CHF', name: 'Franc Suisse' },
-            CNY: { symbol: '¥', name: 'Yuan Chinois' },
-            JPY: { symbol: '¥', name: 'Yen Japonais' },
-            XAF: { symbol: 'FCFA', name: 'Franc CFA (BEAC)' },
-            MAD: { symbol: 'DH', name: 'Dirham Marocain' },
-            DZD: { symbol: 'DA', name: 'Dinar Algérien' },
-            TND: { symbol: 'DT', name: 'Dinar Tunisien' },
-            NGN: { symbol: '₦', name: 'Naira Nigérian' },
-            GHS: { symbol: 'GH₵', name: 'Cedi Ghanéen' },
-            ZAR: { symbol: 'R', name: 'Rand Sud-Africain' },
-            INR: { symbol: '₹', name: 'Roupie Indienne' },
-            BRL: { symbol: 'R$', name: 'Réal Brésilien' },
-            MXN: { symbol: '$', name: 'Peso Mexicain' },
-            TRY: { symbol: '₺', name: 'Lire Turque' },
-            RUB: { symbol: '₽', name: 'Rouble Russe' }
-        };
-
+        // Noms + acronymes : source unique = CCCommon.CURRENCY_META (standalone-common.js)
+        const sharedMeta = (window.CCCommon && window.CCCommon.CURRENCY_META) || {};
+        const CUR_DETAILS = Object.keys(sharedMeta).reduce((acc, code) => {
+            acc[code] = { symbol: sharedMeta[code].symbol, name: sharedMeta[code].name };
+            return acc;
+        }, {});
         // Si les taux Supabase ne sont pas encore chargés, utiliser CUR_DETAILS comme fallback
         const rateKeys = Object.keys(exchangeRates);
         const hasRealRates = rateKeys.length > 2;
@@ -739,9 +722,10 @@
                 .map(cur => {
                     const detail = CUR_DETAILS[cur];
                     const activeClass = state.userCurrency === cur ? "active" : "";
-                    const nameLabel = detail ? detail.name : `Devise ${cur}`;
+                    const nameLabel = detail ? detail.name
+                        : (window.CCCommon?.currencyName?.(cur) || `Devise ${cur}`);
                     return `<li class="currency-dropdown-item ${activeClass}" data-value="${cur}">
-                        <span class="currency-item-code">${cur}</span>
+                        <span class="currency-item-code">${(detail && detail.symbol) || cur}</span>
                         <span class="currency-item-name">${nameLabel}</span>
                     </li>`;
                 })
@@ -1179,25 +1163,48 @@
             return table[v] || curKeyMap[normCurKey(v)] || "";
         };
         const fallbackCurrency = () => state.userCurrency || window.CCCommon?.getUserCurrency?.() || "XOF";
+        // Acronyme lisible d'une devise ("FCFA" et non "XOF")
+        const curSym = (code) => window.CCCommon?.currencySymbol?.(code) || code;
+        const curName = (code) => window.CCCommon?.currencyName?.(code) || code;
         const dmdCurOptions = () => {
             const dep = currencyOfCountry(document.getElementById("demande-origin")?.value);
             const dst = currencyOfCountry(document.getElementById("demande-destination")?.value);
             const opts = [];
-            if (dep) opts.push({ value: dep, label: `Devise du pays de depart (${dep})` });
-            if (dst && dst !== dep) opts.push({ value: dst, label: `Devise du pays d'arrivee (${dst})` });
-            if (!opts.length) opts.push({ value: fallbackCurrency(), label: `Devise du compte (${fallbackCurrency()})` });
+            if (dep) opts.push({ value: dep, label: `Devise du pays de depart (${curSym(dep)})`, name: curName(dep) });
+            if (dst && dst !== dep) opts.push({ value: dst, label: `Devise du pays d'arrivee (${curSym(dst)})`, name: curName(dst) });
+            if (!opts.length) {
+                const fb = fallbackCurrency();
+                opts.push({ value: fb, label: `Devise du compte (${curSym(fb)})`, name: curName(fb) });
+            }
+            // Deux devises differentes peuvent partager un acronyme (FCFA pour XOF/XAF,
+            // "kr" pour SEK/NOK/DKK) : dans ce cas seulement, on precise le nom complet.
+            const syms = opts.map((o) => curSym(o.value));
+            if (new Set(syms).size < opts.length) {
+                opts.forEach((o) => {
+                    // Nom court : "Franc CFA (BCEAO)" -> "BCEAO", sinon le nom complet
+                    const court = (o.name.match(/\(([^)]+)\)$/) || [null, o.name])[1];
+                    o.label = o.label.replace(/\(([^)]*)\)$/, (m, s) => `(${s} - ${court})`);
+                });
+            }
             return opts;
         };
         // Devise courante d'un colis : celle deja choisie, sinon celle affichee dans la puce
         // (etat initial), sinon la devise du compte.
+        // Retrouve un code ISO depuis un acronyme affiche ("FCFA" -> XOF)
+        const codeFromSymbol = (txt) => {
+            const meta = window.CCCommon?.CURRENCY_META || {};
+            const key = String(txt || "").trim().toUpperCase();
+            if (meta[key]) return key;
+            return Object.keys(meta).find((c) => String(meta[c].symbol).toUpperCase() === key) || null;
+        };
         const boxCurrencyOf = (box) => box?.dataset.currency
-            || (box?.querySelector(".dmd-cur-val")?.textContent || "").trim()
+            || codeFromSymbol(box?.querySelector(".dmd-cur-val")?.textContent)
             || fallbackCurrency();
         const setBoxCurrency = (box, cur) => {
             if (!box || !cur) return;
             box.dataset.currency = cur;
             const tag = box.querySelector(".dmd-cur-val") || box.querySelector(".dmd-colis-cur");
-            if (tag) tag.textContent = cur;
+            if (tag) tag.textContent = curSym(cur);
         };
         const closeCurPops = (except) => {
             document.querySelectorAll(".dmd-cur-pop").forEach((pop) => {
@@ -1485,7 +1492,7 @@
             const labels = { verified: "Voyageurs vérifiés", urgent: "Départ proche", weight: "", price: "" };
             container.innerHTML = entries.map(([key, val]) => {
                 const label = key === "weight" ? "Poids min: " + val + " kg"
-                    : key === "price" ? "Prix max: " + Number(val).toLocaleString("fr-FR") + " CFA/kg"
+                    : key === "price" ? "Prix max: " + Number(val).toLocaleString("fr-FR") + " " + curSym(state.userCurrency) + "/kg"
                     : labels[key] || key;
                 return `<span class="mfa-tag">${label}<button data-remove="${key}">&times;</button></span>`;
             }).join("");
