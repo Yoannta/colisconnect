@@ -168,7 +168,9 @@
             const hasDesc = !!(d.description && String(d.description).trim());
             const descTxt = esc(d.description);
             const fmtNum = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 0 });
-            const budgetCur = esc(d.currency || "XOF");
+            // Acronyme local ("FCFA" et non "XOF") : meme logique que le reste de la page
+            const budgetCode = d.currency || "XOF";
+            const budgetCur = esc(window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(budgetCode) : budgetCode);
 
             // Partie « envoyer » d'un colis : <span class="cc3-demand-hl">12 kilo de valise</span>
             const mkItemSendHl = (it) => {
