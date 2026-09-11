@@ -460,7 +460,7 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
   - `results.html` sâ€™appuie sur un `<datalist>` de pays pour la destination, ce qui limite la saisie aux options enregistrÃ©es.
   - `verification.html` propose un `<datalist>` de prÃ©fixes tÃ©lÃ©phoniques et `verification.js` complÃ¨te automatiquement le code sÃ©lectionnÃ© pour que lâ€™utilisateur puisse ensuite taper le reste de son numÃ©ro.
 - Datalist helper :
-  - `datalist-helper.js` garde le datalist natif mais force lâ€™ouverture complÃ¨te Ã  chaque clic/focus en vidant puis restaurant la valeur (hack `showPicker`), pour pouvoir re-choisir sans effacer le champ.
+  - `datalist-helper.js` a ete retire (sept. 2026) : l'autocomplete pays est desormais assure par `CCCommon.setupCountryInput` (standalone-common.js), qui gere le theme clair et conserve la saisie. L'ancien helper, qui gardait le datalist natif pour en forcer l'ouverture complete a chaque clic/focus, est conserve dans l'historique git.
 - Admin alert :
   - `admin-banner.js` vÃ©rifie `/api/admin/inbox` et affiche un bandeau rouge au-dessus de `body` dÃ¨s quâ€™un message de rejet de CNI/Passeport (section `identityDocument`) existe, avec la raison Â« non-conformitÃ© Â» pour guider lâ€™utilisateur vers un nouvel upload.
 - Données africaines :

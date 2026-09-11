@@ -2413,32 +2413,18 @@
             showVilles(villes);
         });
 
-        // --- Validation stricte : la ville doit être choisie parmi les suggestions ---
-        function _normaliseVille(t) {
-            return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-        }
-
-        function _villeValide(valeur) {
-            if (!valeur) return true; // champ vide = pas de contrainte
-            if (!_lastQuery) return true; // aucune recherche faite → valeur pré-remplie/intacte, on ne juge pas
-            const v = _normaliseVille(valeur);
-            return Array.from(list.querySelectorAll("li"))
-                .some(li => _normaliseVille(li.textContent) === v);
-        }
-
+        // --- Ville libre (Yoyo 2026-09) : la valeur saisie est CONSERVEE meme si elle ne
+        //     vient pas des suggestions. Avant, le blur/Entree vidait le champ des que la
+        //     ville n'etait pas dans la liste -> une ville absente de la base partait vide. ---
         cityInput.addEventListener("blur", () => {
-            // VIDAGE SYNCHRONE (le submit lit la valeur avant les setTimeout)
-            if (!_villeValide(cityInput.value)) cityInput.value = "";
+            cityInput.value = cityInput.value.trim();
             setTimeout(() => { list.style.display = "none"; }, 200);
         });
 
-        // Entrée → soumettre seulement si la ville correspond à une suggestion affichée
+        // Entree → on ferme les suggestions et on garde la saisie (suggestion choisie ou non)
         cityInput.addEventListener("keydown", (e) => {
             if (e.key !== "Enter") return;
-            if (!_villeValide(cityInput.value)) {
-                e.preventDefault();
-                cityInput.value = "";
-            }
+            list.style.display = "none";
         });
 
         document.addEventListener("click", (e) => {

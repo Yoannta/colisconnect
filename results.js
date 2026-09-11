@@ -585,7 +585,7 @@
           <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
         </div>
         <div class="cc3-detail-txt">
-          <span class="cc3-d-label">${extraDateChips.length ? "J'ai des voyages le :" : "Départ"}</span>
+          <span class="cc3-d-label cc3-d-label--big">${extraDateChips.length ? "J'ai des voyages le :" : "Départ"}</span>
           ${departValueHtml}
         </div>
       </div>

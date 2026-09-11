@@ -283,7 +283,7 @@
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=44"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=45"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
 
@@ -294,13 +294,13 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js"></script>
 
-    <script defer src="standalone-common.js?v=2"></script>
+    <script defer src="standalone-common.js?v=3"></script>
 
-    <script defer src="datalist-helper.js?v=2"></script>
+    <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=33"></script>
+    <script defer src="results.js?v=34"></script>
 
 </head>
 
@@ -576,7 +576,7 @@
                         <div class="demande-field">
                             <label>Date limite</label>
                             <div class="demande-date-row">
-                                <input type="date" id="demande-date" class="demande-input" style="flex:1;">
+                                <input type="date" id="demande-date" class="demande-input">
                                 <button type="button" class="demande-date-alt" id="demande-no-date-btn">Pas de date
                                     limite</button>
                             </div>

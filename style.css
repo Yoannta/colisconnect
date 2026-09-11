@@ -9874,7 +9874,7 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
 }
 .currency-wrap {
     position: relative;
-    margin-left: 2.25rem;
+    margin-left: auto;
 }
 .results-header {
     display: flex;
@@ -10100,8 +10100,20 @@ body.results-page #cc-auth-phone-input {
 }
 .demande-date-row {
     display: flex;
+    /* Yoyo 2026-09 : sur ecran etroit le bouton passait a la trappe (le champ date natif
+       a une largeur mini incompressible) -> on autorise le retour a la ligne. */
+    flex-wrap: wrap;
     gap: 10px;
     align-items: center;
+}
+/* Le champ date prend la place restante mais peut rétrécir (min-width:0) */
+.demande-date-row #demande-date {
+    flex: 1 1 170px;
+    min-width: 0;
+}
+/* Le bouton garde sa taille naturelle et passe seul sous le champ si ca ne tient pas */
+.demande-date-row .demande-date-alt {
+    flex: 0 1 auto;
 }
 .demande-date-alt {
     background: rgba(255, 179, 71, 0.06);
@@ -12109,6 +12121,16 @@ body.results-page.light .cc3-special-toggle-gold {
     text-transform: uppercase;
     margin-bottom: 3px !important;
     white-space: nowrap;
+}
+/* Yoyo 2026-09 : libelles « Depart » / « J'ai des voyages le : » de la carte d'offres
+   agrandis, les autres libelles des cartes gardent leur taille d'origine. */
+.cc3-details .cc3-d-label--big {
+    font-size: 0.62rem;
+    letter-spacing: 0.11em;
+    /* Sur mobile la colonne fait ~100 px : le libelle peut passer a la ligne
+       plutot que deborder sur la colonne voisine (le nowrap global est leve ici). */
+    white-space: normal;
+    line-height: 1.2;
 }
 .cc3-value {
     color: #fffaf2;
