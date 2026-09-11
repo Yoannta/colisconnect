@@ -1079,7 +1079,7 @@
             document.querySelectorAll("#demande-wizard-progress .dmd-progress-line i").forEach((bar, idx) => {
                 bar.style.width = (idx + 1 < step) ? "100%" : "0%";
             });
-            const isLast = step >= 3;
+            const isLast = step >= 2; // 2 etapes : la Description a ete supprimee (Yoyo)
             if (dmdNextBtn) dmdNextBtn.style.display = isLast ? "none" : "";
             if (dmdSubmitBtn) dmdSubmitBtn.style.display = isLast ? "" : "none";
             if (dmdPrevBtn) dmdPrevBtn.style.visibility = step <= 1 ? "hidden" : "visible";
@@ -1102,6 +1102,7 @@
                 applyNoDateChoice();
                 document.querySelectorAll("#demande-form .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
                 dmdGoTo(1);
+                syncDmdCurrencies(); // devises recalculees depuis les pays (vides)
             } catch (e) { /* modale absente */ }
         };
 
@@ -1122,6 +1123,26 @@
                     removeColisBox(delBtn.closest(".dmd-colis-box"));
                     return;
                 }
+                // Sélecteur de devise du colis : ouverture / fermeture de la liste
+                const curBtn = e.target.closest(".dmd-cur-btn");
+                if (curBtn) {
+                    const pop = curBtn.parentElement?.querySelector(".dmd-cur-pop");
+                    if (pop) {
+                        const willOpen = pop.hidden;
+                        closeCurPops(willOpen ? pop : null);
+                        pop.hidden = !willOpen;
+                        curBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+                    }
+                    return;
+                }
+                // Choix d'une devise (celle du départ ou celle de l'arrivée)
+                const curOpt = e.target.closest(".dmd-cur-opt");
+                if (curOpt) {
+                    const box = curOpt.closest(".dmd-colis-box");
+                    if (box) setBoxCurrency(box, curOpt.dataset.cur);
+                    syncDmdCurrencies();
+                    return;
+                }
             });
             // Nom + champ « combien » pilotent en direct libellé et placeholder du montant
             colisZone.addEventListener("input", (e) => {
@@ -1134,15 +1155,120 @@
                 }
             });
         }
-        dmdAddColisBtn?.addEventListener("click", addColisBox);
+        dmdAddColisBtn?.addEventListener("click", () => {
+            addColisBox();
+            syncDmdCurrencies();
+        });
         // État initial : libellé + placeholder cohérents avec les champs déjà remplis
         getColisBoxes().forEach(refreshBoxUi);
 
-        // Devise affichée sur chaque cadre
-        (function setDemandeCurrency() {
-            const cur = state.userCurrency || window.CCCommon?.getUserCurrency?.() || "XOF";
-            document.querySelectorAll(".dmd-colis-cur").forEach((tag) => { tag.textContent = cur; });
-        })();
+        // ── DEVISE PAR COLIS (Yoyo) : au lieu d'une devise figee, chaque colis propose la
+        // devise du pays de depart ou celle du pays d'arrivee, comme le formulaire des
+        // voyageurs. Tout est calcule en local depuis COUNTRY_CURRENCIES (aucune requete).
+        const normCurKey = (s) => String(s || "")
+            .trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-z]/g, "");
+        let curKeyMap = null;
+        const currencyOfCountry = (raw) => {
+            const table = window.CCCommon?.COUNTRY_CURRENCIES || {};
+            if (!curKeyMap) {
+                curKeyMap = {};
+                Object.keys(table).forEach((k) => { curKeyMap[normCurKey(k)] = table[k]; });
+            }
+            const v = String(raw || "").trim();
+            return table[v] || curKeyMap[normCurKey(v)] || "";
+        };
+        const fallbackCurrency = () => state.userCurrency || window.CCCommon?.getUserCurrency?.() || "XOF";
+        const dmdCurOptions = () => {
+            const dep = currencyOfCountry(document.getElementById("demande-origin")?.value);
+            const dst = currencyOfCountry(document.getElementById("demande-destination")?.value);
+            const opts = [];
+            if (dep) opts.push({ value: dep, label: `Devise du pays de depart (${dep})` });
+            if (dst && dst !== dep) opts.push({ value: dst, label: `Devise du pays d'arrivee (${dst})` });
+            if (!opts.length) opts.push({ value: fallbackCurrency(), label: `Devise du compte (${fallbackCurrency()})` });
+            return opts;
+        };
+        // Devise courante d'un colis : celle deja choisie, sinon celle affichee dans la puce
+        // (etat initial), sinon la devise du compte.
+        const boxCurrencyOf = (box) => box?.dataset.currency
+            || (box?.querySelector(".dmd-cur-val")?.textContent || "").trim()
+            || fallbackCurrency();
+        const setBoxCurrency = (box, cur) => {
+            if (!box || !cur) return;
+            box.dataset.currency = cur;
+            const tag = box.querySelector(".dmd-cur-val") || box.querySelector(".dmd-colis-cur");
+            if (tag) tag.textContent = cur;
+        };
+        const closeCurPops = (except) => {
+            document.querySelectorAll(".dmd-cur-pop").forEach((pop) => {
+                if (pop === except) return;
+                pop.hidden = true;
+                pop.parentElement?.querySelector(".dmd-cur-btn")?.setAttribute("aria-expanded", "false");
+            });
+        };
+        const renderCurPop = (box, opts) => {
+            const pop = box.querySelector(".dmd-cur-pop");
+            const btn = box.querySelector(".dmd-cur-btn");
+            if (!pop) return;
+            const cur = boxCurrencyOf(box);
+            pop.innerHTML = opts.map((o) => (`<button type="button" class="dmd-cur-opt${o.value === cur ? " active" : ""}"` +
+                ` role="option" aria-selected="${o.value === cur}" data-cur="${o.value}">${o.label}</button>`)).join("");
+            pop.hidden = true;
+            if (btn) btn.setAttribute("aria-expanded", "false");
+        };
+        // Recale les devises proposees : celle choisie doit rester disponible dans la liste
+        const syncDmdCurrencies = () => {
+            const opts = dmdCurOptions();
+            const allowed = opts.map((o) => o.value);
+            getColisBoxes().forEach((box) => {
+                if (!allowed.includes(boxCurrencyOf(box))) setBoxCurrency(box, allowed[0]);
+                renderCurPop(box, opts);
+            });
+        };
+        // La devise suit les pays choisis a l'etape 1 (comme le formulaire des voyageurs)
+        ["demande-origin", "demande-destination"].forEach((id) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener("input", syncDmdCurrencies);
+            el.addEventListener("change", syncDmdCurrencies);
+        });
+        // Un clic ailleurs referme la liste des devises
+        document.addEventListener("click", (e) => {
+            if (!e.target.closest(".dmd-cur-picker")) closeCurPops();
+        });
+        syncDmdCurrencies();
+
+        // Validation de l'etape 2 (colis + montants) : reutilisee par « Faire la demande »,
+        // le bouton « Continuer » n'existant plus sur la derniere etape.
+        const validateColisStep = () => {
+            const boxes = getColisBoxes();
+            if (!boxes.length) { dmdShowError("Ajoutez au moins un colis."); return false; }
+            for (let i = 0; i < boxes.length; i++) {
+                const box = boxes[i];
+                const isKg = getBoxMode(box) === "per_kg";
+                const valField = box.querySelector(isKg ? ".dmd-kg-input" : ".dmd-qty-input");
+                const raw = valField?.value || "";
+                const val = Number(raw);
+                if (!raw || !isFinite(val) || val <= 0 || (!isKg && !Number.isInteger(val))) {
+                    valField?.classList.add("dmd-invalid");
+                    valField?.focus?.();
+                    dmdShowError(isKg
+                        ? `Indiquez le poids du colis n°${i + 1} (en kilos).`
+                        : `Indiquez combien de colis pour le colis n°${i + 1}.`);
+                    return false;
+                }
+                const priceField = box.querySelector(".dmd-price-input");
+                const priceRaw = priceField?.value;
+                if (priceRaw !== undefined && String(priceRaw).trim() !== "" &&
+                    (!isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
+                    priceField?.classList.add("dmd-invalid");
+                    dmdShowError(`Le montant propose du colis n°${i + 1} n'est pas valide.`);
+                    return false;
+                }
+            }
+            dmdShowError("");
+            return true;
+        };
 
         dmdNextBtn?.addEventListener("click", () => {
             if (demandeStep === 1) {
@@ -1168,29 +1294,9 @@
                 }
                 dmdShowError("");
                 dmdGoTo(2);
-            } else if (demandeStep === 2) {
-                // Validation : chaque cadre a son « combien » (kg ou quantité) ; le montant reste optionnel
-                const boxes = getColisBoxes();
-                if (!boxes.length) { dmdShowError("Ajoutez au moins un colis."); return; }
-                for (let i = 0; i < boxes.length; i++) {
-                    const box = boxes[i];
-                    const isKg = getBoxMode(box) === "per_kg";
-                    const raw = (isKg ? box.querySelector(".dmd-kg-input")?.value : box.querySelector(".dmd-qty-input")?.value) || "";
-                    const val = Number(raw);
-                    if (!raw || !isFinite(val) || val <= 0 || (!isKg && !Number.isInteger(val))) {
-                        dmdShowError(isKg
-                            ? `Indiquez le poids du colis n°${i + 1} (en kilos).`
-                            : `Indiquez combien de colis pour le colis n°${i + 1}.`);
-                        return;
-                    }
-                    const priceRaw = box.querySelector(".dmd-price-input")?.value;
-                    if (priceRaw !== undefined && String(priceRaw).trim() !== "" &&
-                        (!isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
-                        dmdShowError(`Le montant propose du colis n°${i + 1} n'est pas valide.`);
-                        return;
-                    }
-                }
-                dmdGoTo(3);
+            } else if (validateColisStep()) {
+                // Dernière étape (2/2) : « Faire la demande » est déjà affiché
+                document.getElementById("demande-submit-btn")?.click();
             }
         });
 
@@ -1199,11 +1305,12 @@
         });
 
         document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
+            // Dernière étape : on (re)valide les colis, le bouton « Continuer » n'existe plus
+            if (!validateColisStep()) return;
             const origin = document.getElementById("demande-origin")?.value?.trim();
             const destination = document.getElementById("demande-destination")?.value?.trim();
             const villeDepart = document.getElementById("city-demande-origin")?.value?.trim();
             const villeArrivee = document.getElementById("city-demande-destination")?.value?.trim();
-            const description = document.getElementById("demande-description")?.value?.trim();
             const dateLimite = document.getElementById("demande-date")?.value || null;
             // Un objet de colis par cadre : chaque colis garde son propre mode et son propre prix
             const boxes = getColisBoxes();
@@ -1216,6 +1323,7 @@
                 const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
                 const priceVal = hasPrice ? Number(priceRaw) : null;
                 return {
+                    currency: boxCurrencyOf(box),
                     item_type: nomRaw || null,
                     price_mode: hasPrice ? (isKg ? "per_kg" : "total") : null,
                     weight_kg: isKg ? valNum : null,
@@ -1226,7 +1334,7 @@
             });
             const first = items[0] || {};
             const firstOk = (first.weight_kg != null && first.weight_kg > 0) || (first.quantity != null && first.quantity > 0);
-            if (!origin || !destination || !description || !items.length || !firstOk) {
+            if (!origin || !destination || !items.length || !firstOk) {
                 alert("Veuillez remplir tous les champs.");
                 return;
             }
@@ -1250,10 +1358,9 @@
                         weight_kg: first.weight_kg ?? null,
                         quantity: first.quantity ?? null,
                         needed_by_date: dateLimite || null,
-                        currency: state.userCurrency || window.CCCommon.getUserCurrency?.(),
+                        currency: first.currency || state.userCurrency || window.CCCommon.getUserCurrency?.(),
                         origin_city: villeDepart || null,
                         destination_city: villeArrivee || null,
-                        description,
                         item_type: first.item_type || null,
                         price_mode: first.price_mode,
                         max_price_per_kg: first.max_price_per_kg ?? null,
@@ -1265,7 +1372,7 @@
                 } else {
                     // Dégradé sans Supabase : l'API historique ne porte qu'un colis (le premier)
                     if (items.length > 1) console.warn("Mode API historique : seul le premier colis de la demande est envoye.");
-                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg: first.weight_kg ?? null, quantity: first.quantity ?? null, description, dateLimite } });
+                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg: first.weight_kg ?? null, quantity: first.quantity ?? null, currency: first.currency || null, dateLimite } });
                 }
                 console.log("Demande de trajet inseree avec succes!");
                 if (feedback) feedback.classList.remove("hidden");

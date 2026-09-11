@@ -536,7 +536,7 @@
                 <h2 style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Demande de trajet</h2>
                 <p class="demande-subtitle">Un voyageur vous contactera si votre demande l interesse.</p>
 
-                <!-- Progression 3 étapes -->
+                <!-- Progression 2 étapes (l'étape Description a ete supprimee : Yoyo) -->
                 <div class="dmd-progress" id="demande-wizard-progress" aria-hidden="true">
                     <div class="dmd-progress-step active" data-dstep="1">
                         <span class="dmd-progress-dot">1</span>
@@ -546,11 +546,6 @@
                     <div class="dmd-progress-step" data-dstep="2">
                         <span class="dmd-progress-dot">2</span>
                         <span class="dmd-progress-label">Colis &amp; prix</span>
-                    </div>
-                    <div class="dmd-progress-line"><i></i></div>
-                    <div class="dmd-progress-step" data-dstep="3">
-                        <span class="dmd-progress-dot">3</span>
-                        <span class="dmd-progress-label">Description</span>
                     </div>
                 </div>
 
@@ -621,7 +616,15 @@
                                     <div class="dmd-price-row">
                                         <input type="number" class="demande-input dmd-price-input"
                                             placeholder="Ex: 2500" min="0" step="any" inputmode="decimal">
-                                        <span class="dmd-currency dmd-colis-cur">XOF</span>
+                                        <div class="dmd-cur-picker">
+                                            <button type="button" class="dmd-currency dmd-colis-cur dmd-cur-btn"
+                                                aria-haspopup="listbox" aria-expanded="false"
+                                                title="Choisir la devise">
+                                                <span class="dmd-cur-val">XOF</span>
+                                                <span class="dmd-cur-caret" aria-hidden="true">▼</span>
+                                            </button>
+                                            <div class="dmd-cur-pop" role="listbox" hidden></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -630,14 +633,7 @@
                         <p class="dmd-hint">Chaque colis a son propre budget — le voyageur verra chaque proposition.</p>
                     </div>
 
-                    <!-- ÉTAPE 3 — Description -->
-                    <div class="dmd-step" data-step="3">
-                        <div class="demande-field">
-                            <label for="demande-description">Decrivez le colis (etat, contenu, fragile...)</label>
-                            <textarea id="demande-description" class="demande-input demande-textarea" rows="4"
-                                placeholder="Ex: fragile, en bon etat, contient des vetements..."></textarea>
-                        </div>
-                    </div>
+                    <!-- (ÉTAPE 3 — Description supprimée : assez d'infos sans elle, Yoyo) -->
 
                     <div class="dmd-error" id="demande-step-error" role="alert"></div>
 

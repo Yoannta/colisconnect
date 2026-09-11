@@ -10063,6 +10063,36 @@ body.results-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
     border-color: rgba(255, 107, 90, 0.85) !important;
     box-shadow: 0 0 0 3px rgba(255, 107, 90, 0.14);
 }
+/* [CHAMPS SOMBRES — page resultats] Le reset "@tailwindcss/forms" injecte par le CDN
+   Tailwind (regles [type="text"], [type="number"], [type="email"], [type="tel"]... :
+   MEME specificite que nos classes, mais placees APRES style.css) ecrasait le fond des
+   champs -> dans la modale de demande et la modale de connexion les champs devenaient
+   BLANCS avec texte blanc (illisibles). Reference = les champs du formulaire voyageur
+   (.form-input). Specificite superieure au reset => nos fonds regagnent ; le theme
+   clair garde ses propres surcharges (body.results-page.light ...) qui restent plus
+   specifiques. */
+body.results-page:not(.light) .demande-input {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #f0f7f6;
+    color-scheme: dark;
+}
+body.results-page:not(.light) .demande-input:not(:focus) {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+/* La modale de connexion est sombre dans les DEUX themes (sa carte reste
+   rgba(8,12,16,.92) meme en clair) : ses champs doivent donc rester sombres partout,
+   sinon ils s'affichent blancs sur blanc (texte illisible). */
+body.results-page #cc-auth-email-input {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    color-scheme: dark;
+}
+body.results-page #cc-auth-phone-input {
+    background-color: transparent;
+    color: #fff;
+    color-scheme: dark;
+}
 .demande-textarea {
     resize: vertical;
     min-height: 60px;
@@ -12802,6 +12832,82 @@ body.results-page.light #btn-faire-demande-trajet {
     white-space: nowrap;
     flex-shrink: 0;
 }
+/* Devise au choix sur chaque colis (devise du pays de depart / d'arrivee) — comme le
+   formulaire des voyageurs. Le chip est un <button> : on reimpose son fond (le reset
+   Tailwind des boutons, [type="button"], est de meme specificite que .dmd-currency
+   mais place plus loin) avec une specificite superieure. */
+.dmd-cur-picker {
+    position: relative;
+    flex: 0 0 auto;
+    display: inline-flex;
+}
+.dmd-price-row .dmd-cur-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 13px;
+    color: #b0b0b0;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.dmd-price-row .dmd-cur-btn:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.dmd-price-row .dmd-cur-btn[aria-expanded="true"] {
+    border-color: #ffb347;
+    color: #ffb347;
+}
+.dmd-cur-caret {
+    font-size: 0.62rem;
+    opacity: 0.8;
+    line-height: 1;
+}
+.dmd-cur-pop {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 60;
+    min-width: 210px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    background: #14171a;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 12px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
+}
+.dmd-cur-pop[hidden] {
+    display: none;
+}
+.dmd-cur-opt {
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 10px;
+    color: #e8f4f1;
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+.dmd-cur-opt:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+.dmd-cur-opt.active {
+    background: rgba(255, 179, 71, 0.12);
+    color: #ffb347;
+}
 .dmd-hint {
     font-size: 0.8rem;
     line-height: 1.35;
@@ -13072,6 +13178,26 @@ body.results-page.light .dmd-price-mode-btn.active {
 body.results-page.light .dmd-currency {
     background: rgba(184, 134, 11, 0.1);
     border-color: rgba(184, 134, 11, 0.25);
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-price-row .dmd-cur-btn {
+    background: rgba(184, 134, 11, 0.1);
+    border-color: rgba(184, 134, 11, 0.25);
+    color: #8a6d1f;
+}
+body.results-page.light .dmd-cur-pop {
+    background: #fffdf8;
+    border-color: rgba(58, 47, 30, 0.16);
+    box-shadow: 0 18px 40px rgba(58, 47, 30, 0.18);
+}
+body.results-page.light .dmd-cur-opt {
+    color: #3a2f1e;
+}
+body.results-page.light .dmd-cur-opt:hover {
+    background: rgba(58, 47, 30, 0.06);
+}
+body.results-page.light .dmd-cur-opt.active {
+    background: rgba(184, 134, 11, 0.12);
     color: #8a6d1f;
 }
 body.results-page.light .dmd-hint {
