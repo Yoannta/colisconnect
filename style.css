@@ -8767,6 +8767,33 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     flex-shrink: 0;
 }
 .chat-send-btn:hover { opacity: 0.9; transform: scale(1.05); }
+/* Envoi en cours : bouton inactif + rond qui tourne (evite les clics repetes) */
+.chat-send-btn:disabled,
+.chat-send-btn.is-sending {
+    position: relative;
+    overflow: hidden;
+    cursor: wait;
+    opacity: 0.8;
+    transform: none;
+    pointer-events: none;
+}
+.chat-send-btn.is-sending svg { opacity: 0.28; }
+.chat-send-btn.is-sending::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-top-color: currentColor;
+    animation: cc-send-spin 0.7s linear infinite;
+}
+@keyframes cc-send-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+    .chat-send-btn.is-sending::after { animation-duration: 1.6s; }
+}
 .chat-info-banner {
     display: flex;
     align-items: center;
@@ -13484,6 +13511,16 @@ body.chat-page .chat-send-btn:hover {
     filter: saturate(1.08) brightness(1.04);
 }
 body.chat-page .chat-send-btn svg { stroke: #fffdf5; }
+/* Meme etat « envoi en cours » en theme dore (prime sur le :hover ci-dessus) */
+body.chat-page .chat-send-btn:disabled,
+body.chat-page .chat-send-btn.is-sending {
+    opacity: 1;
+    cursor: progress;
+    transform: none;
+    filter: saturate(0.7) brightness(0.85);
+    pointer-events: none;
+}
+body.chat-page .chat-send-btn.is-sending::after { border-top-color: #fffdf5; }
 
 /* ── 5. Messages ────────────────────────────────────────────────────────── */
 body.chat-page .chat-messages-zone::-webkit-scrollbar-thumb { background: rgba(255, 179, 71, 0.2); }

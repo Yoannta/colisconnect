@@ -8,6 +8,8 @@
         receiptBase64: null,
         paymentType: "regular",
         isTutorialAccepted: false,
+        isSendingMessage: false,
+        leakWarningVisible: false,
     };
 
     const hubStyle = document.createElement('style');
@@ -497,6 +499,7 @@
         showChatView();
         document.body.classList.add("thread-open");
         const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
+        if (String(state.activeThreadId) !== String(threadId)) return; // le fil a change entre-temps
         renderMessages(messages);
         renderConversationMeta(selected);
         state.isTutorialAccepted = isThreadTutorialAccepted(threadId);
@@ -566,7 +569,29 @@
         return /(?:\+|00)?\d[\d\s\-\.]{7,}|[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}|https?:\/\/|www\.|whatsapp|telegram|instagram|facebook|snapchat|tiktok/i.test(text);
     }
 
+    function sendButtonEl() {
+        return els.messageForm?.querySelector("[type='submit']") || null;
+    }
+
+    // Un seul envoi a la fois : le bouton est desactive et affiche un rond qui
+    // tourne tant que la requete est en cours, ce qui evite les envois repetes
+    // quand on clique plusieurs fois en croyant que rien ne se passe.
+    function refreshSendButton() {
+        const btn = sendButtonEl();
+        if (!btn) return;
+        const busy = state.isSendingMessage === true;
+        btn.classList.toggle("is-sending", busy);
+        btn.setAttribute("aria-busy", busy ? "true" : "false");
+        btn.disabled = busy || state.leakWarningVisible === true;
+    }
+
+    function setSendingMessage(busy) {
+        state.isSendingMessage = busy === true;
+        refreshSendButton();
+    }
+
     function showLeakWarning(show) {
+        state.leakWarningVisible = show === true;
         let banner = document.getElementById("chat-leak-warning");
         if (show) {
             if (!banner) {
@@ -577,31 +602,39 @@
                 els.messageForm?.parentNode?.insertBefore(banner, els.messageForm);
             }
             banner.classList.add("visible");
-            const submitBtn = els.messageForm?.querySelector("[type='submit']");
-            if (submitBtn) submitBtn.disabled = true;
-        } else {
-            if (banner) banner.classList.remove("visible");
-            const submitBtn = els.messageForm?.querySelector("[type='submit']");
-            if (submitBtn) submitBtn.disabled = false;
+        } else if (banner) {
+            banner.classList.remove("visible");
         }
+        refreshSendButton();
     }
 
     async function submitMessage(event) {
         event.preventDefault();
+        if (state.isSendingMessage) return; // verrou : un clic/Entree repete ne renvoie rien
         if (!window.CCCommon.requireCompletedProfile()) return;
         const text = String(els.messageInput?.value || "").trim();
         if (!text) return;
         if (!state.activeThreadId) { alert("Sélectionnez une conversation."); return; }
         if (!state.isTutorialAccepted) { triggerTutorialFocus(); return; }
         if (detectLeakClient(text)) { showLeakWarning(true); return; }
+        const threadId = state.activeThreadId;
+        setSendingMessage(true);
+        if (els.messageInput) els.messageInput.value = "";
         try {
-            await window.CCCommon.api(`/api/conversations/${encodeURIComponent(state.activeThreadId)}/messages`, { method: "POST", body: { text } });
-            if (els.messageInput) els.messageInput.value = "";
+            const created = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`, { method: "POST", body: { text } });
             showLeakWarning(false);
-            await openThread(state.activeThreadId);
+            // Affichage immediat du message renvoye par le serveur, puis
+            // rafraichissement du fil en tache de fond (sans bloquer le bouton).
+            if (created?.id && !state.messages.some((msg) => String(msg.id) === String(created.id))) {
+                renderMessages(state.messages.concat([created]));
+            }
+            openThread(threadId).catch(() => { });
         } catch (error) {
+            if (els.messageInput && !els.messageInput.value) els.messageInput.value = text;
             if (error?.payload?.code === "CONTACT_INFO_BLOCKED") showLeakWarning(true);
             else alert(error.message || "Envoi impossible.");
+        } finally {
+            setSendingMessage(false);
         }
     }
 
