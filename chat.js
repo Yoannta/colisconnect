@@ -2,7 +2,6 @@
     const state = {
         userId: null,
         conversations: [],
-        adminInbox: [],
         activeThreadId: null,
         activeThreadData: null,
         messages: [],
@@ -52,7 +51,6 @@
 
     const els = {
         refreshBtn: document.getElementById("refresh-conversations-btn"),
-        adminInboxList: document.getElementById("admin-inbox-list"),
         conversationsList: document.getElementById("conversations-list"),
         chatMeta: document.getElementById("chat-meta"),
         chatOfferInfo: document.getElementById("chat-offer-info"),
@@ -157,25 +155,6 @@
     </div>
 </button>`;
         }).join("\n");
-    }
-
-    function renderAdminInbox() {
-        const section = document.getElementById("admin-inbox-section");
-        if (!els.adminInboxList) return;
-        if (!state.adminInbox.length) {
-            if (section) section.style.display = "none";
-            els.adminInboxList.innerHTML = "";
-            return;
-        }
-        if (section) section.style.display = "flex";
-        els.adminInboxList.innerHTML = state.adminInbox.map((item) => `
-<article class="chat-admin-item">
-    <div class="chat-admin-item-top">
-        <span class="conv-status-pill">${window.CCCommon.escapeHtml(item.section || "general")}</span>
-        <span class="conv-time">${formatConvTime(item.createdAt)}</span>
-    </div>
-    <p class="chat-admin-item-text">${window.CCCommon.escapeHtml(item.text || "")}</p>
-</article>`).join("\n");
     }
 
     // ---- Message rendering ----
@@ -494,6 +473,21 @@
         } catch (e) { return null; }
     }
 
+    // Vue « liste des messages » (aucune conversation ouverte) : on n'affiche
+    // que l'invite au centre du panneau. La zone de messages et la barre de
+    // saisie n'apparaissent qu'une fois un fil choisi par l'utilisateur.
+    function renderListViewState() {
+        document.body.classList.remove("thread-open");
+        els.chatPanelHeader?.classList.add("hidden");
+        els.chatEmptyState?.classList.remove("hidden");
+        if (els.chatMeta) els.chatMeta.textContent = "Sélectionner une conversation";
+        if (els.chatOfferInfo) els.chatOfferInfo.textContent = "";
+        document.getElementById("chat-contact-revealed")?.remove();
+        if (els.messagesList) els.messagesList.innerHTML = "";
+        state.messages = [];
+        els.chatPayBtn?.classList.add("hidden");
+    }
+
     async function openThread(threadId) {
         if (!threadId) return;
         const selected = state.conversations.find((item) => item.id === threadId);
@@ -501,6 +495,7 @@
         state.activeThreadData = selected || null;
         renderConversations();
         showChatView();
+        document.body.classList.add("thread-open");
         const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
         renderMessages(messages);
         renderConversationMeta(selected);
@@ -524,17 +519,22 @@
     }
 
     async function loadConversations() {
-        const [rows, inboxPayload] = await Promise.all([
-            window.CCCommon.api("/api/conversations"),
-            window.CCCommon.api("/api/admin/inbox")
-        ]);
+        const rows = await window.CCCommon.api("/api/conversations");
         state.conversations = Array.isArray(rows) ? rows : [];
-        state.adminInbox = Array.isArray(inboxPayload?.items) ? inboxPayload.items : [];
-        renderAdminInbox();
         renderConversations();
-        if (!state.activeThreadId && state.conversations.length) state.activeThreadId = state.conversations[0].id;
-        if (state.activeThreadId) await openThread(state.activeThreadId);
-        else { renderMessages([]); if (els.chatMeta) els.chatMeta.textContent = "Aucune conversation pour le moment."; }
+        // Pas d'ouverture automatique : on reste sur la liste des messages et
+        // c'est l'utilisateur qui choisit le fil a ouvrir. Le fil deja ouvert
+        // (rafraichissement manuel, envoi d'un message) reste ouvert.
+        const stillOpen = state.activeThreadId && state.conversations.some(
+            (thread) => String(thread.id) === String(state.activeThreadId)
+        );
+        if (stillOpen) {
+            await openThread(state.activeThreadId);
+        } else {
+            state.activeThreadId = null;
+            state.activeThreadData = null;
+            renderListViewState();
+        }
     }
 
     async function ensureConversationForOffer(offerId) {

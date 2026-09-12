@@ -8441,31 +8441,6 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
     padding: 10px 16px 6px;
     flex-shrink: 0;
 }
-.chat-admin-inbox {
-    padding: 0 8px;
-    flex-shrink: 0;
-    max-height: 180px;
-    overflow-y: auto;
-}
-.chat-admin-item {
-    background: rgba(255, 200, 60, 0.06);
-    border: 1px solid rgba(255, 200, 60, 0.15);
-    border-radius: 10px;
-    padding: 10px 12px;
-    margin-bottom: 6px;
-}
-.chat-admin-item-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 5px;
-}
-.chat-admin-item-text {
-    font-size: 0.82rem;
-    color: #94a3b8;
-    margin: 0;
-    line-height: 1.4;
-}
 .chat-conv-list {
     flex: 1;
     overflow-y: auto;
@@ -13401,13 +13376,6 @@ body.chat-page .chat-search-bar:focus-within {
 body.chat-page .chat-search-bar input { color: #f2ece1; }
 body.chat-page .chat-search-bar input::placeholder { color: #8f8674; }
 body.chat-page .chat-section-label { color: #c9a45c; letter-spacing: 0.1em; }
-body.chat-page .chat-admin-inbox::-webkit-scrollbar-thumb { background: rgba(255, 179, 71, 0.22); }
-body.chat-page .chat-admin-item {
-    background: rgba(255, 179, 71, 0.05);
-    border: 1px solid rgba(255, 179, 71, 0.18);
-    border-radius: 14px;
-}
-body.chat-page .chat-admin-item-text { color: #b0a795; }
 body.chat-page .chat-conv-list::-webkit-scrollbar-thumb { background: rgba(255, 179, 71, 0.22); }
 body.chat-page .chat-conv-item { border-bottom: 1px solid rgba(255, 179, 71, 0.07); }
 body.chat-page .chat-conv-item:hover { background: rgba(255, 179, 71, 0.05); }
@@ -13464,6 +13432,14 @@ body.chat-page .chat-empty-state h3 {
     font-weight: 700;
 }
 body.chat-page .chat-empty-icon { color: #d4a017; opacity: 0.18; }
+
+/* Vue « liste des messages » : tant qu'aucune conversation n'est ouverte, on
+   n'affiche que l'invite au centre (pas de zone de messages, pas de barre de
+   saisie). Ces deux blocs n'apparaissent qu'apres choix d'un fil. */
+body.chat-page .chat-messages-zone,
+body.chat-page .chat-input-bar { display: none; }
+body.chat-page.thread-open .chat-messages-zone { display: flex; }
+body.chat-page.thread-open .chat-input-bar { display: flex; }
 body.chat-page .chat-panel-header {
     background: rgba(13, 13, 14, 0.94);
     border-bottom: 1px solid rgba(255, 179, 71, 0.12);
@@ -13578,8 +13554,7 @@ body.chat-page .banner-action-btn.highlight-mode {
 @media (max-width: 800px) {
     /* la barre de navigation (64px) flotte au-dessus de la liste :
        on réserve la place pour que le dernier fil ne soit pas masqué */
-    body.chat-page .chat-conv-list,
-    body.chat-page .chat-admin-inbox { padding-bottom: 76px; }
+    body.chat-page .chat-conv-list { padding-bottom: 76px; }
     body.chat-page .chat-sidebar.mobile-hidden { display: none; }
     body.chat-page .chat-panel.mobile-active {
         transform: translateX(0);
@@ -13643,13 +13618,7 @@ body.chat-page.light .chat-search-bar:focus-within {
 body.chat-page.light .chat-search-bar input { color: #3a2f1e; }
 body.chat-page.light .chat-search-bar input::placeholder { color: #8b8070; }
 body.chat-page.light .chat-section-label { color: #a9760a; }
-body.chat-page.light .chat-admin-item {
-    background: rgba(184, 134, 11, 0.07);
-    border: 1px solid rgba(184, 134, 11, 0.20);
-}
-body.chat-page.light .chat-admin-item-text { color: #6d6252; }
-body.chat-page.light .chat-conv-list::-webkit-scrollbar-thumb,
-body.chat-page.light .chat-admin-inbox::-webkit-scrollbar-thumb { background: rgba(184, 134, 11, 0.25); }
+body.chat-page.light .chat-conv-list::-webkit-scrollbar-thumb { background: rgba(184, 134, 11, 0.25); }
 body.chat-page.light .chat-conv-item { border-bottom: 1px solid rgba(184, 134, 11, 0.12); }
 body.chat-page.light .chat-conv-item:hover { background: rgba(184, 134, 11, 0.07); }
 body.chat-page.light .chat-conv-item.is-active {
