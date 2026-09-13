@@ -34,7 +34,17 @@
     <script defer src="admin-banner.js"></script>
 </head>
 
-<body>
+<body class="home-page">
+    <script>
+        /* Thème appliqué avant le rendu (évite le flash) — Obsidian Luxe / Gold Light */
+        (function () {
+            try {
+                if (localStorage.getItem('cc-theme') === 'light') {
+                    document.body.classList.add('light');
+                }
+            } catch (e) { }
+        })();
+    </script>
     <!-- Nexus Gate Background Layers -->
     <div class="noise-layer" aria-hidden="true"></div>
     <div class="ambient ambient-a" aria-hidden="true"></div>
@@ -80,9 +90,8 @@
                                 🚀</button>
                         </div>
                     </div>
-                    <div class="estimator-result hidden" id="estimator-result"
-                        style="margin-top: 20px; padding: 24px; background: var(--surface-strong); border-radius: 20px; text-align: center; border: 1px solid var(--line-glow);">
-                        <div id="est-result-text" class="est-result-text" style="color: var(--text);"></div>
+                    <div class="estimator-result hidden" id="estimator-result">
+                        <div id="est-result-text" class="est-result-text"></div>
                         <a id="est-result-link" href="results.html" class="btn primary est-cta-btn"
                             style="margin-top: 20px; width: 100%; display: none;">Voir les voyageurs</a>
                     </div>
@@ -219,7 +228,7 @@
                                 const ratesText = minRate === maxRate ? `${minRate}€` : `${minRate} à ${maxRate}€`;
 
                                 resText.innerHTML = `
-                                    <div style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 10px;">Félicitations !</div>
+                                    <div style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">Félicitations !</div>
                                     <div style="font-size: 1rem; opacity: 0.9; line-height: 1.6; color: var(--text);">
                                         Plusieurs transporteurs vont vers <strong>${dest}</strong> avec une fourchette de <strong>${ratesText} par kilo</strong>.
                                     </div>
@@ -229,7 +238,7 @@
                                 resLink.style.display = "inline-flex";
                             } else {
                                 resText.innerHTML = `
-                                    <div style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 10px;">Félicitations !</div>
+                                    <div style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">Félicitations !</div>
                                     <div style="font-size: 1rem; color: var(--text);">Plusieurs voyageurs sont disponibles vers <strong>${dest}</strong>. Découvrez leurs tarifs maintenant.</div>
                                 `;
                                 resLink.href = `results.html?destination=${encodeURIComponent(dest)}`;
@@ -253,7 +262,7 @@
                         const errType = e.message || "NETWORK_ERROR";
                         resText.innerHTML = `
                             <div style="padding: 10px;">
-                                <div style="font-size: 1.15rem; font-weight: 700; color: #fff; margin-bottom: 10px;">Félicitations !</div>
+                                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">Félicitations !</div>
                                 <div style="font-size: 1rem; opacity: 0.9; line-height: 1.6; color: var(--text);">
                                     De nombreux voyageurs desservent <strong>${dest}</strong>. Les tarifs habituels sont compris entre <strong>10€ à 15€ par kilo</strong>.<br>
                                     <small style="opacity: 0.5;">Note : Connexion au direct indisponible (${errType})</small>
@@ -271,6 +280,26 @@
             }
         });
     </script>
+
+    <!-- Basculer thème sombre/clair (Obsidian Luxe / Gold Light) -->
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Basculer thème">
+        <span id="theme-toggle-icon" class="theme-toggle-icon">🌙</span>
+    </button>
+
+    <script>
+        (function () {
+            var body = document.body;
+            var btn = document.getElementById('theme-toggle');
+            var icon = document.getElementById('theme-toggle-icon');
+            if (body.classList.contains('light') && icon) { icon.textContent = '☀️'; }
+            btn.addEventListener('click', function () {
+                var light = body.classList.toggle('light');
+                icon.textContent = light ? '☀️' : '🌙';
+                try { localStorage.setItem('cc-theme', light ? 'light' : 'dark'); } catch (e) { }
+            });
+        })();
+    </script>
+
 </body>
 
 </html>

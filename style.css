@@ -98,6 +98,282 @@ body.chat-page.light {
     --deep-glass-border: rgba(184, 134, 11, 0.18);
 }
 
+/* ============================================================
+   ACCUEIL (index.html) — HABILLAGE DORÉ (Obsidian Luxe / Gold Light)
+   2026-09 : l'accueil était la DERNIÈRE page restée sur le :root
+   « Emerald-Obsidian » (menthe/vert). Même méthode que results,
+   chat, dashboard et post-trip : on redéfinit les variables sur le
+   body de la page (plus aucun var(--…) vert possible) ET on
+   neutralise les verts restés EN DUR (boutons #10b981, focus
+   menthe, orbes, autocomplete, header partagé).
+   ROLLBACK : git reset --hard ROLLBACK-ACCUEIL-AVANT-DORE
+   ============================================================ */
+
+/* --- Palette OR — mode sombre « Obsidian Luxe » --- */
+body.home-page {
+    --emerald-bright: #ffb347;
+    --emerald-glow: rgba(255, 179, 71, 0.15);
+    --emerald-deep: #4a3a10;
+    --line: rgba(255, 179, 71, 0.15);
+    --line-glow: rgba(255, 179, 71, 0.30);
+    --px-focus: 0 0 0 3px rgba(255, 179, 71, 0.35);
+    --px-glow: 0 0 30px rgba(255, 140, 0, 0.25);
+    --deep-glass-border: rgba(255, 179, 71, 0.15);
+
+    background-color: #050505;
+    background-image:
+        radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%),
+        conic-gradient(from 210deg at 50% -10%,
+            rgba(212,160,23,0.0) 0deg,
+            rgba(212,160,23,0.05) 40deg,
+            rgba(255,255,255,0.04) 90deg,
+            rgba(212,160,23,0.0) 140deg),
+        repeating-linear-gradient(115deg,
+            transparent 0px, transparent 90px,
+            rgba(212,160,23,0.045) 90px, rgba(212,160,23,0.045) 91px,
+            transparent 91px, transparent 180px),
+        radial-gradient(circle at 12% 8%, rgba(255,140,0,0.16) 0%, rgba(255,140,0,0.05) 22%, transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(212,160,23,0.10) 0%, rgba(212,160,23,0.03) 20%, transparent 42%),
+        linear-gradient(180deg, #0a0a0a 0%, #101010 40%, #161616 100%);
+    background-attachment: fixed;
+}
+
+/* Ligne d'or fine en haut de page */
+body.home-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255,179,71,0.0) 15%,
+        rgba(255,179,71,0.6) 50%,
+        rgba(255,179,71,0.0) 85%,
+        transparent 100%);
+    z-index: 5;
+}
+
+/* Orbes d'ambiance dorées (fin du vert menthe) */
+body.home-page .ambient-a {
+    background: radial-gradient(circle, rgba(255, 140, 0, 0.12), transparent 70%);
+}
+
+body.home-page .ambient-b {
+    background: radial-gradient(circle, rgba(212, 160, 23, 0.09), transparent 70%);
+}
+
+/* Boutons : fin du dégradé vert (#10b981) et de la menthe en dur */
+body.home-page .btn.primary {
+    background: linear-gradient(135deg, #ffb347, #d4a017);
+    color: #1a1206;
+    box-shadow: 0 10px 20px -5px rgba(255, 179, 71, 0.35);
+}
+
+body.home-page .btn.primary:hover {
+    box-shadow: 0 15px 30px -5px rgba(255, 179, 71, 0.45);
+}
+
+body.home-page .btn.secondary {
+    background: rgba(255, 179, 71, 0.06);
+    color: #ffd9a0;
+    border: 1px solid rgba(255, 179, 71, 0.45);
+}
+
+/* Focus des champs d'estimation (fin de la menthe en dur) */
+body.home-page .estimator-input:focus,
+body.home-page .estimator-field-group .cc-autocomplete-ctn .cc-autocomplete-input:focus {
+    border-color: #ffb347;
+    box-shadow: 0 0 0 2px rgba(255, 179, 71, 0.25);
+}
+
+/* Autocomplete pays (liste de suggestions) en or */
+body.home-page .cc-suggestions-list {
+    border-color: rgba(255, 179, 71, 0.3);
+}
+
+body.home-page .cc-suggestions-list li.active {
+    background: rgba(255, 179, 71, 0.15);
+}
+
+body.home-page .cc-suggestions-list::-webkit-scrollbar-thumb {
+    background: #ffb347;
+}
+
+/* Header partagé (nav) : or au lieu de menthe */
+body.home-page .nav-link.is-active {
+    background: rgba(255, 179, 71, 0.08);
+}
+
+body.home-page .user-trigger {
+    border-color: rgba(255, 179, 71, 0.4);
+}
+
+body.home-page .user-trigger:hover {
+    background: rgba(255, 179, 71, 0.1);
+}
+
+body.home-page .user-dropdown button:hover {
+    background: rgba(255, 179, 71, 0.15);
+}
+
+/* --- GOLD LIGHT — mode clair doré --- */
+body.home-page.light {
+    --emerald-bright: #b8860b;
+    --emerald-glow: rgba(184, 134, 11, 0.12);
+    --emerald-deep: #8a6410;
+    --line: rgba(184, 134, 11, 0.18);
+    --line-glow: rgba(184, 134, 11, 0.30);
+    --px-focus: 0 0 0 3px rgba(184, 134, 11, 0.25);
+    --px-glow: 0 0 30px rgba(184, 134, 11, 0.20);
+    --deep-glass-border: rgba(184, 134, 11, 0.18);
+    /* Textes lisibles sur crème (sinon blanc sur blanc) */
+    --text: #3a2f1e;
+    --muted: #6b5f4a;
+
+    background-color: #f7f2e9;
+    background-image:
+        radial-gradient(ellipse at center, transparent 55%, rgba(212,160,23,0.10) 100%),
+        conic-gradient(from 210deg at 50% -10%,
+            rgba(212,160,23,0.0) 0deg,
+            rgba(212,160,23,0.07) 40deg,
+            rgba(255,255,255,0.9) 90deg,
+            rgba(212,160,23,0.0) 140deg),
+        repeating-linear-gradient(115deg,
+            transparent 0px, transparent 90px,
+            rgba(180,130,30,0.06) 90px, rgba(180,130,30,0.06) 91px,
+            transparent 91px, transparent 180px),
+        radial-gradient(circle at 12% 8%, rgba(255,170,60,0.22) 0%, rgba(255,170,60,0.06) 22%, transparent 45%),
+        radial-gradient(circle at 88% 92%, rgba(212,160,23,0.14) 0%, rgba(212,160,23,0.04) 20%, transparent 42%),
+        linear-gradient(180deg, #fdfaf4 0%, #f7f2e9 45%, #efe6d6 100%);
+}
+
+body.home-page.light::before {
+    background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(212,160,23,0.0) 15%,
+        rgba(212,160,23,0.9) 50%,
+        rgba(212,160,23,0.0) 85%,
+        transparent 100%);
+}
+
+body.home-page.light .ambient-a {
+    background: radial-gradient(circle, rgba(255, 170, 60, 0.16), transparent 70%);
+}
+
+body.home-page.light .ambient-b {
+    background: radial-gradient(circle, rgba(212, 160, 23, 0.12), transparent 70%);
+}
+
+body.home-page.light .theme-toggle {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: rgba(184, 134, 11, 0.5);
+    color: #8a6d1f;
+    box-shadow: 0 4px 18px rgba(184, 134, 11, 0.18);
+}
+
+/* Lisibilité mode clair : textes sombres, verre blanc, champs blancs */
+body.home-page.light .hero-copy h1 {
+    color: #3a2f1e;
+}
+
+body.home-page.light .hero-copy p {
+    color: #6b5f4a;
+}
+
+body.home-page.light .kicker {
+    background: rgba(184, 134, 11, 0.12);
+    border-color: rgba(184, 134, 11, 0.28);
+    color: #8a6410;
+}
+
+body.home-page.light .estimator-card {
+    background: rgba(255, 255, 255, 0.78);
+    border-color: rgba(184, 134, 11, 0.22);
+    box-shadow: 0 18px 40px rgba(120, 95, 30, 0.12);
+}
+
+body.home-page.light .estimator-title {
+    color: #3a2f1e;
+}
+
+body.home-page.light .estimator-input,
+body.home-page.light .estimator-field-group .cc-autocomplete-ctn .cc-autocomplete-input {
+    background: #ffffff;
+    color: #2f2718;
+    border-color: rgba(184, 134, 11, 0.25);
+}
+
+body.home-page.light .estimator-input::placeholder {
+    color: #9a8b6d;
+}
+
+body.home-page.light .est-arrow {
+    color: #a08b5e;
+}
+
+body.home-page.light .estimator-result {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(184, 134, 11, 0.3);
+    box-shadow: 0 10px 26px rgba(120, 95, 30, 0.12);
+}
+
+body.home-page.light .est-result-text {
+    color: #6b5f4a;
+}
+
+body.home-page.light .panel-card {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(184, 134, 11, 0.18);
+}
+
+body.home-page.light .panel-card:hover {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(184, 134, 11, 0.35);
+}
+
+body.home-page.light .panel-card h2 {
+    color: #b8860b;
+}
+
+body.home-page.light .panel-card p {
+    color: #6b5f4a;
+}
+
+body.home-page.light .btn.primary {
+    background: linear-gradient(135deg, #e3a100, #c98600);
+    color: #ffffff;
+}
+
+body.home-page.light .btn.secondary {
+    background: rgba(255, 255, 255, 0.85);
+    color: #8a6410;
+    border-color: rgba(184, 134, 11, 0.45);
+}
+
+body.home-page.light .nav-link.is-active {
+    background: rgba(184, 134, 11, 0.12);
+    color: #8a6410;
+}
+
+body.home-page.light .user-trigger {
+    border-color: rgba(184, 134, 11, 0.4);
+}
+
+body.home-page.light .cc-suggestions-list {
+    background: #fffdf7;
+    border-color: rgba(184, 134, 11, 0.3);
+}
+
+body.home-page.light .cc-suggestions-list li {
+    color: #2f2718;
+}
+
+body.home-page.light .cc-suggestions-list li.active {
+    background: rgba(184, 134, 11, 0.15);
+}
+
 /* Radical Accessibility & Focus-First */
 :focus-visible {
     outline: none;
