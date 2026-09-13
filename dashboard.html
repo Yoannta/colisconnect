@@ -14,9 +14,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
+        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=49">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
@@ -26,10 +29,20 @@
 
     <script defer src="standalone-common.js?v=4"></script>
     <script defer src="admin-banner.js"></script>
-    <script defer src="dashboard.js?v=8"></script>
+    <script defer src="dashboard.js?v=9"></script>
 </head>
 
 <body class="dashboard-page">
+    <script>
+        /* Thème appliqué avant le rendu (évite le flash) — Obsidian Luxe / Gold Light */
+        (function () {
+            try {
+                if (localStorage.getItem('cc-theme') === 'light') {
+                    document.body.classList.add('light');
+                }
+            } catch (e) { }
+        })();
+    </script>
     <div class="noise-layer" aria-hidden="true"></div>
     <div class="ambient ambient-a" aria-hidden="true"></div>
     <div class="ambient ambient-b" aria-hidden="true"></div>
@@ -283,7 +296,7 @@
                         <span class="progress-badge" id="cargo-limit-badge">0/5</span>
                     </div>
                     <div class="progress-track">
-                        <div class="progress-fill" id="cargo-progress-fill" style="width: 0%;"></div>
+                        <div class="progress-fill" id="cargo-progress-fill"></div>
                     </div>
                     <p class="cargo-note" id="cargo-limit-note">Chargez vos offres pour commencer.</p>
                 </div>
@@ -398,7 +411,7 @@
         <div class="modal-card demande-modal-card">
             <button class="close-modal" id="close-dashboard-demande-modal">x</button>
             <div>
-                <h2 style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Demande de trajet</h2>
+                <h2>Demande de trajet</h2>
                 <p class="demande-subtitle">Un voyageur vous contactera si votre demande l interesse.</p>
                 <div class="demande-form">
                     <div class="demande-field">
@@ -421,7 +434,7 @@
                     <div class="demande-field">
                         <label>Date limite</label>
                         <div class="demande-date-row">
-                            <input type="date" id="dash-demande-date" class="demande-input" style="flex:1;">
+                            <input type="date" id="dash-demande-date" class="demande-input">
                             <button type="button" class="demande-date-alt" id="dash-demande-no-date-btn">Pas de date limite</button>
                         </div>
                     </div>
@@ -452,7 +465,7 @@
         <div class="modal-card demande-modal-card">
             <button class="close-modal" id="close-edit-parcel-modal">x</button>
             <div>
-                <h2 style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Modifier ma demande</h2>
+                <h2>Modifier ma demande</h2>
                 <p class="demande-subtitle">Modifiez les informations de votre demande de trajet.</p>
                 <div class="demande-form">
                     <div class="demande-field">
@@ -475,7 +488,7 @@
                     <div class="demande-field">
                         <label>Date limite</label>
                         <div class="demande-date-row">
-                            <input type="date" id="edit-parcel-date" class="demande-input" style="flex:1;">
+                            <input type="date" id="edit-parcel-date" class="demande-input">
                             <button type="button" class="demande-date-alt" id="edit-parcel-no-date-btn">Pas de date limite</button>
                         </div>
                     </div>
@@ -493,6 +506,25 @@
             </div>
         </div>
     </div>
+    <!-- Basculer thème sombre/clair (Obsidian Luxe / Gold Light) -->
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Basculer thème">
+        <span id="theme-toggle-icon" class="theme-toggle-icon">🌙</span>
+    </button>
+
+    <script>
+        (function () {
+            var body = document.body;
+            var btn = document.getElementById('theme-toggle');
+            var icon = document.getElementById('theme-toggle-icon');
+            if (body.classList.contains('light') && icon) { icon.textContent = '☀️'; }
+            btn.addEventListener('click', function () {
+                var light = body.classList.toggle('light');
+                icon.textContent = light ? '☀️' : '🌙';
+                try { localStorage.setItem('cc-theme', light ? 'light' : 'dark'); } catch (e) { }
+            });
+        })();
+    </script>
+
 </body>
 
 </html>

@@ -112,18 +112,14 @@
         return "Non défini";
     }
 
-    function getProfileTypeAccent(user) {
+    /* Plus de couleurs en ligne : la pastille de profil prend une classe,
+       tout l'habillage vit dans style.css (body.dashboard-page .accent-*). */
+    function getProfileTypeClass(user) {
         const type = String(user?.profile_type || "").toLowerCase();
-        if (type === "cargo") {
-            return { bg: "rgba(245, 158, 11, 0.2)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.3)" };
-        }
-        if (type === "client") {
-            return { bg: "rgba(59, 130, 246, 0.2)", color: "#3b82f6", border: "1px solid rgba(59, 130, 246, 0.3)" };
-        }
-        if (type === "traveler") {
-            return { bg: "rgba(16, 185, 129, 0.2)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.3)" };
-        }
-        return { bg: "rgba(148, 163, 184, 0.16)", color: "#cbd5e1", border: "1px solid rgba(148, 163, 184, 0.18)" };
+        if (type === "cargo") return "accent-cargo";
+        if (type === "client") return "accent-client";
+        if (type === "traveler") return "accent-traveler";
+        return "accent-none";
     }
 
     function getRouteLabel(offer) {
@@ -145,22 +141,21 @@
         if (!els.offerSaveFeedback) return;
         els.offerSaveFeedback.textContent = message || "";
         els.offerSaveFeedback.classList.toggle("hidden", !message);
-        els.offerSaveFeedback.style.color = isError ? "#ff7d7d" : "#9fe9c3";
+        els.offerSaveFeedback.classList.toggle("is-error", Boolean(message) && isError);
+        els.offerSaveFeedback.classList.toggle("is-success", Boolean(message) && !isError);
     }
 
     function renderProfileChip(user) {
         if (!els.profileTypeBadge) return;
         const label = getProfileTypeLabel(user);
-        const accent = getProfileTypeAccent(user);
         if (!label || label === "Non défini") {
             els.profileTypeBadge.classList.add("hidden");
             return;
         }
         els.profileTypeBadge.classList.remove("hidden");
         els.profileTypeBadge.textContent = label;
-        els.profileTypeBadge.style.background = accent.bg;
-        els.profileTypeBadge.style.color = accent.color;
-        els.profileTypeBadge.style.border = accent.border;
+        els.profileTypeBadge.classList.remove("accent-traveler", "accent-cargo", "accent-client", "accent-none");
+        els.profileTypeBadge.classList.add(getProfileTypeClass(user));
     }
 
     function renderStats(offer, requests) {
@@ -223,9 +218,9 @@
                     <span class="traveler-route-meter-fill" style="width:${Math.min(90, Math.max(18, requestsCount * 18 + 12))}%"></span>
                 </div>
                 <p>${remainingKg} kg disponibles et ${formatAmount(pricePerKg * remainingKg, baseCurrency)} de revenu potentiel restant.</p>
-                <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+                <div class="dash-row-end">
                     <button class="btn secondary btn-xs" data-edit-offer="${window.CCCommon.escapeHtml(offer.id)}">Modifier</button>
-                    <button class="btn secondary btn-xs" data-delete-offer="${window.CCCommon.escapeHtml(offer.id)}" style="color:#ef4444;border-color:#ef4444;">Supprimer</button>
+                    <button class="btn secondary btn-xs btn-danger" data-delete-offer="${window.CCCommon.escapeHtml(offer.id)}">Supprimer</button>
                 </div>
             </div>`;
 
@@ -286,9 +281,9 @@
                     <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
                     <div class="item-desc">${[item.city_origin, item.city_destination].filter(Boolean).map(c => window.CCCommon.escapeHtml(c)).join(" &rarr; ")}${item.city_origin || item.city_destination ? " &middot; " : ""}${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
                 </div>
-                <div style="display:flex;gap:6px;flex-shrink:0;">
+                <div class="dash-row-inline">
                     <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
-                    <button class="client-item-btn client-item-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}" style="color:#ef4444;border-color:#ef4444;">Supprimer</button>
+                    <button class="client-item-btn client-item-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}">Supprimer</button>
                 </div>
             </div>
         `).join("");
@@ -349,8 +344,8 @@
                     <div class="item-name">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
                     <div class="item-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""}${item.total_amount ? " - " + window.CCCommon.formatAmount(item.total_amount, item.offers?.base_currency || getUserCurrency()) : ""} | ${statusLabel}</div>
                 </div>
-                <span class="pill-${isDelivered ? 'green' : 'yellow'}" style="font-size:10px;padding:2px 8px;border-radius:8px;flex-shrink:0;">${statusLabel}</span>
-                ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}" style="margin-left:8px;border-color:var(--line);color:var(--text);">Livrer</button>` : ""}
+                <span class="pill-${isDelivered ? 'green' : 'yellow'} pill-status-sm">${statusLabel}</span>
+                ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}">Livrer</button>` : ""}
             </div>`;
         }).join("");
     }
@@ -986,7 +981,7 @@
                         <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
                         <div class="file-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
                     </div>
-                    <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <div class="dash-row-inline">
                         <button class="cargo-file-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
                         <button class="cargo-ops-btn cargo-ops-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}">Supprimer</button>
                     </div>
@@ -1035,7 +1030,7 @@
                         <div class="file-title">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
                         <div class="file-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""} | ${statusLabel}</div>
                     </div>
-                    ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}" style="border-color:var(--line);color:var(--text);flex-shrink:0;">Livrer</button>` : `<span class="pill-green" style="font-size:10px;padding:2px 8px;border-radius:8px;">Livre</span>`}
+                    ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}">Livrer</button>` : `<span class="pill-green pill-status-sm">Livre</span>`}
                 </div>`;
             });
         });
@@ -1057,9 +1052,9 @@
                     <div class="cargo-file-index">${i + 1}</div>
                     <div class="file-content">
                         <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                        <div class="file-desc">Mode: ${mode} | <span class="${statusPill}" style="padding:1px 6px;border-radius:8px;font-size:10px;">${statusLabel}</span></div>
+                        <div class="file-desc">Mode: ${mode} | <span class="${statusPill} pill-status-xs">${statusLabel}</span></div>
                     </div>
-                    <div style="display:flex;gap:6px;flex-shrink:0;">
+                    <div class="dash-row-inline">
                         <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(item.id)}" data-action="modify-offer">Modifier</button>
                         <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(item.id)}" data-action="delete">Supprimer</button>
                     </div>
