@@ -12799,6 +12799,43 @@ body.results-page.light .cc3-special-toggle-gold {
     stroke-width: 1.9;
 }
 
+/* Corbeille (suppression de MES demandes) + rangée d'actions du pied de carte */
+.cc3-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+.cc3-del {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid rgba(255, 92, 92, 0.35);
+    border-radius: 10px;
+    background: rgba(255, 92, 92, 0.08);
+    color: #ff6b6b;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.cc3-del svg { width: 15px; height: 15px; }
+.cc3-del:hover {
+    background: rgba(255, 92, 92, 0.18);
+    border-color: rgba(255, 92, 92, 0.6);
+}
+.cc3-del:active { transform: scale(0.94); }
+.cc3-del:focus-visible { outline: 2px solid #ff6b6b; outline-offset: 2px; }
+/* Mode clair (Gold Light) : rouge plus soutenu pour rester lisible */
+body.results-page.light .cc3-del,
+body.light .cc3-del {
+    border-color: rgba(200, 40, 40, 0.35);
+    background: rgba(200, 40, 40, 0.07);
+    color: #c62828;
+}
+
 /* ============================================================
    OR AMBRÉ PATINÉ (Burnished Amber Gold) — boutons dorés de la
    page (switch du haut actif, Contacter, filtre actif)

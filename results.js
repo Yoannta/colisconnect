@@ -181,6 +181,13 @@
         <span>Contacter</span>
       </button>`
             : `<span class="cc3-cta" aria-disabled="true"><span>${eh(opts.inactiveLabel)}</span></span>`);
+        // Corbeille (mes propres publications uniquement) : icône seule, compacte
+        const delBtn = opts.deleteAttr
+            ? `<button class="cc3-del" type="button" ${opts.deleteAttr} title="${eh(opts.deleteLabel || "Supprimer")}" aria-label="${eh(opts.deleteLabel || "Supprimer")}">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9.5 7V4.8h5V7"></path><path d="M6.2 7l1 12.2h9.6L17.8 7"></path><path d="M10 10.8v5.2M14 10.8v5.2"></path></svg>
+      </button>`
+            : "";
+        const actions = delBtn ? `<div class="cc3-actions">${delBtn}${btn}</div>` : btn;
         return `
     <footer class="cc3-foot">
       <div class="cc3-profile">
@@ -193,7 +200,7 @@
           <span class="cc3-meta">${eh(opts.label)}</span>
         </div>
       </div>
-      ${btn}
+      ${actions}
     </footer>`;
     }
 
@@ -364,6 +371,9 @@
       editAttr: isOwnDemand ? `data-edit-own-demand="${d.id}"` : "",
       editLabel: "Modifier ma demande",
       editAriaLabel: "Modifier ma demande de transport",
+      // Corbeille : suppression de ma propre demande (avec confirmation)
+      deleteAttr: isOwnDemand ? `data-delete-own-demand="${d.id}"` : "",
+      deleteLabel: "Supprimer ma demande",
       dataAttr: isOwnDemand ? "" : `data-contact-request="${d.id}"`,
       ariaLabel: `Contacter ${(d.owner && d.owner.full_name) || "ce demandeur"}`,
       inactiveLabel: "Votre demande"
@@ -886,6 +896,43 @@
         }
     }
 
+    // ── Suppression d'une de MES demandes ──────────────────────────────────────
+    // Confirmation obligatoire, puis DELETE ciblé (id + propriétaire). On vérifie que
+    // la ligne a bien été supprimée : sans droit RLS DELETE, Supabase renvoie 0 ligne
+    // SANS erreur (même piège que pour la modification).
+    async function deleteDemande(parcelId) {
+        const id = String(parcelId || "").trim();
+        if (!id) return;
+        if (!window.confirm("Supprimer définitivement cette demande ?\n\nCette action est irréversible.")) return;
+        if (!window.ccSupabase) {
+            window.alert("Suppression indisponible : mode dégradé sans base de données.");
+            return;
+        }
+        const userId = window.CCCommon.state?.user?.id;
+        if (!userId) {
+            window.alert("Vous devez être connecté pour supprimer votre demande.");
+            return;
+        }
+        try {
+            const { data, error } = await window.ccSupabase
+                .from("parcel_requests")
+                .delete()
+                .eq("id", id)
+                .eq("user_id", userId)
+                .select("id");
+            if (error) throw error;
+            if (!data || !data.length) {
+                throw new Error("Suppression refusee par la base de donnees (aucune ligne supprimee). Droits manquants : politique RLS DELETE sur parcel_requests.");
+            }
+            // Retrait immediat de la carte, puis etat mis a jour
+            state.demands = (state.demands || []).filter((d) => String(d.id) !== id);
+            renderDemands();
+        } catch (err) {
+            console.error("Erreur suppression demande:", err);
+            window.alert("Erreur: " + (err.message || "Suppression impossible."));
+        }
+    }
+
     function bindEvents() {
         initCustomCurrencyDropdown();
 
@@ -896,6 +943,12 @@
                 const editOwnBtn = event.target.closest(
                     "button[data-edit-own-offer],button[data-edit-own-demand]"
                 );
+                // Corbeille : suppression de ma propre demande (avec confirmation)
+                const delOwnBtn = event.target.closest("button[data-delete-own-demand]");
+                if (delOwnBtn) {
+                    deleteDemande(delOwnBtn.getAttribute("data-delete-own-demand"));
+                    return;
+                }
                 if (editOwnBtn) {
                     const ownOfferId = editOwnBtn.getAttribute("data-edit-own-offer");
                     const ownDemandId = editOwnBtn.getAttribute("data-edit-own-demand");
