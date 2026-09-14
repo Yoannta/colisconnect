@@ -1530,14 +1530,12 @@
 
         dmdNextBtn?.addEventListener("click", () => {
             if (demandeStep === 1) {
-                // Etape 1 (trajet) : AUCUN champ optionnel ici -> pays + ville (depart et arrivee)
-                // obligatoires, et pour la date : une date limite OU « Pas de date limite » (Yoyo).
+                // Etape 1 (trajet) : PAYS obligatoires ; VILLES optionnelles (Yoyo 2026-09-14).
+                // Pour la date : une date limite OU « Pas de date limite » (Yoyo).
                 const readVal = (id) => (document.getElementById(id)?.value || "").trim();
                 const missing = [];
                 if (!readVal("demande-origin")) missing.push({ id: "demande-origin", label: "le pays de depart" });
-                if (!readVal("city-demande-origin")) missing.push({ id: "city-demande-origin", label: "la ville de depart" });
                 if (!readVal("demande-destination")) missing.push({ id: "demande-destination", label: "le pays d'arrivee" });
-                if (!readVal("city-demande-destination")) missing.push({ id: "city-demande-destination", label: "la ville d'arrivee" });
                 // La DATE LIMITE est OPTIONNELLE (Yoyo) : on ne bloque plus « Continuer » sans
                 // date et on ne force plus a cliquer « Pas de date limite ».
                 document.querySelectorAll("#demande-form .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
