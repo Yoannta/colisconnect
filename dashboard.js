@@ -1344,15 +1344,8 @@
         const user = window.CCCommon.state.user;
         const profileType = String(user?.profile_type || "").toLowerCase();
 
-        // Basculer entre les vues traveler, client ou cargo
-        switchDashboardView(profileType);
-
-        // Activer le toggle par défaut
-        document.querySelectorAll(".dash-toggle").forEach(b => b.classList.remove("active"));
-        const defaultToggle = document.querySelector(`.dash-toggle[data-switch="${profileType}"]`);
-        if (defaultToggle) defaultToggle.classList.add("active");
-
-        // Afficher/masquer les toggles selon le profile_type reel
+        // Afficher/masquer les toggles selon le profile_type reel (AVANT switchDashboardView
+        // pour que updateDashboardToggleState calcule correctement les indices toggle-index-X)
         document.querySelectorAll(".dash-toggle").forEach(b => {
             const sw = b.getAttribute("data-switch");
             if (profileType === "cargo") {
@@ -1363,7 +1356,9 @@
                 b.classList.add("hidden"); // Client: masquer tout
             }
         });
-        updateDashboardToggleState(state.currentView);
+
+        // Basculer entre les vues traveler, client ou cargo (recalcule les états actifs)
+        switchDashboardView(profileType);
 
         if (els.dashboardUser) {
             els.dashboardUser.textContent = user?.fullName || "Voyageur";
