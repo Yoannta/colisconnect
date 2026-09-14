@@ -2477,6 +2477,22 @@
             showVilles(villes);
         });
 
+        // Changement de PAYS -> la ville saisie appartenait a l'ancien pays : on la vide.
+        // (Sans ce correctif, le client gardait « Paris » en passant au Senegal.)
+        let _lastCountry = (countryInput.value || "").trim();
+        const viderVilleSiPaysChange = () => {
+            const now = (countryInput.value || "").trim();
+            if (now === _lastCountry) return;
+            _lastCountry = now;
+            if (cityInput.value) cityInput.value = "";
+            _lastQuery = "";
+            list.innerHTML = "";
+            list.style.display = "none";
+        };
+        countryInput.addEventListener("input", viderVilleSiPaysChange);
+        countryInput.addEventListener("change", viderVilleSiPaysChange);
+        countryInput.addEventListener("blur", viderVilleSiPaysChange);
+
         // --- Ville libre (Yoyo 2026-09) : la valeur saisie est CONSERVEE meme si elle ne
         //     vient pas des suggestions. Avant, le blur/Entree vidait le champ des que la
         //     ville n'etait pas dans la liste -> une ville absente de la base partait vide. ---

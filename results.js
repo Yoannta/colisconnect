@@ -1241,6 +1241,13 @@
                     dmdSubmitBtn.classList.remove("hidden");
                 }
                 document.getElementById("demande-feedback")?.classList.add("hidden");
+                // Vider AUSSI les champs du trajet : sinon une demande precedente laissait ses
+                // valeurs (pays, villes et surtout la date limite) dans le formulaire.
+                ["demande-origin", "city-demande-origin", "demande-destination",
+                    "city-demande-destination", "demande-date"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) { el.value = ""; el.classList.remove("dmd-invalid"); }
+                });
                 // revenir à un seul cadre vierge (mode par kilo)
                 const boxes = getColisBoxes();
                 boxes.slice(1).forEach((b) => b.remove());
@@ -1531,9 +1538,8 @@
                 if (!readVal("city-demande-origin")) missing.push({ id: "city-demande-origin", label: "la ville de depart" });
                 if (!readVal("demande-destination")) missing.push({ id: "demande-destination", label: "le pays d'arrivee" });
                 if (!readVal("city-demande-destination")) missing.push({ id: "city-demande-destination", label: "la ville d'arrivee" });
-                if (!readVal("demande-date") && !dmdNoDate) {
-                    missing.push({ id: "demande-date", label: "la date limite (ou touchez « Pas de date limite »)" });
-                }
+                // La DATE LIMITE est OPTIONNELLE (Yoyo) : on ne bloque plus « Continuer » sans
+                // date et on ne force plus a cliquer « Pas de date limite ».
                 document.querySelectorAll("#demande-form .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
                 if (missing.length) {
                     missing.forEach((m) => document.getElementById(m.id)?.classList.add("dmd-invalid"));
@@ -1618,15 +1624,26 @@
                         max_price_total: first.max_price_total ?? null,
                         items
                     };
-                    const { error } = editingDemandeId
+                    // .select("id") : permet de VERIFIER que la ligne a bien ete ecrite.
+                    // Sans cela, un UPDATE bloque par les droits (RLS Supabase) renvoie
+                    // 0 ligne SANS erreur -> l'interface affichait « envoye » alors que
+                    // rien n'etait enregistre (bug constate par Yoyo).
+                    const result = editingDemandeId
                         // Modification d'une demande existante (proprietaire uniquement)
                         ? await window.ccSupabase.from("parcel_requests")
                             .update(payload)
                             .eq("id", editingDemandeId)
                             .eq("user_id", userId)
+                            .select("id")
                         : await window.ccSupabase.from("parcel_requests")
-                            .insert({ user_id: userId, ...payload, status: "pending" });
-                    if (error) throw error;
+                            .insert({ user_id: userId, ...payload, status: "pending" })
+                            .select("id");
+                    if (result.error) throw result.error;
+                    if (!result.data || !result.data.length) {
+                        throw new Error(editingDemandeId
+                            ? "Modification non enregistree : la base de donnees n'a mis a jour aucune ligne (droits d'ecriture manquants — politique RLS UPDATE sur parcel_requests)."
+                            : "Demande non enregistree : la base n'a cree aucune ligne (droits manquants — politique RLS INSERT sur parcel_requests).");
+                    }
                 } else {
                     // Dégradé sans Supabase : l'API historique ne porte qu'un colis (le premier)
                     if (items.length > 1) console.warn("Mode API historique : seul le premier colis de la demande est envoye.");
@@ -1646,7 +1663,10 @@
             } catch (err) {
                 console.error("Erreur soumission demande:", err);
                 alert("Erreur: " + (err.message || "Impossible de soumettre la demande."));
-                if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = editingDemandeId ? "Enregistrer" : "Faire la demande";
+                }
             }
         });
     });
