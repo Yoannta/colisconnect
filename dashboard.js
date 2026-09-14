@@ -332,7 +332,7 @@
         els.clientValidatedList.innerHTML = validated.map((item) => {
             const origin = item.offers?.origin || item.offer_origin || "";
             const dest = item.offers?.destination || item.offer_destination || "";
-            const ownerName = item.offers?.owner_name || item.offer_owner_name || 
+            const ownerName = item.offers?.owner_name || item.offer_owner_name ||
                 (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id)?.travelerName || "Voyageur";
             const conv = (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id);
             const threadId = conv?.id || item.thread_id || null;
@@ -620,7 +620,7 @@
                         <div class="col-mode">${mode}</div>
                         <div class="col-statut"><span class="${statusPill}">${statusLabel}</span></div>
                         <div class="col-actions">
-                            <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
+                            <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-edit-offer="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
                             <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
                         </div>
                     </div>`;
@@ -643,8 +643,9 @@
                             <div class="file-desc">${item.preview ? window.CCCommon.escapeHtml(item.preview) : ""}</div>
                         </div>
                         <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
-                    </div>`;}).join("");
-                    }
+                    </div>`;
+                }).join("");
+            }
         }
 
         // Limite offres (progress bar)
@@ -1017,7 +1018,7 @@
             openVoirTousModal("Gestion de mes colis", "Colis", items, (item, i) => {
                 const origin = item.offers?.origin || item.offer_origin || "";
                 const dest = item.offers?.destination || item.offer_destination || "";
-                const ownerName = item.offers?.owner_name || item.offer_owner_name || 
+                const ownerName = item.offers?.owner_name || item.offer_owner_name ||
                     (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id)?.travelerName || "Voyageur";
                 const conv = (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id);
                 const threadId = conv?.id || item.thread_id || null;
@@ -1261,11 +1262,11 @@
 
         // Upload photo de profil -> Sauvegarde dans Supabase
         document.querySelectorAll(".avatar-file-input").forEach(input => {
-            input.addEventListener("change", async function() {
+            input.addEventListener("change", async function () {
                 const file = this.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
-                reader.onload = async function(e) {
+                reader.onload = async function (e) {
                     const dataUrl = e.target?.result;
                     if (!dataUrl) return;
                     // Appliquer a tous les cercles avatar
@@ -1284,7 +1285,7 @@
                                 updated_at: new Date().toISOString()
                             }).eq("id", userId);
                             console.log("Photo de profil sauvegardee");
-                        } catch(e) {
+                        } catch (e) {
                             console.warn("Impossible de sauvegarder la photo:", e);
                         }
                     }
@@ -1400,7 +1401,7 @@
                         el.classList.add("has-image");
                     });
                 }
-            } catch(e) {
+            } catch (e) {
                 console.warn("Impossible de charger la photo de profil:", e);
             }
         }
