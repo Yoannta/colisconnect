@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=51"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=52"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
@@ -27,7 +27,7 @@
     <script defer src="standalone-common.js?v=7"></script>
     <script defer src="admin-banner.js"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=17"></script>
+    <script defer src="post_trip.js?v=18"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -585,16 +585,26 @@
         }
         .colis-row-del {
             flex-shrink: 0;
-            width: 38px;
-            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             border: 1px solid rgba(255,255,255,0.12);
             background: rgba(255,255,255,0.04);
             color: rgba(255,255,255,0.5);
-            font-size: 0.85rem;
+            font-size: 0.7rem;
             line-height: 1;
             cursor: pointer;
             transition: all 0.2s;
+        }
+        /* Champ « Date du voyage » : largeur reduite (il etait aussi long que la
+           colonne et sortait de son cadre) */
+        #date-depart {
+            width: 100% !important;
+            max-width: 250px;
+            min-width: 0;
         }
         .colis-row-del:hover {
             color: #ff6b6b;
@@ -656,8 +666,8 @@
             }
             .colis-row-del {
                 margin-left: auto;
-                width: 38px;
-                height: 38px;
+                width: 26px;
+                height: 26px;
             }
         }
         .popup-title {
@@ -1423,6 +1433,13 @@
             // Expose pour rafraichir les badges quand la devise change (voir post_trip.js)
             window.ccRefreshUniteLabel = refreshUniteLabel;
 
+            // Recree la 1re ligne de prix special si toutes ont ete supprimees.
+            // Appele par le bouton « Oui » (post_trip.js) : sans ca, le panneau
+            // s'ouvrait vide apres une suppression et les champs ne revenaient pas.
+            window.ccEnsureSpecialRow = function () {
+                if (!rowsBox.querySelector('.colis-detail-row')) makeRow();
+            };
+
             function commitName(input) {
                 var val = input.value.trim();
                 var btn = document.createElement('button');
@@ -1439,7 +1456,20 @@
                 var delBtn = e.target.closest('.colis-row-del');
                 if (delBtn) {
                     var rowToDel = delBtn.closest('.colis-detail-row');
-                    if (rowToDel) rowToDel.remove();
+                    if (rowToDel) {
+                        rowToDel.remove();
+                        // Plus aucune ligne de prix special : on remet la question sur « Non »
+                        // et on referme le panneau. Sinon le switch restait bloque sur « Oui »
+                        // avec un panneau vide, et re-cliquer « Oui » n'affichait plus rien.
+                        if (!rowsBox.querySelector('.colis-detail-row')) {
+                            var yesBase = document.getElementById('special-yes');
+                            var noBase = document.getElementById('special-no');
+                            var pnlBase = document.getElementById('special-prices-panel');
+                            if (yesBase) yesBase.classList.remove('selected');
+                            if (noBase) noBase.classList.add('selected');
+                            if (pnlBase) pnlBase.classList.add('hidden');
+                        }
+                    }
                     return;
                 }
                 var nameBtn = e.target.closest('.colis-name-btn');

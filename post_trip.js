@@ -1070,6 +1070,10 @@
         const panel = document.getElementById("special-prices-panel");
         if (yesBtn && noBtn && panel) {
             yesBtn.addEventListener("click", () => {
+                // Si toutes les lignes ont ete supprimees, on recree la 1re ligne pour que
+                // les champs reparaissent (sinon le panneau s'ouvrait vide et il fallait
+                // passer par « Ajouter un autre prix special »).
+                if (typeof window.ccEnsureSpecialRow === "function") window.ccEnsureSpecialRow();
                 panel.classList.remove("hidden");
                 yesBtn.classList.add("selected");
                 noBtn.classList.remove("selected");
