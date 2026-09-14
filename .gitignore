@@ -29,3 +29,10 @@ __pycache__/
 *.zip
 water-drop-offer-prototype/
 reference-results-page/
+
+# Profils navigateur et fichiers de test - ne JAMAIS committer (cookies, mots de passe)
+.pw-profile*/
+.playwright/
+_probe-*.js
+.tmp-*.txt
+
