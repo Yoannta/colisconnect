@@ -16,7 +16,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=52"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=52">
+    <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js"></script>
     <script defer src="responsive.js"></script>
@@ -241,6 +242,7 @@
             gap: 10px;
             margin-top: 8px;
         }
+
         .transport-mode-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--line, rgba(255, 179, 71, 0.12));
@@ -257,10 +259,12 @@
             flex: 1;
             justify-content: center;
         }
+
         .transport-mode-btn:hover {
             background: rgba(255, 255, 255, 0.1);
             border-color: #ffb347;
         }
+
         .transport-mode-btn.selected {
             background: rgba(255, 179, 71, 0.15);
             border-color: #ffb347;
@@ -272,20 +276,23 @@
         .modal-transport-mode {
             margin-bottom: 16px;
         }
+
         .modal-transport-divider {
             height: 1px;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
             margin: 16px 0;
         }
+
         .modal-transport-grid {
             display: flex;
             gap: 10px;
             margin-bottom: 16px;
         }
+
         .modal-transport-btn {
             flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 12px 8px;
             cursor: pointer;
@@ -295,12 +302,14 @@
             transition: all 0.2s;
             text-align: center;
         }
+
         .modal-transport-btn:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.1);
             border-color: #ffb347;
         }
+
         .modal-transport-btn.selected {
-            background: rgba(255, 179, 71,0.15);
+            background: rgba(255, 179, 71, 0.15);
             border-color: #ffb347;
             color: #ffb347;
             font-weight: 700;
@@ -311,9 +320,10 @@
             display: flex;
             gap: 8px;
         }
+
         .profile-select-btn {
             background: transparent;
-            border: 1px solid rgba(255, 179, 71,0.25);
+            border: 1px solid rgba(255, 179, 71, 0.25);
             border-radius: 8px;
             padding: 8px 14px;
             cursor: pointer;
@@ -322,14 +332,17 @@
             flex: 1;
             white-space: nowrap;
         }
+
         .profile-select-btn:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255, 179, 71,0.5);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 179, 71, 0.5);
         }
+
         .profile-select-btn.selected {
-            background: rgba(255, 179, 71,0.12);
+            background: rgba(255, 179, 71, 0.12);
             border-color: #ffb347;
         }
+
         .profile-select-btn .ps-title {
             font-size: 0.85rem;
             font-weight: 600;
@@ -345,14 +358,17 @@
         .cc-autocomplete-ctn {
             position: relative;
         }
+
         .cc-input-wrapper {
             display: flex;
             align-items: center;
             gap: 8px;
         }
+
         .cc-input-wrapper .form-input {
             flex: 1;
         }
+
         .cc-custom-arrow {
             color: #ffb347;
             font-size: 0.7rem;
@@ -362,6 +378,7 @@
             user-select: none;
             pointer-events: none;
         }
+
         .cc-suggestions-list {
             position: absolute;
             z-index: 2147483647;
@@ -372,7 +389,7 @@
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 179, 71, 0.3);
             border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(255, 179, 71, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 15px rgba(255, 179, 71, 0.1);
             max-height: 280px;
             overflow-y: auto;
             margin: 0;
@@ -381,44 +398,58 @@
             display: none;
             animation: ccFadeIn 0.15s ease-out;
         }
+
         .cc-suggestions-list li {
             padding: 12px 16px;
             color: #f0f7f6;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
         }
+
         .cc-suggestions-list li:last-child {
             border-bottom: none;
         }
+
         .cc-suggestions-list li:hover,
         .cc-suggestions-list li.active {
             background: rgba(255, 179, 71, 0.15);
             color: #ffb347;
             padding-left: 20px;
         }
+
         .cc-suggestions-list::-webkit-scrollbar {
             width: 6px;
         }
+
         .cc-suggestions-list::-webkit-scrollbar-thumb {
             background: #ffb347;
             border-radius: 10px;
         }
+
         .cc-country-invalid {
             border-color: #ff4444 !important;
             box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2) !important;
         }
+
         @keyframes ccFadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* === Popup Types de colis === */
         .popup-trigger-btn {
             width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 14px 16px;
             color: #f0f7f6;
@@ -429,15 +460,18 @@
             align-items: center;
             transition: all 0.2s;
         }
+
         .popup-trigger-btn:hover {
             border-color: #ffb347;
-            background: rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.08);
         }
+
         /* Garde anti-débordement : aucun enfant ne doit gonfler le formulaire
            au-delà de la carte (min-content des flex/grid), surtout en mobile. */
         #trip-extra-fields {
             min-width: 0;
         }
+
         /* === Section Détails colis (nom du colis + prix/kilo ou prix/quantité) === */
         .colis-detail-row {
             display: flex;
@@ -445,27 +479,30 @@
             gap: 12px;
             flex-wrap: wrap;
             margin-bottom: 10px;
-            background: rgba(255,255,255,0.045);
-            border: 1px solid rgba(255,255,255,0.07);
+            background: rgba(255, 255, 255, 0.045);
+            border: 1px solid rgba(255, 255, 255, 0.07);
             border-radius: 12px;
             padding: 10px 12px;
         }
+
         .colis-detail-row .colis-name-btn {
             width: auto;
             flex: 1 1 auto;
             min-width: 0;
         }
+
         .colis-name-input {
             flex: 1 1 220px;
             min-width: 0;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255, 179, 71,0.4);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 179, 71, 0.4);
             border-radius: 12px;
             padding: 14px 16px;
             color: #f0f7f6;
             font-size: 0.95rem;
             outline: none;
         }
+
         .colis-price-modes {
             display: flex;
             align-items: center;
@@ -474,10 +511,12 @@
             min-width: 0;
             margin-left: 0;
         }
+
         .price-mode-btn {
-            background: rgba(255, 179, 71,0.1);
-            border: 1px solid rgba(255, 179, 71,0.3);
-            border-radius: 8px; /* bords ANGULAIRES (demande Yoyo — plus de pilules) */
+            background: rgba(255, 179, 71, 0.1);
+            border: 1px solid rgba(255, 179, 71, 0.3);
+            border-radius: 8px;
+            /* bords ANGULAIRES (demande Yoyo — plus de pilules) */
             color: #ffb347;
             font-size: 0.85rem;
             font-weight: 700;
@@ -488,38 +527,46 @@
             flex: 1 1 0;
             text-align: center;
         }
+
         .price-mode-btn:hover {
-            background: rgba(255, 179, 71,0.2);
+            background: rgba(255, 179, 71, 0.2);
         }
+
         .price-or {
-            color: rgba(255,255,255,0.35);
+            color: rgba(255, 255, 255, 0.35);
             font-size: 0.8rem;
             flex-shrink: 0;
         }
+
         .price-field {
             width: 110px;
-            background: rgba(255, 179, 71,0.1);
-            border: 1px solid rgba(255, 179, 71,0.35);
-            border-radius: 8px; /* bords ANGULAIRES (demande Yoyo) */
+            background: rgba(255, 179, 71, 0.1);
+            border: 1px solid rgba(255, 179, 71, 0.35);
+            border-radius: 8px;
+            /* bords ANGULAIRES (demande Yoyo) */
             padding: 8px 14px;
             color: #ffb347;
             font-size: 0.85rem;
             font-weight: 700;
             outline: none;
             transition: all 0.2s;
-            flex: 1 1 0; /* ⚠️ flex-basis 0 : l'inline width du JS est ignoré → le champ s'étend sur toute la ligne (demande Yoyo) */
+            flex: 1 1 0;
+            /* ⚠️ flex-basis 0 : l'inline width du JS est ignoré → le champ s'étend sur toute la ligne (demande Yoyo) */
             min-width: 0;
         }
+
         .price-field:focus {
             border-color: #ffb347;
-            box-shadow: 0 0 0 2px rgba(255, 179, 71,0.15);
+            box-shadow: 0 0 0 2px rgba(255, 179, 71, 0.15);
         }
+
         .price-mode-btn.active {
-            background: rgba(255, 179, 71,0.28);
+            background: rgba(255, 179, 71, 0.28);
             border-color: #ffb347;
             color: #ffd08a;
-            box-shadow: 0 0 0 2px rgba(255, 179, 71,0.15);
+            box-shadow: 0 0 0 2px rgba(255, 179, 71, 0.15);
         }
+
         .special-price-line {
             display: flex;
             align-items: center;
@@ -527,14 +574,16 @@
             width: 100%;
             margin-top: 4px;
         }
+
         .special-price-line .price-field {
             flex: 1 1 0;
             width: auto;
         }
+
         .special-price-currency {
             flex-shrink: 0;
-            background: rgba(255, 179, 71,0.12);
-            border: 1px solid rgba(255, 179, 71,0.35);
+            background: rgba(255, 179, 71, 0.12);
+            border: 1px solid rgba(255, 179, 71, 0.35);
             border-radius: 8px;
             color: #ffb347;
             font-size: 0.85rem;
@@ -542,10 +591,11 @@
             padding: 8px 14px;
             white-space: nowrap;
         }
+
         .btn-add-type {
             width: 100%;
             background: transparent;
-            border: 1px dashed rgba(255, 179, 71,0.35);
+            border: 1px dashed rgba(255, 179, 71, 0.35);
             border-radius: 12px;
             padding: 10px 16px;
             color: #ffb347;
@@ -555,10 +605,12 @@
             transition: all 0.2s;
             margin-top: 2px;
         }
+
         .btn-add-type:hover {
-            background: rgba(255, 179, 71,0.08);
+            background: rgba(255, 179, 71, 0.08);
             border-color: #ffb347;
         }
+
         .btn-add-type:disabled {
             opacity: 0.45;
             cursor: not-allowed;
@@ -568,21 +620,25 @@
         #trip-extra-dates-wrap {
             margin-top: 10px;
         }
+
         .trip-extra-date-row {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 8px;
         }
+
         .trip-extra-date-row .trip-extra-date {
             flex: 1 1 auto;
             min-width: 0;
         }
+
         .trip-extra-dates-hint {
             margin: 8px 0 0;
             font-size: 0.78rem;
             opacity: 0.6;
         }
+
         .colis-row-del {
             flex-shrink: 0;
             display: inline-flex;
@@ -591,14 +647,15 @@
             width: 26px;
             height: 26px;
             border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            color: rgba(255, 255, 255, 0.5);
             font-size: 0.7rem;
             line-height: 1;
             cursor: pointer;
             transition: all 0.2s;
         }
+
         /* Champ « Date du voyage » : largeur reduite (il etait aussi long que la
            colonne et sortait de son cadre) */
         #date-depart {
@@ -606,11 +663,13 @@
             max-width: 250px;
             min-width: 0;
         }
+
         .colis-row-del:hover {
             color: #ff6b6b;
-            border-color: rgba(255,107,107,0.5);
-            background: rgba(255,107,107,0.1);
+            border-color: rgba(255, 107, 107, 0.5);
+            background: rgba(255, 107, 107, 0.1);
         }
+
         /* Lignes de contact (paiement) — 1 ligne = bouton + ✕, espacées */
         .payment-contact-row {
             display: flex;
@@ -618,12 +677,15 @@
             gap: 8px;
             margin-bottom: 10px;
         }
+
         .payment-contact-row .btn.payment-method-btn {
             flex: 1 1 auto;
         }
+
         #addContactBtn {
             margin-top: 4px;
         }
+
         /* Mobile (≤560px) : DEUX lignes volontaires — L1 nom pleine largeur
            (cohérent avec les autres champs), L2 modes à gauche + ✕ à droite.
            Au-delà : UNE ligne (nom + modes + ✕). */
@@ -631,45 +693,54 @@
             .colis-detail-row {
                 gap: 8px;
             }
+
             .colis-detail-row .colis-name-btn {
                 flex: 1 1 100%;
                 padding: 14px 16px;
                 font-size: 0.9rem !important;
                 min-width: 0;
             }
+
             .colis-name-btn .colis-name-label {
                 overflow: hidden;
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 min-width: 0;
             }
+
             .colis-name-input {
                 flex: 1 1 100%;
                 padding: 14px 16px;
                 font-size: 0.9rem !important;
                 min-width: 0;
             }
+
             .colis-price-modes {
                 margin-left: 0;
                 gap: 10px;
             }
+
             .price-mode-btn {
                 padding: 9px 14px;
                 font-size: 0.82rem !important;
             }
+
             .price-or {
                 font-size: 0.78rem;
             }
+
             .price-field {
                 padding: 9px 14px;
                 font-size: 0.85rem !important;
             }
+
             .colis-row-del {
                 margin-left: auto;
                 width: 26px;
                 height: 26px;
             }
         }
+
         .popup-title {
             font-size: 1.2rem;
             font-weight: 700;
@@ -677,15 +748,17 @@
             margin-bottom: 16px;
             text-align: center;
         }
+
         .options-grid {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-bottom: 16px;
         }
+
         .option-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 10px;
             padding: 10px 14px;
             cursor: pointer;
@@ -695,41 +768,49 @@
             transition: all 0.2s;
             user-select: none;
         }
+
         .option-card:hover {
-            background: rgba(255, 179, 71,0.08);
-            border-color: rgba(255, 179, 71,0.3);
+            background: rgba(255, 179, 71, 0.08);
+            border-color: rgba(255, 179, 71, 0.3);
         }
+
         .option-card.selected {
-            background: rgba(255, 179, 71,0.15);
+            background: rgba(255, 179, 71, 0.15);
             border-color: #ffb347;
         }
+
         .option-circle {
             width: 16px;
             height: 16px;
-            border: 2px solid rgba(255,255,255,0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
             border-radius: 50%;
             flex-shrink: 0;
             transition: all 0.2s;
         }
+
         .option-card.selected .option-circle {
             background: #ffb347;
             border-color: #ffb347;
-            box-shadow: 0 0 6px rgba(255, 179, 71,0.5);
+            box-shadow: 0 0 6px rgba(255, 179, 71, 0.5);
         }
+
         .option-text {
             font-size: 0.85rem;
             color: #d0d0d0;
         }
+
         .option-card.selected .option-text {
             color: white;
             font-weight: 600;
         }
+
         .add-custom-section {
             margin-bottom: 16px;
         }
+
         .btn-add-trigger {
             background: none;
-            border: 1px dashed rgba(255,255,255,0.15);
+            border: 1px dashed rgba(255, 255, 255, 0.15);
             border-radius: 10px;
             padding: 10px 14px;
             color: #ffb347;
@@ -738,31 +819,36 @@
             width: 100%;
             transition: all 0.2s;
         }
+
         .btn-add-trigger:hover {
-            background: rgba(255, 179, 71,0.06);
+            background: rgba(255, 179, 71, 0.06);
             border-color: #ffb347;
         }
+
         .custom-input-group {
             display: none;
             gap: 8px;
             margin-top: 8px;
         }
+
         .custom-input {
             flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
             padding: 10px 14px;
             color: white;
             font-size: 0.9rem;
             outline: none;
         }
+
         .custom-input:focus {
             border-color: #ffb347;
         }
+
         .btn-save-custom {
-            background: rgba(255, 179, 71,0.15);
-            border: 1px solid rgba(255, 179, 71,0.3);
+            background: rgba(255, 179, 71, 0.15);
+            border: 1px solid rgba(255, 179, 71, 0.3);
             border-radius: 10px;
             padding: 10px 16px;
             color: #ffb347;
@@ -772,12 +858,14 @@
             white-space: nowrap;
             transition: all 0.2s;
         }
+
         .btn-save-custom:hover {
-            background: rgba(255, 179, 71,0.25);
+            background: rgba(255, 179, 71, 0.25);
         }
+
         .btn-validate {
             width: 100%;
-            background: rgba(255, 179, 71,0.15);
+            background: rgba(255, 179, 71, 0.15);
             border: 1px solid #ffb347;
             border-radius: 12px;
             padding: 14px;
@@ -787,8 +875,9 @@
             cursor: pointer;
             transition: all 0.2s;
         }
+
         .btn-validate:hover {
-            background: rgba(255, 179, 71,0.25);
+            background: rgba(255, 179, 71, 0.25);
         }
 
         /* Masquer le champ "Types de colis acceptés" (logique conservée) */
@@ -800,6 +889,7 @@
         .phone-section-container {
             margin-top: 16px;
         }
+
         .phone-label {
             font-size: 0.85rem;
             color: #b0b0b0;
@@ -807,15 +897,18 @@
             margin-bottom: 8px;
             font-weight: 600;
         }
+
         .phone-input-row {
             display: flex;
-            flex-wrap: wrap; /* le bouton Vérifier passe SOUS le champ (Yoyo : caché sur certains écrans) */
+            flex-wrap: wrap;
+            /* le bouton Vérifier passe SOUS le champ (Yoyo : caché sur certains écrans) */
             gap: 8px;
             align-items: stretch;
         }
+
         .phone-prefix-select {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 0 8px;
             color: #f0f7f6;
@@ -823,29 +916,35 @@
             cursor: pointer;
             min-width: 80px;
         }
+
         .phone-prefix-select option {
             background: #1a1a2e;
             color: #f0f7f6;
         }
+
         .phone-main-input {
             flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 12px 14px;
             color: white;
             font-size: 0.95rem;
             outline: none;
         }
+
         .phone-main-input:focus {
-            border-color: rgba(255,179,71,0.6); /* plus d'aura émeraude (Yoyo) */
-            box-shadow: 0 0 0 3px rgba(255,140,0,0.12);
+            border-color: rgba(255, 179, 71, 0.6);
+            /* plus d'aura émeraude (Yoyo) */
+            box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.12);
         }
+
         .phone-verify-btn {
-            flex: 1 1 100%; /* pleine largeur SOUS le numéro (Yoyo) */
+            flex: 1 1 100%;
+            /* pleine largeur SOUS le numéro (Yoyo) */
             justify-content: center;
-            background: rgba(255,179,71,0.08);
-            border: 1px solid rgba(255,179,71,0.5);
+            background: rgba(255, 179, 71, 0.08);
+            border: 1px solid rgba(255, 179, 71, 0.5);
             border-radius: 12px;
             padding: 14px 16px;
             color: #ffb347;
@@ -855,14 +954,17 @@
             white-space: nowrap;
             transition: all 0.2s;
         }
+
         .phone-verify-btn:not(:disabled):hover {
-            background: rgba(255,179,71,0.15);
+            background: rgba(255, 179, 71, 0.15);
             border-color: #ffb347;
         }
+
         .phone-verify-btn:disabled {
             opacity: 0.4;
             cursor: default;
         }
+
         .phone-help-text {
             font-size: 0.75rem;
             color: #888;
@@ -882,9 +984,11 @@
             justify-content: center;
             align-items: center;
         }
+
         .popup-overlay.active {
             display: flex;
         }
+
         .popup-content {
             background: #1a1a2e;
             border: 1px solid rgba(255, 179, 71, 0.3);
@@ -931,10 +1035,14 @@
                     <form class="trip-form" id="trip-form">
                         <!-- Barre de progression du wizard -->
                         <div class="wizard-progress" aria-label="Progression">
-                            <div class="wp-step active" data-wstep="1"><span class="wp-dot">1</span><span class="wp-label">Voyage</span></div>
-                            <div class="wp-step" data-wstep="2"><span class="wp-dot">2</span><span class="wp-label">Colis</span></div>
-                            <div class="wp-step" data-wstep="3"><span class="wp-dot">3</span><span class="wp-label">Prix spéciaux</span></div>
-                            <div class="wp-step" data-wstep="4"><span class="wp-dot">4</span><span class="wp-label">Contact</span></div>
+                            <div class="wp-step active" data-wstep="1"><span class="wp-dot">1</span><span
+                                    class="wp-label">Voyage</span></div>
+                            <div class="wp-step" data-wstep="2"><span class="wp-dot">2</span><span
+                                    class="wp-label">Colis</span></div>
+                            <div class="wp-step" data-wstep="3"><span class="wp-dot">3</span><span class="wp-label">Prix
+                                    spéciaux</span></div>
+                            <div class="wp-step" data-wstep="4"><span class="wp-dot">4</span><span
+                                    class="wp-label">Contact</span></div>
                         </div>
 
                         <!-- Étape 1 : Détails du voyage -->
@@ -943,48 +1051,53 @@
                                 <span class="tsh-icon">✈️</span>
                                 <div class="tsh-text">
                                     <h3 class="trip-section-title">Détails du voyage</h3>
-                                    <p class="trip-section-sub">Indiquez votre itinéraire et la date de votre voyage.</p>
+                                    <p class="trip-section-sub">Indiquez votre itinéraire et la date de votre voyage.
+                                    </p>
                                 </div>
                             </div>
                             <div id="step1-errors" class="step-errors hidden" role="alert"></div>
 
-                        <!-- Choix du type de profil — en tête de l'étape 1 -->
-                        <div id="profile-choice-section" class="form-group">
-                            <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
-                            <div class="profile-select-grid">
-                                <button type="button" class="profile-select-btn" id="btn-traveler-choice">
-                                    <span class="ps-icon">👤</span>
-                                    <span class="ps-body">
-                                        <span class="ps-title">Voyageur simple</span>
-                                        <span class="ps-sub">Je rentabilise mes kilos inutilisés</span>
-                                    </span>
-                                    <span class="ps-check">✓</span>
-                                </button>
-                                <button type="button" class="profile-select-btn" id="btn-cargo-choice">
-                                    <span class="ps-icon">🏢</span>
-                                    <span class="ps-body">
-                                        <span class="ps-title">Entreprise / Cargo</span>
-                                        <span class="ps-sub">Je transporte régulièrement des colis</span>
-                                    </span>
-                                    <span class="ps-check">✓</span>
-                                </button>
+                            <!-- Choix du type de profil — en tête de l'étape 1 -->
+                            <div id="profile-choice-section" class="form-group">
+                                <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
+                                <div class="profile-select-grid">
+                                    <button type="button" class="profile-select-btn" id="btn-traveler-choice">
+                                        <span class="ps-icon">👤</span>
+                                        <span class="ps-body">
+                                            <span class="ps-title">Voyageur simple</span>
+                                            <span class="ps-sub">Je rentabilise mes kilos inutilisés</span>
+                                        </span>
+                                        <span class="ps-check">✓</span>
+                                    </button>
+                                    <button type="button" class="profile-select-btn" id="btn-cargo-choice">
+                                        <span class="ps-icon">🏢</span>
+                                        <span class="ps-body">
+                                            <span class="ps-title">Entreprise / Cargo</span>
+                                            <span class="ps-sub">Je transporte régulièrement des colis</span>
+                                        </span>
+                                        <span class="ps-check">✓</span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="location-group" data-type="departure"></div>
-                        <div class="location-group" data-type="destination"></div>
-                        <datalist id="country-options-trip" data-country-list></datalist>
+                            <div id="trip-extra-fields" class="hidden">
+                                <div class="location-group" data-type="departure"></div>
+                                <div class="location-group" data-type="destination"></div>
+                                <datalist id="country-options-trip" data-country-list></datalist>
 
-                        <div class="form-group">
-                            <label for="date-depart">Date du voyage</label>
-                            <input type="date" id="date-depart" class="form-input" required>
-                            <!-- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet (mêmes départ/destination) -->
-                            <div id="trip-extra-dates-wrap" class="hidden">
-                                <div id="trip-extra-dates" class="trip-extra-dates"></div>
-                                <button type="button" class="btn-add-type" id="addTripDateBtn">+ Ajouter une autre date</button>
-                                <p class="trip-extra-dates-hint">Même itinéraire, même destination — toutes vos dates apparaîtront sur une seule annonce.</p>
+                                <div class="form-group">
+                                    <label for="date-depart">Date du voyage</label>
+                                    <input type="date" id="date-depart" class="form-input" required>
+                                    <!-- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet (mêmes départ/destination) -->
+                                    <div id="trip-extra-dates-wrap" class="hidden">
+                                        <div id="trip-extra-dates" class="trip-extra-dates"></div>
+                                        <button type="button" class="btn-add-type" id="addTripDateBtn">+ Ajouter une
+                                            autre date</button>
+                                        <p class="trip-extra-dates-hint">Même itinéraire, même destination — toutes vos
+                                            dates apparaîtront sur une seule annonce.</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
                             <div class="wizard-footer">
                                 <div class="wizard-nav wizard-nav-end">
                                     <button type="button" class="btn primary wizard-next">Continuer →</button>
@@ -1016,15 +1129,21 @@
                                 <div class="form-group">
                                     <label for="price">Prix par kilo</label>
                                     <div style="display: flex; align-items: center; gap: 10px;">
-                                        <input type="number" id="price" class="form-input" placeholder="0" min="0" style="width: 120px;">
-                                        <div class="currency-selector-custom" id="currency-selector-wrap" style="position: relative;">
+                                        <input type="number" id="price" class="form-input" placeholder="0" min="0"
+                                            style="width: 120px;">
+                                        <div class="currency-selector-custom" id="currency-selector-wrap"
+                                            style="position: relative;">
                                             <button type="button" id="currency-toggle-btn" class="currency-toggle"
                                                 style="background: rgba(255, 179, 71, 0.1); border: 1px solid rgba(255, 179, 71, 0.3); border-radius: 20px; color: #ffb347; font-size: 0.85rem; font-weight: 700; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
                                                 <span id="current-currency-text">Devise</span>
-                                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none"
+                                                    stroke="currentColor" stroke-width="3">
+                                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                                </svg>
                                             </button>
                                             <div id="currency-popover" class="currency-popover hidden glass-panel"
-                                                style="position: absolute; top: calc(100% + 8px); right: 0; width: 150px; z-index: 1000; padding: 8px; border: 1px solid rgba(255, 179, 71, 0.35); box-shadow: 0 10px 40px rgba(0,0,0,0.6);"></div>
+                                                style="position: absolute; top: calc(100% + 8px); right: 0; width: 150px; z-index: 1000; padding: 8px; border: 1px solid rgba(255, 179, 71, 0.35); box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+                                            </div>
                                         </div>
                                         <input type="hidden" id="price-currency" value="">
                                     </div>
@@ -1034,8 +1153,10 @@
                                 <label>Moyen de transport</label>
                                 <div class="transport-mode-grid">
                                     <button type="button" class="transport-mode-btn" data-mode="avion">✈️ Avion</button>
-                                    <button type="button" class="transport-mode-btn" data-mode="bateau">🚢 Bateau</button>
-                                    <button type="button" class="transport-mode-btn" data-mode="les_deux">✈️🚢 Les deux</button>
+                                    <button type="button" class="transport-mode-btn" data-mode="bateau">🚢
+                                        Bateau</button>
+                                    <button type="button" class="transport-mode-btn" data-mode="les_deux">✈️🚢 Les
+                                        deux</button>
                                 </div>
                             </div>
                             <div class="wizard-footer">
@@ -1060,50 +1181,58 @@
                                 </div>
                             </div>
                             <div class="wizard-question-box">
-                                <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de colis ?</p>
+                                <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de
+                                    colis ?</p>
                                 <div class="wizard-yesno">
                                     <button type="button" class="btn primary" id="special-yes">Oui</button>
                                     <button type="button" class="btn secondary" id="special-no">Non</button>
                                 </div>
                             </div>
-                        <div class="form-group">
-                            <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                            <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
-                                <span id="selectedColisText">Choisir les types de colis</span>
-                                <span>▼</span>
-                            </button>
-                        </div>
-                            <div id="special-prices-panel" class="hidden">
-                        <div class="form-group" id="colis-details-group">
-                            <div id="colis-detail-rows">
-                                <div class="colis-detail-row" data-row="0">
-                                    <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
-                                        <span class="colis-name-label">Nom du colis</span>
-                                        <span>▼</span>
-                                    </button>
-                                    <div class="colis-price-modes" data-row="0">
-                                        <button type="button" class="price-mode-btn" data-mode="kilo" data-row="0">prix/kilo</button>
-                                        <span class="price-or">ou</span>
-                                        <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
-                                    </div>
-                                    <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
-                                    <div class="special-price-line hidden" data-row="0">
-                                        <input type="number" class="price-field" data-row="0" placeholder="" min="0" step="any">
-                                        <span class="special-price-currency">FCFA</span>
-                                    </div>
-                                </div>
+                            <div class="form-group">
+                                <label class="form-label">Types de colis acceptés <span
+                                        style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                                <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
+                                    <span id="selectedColisText">Choisir les types de colis</span>
+                                    <span>▼</span>
+                                </button>
                             </div>
-                            <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre prix spécial</button>
-                        </div>
+                            <div id="special-prices-panel" class="hidden">
+                                <div class="form-group" id="colis-details-group">
+                                    <div id="colis-detail-rows">
+                                        <div class="colis-detail-row" data-row="0">
+                                            <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
+                                                <span class="colis-name-label">Nom du colis</span>
+                                                <span>▼</span>
+                                            </button>
+                                            <div class="colis-price-modes" data-row="0">
+                                                <button type="button" class="price-mode-btn" data-mode="kilo"
+                                                    data-row="0">prix/kilo</button>
+                                                <span class="price-or">ou</span>
+                                                <button type="button" class="price-mode-btn" data-mode="qty"
+                                                    data-row="0">prix/quantité</button>
+                                            </div>
+                                            <button type="button" class="colis-row-del" data-row="0"
+                                                aria-label="Supprimer cette ligne">✕</button>
+                                            <div class="special-price-line hidden" data-row="0">
+                                                <input type="number" class="price-field" data-row="0" placeholder=""
+                                                    min="0" step="any">
+                                                <span class="special-price-currency">FCFA</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre
+                                        prix spécial</button>
+                                </div>
                             </div><!-- /special-prices-panel -->
-                        <div class="special-sep"></div>
-                        <div class="form-group">
-                            <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                            <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
-                                <span id="selectedRefusedText">Choisir les types refusés</span>
-                                <span>▼</span>
-                            </button>
-                        </div>
+                            <div class="special-sep"></div>
+                            <div class="form-group">
+                                <label class="form-label">Types de colis refusés <span
+                                        style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
+                                <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
+                                    <span id="selectedRefusedText">Choisir les types refusés</span>
+                                    <span>▼</span>
+                                </button>
+                            </div>
                             <div class="wizard-footer">
                                 <div class="wizard-nav">
                                     <button type="button" class="btn secondary wizard-prev">← Retour</button>
@@ -1128,22 +1257,29 @@
                             <div class="form-group">
                                 <div id="payment-contact-rows">
                                     <div class="payment-contact-row">
-                                        <button type="button" id="open-payment-method-btn" class="btn secondary payment-method-btn contact-row-btn">
+                                        <button type="button" id="open-payment-method-btn"
+                                            class="btn secondary payment-method-btn contact-row-btn">
                                             <span id="payment-method-label" class="pm-label">
-                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <rect x="1" y="4" width="22" height="16" rx="2" />
+                                                    <line x1="1" y1="10" x2="23" y2="10" />
+                                                </svg>
                                                 <span>Mon numero de contact</span>
                                             </span>
                                         </button>
                                     </div>
                                 </div>
-                                <button type="button" id="addContactBtn" class="btn-add-type">+ Ajouter un autre numéro</button>
+                                <button type="button" id="addContactBtn" class="btn-add-type">+ Ajouter un autre
+                                    numéro</button>
                                 <input type="hidden" id="payment-method" name="paymentMethod">
                                 <input type="hidden" id="payment-qr" name="paymentQr">
                             </div>
                             <div class="wizard-footer">
                                 <div class="wizard-nav">
                                     <button type="button" class="btn secondary wizard-prev">← Retour</button>
-                                    <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet →</button>
+                                    <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet
+                                        →</button>
                                 </div>
                                 <div class="wizard-step-info">
                                     <span class="wsi-text">Étape 4 sur 4</span>
@@ -1192,9 +1328,11 @@
                 </div>
             </div>
             <div class="add-custom-section">
-                <button type="button" class="btn-add-trigger" id="toggleCustomColisBtn">+ Ajouter un type personnalisé</button>
+                <button type="button" class="btn-add-trigger" id="toggleCustomColisBtn">+ Ajouter un type
+                    personnalisé</button>
                 <div class="custom-input-group" id="customColisGroup">
-                    <input type="text" class="custom-input" id="newColisTypeInput" placeholder="Entrer le nom du type...">
+                    <input type="text" class="custom-input" id="newColisTypeInput"
+                        placeholder="Entrer le nom du type...">
                     <button type="button" class="btn-save-custom" id="saveCustomColisBtn">Enregistrer</button>
                 </div>
             </div>
@@ -1207,18 +1345,27 @@
         <div class="popup-content">
             <div class="popup-title">🚫 Types de colis refusés</div>
             <div class="options-grid" id="refusedOptionsGrid">
-                <div class="option-card" data-value="Documents"><span class="option-circle"></span><span class="option-text">Documents</span></div>
-                <div class="option-card" data-value="Électronique"><span class="option-circle"></span><span class="option-text">Électronique</span></div>
-                <div class="option-card" data-value="Vêtements"><span class="option-circle"></span><span class="option-text">Vêtements</span></div>
-                <div class="option-card" data-value="Nourriture"><span class="option-circle"></span><span class="option-text">Nourriture</span></div>
-                <div class="option-card" data-value="Cosmétiques"><span class="option-circle"></span><span class="option-text">Cosmétiques</span></div>
-                <div class="option-card" data-value="Médicaments"><span class="option-circle"></span><span class="option-text">Médicaments</span></div>
-                <div class="option-card" data-value="Autres"><span class="option-circle"></span><span class="option-text">Autres</span></div>
+                <div class="option-card" data-value="Documents"><span class="option-circle"></span><span
+                        class="option-text">Documents</span></div>
+                <div class="option-card" data-value="Électronique"><span class="option-circle"></span><span
+                        class="option-text">Électronique</span></div>
+                <div class="option-card" data-value="Vêtements"><span class="option-circle"></span><span
+                        class="option-text">Vêtements</span></div>
+                <div class="option-card" data-value="Nourriture"><span class="option-circle"></span><span
+                        class="option-text">Nourriture</span></div>
+                <div class="option-card" data-value="Cosmétiques"><span class="option-circle"></span><span
+                        class="option-text">Cosmétiques</span></div>
+                <div class="option-card" data-value="Médicaments"><span class="option-circle"></span><span
+                        class="option-text">Médicaments</span></div>
+                <div class="option-card" data-value="Autres"><span class="option-circle"></span><span
+                        class="option-text">Autres</span></div>
             </div>
             <div class="add-custom-section">
-                <button type="button" class="btn-add-trigger" id="toggleCustomRefusedBtn">+ Ajouter un type personnalisé</button>
+                <button type="button" class="btn-add-trigger" id="toggleCustomRefusedBtn">+ Ajouter un type
+                    personnalisé</button>
                 <div class="custom-input-group" id="customRefusedGroup">
-                    <input type="text" class="custom-input" id="newRefusedTypeInput" placeholder="Entrer le nom du type...">
+                    <input type="text" class="custom-input" id="newRefusedTypeInput"
+                        placeholder="Entrer le nom du type...">
                     <button type="button" class="btn-save-custom" id="saveCustomRefusedBtn">Enregistrer</button>
                 </div>
             </div>
@@ -1270,7 +1417,8 @@
                             <option value="+32">🇧🇪 +32</option>
                             <option value="+41">🇨🇭 +41</option>
                         </select>
-                        <input type="tel" class="phone-main-input" id="phoneMainNumber" placeholder="07 00 00 00 00" autocomplete="off">
+                        <input type="tel" class="phone-main-input" id="phoneMainNumber" placeholder="07 00 00 00 00"
+                            autocomplete="off">
                         <button type="button" class="phone-verify-btn" id="pm-verify-sms-btn">Vérifier</button>
                     </div>
                     <p class="phone-help-text">Ce numéro sera révélé au client dès qu'il aura validé sa réservation.</p>
@@ -1321,9 +1469,11 @@
                 </svg>
             </div>
             <h3 id="publish-success-title" class="pm-title" style="color: #ffd08a;">Offre publiée avec succès !</h3>
-            <p id="publish-success-msg" class="pm-subtitle" style="margin: 10px 0 0;">Votre trajet a bien été publié.</p>
+            <p id="publish-success-msg" class="pm-subtitle" style="margin: 10px 0 0;">Votre trajet a bien été publié.
+            </p>
             <div class="modal-actions" style="margin-top: 28px;">
-                <button type="button" id="publish-success-ok-btn" class="btn primary full-width">Voir mes offres</button>
+                <button type="button" id="publish-success-ok-btn" class="btn primary full-width">Voir mes
+                    offres</button>
             </div>
         </div>
     </div>
