@@ -770,7 +770,10 @@
                     body: { profileType: 'client' }
                 });
                 if (response.success) {
-                    window.CCCommon.state.user.profile_type = 'client';
+                    // On reprend le profil REELLEMENT enregistre : l'API peut avoir refuse
+                    // la retrogradation (cargo non retrogradable) et renvoyer le type
+                    // conserve. Forcer 'client' en local faussait l'affichage du statut.
+                    window.CCCommon.state.user = response.user || window.CCCommon.state.user;
                 }
             } catch (err) {
                 console.warn("Erreur lors de la mise à jour automatique vers 'client':", err);

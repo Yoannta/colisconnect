@@ -686,19 +686,24 @@
 
                 // Validation & règles de transition de profil type (non-regression)
                 if (mappedBody.profile_type !== undefined) {
-                    const currentType = state.user?.profile_type || null;
+                    // Le type ACTUEL est RELU DEPUIS LA BASE (et non depuis l'etat en memoire) :
+                    // sinon un profil non charge / obsolete laissait passer une retrogradation
+                    // silencieuse (ex. cargo -> traveler lors d'une publication d'offre).
+                    let currentType = state.user?.profile_type || null;
+                    try {
+                        const { data: fresh } = await window.ccSupabase
+                            .from('profiles').select('profile_type').eq('id', state.user?.id).single();
+                        if (fresh && fresh.profile_type) currentType = fresh.profile_type;
+                    } catch (e) { /* en cas d'echec on garde la valeur en memoire */ }
                     const nextType = mappedBody.profile_type;
 
-                    // client → traveler/cargo : OK (upgrade)
-                    // traveler → client : NON (downgrade interdit)
-                    // traveler → cargo : OK (upgrade latéral autorisé)
-                    // cargo → client ou traveler : NON (downgrade interdit)
-                    const regression =
-                        (currentType === 'traveler' && nextType === 'client') ||
-                        (currentType === 'cargo' && (nextType === 'client' || nextType === 'traveler'));
+                    // Hierarchie metier : client(1) < traveler(2) < cargo(3).
+                    // Toute ecriture d'un rang INFERIEUR est refusee (non-regression).
+                    const rank = { client: 1, traveler: 2, cargo: 3 };
+                    const regression = (rank[nextType] || 0) < (rank[currentType] || 0);
 
                     if (regression) {
-                        console.warn(`Non-regression: passage de ${currentType} vers ${nextType} interdit`);
+                        console.warn(`Non-regression: passage de ${currentType} vers ${nextType} refuse`);
                         delete mappedBody.profile_type;
                     }
                 }
