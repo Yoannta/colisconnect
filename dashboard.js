@@ -1294,6 +1294,48 @@
         });
     }
 
+    // ── Édition directe depuis l'URL ────────────────────────────────────────────
+    // results.html redirige ici au clic sur « Modifier mon trajet / ma demande » :
+    //   dashboard.html?editOffer=<id>     (offre voyageur ou cargo)
+    //   dashboard.html?editDemande=<id>   (demande de transport)
+    // On réutilise le flux existant en déclenchant le bouton « Modifier » de la carte
+    // correspondante (les listes se rendent en asynchrone → quelques tentatives).
+    async function openEditFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const offerId = params.get("editOffer");
+        const demandeId = params.get("editDemande");
+        if (!offerId && !demandeId) return;
+        const escapeSel = (value) => (window.CSS && CSS.escape)
+            ? CSS.escape(String(value))
+            : String(value).replace(/["\\]/g, "\\$&");
+        const selector = offerId
+            ? `[data-edit-offer="${escapeSel(offerId)}"]`
+            : `[data-edit-parcel="${escapeSel(demandeId)}"]`;
+
+        // Le bouton « Modifier » est rendu dans la vue correspondant au type de
+        // publication (voyageur / cargo / client) : on cherche, puis on bascule de
+        // vue via les toggles visibles si la publication n'est pas dans la vue active.
+        const findEditBtn = () => document.querySelector(selector);
+        const waitForBtn = async (tries) => {
+            for (let i = 0; i < tries; i += 1) {
+                const btn = findEditBtn();
+                if (btn) { btn.click(); return true; }
+                await new Promise((resolve) => setTimeout(resolve, 250));
+            }
+            return false;
+        };
+
+        if (await waitForBtn(8)) return; // la bonne vue est déjà à l'écran
+
+        const toggles = Array.from(document.querySelectorAll(".dash-toggle"))
+            .filter((btn) => !btn.classList.contains("hidden") && !btn.classList.contains("active"));
+        for (const toggle of toggles) {
+            toggle.click();
+            if (await waitForBtn(12)) return;
+        }
+        console.warn("[dashboard] publication a editer introuvable :", selector);
+    }
+
     async function bootstrap() {
         await window.CCCommon.init("dashboard");
         if (!window.CCCommon.requireAuth("dashboard.html")) return;
@@ -1532,6 +1574,9 @@
         });
 
         await loadDashboard();
+
+        // Édition demandée depuis results.html (« Modifier mon trajet / ma demande »)
+        await openEditFromUrl();
     }
 
     bootstrap().catch((error) => {

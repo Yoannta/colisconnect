@@ -165,12 +165,22 @@
         const firstName = parts[0] || "";
         const lastName = parts.slice(1).join(" ");
         const initials = getInitials(name);
-        const btn = opts.dataAttr
+        // Pied de carte : 3 états possibles
+        //   1. editAttr → MA publication : « Modifier mon trajet » / « Modifier ma demande »
+        //   2. dataAttr → publication d'un autre membre : « Contacter »
+        //   3. aucun    → libellé inactif (repli, ex. contact impossible)
+        const editBtn = opts.editAttr
+            ? `<button class="cc3-cta cc3-cta-edit" type="button" ${opts.editAttr} aria-label="${eh(opts.editAriaLabel || opts.editLabel || "Modifier")}">
+        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path><path d="M13.5 6.5l3 3"></path></svg>
+        <span>${eh(opts.editLabel || "Modifier")}</span>
+      </button>`
+            : "";
+        const btn = editBtn || (opts.dataAttr
             ? `<button class="cc3-cta" type="button" ${opts.dataAttr} aria-label="${eh(opts.ariaLabel)}">
         <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
         <span>Contacter</span>
       </button>`
-            : `<span class="cc3-cta" aria-disabled="true"><span>${eh(opts.inactiveLabel)}</span></span>`;
+            : `<span class="cc3-cta" aria-disabled="true"><span>${eh(opts.inactiveLabel)}</span></span>`);
         return `
     <footer class="cc3-foot">
       <div class="cc3-profile">
@@ -350,6 +360,10 @@
       name: (d.owner && d.owner.full_name) || "Demandeur",
       isVerified: !!(d.owner && d.owner.is_verified),
       label: "Expéditeur",
+      // C'est MA demande : bouton « Modifier ma demande » au lieu du libellé inactif
+      editAttr: isOwnDemand ? `data-edit-own-demand="${d.id}"` : "",
+      editLabel: "Modifier ma demande",
+      editAriaLabel: "Modifier ma demande de transport",
       dataAttr: isOwnDemand ? "" : `data-contact-request="${d.id}"`,
       ariaLabel: `Contacter ${(d.owner && d.owner.full_name) || "ce demandeur"}`,
       inactiveLabel: "Votre demande"
@@ -470,6 +484,13 @@
             .map((offer) => {
                 const initials = getInitials(offer.ownerName);
                 const isVerified = Boolean(offer.ownerIsVerified);
+                // C'est MON offre (voyageur ou cargo) : le pied de carte proposera
+                // « Modifier mon trajet » au lieu de « Contacter ».
+                const currentUserId = window.CCCommon?.state?.user?.id;
+                const offerOwnerId = offer.user_id || offer.userId || "";
+                const isOwnOffer = !!currentUserId
+                    && String(offerOwnerId).trim() !== ""
+                    && String(offerOwnerId) === String(currentUserId);
 
                 const originCountry = offer.origin || "Origine";
                 const destCountry = offer.destination || "Arrivée";
@@ -711,7 +732,11 @@
       name: offer.ownerName || "Voyageur",
       isVerified: isVerified,
       label: profileLabel,
-      dataAttr: `data-reserve-offer="${offer.id}"`,
+      // Mon trajet (voyageur ou cargo) : « Modifier mon trajet » à la place de « Contacter »
+      editAttr: isOwnOffer ? `data-edit-own-offer="${offer.id}"` : "",
+      editLabel: "Modifier mon trajet",
+      editAriaLabel: "Modifier mon trajet publie",
+      dataAttr: isOwnOffer ? "" : `data-reserve-offer="${offer.id}"`,
       ariaLabel: `Contacter ${offer.ownerName || "ce voyageur"}`
     })}
   </article>
@@ -866,6 +891,21 @@
 
         if (els.offersList) {
             els.offersList.addEventListener("click", (event) => {
+                // Mes propres publications → « Modifier mon trajet / ma demande »
+                // Redirige vers le tableau de bord, qui ouvre sa modale d'édition.
+                const editOwnBtn = event.target.closest(
+                    "button[data-edit-own-offer],button[data-edit-own-demand]"
+                );
+                if (editOwnBtn) {
+                    const ownOfferId = editOwnBtn.getAttribute("data-edit-own-offer");
+                    const ownDemandId = editOwnBtn.getAttribute("data-edit-own-demand");
+                    if (ownOfferId) {
+                        window.location.href = `dashboard.html?editOffer=${encodeURIComponent(ownOfferId)}`;
+                    } else if (ownDemandId) {
+                        window.location.href = `dashboard.html?editDemande=${encodeURIComponent(ownDemandId)}`;
+                    }
+                    return;
+                }
                 const demandBtn = event.target.closest("button[data-contact-request]");
                 if (demandBtn) {
                     startDemandContact(Number(demandBtn.getAttribute("data-contact-request")));
