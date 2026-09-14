@@ -939,7 +939,8 @@
         if (els.offersList) {
             els.offersList.addEventListener("click", (event) => {
                 // Mes propres publications → « Modifier mon trajet / ma demande »
-                // Redirige vers le tableau de bord, qui ouvre sa modale d'édition.
+                // Trajet : formulaire officiel post_trip.html?editOffer=<id> ;
+                // demande : éditeur intégré à cette page (openDemandeEditor).
                 const editOwnBtn = event.target.closest(
                     "button[data-edit-own-offer],button[data-edit-own-demand]"
                 );
@@ -960,10 +961,10 @@
                             window.openDemandeEditor(ownDemandId);
                         }
                     } else if (ownOfferId) {
-                        // Trajet : le formulaire de publication (post_trip.html) n'a pas encore
-                        // de mode édition -> on garde le tableau de bord pour l'instant
-                        // (l'unification post_trip ↔ dashboard est l'étape suivante).
-                        window.location.href = `dashboard.html?editOffer=${encodeURIComponent(ownOfferId)}`;
+                        // Trajet : édition DIRECTE via le formulaire officiel de publication
+                        // (post_trip.html?editOffer=<id>) prérempli, bouton « Enregistrer ».
+                        // Plus de détour par le tableau de bord (même logique que la demande).
+                        window.location.href = `post_trip.html?editOffer=${encodeURIComponent(ownOfferId)}`;
                     }
                     return;
                 }

@@ -7,6 +7,13 @@
     };
 
     let selectedProfileTypeChoice = null; // 'traveler' | 'cargo'
+
+    // MODE ÉDITION D'UNE ANNONCE EXISTANTE : post_trip.html?editOffer=<id>
+    // On réutilise LE formulaire officiel de publication (aucune copie => aucune
+    // divergence possible) : les champs sont préremplis et l'envoi fait un UPDATE
+    // au lieu d'un INSERT. Le brouillon local est ignoré dans ce mode.
+    const EDIT_OFFER_ID = new URLSearchParams(window.location.search).get("editOffer");
+    let editingOffer = null;
     let selectedTransportMode = null; // 'avion' | 'bateau' | 'voiture' | 'train' | 'bus'
 
     function initCountryDatalist() {
@@ -245,6 +252,12 @@
             return;
         }
 
+        // MODE ÉDITION : on met à jour l'annonce existante (pas de création, pas de limite)
+        if (EDIT_OFFER_ID) {
+            await saveOfferEdit(payload, tripDates);
+            return;
+        }
+
         // [LIMITATION ANNONCES ACTIVES] — strict par type de profil
         try {
             const activeCheck = await window.CCCommon.api('/api/offers/check-limit?type=' + encodeURIComponent(selectedProfileTypeChoice || 'traveler'));
@@ -352,44 +365,169 @@
         }
     }
 
-    function showPublishSuccess(destName, offerCount) {
-        const modal = document.getElementById("modal-publish-success");
-        const backdrop = document.getElementById("modal-backdrop-success");
-        const body = document.getElementById("success-modal-body");
-        const closeBtn = document.getElementById("btn-success-close");
+    // ---------- ÉDITION D'UNE ANNONCE EXISTANTE (post_trip.html?editOffer=<id>) ----------
+    // Réutilise le formulaire officiel : aucune copie de formulaire, donc aucune divergence.
+
+    function mapOfferToForm(offer) {
+        const set = (el, value) => {
+            if (el && value !== undefined && value !== null) el.value = String(value);
+        };
+        set(els.departure, offer.origin);
+        set(els.destination, offer.destination);
+        set(els.cityDeparture, offer.city_origin);
+        set(els.cityDestination, offer.city_destination);
+        set(els.dateDepart, offer.departure_date);
+        set(els.kilos, offer.available_kg);
+        set(els.price, offer.price_per_kg);
+        set(els.notes, offer.description);
+        updateCurrencySelector(); // aligne la devise sur le pays saisi
+        set(els.priceCurrency, offer.base_currency);
+
+        // Profil (voyageur / cargo) : reproduit exactement l'effet du clic utilisateur
+        // (affiche les champs, la section moyen de transport, les dates multiples...)
+        const choiceId = offer.mode === "cargo" ? "btn-cargo-choice" : "btn-traveler-choice";
+        document.getElementById(choiceId)?.click();
+
+        // Dates supplémentaires (mode cargo)
+        if (Array.isArray(offer.extra_dates) && offer.extra_dates.length) {
+            offer.extra_dates.forEach(() => addExtraTripDateRow());
+            const inputs = els.tripExtraDates ? els.tripExtraDates.querySelectorAll(".trip-extra-date") : [];
+            offer.extra_dates.forEach((d, i) => {
+                if (inputs[i]) inputs[i].value = String(d);
+            });
+            updateExtraDatesAddBtn();
+        }
+    }
+
+    function setEditModeUI() {
+        document.title = "Modifier mon trajet — ColisConnect";
+        const header = document.querySelector(".page-header");
+        if (header) {
+            const kicker = header.querySelector(".section-kicker");
+            const title = header.querySelector("h1");
+            const sub = header.querySelector("p:not(.section-kicker)");
+            if (kicker) kicker.textContent = "Modifier mon annonce";
+            if (title) title.textContent = "Modifiez votre trajet";
+            if (sub) sub.textContent = "Mettez à jour votre route, votre prix au kilo ou vos dates de départ.";
+        }
+        const submitBtn = document.getElementById("submit-trip-btn");
+        if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
+    }
+
+    async function loadOfferForEdit() {
+        const user = window.CCCommon.state?.user;
+        const offerId = String(EDIT_OFFER_ID || "").trim();
+        if (!user || !offerId || !window.ccSupabase) {
+            window.location.href = "results.html";
+            return;
+        }
+        try {
+            const { data: offer, error } = await window.ccSupabase
+                .from("offers").select("*").eq("id", offerId).maybeSingle();
+            if (error) throw error;
+            if (!offer) throw new Error("annonce introuvable (ou expirée).");
+            if (String(offer.user_id) !== String(user.id)) throw new Error("cette annonce ne vous appartient pas.");
+            editingOffer = offer;
+            mapOfferToForm(offer);
+            setEditModeUI();
+        } catch (err) {
+            console.error("Chargement de l'annonce impossible:", err);
+            alert("Impossible de modifier cette annonce : " + (err.message || err));
+            window.location.href = "results.html";
+        }
+    }
+
+    async function saveOfferEdit(payload, tripDates) {
+        const submitBtn = document.getElementById("submit-trip-btn");
+        const initialText = submitBtn?.textContent || "Enregistrer";
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Enregistrement...";
+        }
+        try {
+            const uniqueDates = Array.from(new Set(
+                tripDates.map((s) => String(s || "").trim()).filter(Boolean)
+            )).sort();
+            const toNum = (v) => {
+                const n = parseFloat(v);
+                return Number.isFinite(n) ? n : undefined;
+            };
+            // Champs modifiables depuis le formulaire officiel (les autres — paiement,
+            // types de colis, prix spéciaux — sont laissés intacts).
+            const body = {
+                origin: payload.departure,
+                destination: payload.destination,
+                city_origin: payload.cityDeparture || null,
+                city_destination: payload.cityDestination || null,
+                departure_date: uniqueDates[0],
+                extra_dates: uniqueDates.slice(1),
+                available_kg: toNum(payload.kilos),
+                price_per_kg: toNum(payload.price),
+                base_currency: payload.priceCurrency,
+                description: payload.notes || null,
+                mode: payload.profileType
+            };
+            Object.keys(body).forEach((k) => {
+                if (body[k] === undefined) delete body[k];
+            });
+
+            const { data, error } = await window.ccSupabase
+                .from("offers").update(body).eq("id", editingOffer.id).select();
+            if (error) throw error;
+            if (!data || !data.length) {
+                throw new Error("aucune ligne modifiée (droits insuffisants sur cette annonce ?).");
+            }
+
+            localStorage.removeItem("cc_trip_draft");
+            document.getElementById("draft-banner")?.classList.add("hidden");
+            showPublishSuccess(data[0].destination, 1, { updated: true });
+        } catch (err) {
+            console.error("Enregistrement de l'annonce impossible:", err);
+            alert("Impossible d'enregistrer les modifications : " + (err.message || err));
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = initialText;
+            }
+        }
+    }
+
+    function showPublishSuccess(destName, offerCount, opts) {
+        // La modale « succès » existe déjà dans post_trip.html (#publish-success-modal,
+        // #publish-success-title, #publish-success-msg, #publish-success-ok-btn).
+        // L'ancien code visait des id INEXISTANTS (modal-publish-success / success-modal-body
+        // / btn-success-close) : aucune confirmation ne s'affichait donc après une publication
+        // -> l'utilisateur croyait que ça avait échoué et republiait (annonces en double).
+        const modal = document.getElementById("publish-success-modal");
+        const titleEl = document.getElementById("publish-success-title");
+        const msgEl = document.getElementById("publish-success-msg");
+        const okBtn = document.getElementById("publish-success-ok-btn");
 
         const isPlural = offerCount > 1;
-        const countText = isPlural ? `${offerCount} annonces créées` : `1 annonce créée`;
+        const countText = isPlural ? `${offerCount} annonces créées` : "1 annonce créée";
         const destText = destName ? ` pour <strong>${destName}</strong>` : "";
+        const isUpdate = !!(opts && opts.updated);
 
-        if (body) {
-            body.innerHTML = `
-                <div class="success-icon-wrap">
-                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                </div>
-                <h3 class="success-title">Félicitations !</h3>
-                <p class="success-msg">Votre publication a été effectuée avec succès.<br>(${countText}${destText})</p>
-                <p class="success-sub">Elle est désormais visible par tous les utilisateurs de ColisConnect.</p>
-            `;
+        if (titleEl) {
+            titleEl.textContent = isUpdate ? "Modifications enregistrées !" : "Offre publiée avec succès !";
+        }
+        if (msgEl) {
+            msgEl.innerHTML = isUpdate
+                ? `Votre trajet${destText} a bien été mis à jour.`
+                : `Votre publication a été effectuée avec succès (${countText}${destText}).`;
         }
 
         if (modal) modal.classList.remove("hidden");
-        if (backdrop) backdrop.classList.remove("hidden");
 
         const handleClose = () => {
             if (modal) modal.classList.add("hidden");
-            if (backdrop) backdrop.classList.add("hidden");
             window.location.href = "results.html";
         };
 
-        if (closeBtn) {
-            closeBtn.onclick = handleClose;
-        }
-        if (backdrop) {
-            backdrop.onclick = handleClose;
+        if (okBtn) okBtn.onclick = handleClose;
+        if (modal) {
+            modal.onclick = (e) => {
+                if (e.target === modal) handleClose();
+            };
         }
     }
 
@@ -783,8 +921,9 @@
         els.cityDeparture = document.getElementById("city-departure");
         els.cityDestination = document.getElementById("city-destination");
 
-        // Restauration du brouillon si présent
-        const saved = localStorage.getItem("cc_trip_draft");
+        // Restauration du brouillon si présent (jamais en mode édition : le brouillon
+        // écraserait les valeurs de l'annonce en cours de modification)
+        const saved = EDIT_OFFER_ID ? null : localStorage.getItem("cc_trip_draft");
         if (saved) {
             try {
                 const draft = JSON.parse(saved);
@@ -831,12 +970,19 @@
             };
             localStorage.setItem("cc_trip_draft", JSON.stringify(draftData));
         };
-        els.form?.addEventListener("input", saveDraft);
-        els.form?.addEventListener("change", saveDraft);
+        if (!EDIT_OFFER_ID) {
+            els.form?.addEventListener("input", saveDraft);
+            els.form?.addEventListener("change", saveDraft);
+        }
 
         bindModalEvents();
         bindEvents();
         initWizard();
+
+        // Mode édition d'une annonce existante : préremplit le formulaire officiel
+        if (EDIT_OFFER_ID) {
+            await loadOfferForEdit();
+        }
     }
 
     bootstrap().catch((error) => {

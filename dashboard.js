@@ -1346,15 +1346,11 @@
 
         // Afficher/masquer les toggles selon le profile_type reel (AVANT switchDashboardView
         // pour que updateDashboardToggleState calcule correctement les indices toggle-index-X)
+        // Voyageur ET cargo : tous les cockpits accessibles (un voyageur peut aussi expedier
+        // du cargo) -> sinon le cockpit Cargo restait inaccessible aux voyageurs.
+        // Client (chercheur) : vue verrouillee, aucun toggle.
         document.querySelectorAll(".dash-toggle").forEach(b => {
-            const sw = b.getAttribute("data-switch");
-            if (profileType === "cargo") {
-                b.classList.remove("hidden"); // Tous visibles
-            } else if (profileType === "traveler") {
-                b.classList.toggle("hidden", sw === "cargo"); // Masquer cargo seulement
-            } else {
-                b.classList.add("hidden"); // Client: masquer tout
-            }
+            b.classList.toggle("hidden", profileType === "client");
         });
 
         // Basculer entre les vues traveler, client ou cargo (recalcule les états actifs)
