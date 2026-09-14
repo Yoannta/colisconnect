@@ -259,9 +259,36 @@
         await proceedSubmitTrip();
     }
 
+    // Anti-double-publication : un seul envoi a la fois (le bouton est deja desactive
+    // pendant l'envoi, mais un second appel programme ne doit pas passer non plus).
+    let publishing = false;
+
     async function proceedSubmitTrip() {
+        if (publishing) {
+            console.warn("Publication deja en cours — envoi ignore.");
+            return;
+        }
+        publishing = true;
         const payload = getPayload();
         const tripDates = readAllTripDates();
+        // Anti-doublon : meme annonce renvoyee coup sur coup (typiquement apres une
+        // erreur reseau alors que l'envoi avait en fait abouti) -> on demande confirmation.
+        const signature = [
+            payload.departure, payload.destination, payload.cityDeparture,
+            payload.cityDestination, payload.departureDate, payload.kilos, payload.price
+        ].join("|");
+        try {
+            const last = JSON.parse(localStorage.getItem("cc_last_publish") || "null");
+            if (last && last.sig === signature && (Date.now() - (last.at || 0)) < 180000) {
+                const again = window.confirm(
+                    "Vous venez de publier cette meme annonce il y a moins de 3 minutes.\n\nLa publier une deuxieme fois ?"
+                );
+                if (!again) {
+                    publishing = false;
+                    return;
+                }
+            }
+        } catch (e) { /* stockage indisponible : on continue */ }
 
         const submitBtn = els.form?.querySelector("button[type='submit']");
         const initialText = submitBtn?.textContent || "Publier mon trajet";
@@ -297,6 +324,11 @@
             els.form?.reset();
             clearExtraTripDates();
             localStorage.removeItem("cc_trip_draft");
+            document.getElementById("draft-banner")?.classList.add("hidden");
+            // Memorise la signature de cette publication (anti-doublon)
+            try {
+                localStorage.setItem("cc_last_publish", JSON.stringify({ sig: signature, at: Date.now() }));
+            } catch (e) { /* stockage indisponible */ }
             paymentState.selectedMethod = null;
             paymentState.selectedMethodName = null;
             paymentState.accountNumber = null;
@@ -312,6 +344,7 @@
             }
             alert("Erreur lors de la publication : " + (error.message || "Problème réseau."));
         } finally {
+            publishing = false;
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = initialText;
@@ -762,10 +795,28 @@
                 if (els.price) els.price.value = draft.price || "";
                 if (els.cityDeparture && draft.cityDeparture) els.cityDeparture.value = draft.cityDeparture;
                 if (els.cityDestination && draft.cityDestination) els.cityDestination.value = draft.cityDestination;
+                // Rend la restauration VISIBLE : sans ce bandeau, l'utilisateur voyait
+                // l'etape 1 du wizard (vide en apparence) et republiait les memes
+                // informations -> annonce publiee en double.
+                if (draft.departure || draft.destination || draft.dateDepart || draft.kilos || draft.price) {
+                    document.getElementById("draft-banner")?.classList.remove("hidden");
+                }
             } catch (e) {
                 console.error("Erreur restauration brouillon", e);
             }
         }
+
+        // « Effacer » le brouillon : vide le formulaire et supprime la sauvegarde locale
+        document.getElementById("draft-clear-btn")?.addEventListener("click", () => {
+            localStorage.removeItem("cc_trip_draft");
+            els.form?.reset();
+            ["departure", "destination", "city-departure", "city-destination", "date-depart", "kilos", "price"]
+                .forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = "";
+                });
+            document.getElementById("draft-banner")?.classList.add("hidden");
+        });
 
         // Sauvegarde automatique du brouillon à la saisie
         const saveDraft = () => {
