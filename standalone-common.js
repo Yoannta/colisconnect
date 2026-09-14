@@ -2763,7 +2763,9 @@
             "input#demande-destination",
             "input#cc-inline-country",
             "input#est-origin",
-            "input#est-dest"
+            "input#est-dest",
+            "input#est-pays-depart",
+            "input#est-pays-arrivee"
         ];
         selecteurs.forEach(sel => {
             document.querySelectorAll(sel).forEach(input => setupCountryInput(input));

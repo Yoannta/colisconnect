@@ -74,12 +74,12 @@
                     <div class="estimator-form" id="estimator-form">
                         <div class="estimator-row">
                             <div class="estimator-field-group">
-                                <input type="text" id="est-pays-depart" placeholder="Pays de départ" class="estimator-input" autocomplete="off" list="est-pays-list">
+                                <input type="text" id="est-pays-depart" placeholder="Pays de départ" class="estimator-input" autocomplete="off">
                                 <input type="text" id="est-ville-depart" placeholder="Ville de départ" class="estimator-input" autocomplete="off">
                             </div>
                             <span class="est-arrow">→</span>
                             <div class="estimator-field-group">
-                                <input type="text" id="est-pays-arrivee" placeholder="Pays d'arrivée" class="estimator-input" autocomplete="off" list="est-pays-list">
+                                <input type="text" id="est-pays-arrivee" placeholder="Pays d'arrivée" class="estimator-input" autocomplete="off">
                                 <input type="text" id="est-ville-arrivee" placeholder="Ville d'arrivée" class="estimator-input" autocomplete="off">
                             </div>
                         </div>
@@ -96,8 +96,6 @@
                             style="margin-top: 20px; width: 100%; display: none;">Voir les voyageurs</a>
                     </div>
                 </div>
-
-                <datalist id="est-pays-list"></datalist>
 
             </div>
 
@@ -172,12 +170,11 @@
 
         // --- Initialiser les champs estimation au chargement ---
         document.addEventListener("DOMContentLoaded", () => {
-            // 1. Remplir la datalist des pays
-            const paysList = document.getElementById("est-pays-list");
+            // 1. Autocomplete PAYS : plus de datalist natif (peu fiable avec autocomplete="off").
+            //    C'est CCCommon.setupCountryInput() qui prend le relais — il est cable sur
+            //    #est-pays-depart / #est-pays-arrivee via setupAllCountryInputs()
+            //    (standalone-common.js) -> meme menu deroulant que partout ailleurs sur le site.
             const cc = window.CCCommon;
-            if (paysList && cc && cc.COUNTRY_OPTIONS) {
-                paysList.innerHTML = cc.COUNTRY_OPTIONS.map(c => `<option value="${c}">`).join("");
-            }
             // 2. Setup autocomplete ville
             const setupVille = (paysId, villeId) => {
                 const pays = document.getElementById(paysId);
