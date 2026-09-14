@@ -1,633 +1,267 @@
-(() => {
-    const COUNTRY_OPTIONS = window.CCCommon.COUNTRY_OPTIONS;
-    const COUNTRY_CURRENCIES = window.CCCommon.COUNTRY_CURRENCIES;
-    // [MULTI-CURRENCY] Acronyme local affiche a l'utilisateur ("FCFA" et non "XOF")
-    const ccSym = (code) => (window.CCCommon && window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(code) : code);
-
-
-    const els = {
-        form: document.getElementById("trip-form"),
-        departure: document.getElementById("departure"),
-        destination: document.getElementById("destination"),
-        cityDeparture: document.getElementById("city-departure"),
-        cityDestination: document.getElementById("city-destination"),
-        dateDepart: document.getElementById("date-depart"),
-        addTripDateBtn: document.getElementById("addTripDateBtn"),
-        tripExtraDatesWrap: document.getElementById("trip-extra-dates-wrap"),
-        tripExtraDates: document.getElementById("trip-extra-dates"),
-        kilos: document.getElementById("kilos"),
-        price: document.getElementById("price"),
-        priceCurrencyInput: document.getElementById("price-currency"),  // [MULTI-CURRENCY]
-        currencyToggle: document.getElementById("currency-toggle-btn"),
-        currencyPopover: document.getElementById("currency-popover"),
-        currentCurrencyText: document.getElementById("current-currency-text"),
-        paymentMethodInput: document.getElementById("payment-method"),
-        paymentQrInput: document.getElementById("payment-qr"),
-        paymentMethodLabel: document.getElementById("payment-method-label"),
-        countryList: document.querySelector("datalist[data-country-list]"),
-        animatedNodes: Array.from(document.querySelectorAll("[data-animate]")),
-        // Modal
-        openBtn: document.getElementById("open-payment-method-btn"),
-        addContactBtn: document.getElementById("addContactBtn"),
-        modal: document.getElementById("payment-method-modal"),
-        closeBtn: document.getElementById("close-payment-modal-btn"),
-        stepChoose: document.getElementById("pm-step-choose"),
-        stepUpload: document.getElementById("pm-step-upload"),
-        choicesContainer: document.getElementById("pm-choices-container"),
-        backBtn: document.getElementById("pm-back-btn"),
-        uploadTitle: document.getElementById("pm-upload-title"),
-        indicatifInput: document.getElementById("phonePrefix"),
-        localNumberInput: document.getElementById("phoneMainNumber"),
-        confirmBtn: document.getElementById("pm-confirm-btn"),
-        // SMS Verification
-        verifySmsBtn: document.getElementById("pm-verify-sms-btn"),
-        otpSection: document.getElementById("pm-otp-section"),
-        otpInput: document.getElementById("pm-otp-code"),
-        confirmOtpBtn: document.getElementById("pm-confirm-otp-btn"),
-        // Popup succès publication
-        publishModal: document.getElementById("publish-success-modal"),
-        publishOkBtn: document.getElementById("publish-success-ok-btn"),
-        publishMsg: document.getElementById("publish-success-msg"),
-        // Currency Custom
-        currencyToggle: document.getElementById("currency-toggle-btn"),
-        currencyPopover: document.getElementById("currency-popover"),
-        currentCurrencyText: document.getElementById("current-currency-text"),
-        priceCurrencyInput: document.getElementById("price-currency"),
-        // profile_type modal
-        profileTypeModal: document.getElementById("profile-type-modal"),
-        choiceTraveler: document.getElementById("profile-choice-traveler"),
-        choiceCargo: document.getElementById("profile-choice-cargo"),
-        confirmProfileTypeBtn: document.getElementById("profile-type-confirm-btn"),
-        // Transport mode (dans la modale)
-        modalTransportMode: document.getElementById("modal-transport-mode"),
-        modalTransportBtns: document.querySelectorAll(".modal-transport-btn"),
-    };
-
-    // ---- Payment method state ----
-    const paymentState = {
-        selectedMethod: null, // "mtn_cm" etc
+(function () {
+    let els = {};
+    let paymentState = {
+        selectedMethod: null,
         selectedMethodName: null,
         accountNumber: null
     };
 
-    let selectedProfileTypeChoice = null;
-    let selectedTransportMode = null;
-    // Bouton qui a ouvert la modale paiement ("Mon numero de contact" ou "Autre numero")
-    let paymentTrigger = null;
-
-    // Ne fait plus rien immédiatement — le profil est mis à jour APRÈS publication
-    async function updateProfileType(type) {
-        // Inutilisé : la mise à jour se fait dans proceedSubmitTrip()
-    }
-
-    // Initialisation dynamique des réseaux via API
-    async function fetchAvailableMethods(country) {
-        try {
-            const data = await window.CCCommon.api(`/api/payments/methods?country=${encodeURIComponent(country)}`);
-            return data;
-        } catch (err) {
-            console.error("Erreur découverte réseaux:", err);
-            return { status: "fallback", methods: [{ id: "bank", name: "Virement" }] };
-        }
-    }
-
-    // ---- Logos SVG ---- (Optionnel mais pour le Wow Effect)
-    const LOGOS = {
-        mtn: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#FFCC00"/><path d="M25 40 L35 70 L45 40 L55 70 L65 40" stroke="#003366" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`,
-        orange: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#FF6600"/><path d="M30 30 L70 30 L70 70 L30 70 Z" fill="white"/></svg>`,
-        wave: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#1CD4FF"/><circle cx="50" cy="45" r="15" fill="white"/><path d="M35 70 Q50 60 65 70" stroke="white" stroke-width="5" fill="none"/></svg>`,
-        moov: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#0055A4"/><path d="M30 40 Q50 20 70 40 Q50 60 30 40" fill="white"/></svg>`,
-        bank: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 10v11M19 10v11M12 10v11M12 3l9 7H3l9-7z"/></svg>`
-    };
-
-    // ---- Country Datalist ----
-    function normalizeCountry(value) {
-        return String(value || "")
-            .toLowerCase()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .trim();
-    }
-
-    // [MULTI-CURRENCY] Met à jour le sélecteur de monnaie selon les pays choisis
-    function updateCurrencySelector() {
-        if (!els.priceCurrencyInput) return;
-        const dep = String(els.departure?.value || "").trim();
-        const dst = String(els.destination?.value || "").trim();
-        const depCur = COUNTRY_CURRENCIES[dep] || "EUR";
-        const dstCur = COUNTRY_CURRENCIES[dst] || "EUR";
-
-        const options = [];
-        options.push({ value: depCur, label: `Pays de départ` });
-        if (dstCur !== depCur) options.push({ value: dstCur, label: `Pays d'arrivée` });
-
-        if (els.currencyPopover) {
-            els.currencyPopover.innerHTML = options.map(o => `
-                <div class="currency-opt" data-value="${o.value}">
-                    <span class="currency-opt-name">${ccSym(o.value)}</span>
-                    <span class="currency-opt-code">${o.label}</span>
-                </div>
-            `).join("");
-
-            els.currencyPopover.querySelectorAll(".currency-opt").forEach(opt => {
-                opt.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const val = opt.dataset.value;
-                    if (els.priceCurrencyInput) els.priceCurrencyInput.value = val;
-                    if (els.currentCurrencyText) els.currentCurrencyText.textContent = ccSym(val);
-                    els.currencyPopover.classList.add("hidden");
-                    // Les badges "prix special" affichent la devise : on les rafraichit
-                    if (window.ccRefreshUniteLabel) {
-                        document.querySelectorAll(".colis-detail-row").forEach(function (r) { window.ccRefreshUniteLabel(r); });
-                    }
-                });
-            });
-        }
-
-        // Vérifier si la sélection actuelle est toujours valide
-        const current = els.priceCurrencyInput.value;
-        const isStillValid = options.some(o => o.value === current);
-
-        if (!isStillValid) {
-            // On ne force pas le premier si rien n'est sélectionné au départ pour garder "Devise"
-            if (current !== "" && options.length > 0) {
-                els.priceCurrencyInput.value = options[0].value;
-                if (els.currentCurrencyText) els.currentCurrencyText.textContent = ccSym(options[0].value);
-            }
-        }
-    }
-
-    function isValidCountry(value) {
-        if (!value) return false;
-        const target = normalizeCountry(value);
-        return COUNTRY_OPTIONS.some((item) => normalizeCountry(item) === target);
-    }
+    let selectedProfileTypeChoice = null; // 'traveler' | 'cargo'
+    let selectedTransportMode = null; // 'avion' | 'bateau' | 'voiture' | 'train' | 'bus'
 
     function initCountryDatalist() {
-        if (!els.countryList) return;
-        // Correction: ne PAS échapper HTML les valeurs des options, sinon 
-        // les apostrophes deviennent des &#39; et cassent la recherche intelligente du navigateur.
-        els.countryList.innerHTML = COUNTRY_OPTIONS
-            .map((country) => `<option value="${country}"></option>`)
-            .join("\n");
+        const list = document.getElementById("countries-list");
+        if (!list || list.children.length > 0) return;
+
+        const countries = [
+            "France", "Sénégal", "Côte d'Ivoire", "Cameroun", "Mali", "Guinée", "République Démocratique du Congo", "Congo",
+            "Togo", "Bénin", "Burkina Faso", "Gabon", "Tchad", "Niger", "Mauritanie", "Canada", "États-Unis", "Belgique",
+            "Suisse", "Maroc", "Algérie", "Tunisie", "Madagascar", "Haïti"
+        ];
+
+        const fragment = document.createDocumentFragment();
+        countries.forEach(c => {
+            const opt = document.createElement("option");
+            opt.value = c;
+            fragment.appendChild(opt);
+        });
+        list.appendChild(fragment);
     }
 
     function initDateMin() {
-        if (!els.dateDepart) return;
-        const now = new Date();
-        const yyyy = now.getFullYear();
-        const mm = String(now.getMonth() + 1).padStart(2, "0");
-        const dd = String(now.getDate()).padStart(2, "0");
-        els.dateDepart.min = `${yyyy}-${mm}-${dd}`;
+        const today = new Date().toISOString().split("T")[0];
+        if (els.dateDepart) els.dateDepart.min = today;
     }
 
-    // ---- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet ----
+    function initReveal() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((e) => {
+                if (e.isIntersecting) {
+                    e.target.classList.add("visible");
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+    }
+
+    // [CARGO] dates multiples : affichage du bouton « Ajouter une autre date »
+    function setExtraTripDatesVisible(visible) {
+        if (!els.tripExtraDatesWrap) return;
+        if (visible) {
+            els.tripExtraDatesWrap.classList.remove("hidden");
+        } else {
+            els.tripExtraDatesWrap.classList.add("hidden");
+            clearExtraTripDates();
+        }
+    }
+
     function clearExtraTripDates() {
         if (els.tripExtraDates) els.tripExtraDates.innerHTML = "";
+        updateExtraDatesAddBtn();
     }
-
-    // [CARGO] Au plus 2 dates supplémentaires par trajet (bouton désactivé au-delà)
-    const MAX_EXTRA_DATES = 2;
 
     function updateExtraDatesAddBtn() {
-        const btn = els.addTripDateBtn;
-        if (!btn) return;
-        const count = els.tripExtraDates?.querySelectorAll(".trip-extra-date-row").length || 0;
-        btn.disabled = count >= MAX_EXTRA_DATES;
-    }
-
-    function setExtraTripDatesVisible(visible) {
-        if (els.tripExtraDatesWrap) els.tripExtraDatesWrap.classList.toggle("hidden", !visible);
-        if (!visible) clearExtraTripDates();
-        if (visible) updateExtraDatesAddBtn();
+        if (!els.addTripDateBtn || !els.tripExtraDates) return;
+        const count = els.tripExtraDates.querySelectorAll(".trip-extra-date-row").length;
+        if (count >= 10) {
+            els.addTripDateBtn.disabled = true;
+            els.addTripDateBtn.title = "Limite de 10 dates supplémentaires atteinte.";
+        } else {
+            els.addTripDateBtn.disabled = false;
+            els.addTripDateBtn.title = "";
+        }
     }
 
     function addExtraTripDateRow() {
-        const box = els.tripExtraDates;
-        if (!box) return;
-        if (box.querySelectorAll(".trip-extra-date-row").length >= MAX_EXTRA_DATES) return;
+        if (!els.tripExtraDates) return;
+        const count = els.tripExtraDates.querySelectorAll(".trip-extra-date-row").length;
+        if (count >= 10) return;
+
         const row = document.createElement("div");
         row.className = "trip-extra-date-row";
-        const input = document.createElement("input");
-        input.type = "date";
-        input.className = "form-input trip-extra-date";
-        if (els.dateDepart?.min) input.min = els.dateDepart.min;
-        const del = document.createElement("button");
-        del.type = "button";
-        del.className = "colis-row-del";
-        del.setAttribute("aria-label", "Supprimer cette date");
-        del.textContent = "✕";
-        row.appendChild(input);
-        row.appendChild(del);
-        box.appendChild(row);
+        const minDate = els.dateDepart?.min || new Date().toISOString().split("T")[0];
+        row.innerHTML = `
+            <div class="input-with-icon" style="flex:1;">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <input type="date" class="form-input trip-extra-date" min="${minDate}" required>
+            </div>
+            <button type="button" class="colis-row-del" title="Supprimer cette date" aria-label="Supprimer cette date">&times;</button>
+        `;
+        els.tripExtraDates.appendChild(row);
         updateExtraDatesAddBtn();
-        input.focus();
     }
 
-    // Date principale + dates supplémentaires (cargo) → UNE offre portant toutes les dates
-    function collectTripDates() {
+    function readAllTripDates() {
         const dates = [];
         const main = String(els.dateDepart?.value || "").trim();
         if (main) dates.push(main);
-        if (selectedProfileTypeChoice === "cargo") {
-            document.querySelectorAll("#trip-extra-dates .trip-extra-date").forEach((inp) => {
+        if (selectedProfileTypeChoice === "cargo" && els.tripExtraDates) {
+            els.tripExtraDates.querySelectorAll(".trip-extra-date").forEach((inp) => {
                 const v = String(inp.value || "").trim();
-                if (v) dates.push(v);
+                if (v && !dates.includes(v)) dates.push(v);
             });
         }
         return dates;
     }
 
-    function initReveal() {
-        if (!els.animatedNodes.length) return;
-        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduce) {
-            for (const node of els.animatedNodes) node.classList.add("is-visible");
-            return;
-        }
-        const observer = new IntersectionObserver((entries) => {
-            for (const entry of entries) {
-                if (!entry.isIntersecting) continue;
-                entry.target.classList.add("is-visible");
-                observer.unobserve(entry.target);
+    // Multi-colis : lecture dynamique des lignes dans l'étape 3
+    function readColisItems() {
+        const rows = document.querySelectorAll(".colis-item-row");
+        if (!rows.length) return [];
+        const items = [];
+        rows.forEach((row) => {
+            const desc = (row.querySelector(".colis-desc")?.value || "").trim();
+            const qty = parseInt(row.querySelector(".colis-qty")?.value || "1", 10) || 1;
+            const size = (row.querySelector(".colis-size")?.value || "").trim();
+            if (desc) {
+                items.push({ description: desc, quantity: qty, size: size || undefined });
             }
-        }, { threshold: 0.15 });
-        for (const node of els.animatedNodes) observer.observe(node);
+        });
+        return items;
     }
 
-    // ---- Payment Modal logic ----
-    function _getDeparture() { return document.getElementById("departure"); }
-    function _getDestination() { return document.getElementById("destination"); }
+    // Monnaies autorisées par pays
+    const countryCurrencies = {
+        "France": [{ code: "EUR", symbol: "€", name: "Euro" }],
+        "Sénégal": [{ code: "XOF", symbol: "FCFA", name: "Franc CFA" }],
+        "Côte d'Ivoire": [{ code: "XOF", symbol: "FCFA", name: "Franc CFA" }],
+        "Cameroun": [{ code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)" }],
+        "Mali": [{ code: "XOF", symbol: "FCFA", name: "Franc CFA" }],
+        "Guinée": [{ code: "GNF", symbol: "FG", name: "Franc guinéen" }],
+        "République Démocratique du Congo": [{ code: "USD", symbol: "$", name: "Dollar US" }, { code: "CDF", symbol: "FC", name: "Franc congolais" }],
+        "Congo": [{ code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)" }],
+        "Togo": [{ code: "XOF", symbol: "FCFA", name: "Franc CFA" }],
+        "Bénin": [{ code: "XOF", symbol: "FCFA", name: "Franc CFA" }],
+        "Burkina Faso": [{ code: "XOF", symbol: "FCFA", name: "Franc CFA" }],
+        "Gabon": [{ code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)" }],
+        "Tchad": [{ code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)" }],
+        "Niger": [{ code: "XOF", symbol: "FCFA", name: "Franc CFA" }],
+        "Mauritanie": [{ code: "MRU", symbol: "UM", name: "Ouguiya" }],
+        "Canada": [{ code: "CAD", symbol: "$", name: "Dollar canadien" }],
+        "États-Unis": [{ code: "USD", symbol: "$", name: "Dollar US" }],
+        "Belgique": [{ code: "EUR", symbol: "€", name: "Euro" }],
+        "Suisse": [{ code: "CHF", symbol: "CHF", name: "Franc suisse" }],
+        "Maroc": [{ code: "MAD", symbol: "DH", name: "Dirham marocain" }],
+        "Algérie": [{ code: "DZD", symbol: "DA", name: "Dinar algérien" }],
+        "Tunisie": [{ code: "TND", symbol: "DT", name: "Dinar tunisien" }],
+        "Madagascar": [{ code: "MGA", symbol: "Ar", name: "Ariary" }],
+        "Haïti": [{ code: "HTG", symbol: "G", name: "Gourde" }]
+    };
 
-    function openModal() {
-        const dep = _getDeparture();
-        if (!dep?.value) {
-            alert("Veuillez d'abord choisir un pays de départ.");
-            return;
-        }
-        els.modal?.classList.remove("hidden");
-        document.body.style.overflow = "hidden";
+    function updateCurrencySelector() {
+        const depCountry = els.departure?.value?.trim() || "";
+        const destCountry = els.destination?.value?.trim() || "";
 
-        // Aller directement à la saisie du numéro
-        selectPaymentProvider("direct_contact", "Contact Direct");
-    }
+        let allowedCurrencies = [];
+        const depCurrs = countryCurrencies[depCountry] || [];
+        const destCurrs = countryCurrencies[destCountry] || [];
 
-    function closeModal() {
-        els.modal?.classList.add("hidden");
-        document.body.style.overflow = "";
-    }
+        // Fusionner les monnaies uniques des deux pays
+        const map = new Map();
+        [...depCurrs, ...destCurrs].forEach(c => map.set(c.code, c));
+        allowedCurrencies = Array.from(map.values());
 
-    // Popup de succès du site (remplace l'alerte navigateur "yoannta.github.io says")
-    function showPublishSuccess(destination, count) {
-        if (els.publishMsg) {
-            const n = Number(count) || 1;
-            els.publishMsg.textContent = n > 1
-                ? `Vos ${n} trajets vers ${destination} ont bien été publiés.`
-                : `Votre trajet vers ${destination} a bien été publié.`;
-        }
-        els.publishModal?.classList.remove("hidden");
-    }
-
-    function showStep(step) {
-        if (step === "choose") {
-            els.stepChoose?.classList.remove("hidden");
-            els.stepUpload?.classList.add("hidden");
-        } else {
-            els.stepChoose?.classList.add("hidden");
-            els.stepUpload?.classList.remove("hidden");
-        }
-    }
-
-    // Plus besoin de charger les réseaux, on va directement au numéro
-    async function renderDynamicPaymentChoices() {
-        return;
-    }
-
-    // Restaure la section OTP à son état initial (contrôles visibles, message retiré)
-    function resetOtpControls() {
-        if (!els.otpSection) return;
-        const wrap = els.otpSection.querySelector(".otp-input-wrap");
-        if (wrap) wrap.style.display = "";
-        els.otpSection.querySelector(".pm-otp-success")?.remove();
-        if (els.otpInput) els.otpInput.value = "";
-        els.otpSection.classList.add("hidden");
-    }
-
-    function selectPaymentProvider(methodId, methodName) {
-        paymentState.selectedMethod = methodId;
-        paymentState.selectedMethodName = methodName;
-        paymentState.isVerified = false; // Reset verification state
-
-        // Titre dynamique
-        if (els.uploadTitle) {
-            els.uploadTitle.textContent = "Votre numéro de contact";
+        // Si aucun pays reconnu n'est saisi, proposer les principales monnaies par défaut
+        if (allowedCurrencies.length === 0) {
+            allowedCurrencies = [
+                { code: "EUR", symbol: "€", name: "Euro" },
+                { code: "XOF", symbol: "FCFA", name: "Franc CFA (UEMOA)" },
+                { code: "XAF", symbol: "FCFA", name: "Franc CFA (CEMAC)" },
+                { code: "USD", symbol: "$", name: "Dollar US" },
+                { code: "CAD", symbol: "$", name: "Dollar canadien" }
+            ];
         }
 
-        // Reset complet : section OTP restaurée + bouton SMS réinitialisé
-        // (sans ça, un 2e numéro gardait l'état "Envoyé ✓" et le vieux message
-        // de succès sans champ de code → impossible de valider)
-        resetOtpControls();
-        if (els.verifySmsBtn) {
-            els.verifySmsBtn.disabled = true;
-            els.verifySmsBtn.innerHTML = "Vérifier";
-            els.verifySmsBtn.style.color = "";
-        }
-
-        if (els.indicatifInput) {
-            els.indicatifInput.disabled = false;
-            els.indicatifInput.selectedIndex = 0;
-        }
-        if (els.localNumberInput) {
-            els.localNumberInput.disabled = false;
-            els.localNumberInput.value = "";
-        }
-
-        setTimeout(() => els.localNumberInput?.focus(), 100);
-
-        if (els.confirmBtn) {
-            els.confirmBtn.disabled = true;
-        }
-
-        showStep("upload");
-    }
-
-    function confirmPaymentMethod() {
-        const fullNumber = `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`;
-        paymentState.accountNumber = fullNumber;
-        if (!paymentState.selectedMethod || !paymentState.accountNumber) return;
-
-        // Store in hidden fields
-        if (els.paymentMethodInput) els.paymentMethodInput.value = paymentState.selectedMethod;
-        if (els.paymentQrInput) els.paymentQrInput.value = paymentState.accountNumber;
-
-        // Met à jour le label du bouton qui a ouvert la modale (1er ou 2e)
-        const labelEl = paymentTrigger
-            ? paymentTrigger.querySelector(".pm-label")
-            : els.paymentMethodLabel;
-        if (labelEl) {
-            const displayCode = els.indicatifInput?.value || "";
-            const displayLocal = els.localNumberInput?.value || "";
-            labelEl.innerHTML = `📞 Contact : <strong>${displayCode}</strong> ${displayLocal}`;
-        }
-        closeModal();
-    }
-
-    function bindModalEvents() {
-        // Délégation : chaque ligne de contact (fixe ou ajoutée) ouvre la modale ;
-        // le ✕ d'une ligne AJOUTÉE la supprime
-        const rowsBox = document.getElementById("payment-contact-rows");
-        if (rowsBox) {
-            rowsBox.addEventListener("click", (e) => {
-                const del = e.target.closest(".contact-row-del");
-                if (del) {
-                    const row = del.closest(".payment-contact-row");
-                    if (row && !row.querySelector("#open-payment-method-btn")) row.remove();
-                    return;
-                }
-                const btn = e.target.closest(".contact-row-btn");
-                if (btn) {
-                    paymentTrigger = btn;
-                    openModal();
-                }
-            });
-        }
-        // Bouton dynamique "+ Autre numéro" : crée une nouvelle ligne de contact
-        els.addContactBtn?.addEventListener("click", () => {
-            if (!rowsBox) return;
-            const row = document.createElement("div");
-            row.className = "payment-contact-row";
-            row.innerHTML = `
-                <button type="button" class="btn secondary payment-method-btn contact-row-btn">
-                    <span class="pm-label">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                        <span>Mon numero de contact</span>
-                    </span>
+        // Remplir la liste du menu déroulant
+        if (els.currencyList) {
+            els.currencyList.innerHTML = allowedCurrencies.map(c => `
+                <button type="button" class="currency-opt-btn" data-code="${c.code}" data-symbol="${c.symbol}">
+                    <span class="c-code">${c.code}</span>
+                    <span class="c-name">${c.name} (${c.symbol})</span>
                 </button>
-                <button type="button" class="colis-row-del contact-row-del" aria-label="Supprimer cette ligne" title="Supprimer cette ligne">✕</button>`;
-            rowsBox.appendChild(row);
-        });
-        els.closeBtn?.addEventListener("click", closeModal);
-        els.modal?.addEventListener("click", (e) => {
-            if (e.target === els.modal) closeModal();
-        });
-        els.backBtn?.addEventListener("click", () => showStep("choose"));
+            `).join("");
+        }
 
-        // Validation combinée : sélection indicatif + numéro local
-        const updateVerifyButton = () => {
-            const ind = els.indicatifInput?.value || "";
-            const loc = els.localNumberInput?.value.trim() || "";
-            if (els.verifySmsBtn) {
-                els.verifySmsBtn.disabled = !ind || loc.length < 5;
-            }
-        };
-
-        // Si on change le numéro après l'avoir vérifié, on réinitialise la vérification
-        const resetVerificationIfNeeded = () => {
-            if (!paymentState.isVerified) return;
-            paymentState.isVerified = false;
-            resetOtpControls();
-            if (els.confirmBtn) els.confirmBtn.disabled = true;
-        };
-
-        els.indicatifInput?.addEventListener("change", () => {
-            updateVerifyButton();
-            resetVerificationIfNeeded();
-        });
-        els.localNumberInput?.addEventListener("input", (e) => {
-            updateVerifyButton();
-            resetVerificationIfNeeded();
-        });
-
-        // Click "Vérifier" (SMS)
-        els.verifySmsBtn?.addEventListener("click", async () => {
-            const fullPhone = `${els.indicatifInput.value.trim()}${els.localNumberInput.value.trim()}`;
-            els.verifySmsBtn.disabled = true;
-            els.verifySmsBtn.innerHTML = '<span class="spinner-sm"></span>';
-
-            // Simulation envoi SMS
-            setTimeout(() => {
-                els.verifySmsBtn.innerHTML = "Envoyé ✓";
-                els.verifySmsBtn.style.color = "#ffb347";
-                els.otpSection?.classList.remove("hidden");
-
-                els.indicatifInput.disabled = true;
-                els.localNumberInput.disabled = true;
-
-                els.otpInput.focus();
-                alert(`SIMULATION : Code SMS envoyé au ${fullPhone}\nCode : 123456`);
-            }, 1200);
-        });
-
-        // Click "Valider" (OTP)
-        els.confirmOtpBtn?.addEventListener("click", () => {
-            const code = els.otpInput.value.trim();
-            if (code === "123456") {
-                paymentState.isVerified = true;
-                // Message de succès SANS détruire le champ + bouton OTP.
-                // (L'ancien innerHTML supprimait les contrôles de la section →
-                // pour un 2e numéro, plus aucun champ de code ne s'affichait
-                // et "Enregistrer" restait bloqué.)
-                let status = els.otpSection.querySelector(".pm-otp-success");
-                if (!status) {
-                    status = document.createElement("p");
-                    status.className = "pm-otp-success";
-                    status.style.cssText = "color: #ffb347; font-weight: 700; margin: 0;";
-                    els.otpSection.appendChild(status);
-                }
-                status.textContent = "✓ Numéro vérifié avec succès";
-                const wrap = els.otpSection.querySelector(".otp-input-wrap");
-                if (wrap) wrap.style.display = "none";
-                if (els.confirmBtn) els.confirmBtn.disabled = false;
-            } else {
-                alert("Code invalide. Réessayez avec 123456.");
-            }
-        });
-
-        // Empêcher de placer le curseur avant le '+' au clic
-        els.phoneNumberInput?.addEventListener("click", () => {
-            const prefix = "+";
-            const start = els.phoneNumberInput.selectionStart;
-            if (start < prefix.length) {
-                const len = prefix.length;
-                els.phoneNumberInput.setSelectionRange(len, len);
-            }
-        });
-
-        els.confirmBtn?.addEventListener("click", confirmPaymentMethod);
-
-        // Popup succès : "Voir mes offres" redirige vers les résultats
-        els.publishOkBtn?.addEventListener("click", () => {
-            window.location.href = "results.html";
-        });
+        // Si la devise actuelle n'est plus valide, basculer sur la première autorisée
+        const currentCode = els.priceCurrency?.value || "EUR";
+        const isValid = allowedCurrencies.some(c => c.code === currentCode);
+        if (!isValid && allowedCurrencies.length > 0) {
+            selectCurrency(allowedCurrencies[0].code, allowedCurrencies[0].symbol);
+        }
     }
 
-    // ---- Submit trip ----
-    async function submitTrip(event) {
-        event.preventDefault();
+    function selectCurrency(code, symbol) {
+        if (els.priceCurrency) els.priceCurrency.value = code;
+        if (els.currencyBtnCode) els.currencyBtnCode.textContent = code;
+        if (els.currencyBtnSymbol) els.currencyBtnSymbol.textContent = symbol;
+        if (els.kiloPriceUnit) els.kiloPriceUnit.textContent = `${symbol}/kg`;
+        if (els.currencyDropdown) els.currencyDropdown.classList.add("hidden");
+    }
 
-        if (!window.CCCommon.requireCompletedProfile("post_trip.html")) return;
+    function getPayload() {
+        const rawKilos = parseFloat(els.kilos?.value) || 0;
+        const rawPrice = parseFloat(els.price?.value) || 0;
 
-        const departureCountry = String(els.departure?.value || "").trim();
-        const destinationCountry = String(els.destination?.value || "").trim();
+        return {
+            departure: els.departure?.value?.trim(),
+            destination: els.destination?.value?.trim(),
+            cityDeparture: els.cityDeparture?.value?.trim() || undefined,
+            cityDestination: els.cityDestination?.value?.trim() || undefined,
+            departureDate: els.dateDepart?.value,
+            kilos: rawKilos,
+            available_kilos: rawKilos,
+            price: rawPrice,
+            pricePerKilo: rawPrice,
+            priceCurrency: els.priceCurrency?.value || 'EUR',
+            notes: els.notes?.value?.trim() || undefined,
+            profileType: selectedProfileTypeChoice || window.CCCommon.state?.user?.profile_type || 'traveler',
+            transportMode: selectedTransportMode || undefined,
+            payment_method: paymentState.selectedMethod,
+            payment_method_name: paymentState.selectedMethodName,
+            account_number: paymentState.accountNumber,
+            specialPrices: typeof window.ccReadSpecialPrices === 'function' ? window.ccReadSpecialPrices() : [],
+            acceptedColisTypes: typeof window.ccReadColisTypes === 'function' ? window.ccReadColisTypes() : [],
+            colisItems: readColisItems()
+        };
+    }
 
-        if (!isValidCountry(departureCountry) || !isValidCountry(destinationCountry)) {
-            alert("Choisissez le pays de depart et d'arrivee depuis la liste.");
+    async function submitTrip(e) {
+        if (e) e.preventDefault();
+        const tripDates = readAllTripDates();
+        if (!tripDates.length) {
+            alert("Veuillez sélectionner au moins une date de départ.");
             return;
         }
 
-        if (normalizeCountry(departureCountry) === normalizeCountry(destinationCountry)) {
-            alert("Le pays de depart et d'arrivee ne peuvent pas etre identiques.");
+        const payload = getPayload();
+        if (!payload.departure || !payload.destination || !payload.departureDate || !payload.price) {
+            alert("Veuillez remplir au moins les champs obligatoires (pays de départ, pays de destination, date, prix par kg).");
             return;
         }
 
-        if (!paymentState.selectedMethod || !paymentState.accountNumber) {
-            alert("Veuillez choisir un moyen de paiement et fournir votre numéro de compte.");
-            openModal();
-            return;
+        // [LIMITATION ANNONCES ACTIVES] — strict par type de profil
+        try {
+            const activeCheck = await window.CCCommon.api('/api/offers/check-limit?type=' + encodeURIComponent(selectedProfileTypeChoice || 'traveler'));
+            if (activeCheck && !activeCheck.allowed) {
+                alert(activeCheck.message || "Vous avez atteint la limite de publications d'annonces actives autorisées.");
+                return;
+            }
+        } catch (e) {
+            console.warn("Vérification limite échouée, poursuite...", e);
         }
 
-        // Choix de profil obligatoire — pas de fallback profil compte (Yoyo 2026-09, strict)
-        if (!selectedProfileTypeChoice) {
-            alert("Veuillez d'abord choisir votre type de profil (Voyageur simple ou Entreprise cargo).");
-            return;
-        }
-
-        // Soumettre directement (les champs sont visibles)
         await proceedSubmitTrip();
     }
 
     async function proceedSubmitTrip() {
-        const departureCountry = String(els.departure?.value || "").trim();
-        const destinationCountry = String(els.destination?.value || "").trim();
-
-        // Verifier la limite de publication par type (mode="" pour voyageur, mode!=="" pour cargo)
-        const isCargo = selectedProfileTypeChoice === "cargo";
-        // [ENTREPRISE / CARGO] Dates multiples : collecte de la date principale + dates ajoutées
-        const tripDates = collectTripDates();
-        if (!tripDates.length) {
-            alert("Veuillez choisir une date de voyage.");
-            return;
-        }
-        try {
-            const myOffers = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
-            const activeOffers = (myOffers?.items || []).filter(o => String(o.status || "").toLowerCase() === "active");
-            // Filtrer par mode : voyageur = mode vide, cargo = mode non vide
-            const offersOfType = activeOffers.filter(o => {
-                const m = String(o.mode || "").trim();
-                return isCargo ? m !== "" : m === "";
-            });
-            const activeCount = offersOfType.length;
-            const limit = isCargo ? 5 : 1;
-
-            if (activeCount >= limit) {
-                const label = isCargo ? "entreprise cargo" : "voyageur simple";
-                alert(`Limite de trajet depassee : En tant que ${label}, vous ne pouvez publier que ${limit} trajet${limit > 1 ? 's' : ''} actif${limit > 1 ? 's' : ''} à la fois.`);
-                return;
-            }
-        } catch (e) {
-            console.warn("Impossible de verifier le nombre d'offres actives.", e);
-        }
-
-        const isCargoMode = selectedProfileTypeChoice === "cargo";
-        const availableKg = isCargoMode ? 99999 : Number(els.kilos?.value || 0);
-        const pricePerKg = Number(els.price?.value || 0);
-
-        // Validation : si cargo, le mode de transport est requis
-        if (isCargoMode && !selectedTransportMode) {
-            alert("Veuillez choisir un mode de transport (Avion, Bateau ou Les deux).");
-            return;
-        }
-
-        if (!isCargoMode && availableKg < 1) {
-            alert("Veuillez saisir les kilos disponibles.");
-            return;
-        }
-        if (pricePerKg < 1) {
-            alert("Veuillez saisir un prix par kilo valide.");
-            return;
-        }
-
-        // Collecte des prix spéciaux (lignes de l'étape 3 — script inline du HTML)
-        const specialPrices = [];
-        document.querySelectorAll("#colis-detail-rows .colis-detail-row").forEach((row) => {
-            const type = row.querySelector(".colis-name-label")?.textContent?.trim();
-            const mode = row.getAttribute("data-mode");
-            const price = parseFloat(row.querySelector(".price-field")?.value);
-            if (type && type !== "Nom du colis" && mode && !isNaN(price) && price > 0) {
-                specialPrices.push({ type, mode, price });
-            }
-        });
-
-        // [CODES ISO] Résolution nom de pays -> code ISO (table countries, cache CCCommon)
-        // pour afficher les vrais drapeaux (option B robuste) sur les cartes d'offres.
-        const countryCodes = await Promise.all([
-            window.CCCommon?._getCountryCode
-                ? window.CCCommon._getCountryCode(departureCountry).catch(() => null)
-                : Promise.resolve(null),
-            window.CCCommon?._getCountryCode
-                ? window.CCCommon._getCountryCode(destinationCountry).catch(() => null)
-                : Promise.resolve(null)
-        ]);
-
-        const payload = {
-            title: `Trajet ${departureCountry} -> ${destinationCountry}`,
-            origin: departureCountry,
-            destination: destinationCountry,
-            originCountryCode: countryCodes[0],
-            destCountryCode: countryCodes[1],
-            cityDeparture: String(els.cityDeparture?.value || "").trim(),
-            cityDestination: String(els.cityDestination?.value || "").trim(),
-            specialPrices: specialPrices,
-            // departureDate (principale) + extraDates (supplémentaires) ajoutés avant l'insertion
-            availableKg: availableKg,
-            pricePerKg: pricePerKg,
-            baseCurrency: els.priceCurrencyInput?.value || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR"),  // [MULTI-CURRENCY]
-            paymentMethod: paymentState.selectedMethod,
-            paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
-            mode: isCargoMode ? (selectedTransportMode || "") : "",
-            colis_types: window.colisSelections ? window.colisSelections.join(", ") : "",
-            refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : ""
-        };
+        const payload = getPayload();
+        const tripDates = readAllTripDates();
 
         const submitBtn = els.form?.querySelector("button[type='submit']");
         const initialText = submitBtn?.textContent || "Publier mon trajet";
@@ -638,18 +272,14 @@
         }
 
         try {
-            // [ENTREPRISE / CARGO] UNE seule offre par trajet : la date la plus proche devient
-            // departure_date (tri/affichage corrects), les dates suivantes partent dans extra_dates
-            // et sont affichées empilées dans la cellule "Départ" de la carte d'offre.
             const uniqueDates = Array.from(new Set(
                 tripDates.map((s) => String(s || "").trim()).filter(Boolean)
-            )).sort(); // ISO aaaa-mm-jj : tri lexicographique = tri chronologique
+            )).sort();
             const created = await window.CCCommon.api("/api/offers", {
                 method: "POST",
                 body: { ...payload, departureDate: uniqueDates[0], extraDates: uniqueDates.slice(1) }
             });
 
-            // Mise à jour du profil APRÈS publication réussie
             if (selectedProfileTypeChoice) {
                 try {
                     await window.CCCommon.api('/users/me/profile', {
@@ -674,18 +304,13 @@
             document.querySelectorAll(".pm-label").forEach((l) => {
                 if (l !== els.paymentMethodLabel) l.innerHTML = els.paymentMethodLabel.innerHTML;
             });
-            // Popup de succès du site (remplace l'alerte navigateur) — redirection au clic
             showPublishSuccess(created?.destination || payload.destination, 1);
         } catch (error) {
             if (error?.status === 401) {
-                window.CCCommon.openAuthGate("post_trip.html");
+                window.CCCommon.requireAuth(() => proceedSubmitTrip());
                 return;
             }
-            if (error?.code === "PROFILE_COMPLETION_REQUIRED" || error?.status === 403) {
-                window.CCCommon.openProfileCompletionGate("post_trip.html");
-                return;
-            }
-            alert(error.message || "Erreur publication.");
+            alert("Erreur lors de la publication : " + (error.message || "Problème réseau."));
         } finally {
             if (submitBtn) {
                 submitBtn.disabled = false;
@@ -694,150 +319,189 @@
         }
     }
 
+    function showPublishSuccess(destName, offerCount) {
+        const modal = document.getElementById("modal-publish-success");
+        const backdrop = document.getElementById("modal-backdrop-success");
+        const body = document.getElementById("success-modal-body");
+        const closeBtn = document.getElementById("btn-success-close");
+
+        const isPlural = offerCount > 1;
+        const countText = isPlural ? `${offerCount} annonces créées` : `1 annonce créée`;
+        const destText = destName ? ` pour <strong>${destName}</strong>` : "";
+
+        if (body) {
+            body.innerHTML = `
+                <div class="success-icon-wrap">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <h3 class="success-title">Félicitations !</h3>
+                <p class="success-msg">Votre publication a été effectuée avec succès.<br>(${countText}${destText})</p>
+                <p class="success-sub">Elle est désormais visible par tous les utilisateurs de ColisConnect.</p>
+            `;
+        }
+
+        if (modal) modal.classList.remove("hidden");
+        if (backdrop) backdrop.classList.remove("hidden");
+
+        const handleClose = () => {
+            if (modal) modal.classList.add("hidden");
+            if (backdrop) backdrop.classList.add("hidden");
+            window.location.href = "results.html";
+        };
+
+        if (closeBtn) {
+            closeBtn.onclick = handleClose;
+        }
+        if (backdrop) {
+            backdrop.onclick = handleClose;
+        }
+    }
+
+    function bindModalEvents() {
+        els.profileTypeModal = document.getElementById("modal-profile-type");
+        els.choiceTraveler = document.getElementById("choice-traveler");
+        els.choiceCargo = document.getElementById("choice-cargo");
+        els.modalTransportMode = document.getElementById("modal-transport-mode");
+        els.modalTransportBtns = document.querySelectorAll(".modal-transport-btn");
+        els.confirmProfileTypeBtn = document.getElementById("btn-confirm-profile-type");
+    }
+
     function bindEvents() {
-        // [CURRENCY-POPOVER] Gestion de la bulle
-        els.currencyToggle?.addEventListener("click", (e) => {
+        els.form = document.getElementById("trip-form");
+        els.departure = document.getElementById("departure");
+        els.destination = document.getElementById("destination");
+        els.cityDeparture = document.getElementById("city-departure");
+        els.cityDestination = document.getElementById("city-destination");
+        els.dateDepart = document.getElementById("date-depart");
+        els.addTripDateBtn = document.getElementById("btn-add-trip-date");
+        els.tripExtraDates = document.getElementById("trip-extra-dates");
+        els.tripExtraDatesWrap = document.getElementById("trip-extra-dates-wrap");
+        els.kilos = document.getElementById("kilos");
+        els.price = document.getElementById("price");
+        els.priceCurrency = document.getElementById("price-currency");
+        els.notes = document.getElementById("notes");
+
+        els.currencyToggleBtn = document.getElementById("currency-toggle-btn");
+        els.currencyDropdown = document.getElementById("currency-dropdown");
+        els.currencyList = document.getElementById("currency-list");
+        els.currencyBtnCode = document.getElementById("currency-btn-code");
+        els.currencyBtnSymbol = document.getElementById("currency-btn-symbol");
+        els.kiloPriceUnit = document.getElementById("kilo-price-unit");
+
+        els.paymentMethodLabel = document.getElementById("selected-pm-label");
+        els.pmDrawer = document.getElementById("pm-drawer");
+        els.pmDrawerOverlay = document.getElementById("pm-drawer-overlay");
+        els.pmDrawerClose = document.getElementById("pm-drawer-close");
+        els.pmConfirmBtn = document.getElementById("btn-confirm-pm");
+        els.pmAccountField = document.getElementById("pm-account-field");
+
+        if (els.form) {
+            els.form.addEventListener("submit", submitTrip);
+        }
+
+        els.currencyToggleBtn?.addEventListener("click", (e) => {
             e.stopPropagation();
-            els.currencyPopover?.classList.toggle("hidden");
+            els.currencyDropdown?.classList.toggle("hidden");
         });
 
-        document.addEventListener("click", () => {
-            els.currencyPopover?.classList.add("hidden");
-        });
-
-        // ===== POPUP TYPES DE COLIS =====
-        const colisOverlay = document.getElementById("colisPopupOverlay");
-        const colisGrid = document.getElementById("colisOptionsGrid");
-        const colisText = document.getElementById("selectedColisText");
-        const validateColisBtn = document.getElementById("validateColisBtn");
-        const toggleCustomBtn = document.getElementById("toggleCustomColisBtn");
-        const customGroup = document.getElementById("customColisGroup");
-        const newTypeInput = document.getElementById("newColisTypeInput");
-        const saveCustomBtn = document.getElementById("saveCustomColisBtn");
-        let colisSelections = [];
-        window.colisSelections = colisSelections; // expose for payload
-
-        document.getElementById("openColisPopupBtn")?.addEventListener("click", () => {
-            if (colisOverlay) colisOverlay.style.display = "flex";
-        });
-
-        colisGrid?.addEventListener("click", (e) => {
-            const card = e.target.closest(".option-card");
-            if (!card) return;
-            const value = card.getAttribute("data-value");
-            card.classList.toggle("selected");
-            if (card.classList.contains("selected")) {
-                colisSelections.push(value);
-            } else {
-                colisSelections = colisSelections.filter(item => item !== value);
+        document.addEventListener("click", (e) => {
+            if (els.currencyDropdown && !els.currencyDropdown.contains(e.target) && !els.currencyToggleBtn?.contains(e.target)) {
+                els.currencyDropdown.classList.add("hidden");
             }
         });
 
-        toggleCustomBtn?.addEventListener("click", () => {
-            if (customGroup) {
-                customGroup.style.display = customGroup.style.display === "flex" ? "none" : "flex";
-                newTypeInput?.focus();
+        els.currencyList?.addEventListener("click", (e) => {
+            const btn = e.target.closest(".currency-opt-btn");
+            if (btn) {
+                const code = btn.dataset.code;
+                const symbol = btn.dataset.symbol;
+                selectCurrency(code, symbol);
             }
         });
 
-        saveCustomBtn?.addEventListener("click", () => {
-            const val = newTypeInput?.value?.trim();
-            if (!val) return;
-            const newCard = document.createElement("div");
-            newCard.className = "option-card selected";
-            newCard.setAttribute("data-value", val);
-            newCard.innerHTML = `<span class="option-circle"></span><span class="option-text">${val}</span>`;
-            colisGrid?.appendChild(newCard);
-            colisSelections.push(val);
-            if (newTypeInput) newTypeInput.value = "";
-            if (customGroup) customGroup.style.display = "none";
+        const openPmDrawer = () => {
+            els.pmDrawer?.classList.remove("hidden");
+            els.pmDrawerOverlay?.classList.remove("hidden");
+            setTimeout(() => els.pmDrawer?.classList.add("active"), 10);
+        };
+        const closePmDrawer = () => {
+            els.pmDrawer?.classList.remove("active");
+            setTimeout(() => {
+                els.pmDrawer?.classList.add("hidden");
+                els.pmDrawerOverlay?.classList.add("hidden");
+            }, 300);
+        };
+
+        els.paymentMethodLabel?.addEventListener("click", openPmDrawer);
+        document.querySelectorAll(".pm-label").forEach((l) => {
+            l.addEventListener("click", openPmDrawer);
         });
+        els.pmDrawerClose?.addEventListener("click", closePmDrawer);
+        els.pmDrawerOverlay?.addEventListener("click", closePmDrawer);
 
-        validateColisBtn?.addEventListener("click", () => {
-            if (colisOverlay) colisOverlay.style.display = "none";
-            if (colisText) {
-                colisText.textContent = colisSelections.length > 0 ? colisSelections.join(", ") : "Choisir les types de colis";
-            }
-        });
+        document.querySelectorAll(".pm-option").forEach((opt) => {
+            opt.addEventListener("click", () => {
+                document.querySelectorAll(".pm-option").forEach((o) => o.classList.remove("selected"));
+                opt.classList.add("selected");
+                const method = opt.dataset.pm;
 
-        colisOverlay?.addEventListener("click", (e) => {
-            if (e.target === colisOverlay) colisOverlay.style.display = "none";
-        });
+                const accGroup = document.getElementById("pm-account-group");
+                const accLabel = document.getElementById("pm-account-label");
 
-        // ===== POPUP TYPES DE COLIS REFUSÉS =====
-        const refusedOverlay = document.getElementById("refusedPopupOverlay");
-        const refusedGrid = document.getElementById("refusedOptionsGrid");
-        const refusedText = document.getElementById("selectedRefusedText");
-        const validateRefusedBtn = document.getElementById("validateRefusedBtn");
-        const toggleRefusedBtn = document.getElementById("toggleCustomRefusedBtn");
-        const refusedGroup = document.getElementById("customRefusedGroup");
-        const newRefusedInput = document.getElementById("newRefusedTypeInput");
-        const saveRefusedBtn = document.getElementById("saveCustomRefusedBtn");
-        let refusedSelections = [];
-        window.refusedSelections = refusedSelections;
-
-        document.getElementById("openRefusedColisBtn")?.addEventListener("click", () => {
-            if (refusedOverlay) refusedOverlay.style.display = "flex";
-        });
-
-        refusedGrid?.addEventListener("click", (e) => {
-            const card = e.target.closest(".option-card");
-            if (!card) return;
-            const value = card.getAttribute("data-value");
-            card.classList.toggle("selected");
-            if (card.classList.contains("selected")) {
-                refusedSelections.push(value);
-            } else {
-                refusedSelections = refusedSelections.filter(item => item !== value);
-            }
-        });
-
-        toggleRefusedBtn?.addEventListener("click", () => {
-            if (refusedGroup) {
-                refusedGroup.style.display = refusedGroup.style.display === "flex" ? "none" : "flex";
-                newRefusedInput?.focus();
-            }
-        });
-
-        saveRefusedBtn?.addEventListener("click", () => {
-            const val = newRefusedInput?.value?.trim();
-            if (!val) return;
-            const newCard = document.createElement("div");
-            newCard.className = "option-card selected";
-            newCard.setAttribute("data-value", val);
-            newCard.innerHTML = `<span class="option-circle"></span><span class="option-text">${val}</span>`;
-            refusedGrid?.appendChild(newCard);
-            refusedSelections.push(val);
-            if (newRefusedInput) newRefusedInput.value = "";
-            if (refusedGroup) refusedGroup.style.display = "none";
-        });
-
-        validateRefusedBtn?.addEventListener("click", () => {
-            if (refusedOverlay) refusedOverlay.style.display = "none";
-            if (refusedText) {
-                refusedText.textContent = refusedSelections.length > 0 ? refusedSelections.join(", ") : "Choisir les types refusés";
-            }
-        });
-
-        refusedOverlay?.addEventListener("click", (e) => {
-            if (e.target === refusedOverlay) refusedOverlay.style.display = "none";
-        });
-
-        els.form?.addEventListener("submit", (event) => {
-            submitTrip(event).catch((error) => {
-                alert(error.message || "Erreur publication.");
+                if (method === "bank_transfer" || method === "wave" || method === "orange_money" || method === "mtn" || method === "moov") {
+                    accGroup?.classList.remove("hidden");
+                    if (accLabel) {
+                        if (method === "bank_transfer") accLabel.textContent = "IBAN / Numéro de compte bancaire";
+                        else accLabel.textContent = "Numéro de téléphone (" + opt.querySelector(".pm-opt-name")?.textContent + ")";
+                    }
+                } else {
+                    accGroup?.classList.add("hidden");
+                }
+                if (els.pmConfirmBtn) els.pmConfirmBtn.disabled = false;
             });
         });
-        // [MULTI-CURRENCY] Mise à jour du sélecteur de monnaie à chaque changement de pays
+
+        els.pmConfirmBtn?.addEventListener("click", () => {
+            const selectedOpt = document.querySelector(".pm-option.selected");
+            if (!selectedOpt) return;
+
+            const method = selectedOpt.dataset.pm;
+            const name = selectedOpt.querySelector(".pm-opt-name")?.textContent || method;
+            const accVal = els.pmAccountField?.value?.trim();
+
+            paymentState.selectedMethod = method;
+            paymentState.selectedMethodName = name;
+            paymentState.accountNumber = accVal || null;
+
+            let displayText = name;
+            if (accVal) displayText += ` (${accVal})`;
+
+            if (els.paymentMethodLabel) {
+                els.paymentMethodLabel.innerHTML = `
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    <span style="color: #10B981; font-weight: 600;">${displayText}</span>
+                `;
+            }
+            document.querySelectorAll(".pm-label").forEach((l) => {
+                if (l !== els.paymentMethodLabel) l.innerHTML = els.paymentMethodLabel.innerHTML;
+            });
+
+            closePmDrawer();
+        });
+
         els.departure?.addEventListener("change", updateCurrencySelector);
         els.departure?.addEventListener("input", updateCurrencySelector);
         els.destination?.addEventListener("change", updateCurrencySelector);
         els.destination?.addEventListener("input", updateCurrencySelector);
 
-        // Initial load of currency options
         updateCurrencySelector();
 
-        // Choix du type de profil
         document.getElementById("btn-traveler-choice")?.addEventListener("click", () => {
             selectedProfileTypeChoice = "traveler";
             document.getElementById("step1-errors")?.classList.add("hidden");
@@ -849,7 +513,6 @@
             document.getElementById("kilos-group")?.classList.remove("hidden");
             document.getElementById("transport-mode-section").style.display = "none";
             document.querySelectorAll(".transport-mode-btn").forEach(b => b.classList.remove("selected"));
-            // [CARGO] dates multiples : masquées pour le voyageur simple
             setExtraTripDatesVisible(false);
         });
 
@@ -862,11 +525,9 @@
             document.getElementById("trip-extra-fields")?.classList.remove("hidden");
             document.getElementById("kilos-group")?.classList.add("hidden");
             document.getElementById("transport-mode-section").style.display = "block";
-            // [CARGO] dates multiples : bouton « Ajouter une autre date » visible
             setExtraTripDatesVisible(true);
         });
 
-        // [CARGO] « Ajouter une autre date » : nouvelle ligne supprimable pour le même trajet
         els.addTripDateBtn?.addEventListener("click", addExtraTripDateRow);
         els.tripExtraDates?.addEventListener("click", (e) => {
             const del = e.target.closest(".colis-row-del");
@@ -881,11 +542,9 @@
             els.choiceCargo.classList.add("selected");
             els.choiceTraveler?.classList.remove("selected");
             if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
-            // Afficher le choix transport si on choisit cargo
             els.modalTransportMode?.classList.remove("hidden");
         });
 
-        // Sélection du mode de transport (dans la modale)
         els.modalTransportBtns?.forEach(btn => {
             btn.addEventListener("click", () => {
                 els.modalTransportBtns.forEach(b => b.classList.remove("selected"));
@@ -894,7 +553,6 @@
             });
         });
 
-        // Sélection du mode de transport (inline dans le formulaire)
         document.querySelectorAll(".transport-mode-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 document.querySelectorAll(".transport-mode-btn").forEach(b => b.classList.remove("selected"));
@@ -906,12 +564,10 @@
         els.confirmProfileTypeBtn?.addEventListener("click", async () => {
             if (!selectedProfileTypeChoice) return;
             els.profileTypeModal?.classList.add("hidden");
-            // Plus de mise à jour immédiate du profil — se fait après publication
             await proceedSubmitTrip();
         });
     }
 
-    // ═══════════ Wizard multi-étapes (4 pages + progression) ═══════════
     function initWizard() {
         const form = document.getElementById("trip-form");
         if (!form) return;
@@ -928,7 +584,6 @@
                 d.classList.toggle("active", i === idx);
                 d.classList.toggle("done", i < idx);
             });
-            // Remonte au début du formulaire (sous le header sticky)
             const t = form.getBoundingClientRect();
             window.scrollTo({ top: window.scrollY + t.top - 80, behavior: "smooth" });
         }
@@ -940,7 +595,6 @@
         }
 
         function goNext() {
-            // Validation minimale — étape 1 : pays de départ/arrivée + date requis
             if (current === 0) {
                 const errBox1 = document.getElementById("step1-errors");
                 if (errBox1) errBox1.classList.add("hidden");
@@ -952,13 +606,11 @@
                         return;
                     }
                 }
-                // Choix de profil obligatoire — bloquer si AUCUN choix effectué (Yoyo 2026-09, strict : pas de fallback profil compte)
                 if (!selectedProfileTypeChoice) {
                     if (errBox1) {
                         errBox1.innerHTML = "<div>• Veuillez choisir votre profil : Voyageur simple ou Entreprise / Cargo</div>";
                         errBox1.classList.remove("hidden");
                     }
-                    // Rouge sur LES DEUX boutons (Yoyo : sinon l'utilisateur croit qu'il doit cliquer uniquement sur Voyageur simple)
                     ["btn-traveler-choice", "btn-cargo-choice"].forEach(id => {
                         const btn = document.getElementById(id);
                         if (btn) markError(btn);
@@ -968,8 +620,6 @@
                     return;
                 }
 
-                // [ENTREPRISE / CARGO] Dates multiples : chaque ligne ajoutée doit être
-                // remplie, à partir d'aujourd'hui, et sans doublon (même date saisie 2×).
                 if (selectedProfileTypeChoice === "cargo") {
                     const extraInputs = Array.from(document.querySelectorAll("#trip-extra-dates .trip-extra-date"));
                     if (extraInputs.length) {
@@ -1010,7 +660,7 @@
                     }
                 }
             }
-            // Étape 2 : champs OBLIGATOIRES (Yoyo 2026-08) — MESSAGE par section manquante
+
             if (current === 1) {
                 const kilos = document.getElementById("kilos");
                 const price = document.getElementById("price");
@@ -1064,15 +714,11 @@
             else if (e.target.closest(".wizard-prev")) goPrev();
         });
 
-        // Étape 3 — question « prix spéciaux ? » : Oui → panneau, Non → masqué
         const yesBtn = document.getElementById("special-yes");
         const noBtn = document.getElementById("special-no");
         const panel = document.getElementById("special-prices-panel");
         if (yesBtn && noBtn && panel) {
             yesBtn.addEventListener("click", () => {
-                // Si toutes les lignes ont ete supprimees, on recree la 1re ligne pour que
-                // les champs reparaissent (sinon le panneau s'ouvrait vide et il fallait
-                // passer par « Ajouter un autre prix special »).
                 if (typeof window.ccEnsureSpecialRow === "function") window.ccEnsureSpecialRow();
                 panel.classList.remove("hidden");
                 yesBtn.classList.add("selected");
@@ -1091,6 +737,19 @@
     async function bootstrap() {
         await window.CCCommon.init("post_trip");
 
+        initCountryDatalist();
+        initDateMin();
+        initReveal();
+
+        if (window.CCCommon.initLocationFields) {
+            window.CCCommon.initLocationFields("#trip-form");
+        }
+
+        els.departure = document.getElementById("departure");
+        els.destination = document.getElementById("destination");
+        els.cityDeparture = document.getElementById("city-departure");
+        els.cityDestination = document.getElementById("city-destination");
+
         // Restauration du brouillon si présent
         const saved = localStorage.getItem("cc_trip_draft");
         if (saved) {
@@ -1101,26 +760,29 @@
                 if (els.dateDepart) els.dateDepart.value = draft.dateDepart || "";
                 if (els.kilos) els.kilos.value = draft.kilos || "";
                 if (els.price) els.price.value = draft.price || "";
-                // On garde le brouillon jusqu'à la publication réussie ou suppression manuelle
-                // localStorage.removeItem("cc_trip_draft"); // Optionnel : on peut le laisser si on veut
-                // localStorage.removeItem("cc_trip_draft"); // Optionnel : on peut le laisser si on veut
+                if (els.cityDeparture && draft.cityDeparture) els.cityDeparture.value = draft.cityDeparture;
+                if (els.cityDestination && draft.cityDestination) els.cityDestination.value = draft.cityDestination;
             } catch (e) {
                 console.error("Erreur restauration brouillon", e);
             }
         }
 
-        initCountryDatalist();
-        initDateMin();
-        initReveal();
-        // Génère les champs pays+ville depuis les conteneurs .location-group
-        if (window.CCCommon.initLocationFields) {
-            window.CCCommon.initLocationFields("#trip-form");
-        }
-        // Réassigner les références car les champs sont créés dynamiquement
-        els.departure = document.getElementById("departure");
-        els.destination = document.getElementById("destination");
-        els.cityDeparture = document.getElementById("city-departure");
-        els.cityDestination = document.getElementById("city-destination");
+        // Sauvegarde automatique du brouillon à la saisie
+        const saveDraft = () => {
+            const draftData = {
+                departure: els.departure?.value || "",
+                destination: els.destination?.value || "",
+                cityDeparture: els.cityDeparture?.value || "",
+                cityDestination: els.cityDestination?.value || "",
+                dateDepart: els.dateDepart?.value || "",
+                kilos: els.kilos?.value || "",
+                price: els.price?.value || ""
+            };
+            localStorage.setItem("cc_trip_draft", JSON.stringify(draftData));
+        };
+        els.form?.addEventListener("input", saveDraft);
+        els.form?.addEventListener("change", saveDraft);
+
         bindModalEvents();
         bindEvents();
         initWizard();

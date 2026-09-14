@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+
+<html lang="fr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <script>
+
+        (function () {
+
+            var isMobile = window.innerWidth <= 800 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            document.documentElement.classList.add(isMobile ? 'mobile-mode' : 'desktop-mode');
+
+        })();
+
+    </script>
+
+    <title>Offres | ColisConnect</title>
+
+    <!-- Fonts Kinetic : Hanken Grotesk (texte) + JetBrains Mono (labels) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            corePlugins: {
+                preflight: false,
+            },
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-variant": "#343538",
+                        "on-tertiary": "#402d00",
+                        "background": "#121316",
+                        "on-surface-variant": "#b9cac4",
+                        "primary-fixed": "#f4b82a",
+                        "secondary-fixed-dim": "#b2c5ff",
+                        "inverse-on-surface": "#2f3033",
+                        "surface-card": "#1A1B1E",
+                        "primary": "#e9a614",
+                        "error-container": "#93000a",
+                        "on-tertiary-container": "#735500",
+                        "tertiary-fixed-dim": "#f3bf46",
+                        "outline": "#84948e",
+                        "secondary-fixed": "#dae2ff",
+                        "inverse-surface": "#e3e2e6",
+                        "background-deep": "#000000",
+                        "secondary": "#b2c5ff",
+                        "on-error": "#690005",
+                        "on-surface": "#e3e2e6",
+                        "text-primary": "#FFFFFF",
+                        "on-secondary-fixed-variant": "#0040a2",
+                        "tertiary-fixed": "#ffdf9f",
+                        "on-tertiary-fixed": "#261a00",
+                        "on-background": "#e3e2e6",
+                        "error": "#ffb4ab",
+                        "on-secondary": "#002b74",
+                        "outline-variant": "#3b4a45",
+                        "tertiary-container": "#ffca50",
+                        "surface-container": "#1f1f23",
+                        "surface-bright": "#38393c",
+                        "surface-container-lowest": "#0d0e11",
+                        "on-secondary-container": "#ccd7ff",
+                        "surface": "#121316",
+                        "on-tertiary-fixed-variant": "#5b4300",
+                        "surface-container-highest": "#343538",
+                        "on-primary": "#3a2a05",
+                        "secondary-container": "#0655d2",
+                        "on-secondary-fixed": "#001848",
+                        "tertiary": "#ffecca",
+                        "surface-dim": "#121316",
+                        "surface-container-high": "#292a2d",
+                        "on-error-container": "#ffdad6",
+                        "surface-container-low": "#1a1b1e",
+                        "text-muted": "#9CA3AF",
+                        "status-info": "#4C82FF"
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    spacing: {
+                        "stack-lg": "32px",
+                        "stack-sm": "8px",
+                        "gutter": "16px",
+                        "base": "4px",
+                        "container-margin": "24px",
+                        "stack-md": "16px"
+                    },
+                    fontFamily: {
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "route-stop": ["Space Grotesk"],
+                        "label-caps": ["Plus Jakarta Sans"],
+                        "price-xl": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "display-lg-mobile": ["Space Grotesk"],
+                        "display-lg": ["Space Grotesk"],
+                        "body-md": ["Plus Jakarta Sans"]
+                    },
+                    fontSize: {
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "route-stop": ["14px", { "lineHeight": "20px", "fontWeight": "600" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "700" }],
+                        "price-xl": ["32px", { "lineHeight": "32px", "letterSpacing": "0.02em", "fontWeight": "700" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "display-lg": ["48px", { "lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }]
+                    }
+                }
+            }
+        };
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        /* Hide scrollbar for clean horizontal scrolling */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-down {
+            animation: fadeInDown 0.6s ease-out forwards;
+        }
+
+        .animate-fade-in-up {
+            opacity: 0;
+            animation: fadeInUp 0.6s ease-out forwards;
+        }
+
+        .delay-100 {
+            animation-delay: 100ms;
+        }
+
+        .delay-200 {
+            animation-delay: 200ms;
+        }
+
+        .delay-300 {
+            animation-delay: 300ms;
+        }
+
+        /* ── Offer Card: reset legacy CSS, Tailwind takes over ── */
+        article.offer-compact-card {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+            padding: 20px !important;
+            border-radius: 12px !important;
+            background: #1A1B1E !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: none !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease !important;
+            max-height: none !important;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        article.offer-compact-card:hover {
+            transform: translateY(-4px) !important;
+            box-shadow: 0 10px 30px rgba(255, 179, 71, 0.08) !important;
+            border-color: rgba(255, 179, 71, 0.4) !important;
+        }
+
+        article.offer-compact-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255, 179, 71, 0.5), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        article.offer-compact-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Cards grid */
+        .cards-list.offers-stream {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+            gap: 20px !important;
+        }
+
+        /* Price */
+        article.offer-compact-card .font-price-xl {
+            font-size: 28px !important;
+            font-weight: 700 !important;
+            font-family: 'Space Grotesk', sans-serif !important;
+            color: var(--emerald-bright, #ffb347) !important;
+            line-height: 1 !important;
+        }
+
+        /* Route stops */
+        article.offer-compact-card .font-route-stop {
+            font-size: 14px !important;
+            font-weight: 600 !important;
+            font-family: 'Space Grotesk', sans-serif !important;
+            color: #fff !important;
+        }
+
+        /* Muted text */
+        article.offer-compact-card .text-on-surface-variant {
+            color: #b9cac4 !important;
+        }
+
+        /* Contact arrow button */
+        article.offer-compact-card button[data-reserve-offer] {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 50% !important;
+            background: rgba(255, 179, 71, 0.08) !important;
+            border: 1px solid rgba(255, 179, 71, 0.15) !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+        }
+
+        article.offer-compact-card:hover button[data-reserve-offer] {
+            background: rgba(255, 179, 71, 0.18) !important;
+            border-color: rgba(255, 179, 71, 0.5) !important;
+        }
+
+        article.offer-compact-card button[data-reserve-offer] .material-symbols-outlined {
+            color: var(--emerald-bright, #ffb347) !important;
+            font-size: 20px !important;
+        }
+    </style>
+
+    <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
+    <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
+    <link rel="stylesheet" href="style.css?v=44"> <!-- Supabase Core & Init -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+
+    <script defer src="responsive.js"></script>
+
+    <script defer src="password-toggle.js"></script>
+
+    <!-- Header unifié (source unique) -->
+    <script defer src="shared-header.js"></script>
+
+    <script defer src="standalone-common.js?v=2"></script>
+
+    <script defer src="datalist-helper.js?v=2"></script>
+
+    <script defer src="admin-banner.js"></script>
+
+    <script defer src="results.js?v=33"></script>
+
+</head>
+
+<body class="results-page">
+
+    <div class="noise-layer" aria-hidden="true"></div>
+
+    <div class="ambient ambient-a" aria-hidden="true"></div>
+
+    <div class="ambient ambient-b" aria-hidden="true"></div>
+
+    <!-- Poussière d'or flottante (Obsidian Luxe) -->
+    <div class="gold-dust" aria-hidden="true">
+        <span class="gd"></span><span class="gd"></span><span class="gd"></span>
+        <span class="gd"></span><span class="gd"></span><span class="gd"></span>
+        <span class="gd"></span><span class="gd"></span>
+    </div>
+
+    <div id="site-header-root"></div>
+
+    <main class="app-shell">
+
+        <section class="view is-active" data-view="search" id="search-view">
+
+            <!-- ===== ONGLETS RÔLES (client vs voyageur) ===== -->
+            <div class="results-mobile-main-switch" role="tablist" aria-label="Mode principal">
+                <button type="button" class="results-mobile-main-btn active" data-mobile-mode="traveler"
+                    aria-pressed="true">
+                    <span class="rms-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="14" cy="8" r="3.2"></circle>
+                            <path d="M8 20c.6-3.2 2.7-5 6-5s5.4 1.8 6 5"></path>
+                            <path d="M4 14.5h5.5M6.5 12v5"></path>
+                        </svg>
+                    </span>
+                    <span class="rms-label">Chercher un voyageur</span>
+                </button>
+                <button type="button" class="results-mobile-main-btn" data-mobile-mode="demand" aria-pressed="false">
+                    <span class="rms-icon">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M7 4h10v17H7z"></path>
+                            <path d="M9 2h6v4H9z"></path>
+                            <path d="M10 10h1M13 10h3M10 14h1M13 14h3M10 18h1M13 18h3"></path>
+                        </svg>
+                    </span>
+                    <span class="rms-label">Voir les demandes</span>
+                </button>
+            </div>
+
+            <!-- ===== BARRE DE RECHERCHE VOYAGE ===== -->
+            <div class="search-section-wrapper">
+
+                <!-- PANNEAU FILTRE -->
+                <div class="search-filter-panel" id="search-filter-panel">
+
+                    <!-- SEARCH MAIN CARD (Stich Inspired) -->
+                    <div class="bg-surface-card rounded-xl border border-white/10 p-6 shadow-lg shadow-black/50 mb-8">
+                        <div class="flex flex-col lg:flex-row gap-4 items-end">
+                            <!-- Nested row for grid layout on large screens -->
+                            <div class="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="relative group">
+                                    <label
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Pays de départ</label>
+                                    <div class="relative">
+                                        <span
+                                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
+                                            style="color:#b9cac4;">flight_takeoff</span>
+                                        <input id="res-origin"
+                                            class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
+                                            placeholder="Pays de départ" type="text" autocomplete="off" />
+                                    </div>
+                                </div>
+                                <div class="relative group">
+                                    <label
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Pays d'arrivée</label>
+                                    <div class="relative">
+                                        <span
+                                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
+                                            style="color:#b9cac4;">flight_land</span>
+                                        <input id="res-dest"
+                                            class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
+                                            placeholder="Pays d'arrivée" type="text" autocomplete="off" />
+                                    </div>
+                                </div>
+                                <div class="relative group">
+                                    <label
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Date
+                                        limite</label>
+                                    <div class="relative">
+                                        <span
+                                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
+                                            style="color:#b9cac4;">event_busy</span>
+                                        <input id="res-date"
+                                            class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
+                                            type="date"
+                                            style="color-scheme:dark;" />
+                                    </div>
+                                </div>
+                                <div class="relative group">
+                                    <label
+                                        class="font-label-caps text-label-caps text-on-surface-variant mb-2 block uppercase group-focus-within:text-primary transition-colors duration-200">Kilos
+                                        requis</label>
+                                    <div class="relative">
+                                        <span
+                                            class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
+                                            style="color:#b9cac4;">weight</span>
+                                        <input id="res-weight"
+                                            class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
+                                            min="1" placeholder="Ex: 5" type="number" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button id="new-search-btn" type="button"
+                                class="bg-primary text-on-primary font-body-md text-body-md font-semibold py-3 px-6 rounded-lg hover:bg-primary-fixed hover:-translate-y-0.5 active:scale-95 active:translate-y-0 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer w-full md:w-auto">
+                                <span class="material-symbols-outlined">search</span>
+                                Rechercher
+                            </button>
+                        </div>
+
+                        <!-- Filter Pills -->
+                    </div>
+
+                </div><!-- fin .search-filter-panel -->
+            </div>
+
+            <!-- Results Header : titre + devise (EUR) à droite -->
+            <div class="results-header justify-between items-center mb-6 mt-8 animate-fade-in-up delay-100">
+                <h2 id="results-headline" class="font-headline-md text-headline-md text-text-primary">Voyages<br>disponibles</h2>
+                <div class="currency-wrap">
+                    <button type="button" id="currency-trigger-btn" class="currency-trigger-btn">
+                        <span id="current-currency-val" class="currency-val">EUR</span>
+                        <span class="currency-arrow" aria-hidden="true">▾</span>
+                    </button>
+                    <div id="currency-dropdown-menu" class="currency-dropdown-menu hidden">
+                        <div class="currency-search-container">
+                            <input type="text" id="currency-search-input" class="currency-search-input"
+                                placeholder="Rechercher une devise...">
+                        </div>
+                        <div id="currency-options-list" class="currency-options-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Choix du type de transporteur (sous-choix de "Chercher un voyageur") -->
+            <div class="results-mobile-profile-block" id="mobile-profile-block">
+                <div class="results-mobile-sub-switch" role="group" aria-label="Sous-section voyageur">
+                    <label id="mobile-sub-traveler-btn" class="results-mobile-sub-btn active"
+                        data-profile-type="traveler" aria-pressed="true">
+                        <input type="checkbox" class="sub-check" checked>
+                        <span>Simple</span>
+                    </label>
+                    <label id="mobile-sub-cargo-btn" class="results-mobile-sub-btn"
+                        data-profile-type="cargo" aria-pressed="false">
+                        <input type="checkbox" class="sub-check">
+                        <span>Cargo</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Boutons de profil (placés sous le titre) -->
+            <div class="results-nav-panel">
+                <div class="profile-type-filters">
+                    <button type="button" id="filter-traveler-btn" class="filter-tab active" data-profile-type="traveler">
+                        <span class="material-symbols-outlined tab-icon">person</span>
+                        <span>Je cherche un voyageur</span>
+                    </button>
+                    <button type="button" id="filter-cargo-btn" class="filter-tab" data-profile-type="cargo">
+                        <span class="material-symbols-outlined tab-icon">local_shipping</span>
+                        <span>Je cherche un cargo</span>
+                    </button>
+                    <button type="button" id="filter-client-btn" class="filter-tab filter-tab-disabled" disabled
+                        aria-disabled="true" data-profile-type="client">
+                        <span class="material-symbols-outlined tab-icon">work</span>
+                        <span>Je cherche un client</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="offers-list" class="cards-list offers-stream">
+
+                <div class="loading-state">Chargement des offres...</div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Navigation Mobile Basse -->
+
+    <div id="mobile-bottom-nav-root"></div>
+
+    <script>
+
+        // SaaS UI/UX 2025 - Results Logic
+
+        // Calm Mode Toggle (Neurodiversity)
+
+        const calmToggle = document.getElementById('calm-mode-toggle');
+
+        calmToggle.addEventListener('click', () => {
+
+            document.body.classList.toggle('is-calm');
+
+            const isCalm = document.body.classList.contains('is-calm');
+
+            calmToggle.innerHTML = isCalm
+
+                ? '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-11.314l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>'
+
+                : '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-11.314l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>';
+
+            localStorage.setItem('calm-mode', isCalm);
+
+        });
+
+        // Restore state
+
+        if (localStorage.getItem('calm-mode') === 'true') {
+
+            document.body.classList.add('is-calm');
+
+        }
+
+    </script>
+
+    <!-- MODALE DEMANDE DE TRAJET -->
+    <div id="demande-trajet-modal" class="modal hidden" role="dialog" aria-modal="true">
+        <div class="modal-card demande-modal-card">
+            <button class="close-modal" id="close-demande-modal">x</button>
+            <div id="demande-modal-content">
+                <h2 style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Demande de trajet</h2>
+                <p class="demande-subtitle">Un voyageur vous contactera si votre demande l interesse.</p>
+
+                <!-- Progression 2 étapes (l'étape Description a ete supprimee : Yoyo) -->
+                <div class="dmd-progress" id="demande-wizard-progress" aria-hidden="true">
+                    <div class="dmd-progress-step active" data-dstep="1">
+                        <span class="dmd-progress-dot">1</span>
+                        <span class="dmd-progress-label">Trajet</span>
+                    </div>
+                    <div class="dmd-progress-line"><i></i></div>
+                    <div class="dmd-progress-step" data-dstep="2">
+                        <span class="dmd-progress-dot">2</span>
+                        <span class="dmd-progress-label">Colis &amp; prix</span>
+                    </div>
+                </div>
+
+                <form class="demande-form" id="demande-form" novalidate>
+                    <!-- ÉTAPE 1 — Trajet (pays, villes, date limite) -->
+                    <div class="dmd-step active" data-step="1">
+                        <div class="demande-field">
+                            <label for="demande-origin">Pays de depart</label>
+                            <input type="text" id="demande-origin" class="demande-input" list="demande-country-list"
+                                placeholder="Ex: France" autocomplete="off">
+                        </div>
+                        <div class="demande-field">
+                            <label for="city-demande-origin">Ville de depart</label>
+                            <input type="text" id="city-demande-origin" class="demande-input" placeholder="Ex: Paris"
+                                autocomplete="off">
+                        </div>
+                        <div class="demande-field">
+                            <label for="demande-destination">Pays d arrivee</label>
+                            <input type="text" id="demande-destination" class="demande-input" list="demande-country-list"
+                                placeholder="Ex: Senegal" autocomplete="off">
+                        </div>
+                        <div class="demande-field">
+                            <label for="city-demande-destination">Ville d'arrivee</label>
+                            <input type="text" id="city-demande-destination" class="demande-input" placeholder="Ex: Dakar"
+                                autocomplete="off">
+                        </div>
+                        <datalist id="demande-country-list"></datalist>
+                        <div class="demande-field">
+                            <label>Date limite</label>
+                            <div class="demande-date-row">
+                                <input type="date" id="demande-date" class="demande-input" style="flex:1;">
+                                <button type="button" class="demande-date-alt" id="demande-no-date-btn">Pas de date
+                                    limite</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ÉTAPE 2 — Colis : un cadre par colis (nom, mode, combien, montant) + « Ajouter un autre colis » -->
+                    <div class="dmd-step" data-step="2">
+                        <div class="dmd-colis-zone" id="demande-colis-rows">
+                            <div class="dmd-colis-box" data-colis="1">
+                                <div class="dmd-colis-box-head">
+                                    <span class="dmd-colis-title">Colis 1</span>
+                                    <button type="button" class="dmd-colis-del" title="Supprimer ce colis" aria-label="Supprimer ce colis">✕</button>
+                                </div>
+                                <div class="demande-field">
+                                    <label>Nom du colis</label>
+                                    <input type="text" class="demande-input dmd-colis-nom"
+                                        placeholder="Ex: document, vetements, chaussures..." maxlength="60" autocomplete="off">
+                                </div>
+                                <div class="demande-field">
+                                    <label>Comment proposez-vous le prix ?</label>
+                                    <div class="dmd-price-mode">
+                                        <button type="button" class="dmd-price-mode-btn active" data-mode="per_kg">par kilo</button>
+                                        <button type="button" class="dmd-price-mode-btn" data-mode="total">par quantite</button>
+                                    </div>
+                                </div>
+                                <div class="demande-field dmd-kg-field">
+                                    <label>Environ combien de kilos ?</label>
+                                    <input type="number" class="demande-input dmd-kg-input" placeholder="Ex: 10" min="1" step="any" inputmode="decimal">
+                                </div>
+                                <div class="demande-field dmd-qty-field" style="display:none">
+                                    <label class="dmd-qty-label">Combien de colis ?</label>
+                                    <input type="number" class="demande-input dmd-qty-input" placeholder="Ex: 5" min="1" step="1" inputmode="numeric">
+                                </div>
+                                <div class="demande-field">
+                                    <label class="dmd-price-label">Combien proposez-vous ?</label>
+                                    <div class="dmd-price-row">
+                                        <input type="number" class="demande-input dmd-price-input"
+                                            placeholder="Ex: 2500" min="0" step="any" inputmode="decimal">
+                                        <div class="dmd-cur-picker">
+                                            <button type="button" class="dmd-currency dmd-colis-cur dmd-cur-btn"
+                                                aria-haspopup="listbox" aria-expanded="false"
+                                                title="Choisir la devise">
+                                                <span class="dmd-cur-val">XOF</span>
+                                                <span class="dmd-cur-caret" aria-hidden="true">▼</span>
+                                            </button>
+                                            <div class="dmd-cur-pop" role="listbox" hidden></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="dmd-add-colis-btn" id="demande-add-colis-btn">+ Ajouter un autre colis</button>
+                        <p class="dmd-hint">Chaque colis a son propre budget — le voyageur verra chaque proposition.</p>
+                    </div>
+
+                    <!-- (ÉTAPE 3 — Description supprimée : assez d'infos sans elle, Yoyo) -->
+
+                    <div class="dmd-error" id="demande-step-error" role="alert"></div>
+
+                    <div class="dmd-nav">
+                        <button type="button" class="dmd-btn dmd-btn-ghost" id="demande-prev-btn"
+                            style="visibility:hidden">Retour</button>
+                        <button type="button" class="dmd-btn dmd-btn-primary" id="demande-next-btn">Continuer</button>
+                        <button type="button" class="demande-submit" id="demande-submit-btn"
+                            style="display:none">Faire la demande</button>
+                        <p id="demande-feedback" class="hidden demande-feedback">✅ Un voyageur vous contactera.</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOBILE FILTER TRIGGER (visible only in mobile-mode) -->
+    <button class="mobile-filter-trigger" id="mobile-filter-trigger" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        Recherche
+    </button>
+
+    <!-- MOBILE FILTER OVERLAY -->
+    <div class="mobile-filter-overlay" id="mobile-filter-overlay"></div>
+
+    <!-- MOBILE FILTER SHEET -->
+    <div class="mobile-filter-sheet" id="mobile-filter-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h3>Filtres</h3>
+            <button class="sheet-close" id="mf-close" aria-label="Fermer">&times;</button>
+        </div>
+
+        <div class="mobile-filter-fields">
+            <div class="mf-field">
+                <label>Départ</label>
+                <input type="text" id="mf-origin" placeholder="Pays" autocomplete="off">
+            </div>
+            <div class="mf-field">
+                <label>Arrivée</label>
+                <input type="text" id="mf-dest" placeholder="Pays" autocomplete="off">
+            </div>
+            <div class="mf-field">
+                <label>Date</label>
+                <input type="date" id="mf-date">
+            </div>
+        </div>
+
+        <div class="mobile-filter-active" id="mf-active">
+            <div class="mfa-header">
+                <span>Filtres actifs</span>
+                <button class="mfa-clear" id="mf-clear-all">Effacer tout</button>
+            </div>
+            <div class="mfa-tags" id="mf-tags"></div>
+        </div>
+
+        <div class="mobile-filter-apply">
+            <button id="mf-apply">
+                <span class="material-symbols-outlined" style="font-size:20px;">search</span>
+                Appliquer les filtres
+            </button>
+        </div>
+    </div>
+
+    <!-- WEIGHT SLIDER SHEET -->
+    <div class="slider-sheet-overlay" id="slider-weight-overlay"></div>
+    <div class="slider-sheet" id="slider-weight-sheet">
+        <div class="slider-handle"></div>
+        <div class="slider-title">Poids minimum</div>
+        <div class="slider-value" id="slider-weight-value">11 kg</div>
+        <input type="range" id="slider-weight-input" min="0" max="100" step="1" value="11">
+        <div class="slider-actions">
+            <button class="slider-cancel" id="slider-weight-cancel">Annuler</button>
+            <button class="slider-ok" id="slider-weight-ok">Appliquer</button>
+        </div>
+    </div>
+
+    <!-- Basculer thème sombre/clair (Obsidian Luxe / Gold Light) -->
+    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Basculer thème">
+        <span id="theme-toggle-icon" class="theme-toggle-icon">🌙</span>
+    </button>
+
+    <script>
+        (function () {
+            var body = document.body;
+            var btn = document.getElementById("theme-toggle");
+            var icon = document.getElementById("theme-toggle-icon");
+            var saved = localStorage.getItem("cc-theme");
+            if (saved === "light") {
+                body.classList.add("light");
+                icon.textContent = "☀️";
+            }
+            btn.addEventListener("click", function () {
+                var light = body.classList.toggle("light");
+                icon.textContent = light ? "☀️" : "🌙";
+                localStorage.setItem("cc-theme", light ? "light" : "dark");
+            });
+        })();
+    </script>
+
+</body>
+
+</html>

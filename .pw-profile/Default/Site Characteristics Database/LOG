@@ -1,2 +1,3 @@
-2026/08/02-13:22:18.339 37c8 Creating DB C:\Users\hp\.gemini\antigravity\scratch\colis_connect\.pw-profile\Default\Site Characteristics Database since it was missing.
-2026/08/02-13:22:18.377 37c8 Reusing MANIFEST C:\Users\hp\.gemini\antigravity\scratch\colis_connect\.pw-profile\Default\Site Characteristics Database/MANIFEST-000001
+2026/09/13-00:22:37.085 498c Reusing MANIFEST C:\Users\hp\.gemini\antigravity\scratch\colis_connect\.pw-profile\Default\Site Characteristics Database/MANIFEST-000001
+2026/09/13-00:22:37.086 498c Recovering log #3
+2026/09/13-00:22:37.087 498c Reusing old log C:\Users\hp\.gemini\antigravity\scratch\colis_connect\.pw-profile\Default\Site Characteristics Database/000003.log 
