@@ -12775,14 +12775,16 @@ body.results-page.light .cc3-special-toggle-gold {
 /* Bouton « Modifier mon trajet / ma demande » (mes propres publications) :
    libellé plus long que « Contacter » + icône crayon en TRAIT (les SVG des CTA
    génériques sont remplis -> fill:none obligatoire). currentColor => le crayon
-   suit la couleur du texte dans les deux thèmes (Obsidian Luxe / Gold Light). */
+   suit la couleur du texte dans les deux thèmes (Obsidian Luxe / Gold Light).
+   nowrap : le libellé reste sur UNE ligne (pas de « demande » renvoyé dessous). */
 .cc3-cta-edit {
-    padding: 11px 10px !important;
-    font-size: 0.58rem;
-    max-width: 62%;
-    text-align: left;
+    padding: 11px 9px !important;
+    font-size: 0.56rem;
+    letter-spacing: 0.01em;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
-.cc3-cta-edit span { white-space: normal; line-height: 1.15; }
+.cc3-cta-edit span { white-space: nowrap; }
 .cc3-cta-edit svg {
     width: 12px;
     height: 12px;

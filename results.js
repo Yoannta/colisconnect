@@ -899,10 +899,18 @@
                 if (editOwnBtn) {
                     const ownOfferId = editOwnBtn.getAttribute("data-edit-own-offer");
                     const ownDemandId = editOwnBtn.getAttribute("data-edit-own-demand");
-                    if (ownOfferId) {
+                    if (ownDemandId) {
+                        // Édition DIRECTE dans cette page : réutilise le formulaire officiel
+                        // de demande (mêmes champs que la publication) → ni dashboard,
+                        // ni rechargement, et aucune divergence entre les 2 formulaires.
+                        if (typeof window.openDemandeEditor === "function") {
+                            window.openDemandeEditor(ownDemandId);
+                        }
+                    } else if (ownOfferId) {
+                        // Trajet : le formulaire de publication (post_trip.html) n'a pas encore
+                        // de mode édition -> on garde le tableau de bord pour l'instant
+                        // (l'unification post_trip ↔ dashboard est l'étape suivante).
                         window.location.href = `dashboard.html?editOffer=${encodeURIComponent(ownOfferId)}`;
-                    } else if (ownDemandId) {
-                        window.location.href = `dashboard.html?editDemande=${encodeURIComponent(ownDemandId)}`;
                     }
                     return;
                 }
@@ -1105,6 +1113,9 @@
         const dmdPrevBtn = document.getElementById("demande-prev-btn");
         const dmdSubmitBtn = document.getElementById("demande-submit-btn");
         let demandeStep = 1;
+        // Édition en cours : id de la demande en cours de modification (null = nouvelle demande).
+        // Le MÊME formulaire sert à publier et à modifier → aucune divergence possible.
+        let editingDemandeId = null;
 
         // ── Multi-colis : chaque colis = un cadre (nom, mode, combien, montant) ──
         const colisZone = document.getElementById("demande-colis-rows");
@@ -1220,6 +1231,16 @@
 
         window.resetDemandeWizard = () => {
             try {
+                // Retour au mode « nouvelle demande » (par opposition au mode édition)
+                editingDemandeId = null;
+                const titleReset = document.getElementById("demande-modal-title");
+                if (titleReset) titleReset.textContent = "Demande de trajet";
+                if (dmdSubmitBtn) {
+                    dmdSubmitBtn.textContent = "Faire la demande";
+                    dmdSubmitBtn.disabled = false;
+                    dmdSubmitBtn.classList.remove("hidden");
+                }
+                document.getElementById("demande-feedback")?.classList.add("hidden");
                 // revenir à un seul cadre vierge (mode par kilo)
                 const boxes = getColisBoxes();
                 boxes.slice(1).forEach((b) => b.remove());
@@ -1236,6 +1257,81 @@
                 dmdGoTo(1);
                 syncDmdCurrencies(); // devises recalculees depuis les pays (vides)
             } catch (e) { /* modale absente */ }
+        };
+
+        // ── ÉDITION d'une demande existante ───────────────────────────────────────
+        // Réutilise CE formulaire (le formulaire officiel de demande) : mêmes champs,
+        // mêmes règles colis/prix/devise que la publication -> conformité garantie et
+        // aucune double maintenance. Appelé par la carte « Modifier ma demande ».
+        window.openDemandeEditor = (parcelId) => {
+            const parcel = (state.demands || []).find((d) => String(d.id) === String(parcelId));
+            if (!parcel) return false;
+            // resetDemandeWizard() remet editingDemandeId a null -> on l'active APRES
+            window.resetDemandeWizard?.();
+            editingDemandeId = parcel.id;
+
+            // 1. Trajet
+            const setVal = (id, v) => {
+                const el = document.getElementById(id);
+                if (el) el.value = (v === undefined || v === null) ? "" : String(v);
+            };
+            setVal("demande-origin", parcel.origin);
+            setVal("city-demande-origin", parcel.origin_city);
+            setVal("demande-destination", parcel.destination);
+            setVal("city-demande-destination", parcel.destination_city);
+            setVal("demande-date", parcel.needed_by_date ? String(parcel.needed_by_date).slice(0, 10) : "");
+
+            // 2. Colis : un cadre par article (items JSONB), repli sur les champs racine
+            const items = (Array.isArray(parcel.items) && parcel.items.length)
+                ? parcel.items
+                : [{
+                    item_type: parcel.item_type,
+                    weight_kg: parcel.weight_kg,
+                    quantity: parcel.quantity,
+                    price_mode: parcel.price_mode,
+                    max_price_per_kg: parcel.max_price_per_kg,
+                    max_price_total: parcel.max_price_total,
+                    currency: parcel.currency
+                }];
+            while (getColisBoxes().length < items.length) addColisBox();
+            getColisBoxes().forEach((box, index) => {
+                const it = items[index];
+                if (!it) {
+                    box.querySelectorAll("input").forEach((inp) => { inp.value = ""; });
+                    return;
+                }
+                const hasKg = it.weight_kg !== null && it.weight_kg !== undefined;
+                const hasQty = it.quantity !== null && it.quantity !== undefined;
+                const isKg = it.price_mode === "per_kg" || (hasKg && !hasQty);
+                box.querySelectorAll(".dmd-price-mode-btn").forEach((b) => {
+                    b.classList.toggle("active", b.dataset.mode === (isKg ? "per_kg" : "total"));
+                });
+                const nom = box.querySelector(".dmd-colis-nom");
+                if (nom) nom.value = it.item_type || "";
+                const kg = box.querySelector(".dmd-kg-input");
+                if (kg) kg.value = hasKg ? it.weight_kg : "";
+                const qty = box.querySelector(".dmd-qty-input");
+                if (qty) qty.value = hasQty ? it.quantity : "";
+                const price = box.querySelector(".dmd-price-input");
+                const priceVal = isKg ? it.max_price_per_kg : it.max_price_total;
+                if (price) price.value = (priceVal === null || priceVal === undefined) ? "" : priceVal;
+                if (it.currency) setBoxCurrency(box, it.currency);
+                refreshBoxUi(box);
+            });
+            renumberColisBoxes();
+            syncDmdCurrencies();
+
+            // 3. Habillage « édition »
+            const titleEl = document.getElementById("demande-modal-title");
+            if (titleEl) titleEl.textContent = "Modifier ma demande";
+            if (dmdSubmitBtn) {
+                dmdSubmitBtn.textContent = "Enregistrer";
+                dmdSubmitBtn.disabled = false;
+                dmdSubmitBtn.classList.remove("hidden");
+            }
+            dmdGoTo(1);
+            document.getElementById("demande-trajet-modal")?.classList.remove("hidden");
+            return true;
         };
 
         if (colisZone) {
@@ -1505,8 +1601,8 @@
                         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
                         return;
                     }
-                    const { error } = await window.ccSupabase.from("parcel_requests").insert({
-                        user_id: userId,
+                    // Champs IDENTIQUES a la publication (formulaire unique)
+                    const payload = {
                         title: `Demande ${origin} -> ${destination}`,
                         origin,
                         destination,
@@ -1520,18 +1616,30 @@
                         price_mode: first.price_mode,
                         max_price_per_kg: first.max_price_per_kg ?? null,
                         max_price_total: first.max_price_total ?? null,
-                        items,
-                        status: "pending"
-                    });
+                        items
+                    };
+                    const { error } = editingDemandeId
+                        // Modification d'une demande existante (proprietaire uniquement)
+                        ? await window.ccSupabase.from("parcel_requests")
+                            .update(payload)
+                            .eq("id", editingDemandeId)
+                            .eq("user_id", userId)
+                        : await window.ccSupabase.from("parcel_requests")
+                            .insert({ user_id: userId, ...payload, status: "pending" });
                     if (error) throw error;
                 } else {
                     // Dégradé sans Supabase : l'API historique ne porte qu'un colis (le premier)
                     if (items.length > 1) console.warn("Mode API historique : seul le premier colis de la demande est envoye.");
                     await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg: first.weight_kg ?? null, quantity: first.quantity ?? null, currency: first.currency || null, dateLimite } });
                 }
-                console.log("Demande de trajet inseree avec succes!");
+                console.log("Demande de trajet enregistree avec succes!");
                 if (feedback) feedback.classList.remove("hidden");
                 if (submitBtn) submitBtn.classList.add("hidden");
+                // En modification : rafraichir la liste pour voir la demande mise a jour
+                if (editingDemandeId) {
+                    editingDemandeId = null;
+                    if (typeof loadDemands === "function") loadDemands().catch(() => { });
+                }
                 setTimeout(() => {
                     document.getElementById("demande-trajet-modal")?.classList.add("hidden");
                 }, 1500);
