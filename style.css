@@ -9993,6 +9993,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .cc-input-wrapper input {
     flex: 1;
 }
+/* L'icone placee a gauche du champ (ex: avion) doit rester AU-DESSUS du wrapper
+   cree par setupCountryInput, sinon le fond opaque du champ la recouvre. */
+.material-symbols-outlined:has(+ .cc-autocomplete-ctn) {
+    z-index: 2;
+}
 .cc-custom-arrow {
     position: absolute;
     right: 0.7rem;
