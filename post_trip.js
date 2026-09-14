@@ -40,16 +40,45 @@
         if (els.dateDepart) els.dateDepart.min = today;
     }
 
+    // [FIX] Révélation des blocs [data-animate] (la CSS les masque en opacity:0
+    // jusqu'à l'ajout de .is-visible). Le code d'origine vivait dans script.js,
+    // supprimé par erreur (commit c9004f4) => page post_trip entièrement vide.
     function initReveal() {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((e) => {
-                if (e.isIntersecting) {
-                    e.target.classList.add("visible");
+        const nodes = document.querySelectorAll("[data-animate]");
+        if (!nodes.length) return;
+
+        const reduce =
+            window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (reduce || !("IntersectionObserver" in window)) {
+            nodes.forEach((n) => n.classList.add("is-visible"));
+            return;
+        }
+
+        const revealObserver = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add("is-visible");
+                        revealObserver.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.18 }
+        );
+
+        nodes.forEach((node) => revealObserver.observe(node));
+
+        // Filet de sécurité : si l'observer ne déclenche pas (erreur JS en amont),
+        // on révèle au moins ce qui est visible à l'écran => jamais de page blanche.
+        setTimeout(() => {
+            document.querySelectorAll("[data-animate]:not(.is-visible)").forEach((n) => {
+                const r = n.getBoundingClientRect();
+                if (r.top < window.innerHeight && r.bottom > 0) {
+                    n.classList.add("is-visible");
                 }
             });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll(".reveal").forEach((el) => observer.observe(el));
+        }, 1200);
     }
 
     // [CARGO] dates multiples : affichage du bouton « Ajouter une autre date »
@@ -906,11 +935,14 @@
     }
 
     async function bootstrap() {
+        // La révélation ne dépend d'aucun appel réseau : on l'exécute AVANT l'init
+        // commune pour que la page s'affiche même si celle-ci échoue.
+        initReveal();
+
         await window.CCCommon.init("post_trip");
 
         initCountryDatalist();
         initDateMin();
-        initReveal();
 
         if (window.CCCommon.initLocationFields) {
             window.CCCommon.initLocationFields("#trip-form");
