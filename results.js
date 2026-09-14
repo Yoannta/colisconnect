@@ -37,6 +37,9 @@
 
     async function loadOffers() {
         if (!els.offersList) return;
+        // ANTI-RACE : si l'utilisateur a basculé sur l'onglet « Voir les demandes »
+        // pendant le chargement, on n'écrase ni le placeholder ni la liste des demandes.
+        if (state.mobilePrimaryMode !== "traveler") return;
         els.offersList.innerHTML = '<div class="loading-state">Actualisation des offres...</div>';
 
         const filters = queryOfferFilters();
@@ -49,6 +52,9 @@
 
         const payload = await window.CCCommon.api(`/api/offers?${params.toString()}`, { auth: false });
         state.offers = Array.isArray(payload?.items) ? payload.items : [];
+        // ANTI-RACE : une réponse réseau tardive ne doit JAMAIS écraser l'onglet
+        // actif (sinon : contenu « offres » sous un bouton « demandes », ou inverse).
+        if (state.mobilePrimaryMode !== "traveler") return;
         renderOffers();
     }
 
@@ -117,6 +123,9 @@
 
     async function loadDemands() {
         if (!els.offersList) return;
+        // ANTI-RACE : symétrique de loadOffers() — si l'utilisateur est revenu sur
+        // « Chercher un voyageur », on n'écrase pas la liste des offres.
+        if (state.mobilePrimaryMode !== "demand") return;
         els.offersList.innerHTML = '<div class="loading-state">Chargement des demandes...</div>';
         let items = [];
         try {
@@ -141,6 +150,9 @@
             items = [];
         }
         state.demands = items;
+        // ANTI-RACE : une réponse tardive ne doit pas repeindre la liste quand
+        // l'utilisateur est repassé sur l'onglet « Chercher un voyageur ».
+        if (state.mobilePrimaryMode !== "demand") return;
         renderDemands();
     }
 
@@ -872,27 +884,9 @@
             });
         }
 
-        // Profil type Filters
-        document.querySelectorAll('[data-profile-type="traveler"]').forEach((btn) => {
-            btn.addEventListener("click", () => setProfileType("traveler"));
-        });
-        document.querySelectorAll('[data-profile-type="cargo"]').forEach((btn) => {
-            btn.addEventListener("click", () => setProfileType("cargo"));
-        });
-        syncProfileTypeButtons();
-
-        document.querySelectorAll("[data-mobile-mode]").forEach((btn) => {
-            btn.addEventListener("click", () => {
-                const mode = btn.getAttribute("data-mobile-mode");
-                if (mode === "traveler") {
-                    setMobilePrimaryMode("traveler");
-                } else if (mode === "demand") {
-                    setMobilePrimaryMode("demand");
-                    loadDemands();
-                }
-            });
-        });
-        syncMobilePrimaryButtons();
+        // Profil type Filters : DÉPLACÉS dans bindSwitchesEarly() (attachés dès le
+        // chargement du script, avant l'init async) pour ne perdre aucun clic.
+        // Idem pour les onglets [data-mobile-mode] ci-dessous.
 
         // Bouton Rechercher de la nouvelle barre
         document.getElementById("new-search-btn")?.addEventListener("click", () => {
@@ -927,6 +921,35 @@
         togglePill("pill-urgent", "filterUrgent");
 
     }
+
+    // ── Switches d'onglets : attachés DÈS le chargement du script ──────────────
+    // AVANT l'initialisation async (auth, taux de change, listes). Avant ce
+    // correctif, les écouteurs n'étaient posés qu'à la fin de bootstrap()
+    // (bindEvents) : tout clic fait pendant le chargement était IGNORÉ, et la liste
+    // affichée ensuite ne correspondait plus au bouton actif.
+    function bindSwitchesEarly() {
+        document.querySelectorAll('[data-profile-type="traveler"]').forEach((btn) => {
+            btn.addEventListener("click", () => setProfileType("traveler"));
+        });
+        document.querySelectorAll('[data-profile-type="cargo"]').forEach((btn) => {
+            btn.addEventListener("click", () => setProfileType("cargo"));
+        });
+        document.querySelectorAll("[data-mobile-mode]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const mode = btn.getAttribute("data-mobile-mode");
+                if (mode === "traveler") {
+                    setMobilePrimaryMode("traveler");
+                } else if (mode === "demand") {
+                    setMobilePrimaryMode("demand");
+                    loadDemands();
+                }
+            });
+        });
+        syncProfileTypeButtons();
+        syncMobilePrimaryButtons();
+    }
+
+    bindSwitchesEarly();
 
     async function bootstrap() {
         await window.CCCommon.init("results");
@@ -977,7 +1000,14 @@
         // l'utilisateur : on attend les taux partages avant le premier rendu, sinon une carte
         // en devise etrangere s'afficherait avec un faux taux (loadExchangeRates est non bloquant).
         try { await window.CCCommon.loadExchangeRates?.(); } catch (e) { /* fallback interne */ }
-        await loadOffers();
+        // ANTI-RACE : l'utilisateur a pu cliquer sur un onglet PENDANT le chargement
+        // (auth + taux). On applique l'onglet réellement actif au lieu de forcer les
+        // offres — sinon le bouton actif et la liste affichée se désynchronisaient.
+        if (state.mobilePrimaryMode === "demand") {
+            await loadDemands();
+        } else {
+            await loadOffers();
+        }
     }
 
     bootstrap().catch((error) => {
