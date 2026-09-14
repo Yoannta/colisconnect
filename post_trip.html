@@ -693,6 +693,43 @@
         }
         .draft-banner-clear:hover { background: rgba(255, 179, 71, 0.25); }
 
+        /* Options du selecteur de devise. Le CSS avait disparu lors de la
+           restructuration du HTML : les boutons s'affichaient bruts/illisibles. */
+        #currency-popover { max-height: 260px; overflow-y: auto; }
+        .currency-opt-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 10px;
+            margin: 0 0 4px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: #f0f7f6;
+            font-size: 0.82rem;
+            text-align: left;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+        .currency-opt-btn:last-child { margin-bottom: 0; }
+        .currency-opt-btn:hover { background: rgba(255, 179, 71, 0.14); }
+        .currency-opt-btn .c-code {
+            flex-shrink: 0;
+            font-weight: 800;
+            color: #ffb347;
+            letter-spacing: 0.02em;
+        }
+        .currency-opt-btn .c-name {
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            opacity: 0.85;
+            font-size: 0.76rem;
+        }
+
         .colis-row-del:hover {
             color: #ff6b6b;
             border-color: rgba(255, 107, 107, 0.5);

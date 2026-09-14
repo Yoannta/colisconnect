@@ -256,8 +256,13 @@
             pricePerKilo: rawPrice,
             priceCurrency: els.priceCurrency?.value || 'EUR',
             notes: els.notes?.value?.trim() || undefined,
-            profileType: selectedProfileTypeChoice || window.CCCommon.state?.user?.profile_type || 'traveler',
+            // Le type de CETTE annonce = le choix fait dans le wizard (voyageur simple ou
+            // cargo). Ne JAMAIS retomber sur le statut du compte : un cargo qui publie une
+            // annonce « voyageur simple » doit la garder dans l'espace voyageur.
+            profileType: selectedProfileTypeChoice || (selectedTransportMode ? 'cargo' : 'traveler'),
             transportMode: selectedTransportMode || undefined,
+            // 'mode' = le champ qui SEPARE les cockpits (vide = voyageur, avion/bateau = cargo)
+            mode: selectedTransportMode || null,
             payment_method: paymentState.selectedMethod,
             payment_method_name: paymentState.selectedMethodName,
             account_number: paymentState.accountNumber,
@@ -494,7 +499,10 @@
                 price_per_kg: toNum(payload.price),
                 base_currency: payload.priceCurrency,
                 description: payload.notes || null,
-                mode: payload.profileType
+                // 'mode' porte le MODE DE TRANSPORT (avion/bateau), pas le type de profil :
+                // ecrire profileType ici faisait basculer l'annonce dans le cockpit Cargo
+                // (bug constate par Yoyo : offre publiee en voyageur visible dans cargo).
+                mode: payload.transportMode
             };
             Object.keys(body).forEach((k) => {
                 if (body[k] === undefined) delete body[k];
@@ -585,10 +593,15 @@
         els.notes = document.getElementById("notes");
 
         els.currencyToggleBtn = document.getElementById("currency-toggle-btn");
-        els.currencyDropdown = document.getElementById("currency-dropdown");
-        els.currencyList = document.getElementById("currency-list");
-        els.currencyBtnCode = document.getElementById("currency-btn-code");
-        els.currencyBtnSymbol = document.getElementById("currency-btn-symbol");
+        // ⚠️ Le HTML du selecteur a ete restructure (commit 6f7b335) sans mettre a jour
+        // ces references -> le selecteur de devise etait totalement inoperant.
+        // Correspondance : #currency-dropdown -> #currency-popover,
+        //                  #currency-list     -> #currency-popover (options injectees dedans),
+        //                  #currency-btn-code -> #current-currency-text.
+        els.currencyDropdown = document.getElementById("currency-popover");
+        els.currencyList = document.getElementById("currency-popover");
+        els.currencyBtnCode = document.getElementById("current-currency-text");
+        els.currencyBtnSymbol = null; // le bouton affiche le code (XOF, EUR...) : pas de 2e cible
         els.kiloPriceUnit = document.getElementById("kilo-price-unit");
 
         els.paymentMethodLabel = document.getElementById("selected-pm-label");
