@@ -962,6 +962,71 @@
                             window.openDemandeEditor(ownDemandId);
                         }
 
+                    } else if (ownOfferId) {
+                        // Trajet : le formulaire de publication (post_trip.html) n'a pas encore
+                        // de mode édition -> on garde le tableau de bord pour l'instant
+                        // (l'unification post_trip ↔ dashboard est l'étape suivante).
+                        if (typeof window.openOfferEditor === "function") {
+                            window.openOfferEditor(ownOfferId);
+                        }
+                    }
+                    return;
+                }
+                const demandBtn = event.target.closest("button[data-contact-request]");
+                if (demandBtn) {
+                    startDemandContact(Number(demandBtn.getAttribute("data-contact-request")));
+                    return;
+                }
+                const button = event.target.closest("button[data-reserve-offer]");
+                if (!button) return;
+                const offerId = Number(button.getAttribute("data-reserve-offer"));
+                startReservation(offerId).catch((error) => {
+                    if (error?.code === "PROFILE_COMPLETION_REQUIRED") {
+                        window.CCCommon.openProfileCompletionGate("results.html");
+                    } else {
+                        alert(error.message || "Impossible de contacter ce voyageur.");
+                    }
+                });
+            });
+        }
+
+        // Profil type Filters : DÉPLACÉS dans bindSwitchesEarly() (attachés dès le
+        // chargement du script, avant l'init async) pour ne perdre aucun clic.
+        // Idem pour les onglets [data-mobile-mode] ci-dessous.
+
+        // Bouton Rechercher de la nouvelle barre
+        document.getElementById("new-search-btn")?.addEventListener("click", () => {
+            loadOffers().catch(err => console.warn(err));
+        });
+
+        // Sort Select
+        document.getElementById("sort-select")?.addEventListener("change", (e) => {
+            state.sortBy = e.target.value;
+            renderOffers();
+        });
+
+        // Pill Toggles
+        const togglePill = (id, stateKey) => {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener("click", () => {
+                state[stateKey] = !state[stateKey];
+
+                // Toggle active styling
+                if (state[stateKey]) {
+                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary text-primary bg-primary/10 text-sm whitespace-nowrap transition-colors duration-200 active:scale-95 cursor-pointer";
+                } else {
+                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer";
+                }
+                renderOffers();
+            });
+        };
+
+        togglePill("pill-verified", "filterVerified");
+        togglePill("pill-weight", "filterWeight10");
+        togglePill("pill-urgent", "filterUrgent");
+
+    
     // ═══ MODIFICATION DE TRAJET (meme fonctionnement que la modification de demande :
     //     la fenetre s'ouvre directement sur cette page, plus de redirection dashboard) ═══
     let editingOfferId = null;
@@ -1074,71 +1139,8 @@
     document.getElementById("edit-trip-modal")?.addEventListener("click", (e) => {
         if (e.target === document.getElementById("edit-trip-modal")) closeOfferEditor();
     });
-                    } else if (ownOfferId) {
-                        // Trajet : le formulaire de publication (post_trip.html) n'a pas encore
-                        // de mode édition -> on garde le tableau de bord pour l'instant
-                        // (l'unification post_trip ↔ dashboard est l'étape suivante).
-                        if (typeof window.openOfferEditor === "function") {
-                            window.openOfferEditor(ownOfferId);
-                        }
-                    }
-                    return;
-                }
-                const demandBtn = event.target.closest("button[data-contact-request]");
-                if (demandBtn) {
-                    startDemandContact(Number(demandBtn.getAttribute("data-contact-request")));
-                    return;
-                }
-                const button = event.target.closest("button[data-reserve-offer]");
-                if (!button) return;
-                const offerId = Number(button.getAttribute("data-reserve-offer"));
-                startReservation(offerId).catch((error) => {
-                    if (error?.code === "PROFILE_COMPLETION_REQUIRED") {
-                        window.CCCommon.openProfileCompletionGate("results.html");
-                    } else {
-                        alert(error.message || "Impossible de contacter ce voyageur.");
-                    }
-                });
-            });
-        }
 
-        // Profil type Filters : DÉPLACÉS dans bindSwitchesEarly() (attachés dès le
-        // chargement du script, avant l'init async) pour ne perdre aucun clic.
-        // Idem pour les onglets [data-mobile-mode] ci-dessous.
-
-        // Bouton Rechercher de la nouvelle barre
-        document.getElementById("new-search-btn")?.addEventListener("click", () => {
-            loadOffers().catch(err => console.warn(err));
-        });
-
-        // Sort Select
-        document.getElementById("sort-select")?.addEventListener("change", (e) => {
-            state.sortBy = e.target.value;
-            renderOffers();
-        });
-
-        // Pill Toggles
-        const togglePill = (id, stateKey) => {
-            const btn = document.getElementById(id);
-            if (!btn) return;
-            btn.addEventListener("click", () => {
-                state[stateKey] = !state[stateKey];
-
-                // Toggle active styling
-                if (state[stateKey]) {
-                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary text-primary bg-primary/10 text-sm whitespace-nowrap transition-colors duration-200 active:scale-95 cursor-pointer";
-                } else {
-                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer";
-                }
-                renderOffers();
-            });
-        };
-
-        togglePill("pill-verified", "filterVerified");
-        togglePill("pill-weight", "filterWeight10");
-        togglePill("pill-urgent", "filterUrgent");
-
-    }
+}
 
     // ── Switches d'onglets : attachés DÈS le chargement du script ──────────────
     // AVANT l'initialisation async (auth, taux de change, listes). Avant ce
