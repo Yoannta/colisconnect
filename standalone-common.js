@@ -182,6 +182,17 @@
 
         const logoutBtn = document.getElementById("logout-btn");
         if (logoutBtn) logoutBtn.textContent = t.auth_logout;
+        // DE MASQUAGE + ACTION du bouton « Quitter » du header (il restait cache :
+        // aucun bouton de deconnexion visible sur le site).
+        if (logoutBtn) {
+            logoutBtn.classList.remove("hidden");
+            logoutBtn.addEventListener("click", async () => {
+                try { await window.ccSupabase?.auth?.signOut(); } catch (e) { }
+                localStorage.removeItem("cc_auth_token");
+                localStorage.removeItem("cc_refresh_token");
+                window.location.href = "index.html";
+            });
+        }
 
         const profSpan = document.querySelector(".mob-nav-item[href*='dashboard.html'] span");
         if (profSpan) profSpan.textContent = t.profile_title;
@@ -2110,7 +2121,10 @@
             if (logoutBtn) {
                 logoutBtn.addEventListener("click", async () => {
                     await window.ccSupabase.auth.signOut();
+                    // Nettoyer AUSSI le refresh_token : sinon la restauration de session
+                    // (supabase-init.js) reconnecterait l'utilisateur tout seul.
                     localStorage.removeItem("cc_auth_token");
+                    localStorage.removeItem("cc_refresh_token");
                     window.location.href = 'index.html';
                 });
             }
