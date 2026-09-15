@@ -525,7 +525,7 @@
                 setContactNote("Numéro déjà enregistré et validé avec cette annonce : aucune vérification nécessaire. Si vous le modifiez, un code sera demandé.");
                 return;
             }
-            if (editingOfferId && !paymentState.isVerified) {
+            if (editingOfferId && paymentState.storedContact && isStoredContactRow(paymentTrigger)) {
                 setContactNote("Numéro modifié : un code de vérification est nécessaire.");
             }
             if (!paymentState.isVerified) return;
