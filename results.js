@@ -1061,9 +1061,40 @@
         set("edit-trip-date", String(offer.departure_date || offer.departureDate || "").slice(0, 10));
         set("edit-trip-kg", offer.available_kg ?? offer.availableKg ?? "");
         set("edit-trip-price", offer.price_per_kg ?? offer.pricePerKg ?? "");
-        set("edit-trip-currency", offer.base_currency || offer.baseCurrency || window.CCCommon?.getUserCurrency?.() || "");
         set("edit-trip-notes", offer.description || "");
         editTripFeedback("");
+
+        // ── Memes composants que le formulaire de publication ───────────────────
+        // Villes : autocompletion liee au pays (sinon on devait tout taper a la main)
+        try {
+            const setup = window.CCCommon?.setupCityAutocomplete;
+            if (typeof setup === "function") {
+                setup(document.getElementById("edit-trip-city-origin"), document.getElementById("edit-trip-origin"));
+                setup(document.getElementById("edit-trip-city-destination"), document.getElementById("edit-trip-destination"));
+            }
+        } catch (e) { console.warn("Autocompletion villes indisponible:", e); }
+
+        // Devise : liste deroulante (memes devises que la publication)
+        try {
+            const sel = document.getElementById("edit-trip-currency");
+            if (sel && !sel.dataset.filled) {
+                const devises = Array.from(new Set(Object.values(window.CCCommon?.COUNTRY_CURRENCIES || {}))).sort();
+                sel.innerHTML = devises.map((c) =>
+                    '<option value="' + c + '">' + c + ' \u2014 ' + (window.CCCommon?.currencyName?.(c) || c) + '</option>'
+                ).join("");
+                sel.dataset.filled = "1";
+            }
+            // Selection de la devise de l'annonce (apres remplissage de la liste)
+            const curVal = String(offer.base_currency || offer.baseCurrency || window.CCCommon?.getUserCurrency?.() || "").toUpperCase();
+            if (sel && curVal) {
+                if (!Array.from(sel.options).some((o) => o.value === curVal)) {
+                    const opt = document.createElement("option");
+                    opt.value = curVal; opt.textContent = curVal;
+                    sel.appendChild(opt);
+                }
+                sel.value = curVal;
+            }
+        } catch (e) { console.warn("Liste des devises indisponible:", e); }
         document.getElementById("edit-trip-modal")?.classList.remove("hidden");
     };
 
