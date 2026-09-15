@@ -19,7 +19,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=51">
+    <link rel="stylesheet" href="style.css?v=53">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
@@ -29,7 +29,7 @@
 
     <script defer src="standalone-common.js?v=16"></script>
     <script defer src="admin-banner.js"></script>
-    <script defer src="dashboard.js?v=17"></script>
+    <script defer src="dashboard.js?v=18"></script>
 </head>
 
 <body class="dashboard-page">
@@ -152,20 +152,6 @@
                     </div>
                 </div>
 
-                <div class="client-stats">
-                    <article class="client-stat-card">
-                        <strong id="client-stat-offers">0</strong>
-                        <span>offres compatibles cette semaine</span>
-                    </article>
-                    <article class="client-stat-card">
-                        <strong id="client-stat-discussions">0</strong>
-                        <span>discussions a traiter</span>
-                    </article>
-                    <article class="client-stat-card">
-                        <strong id="client-stat-payments">0</strong>
-                        <span>paiement pret a valider</span>
-                    </article>
-                </div>
             </div>
 
             <div class="client-grid">
@@ -194,16 +180,6 @@
                         <div class="loading-state">Chargement...</div>
                     </div>
                 </section>
-
-                <article class="dashboard-panel client-validated-panel">
-                    <div class="panel-head">
-                        <h3>Gestion de mes colis</h3>
-                        <button class="cargo-see-all-btn" id="client-voir-tous-colis">Voir tous</button>
-                    </div>
-                    <div id="client-validated-list" class="client-validated-list">
-                        <div class="loading-state">Chargement...</div>
-                    </div>
-                </article>
             </div>
         </section>
 

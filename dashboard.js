@@ -50,12 +50,8 @@
         // Client dashboard elements
         travelerView: document.getElementById("traveler-dashboard-view"),
         clientView: document.getElementById("client-dashboard-view"),
-        clientStatOffers: document.getElementById("client-stat-offers"),
-        clientStatDiscussions: document.getElementById("client-stat-discussions"),
-        clientStatPayments: document.getElementById("client-stat-payments"),
         clientRequestsList: document.getElementById("client-requests-list"),
         clientDiscussionsList: document.getElementById("client-discussions-list"),
-        clientValidatedList: document.getElementById("client-validated-list"),
         // Cargo dashboard elements
         cargoView: document.getElementById("cargo-dashboard-view"),
         cargoStatOffers: document.getElementById("cargo-stat-offers"),
@@ -319,37 +315,6 @@
         }).join("");
     }
 
-    function renderClientValidated(validated) {
-        if (!els.clientValidatedList) return;
-        if (!validated || !validated.length) {
-            els.clientValidatedList.innerHTML = `
-                <div class="traveler-empty-requests">
-                    <p>Aucun colis en cours.</p>
-                    <span>Vos reservations payees apparaitront ici.</span>
-                </div>`;
-            return;
-        }
-        els.clientValidatedList.innerHTML = validated.map((item) => {
-            const origin = item.offers?.origin || item.offer_origin || "";
-            const dest = item.offers?.destination || item.offer_destination || "";
-            const ownerName = item.offers?.owner_name || item.offer_owner_name || 
-                (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id)?.travelerName || "Voyageur";
-            const conv = (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id);
-            const threadId = conv?.id || item.thread_id || null;
-            const status = item.status === "paid" ? "en_cours" : item.status;
-            const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
-            const isDelivered = status === "livre";
-            return `<div class="client-discussion-item ${threadId ? 'clickable' : ''}" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}" ${threadId ? `data-thread-id="${window.CCCommon.escapeHtml(threadId)}"` : ""}>
-                <div class="item-content">
-                    <div class="item-name">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
-                    <div class="item-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""}${item.total_amount ? " - " + window.CCCommon.formatAmount(item.total_amount, item.offers?.base_currency || getUserCurrency()) : ""} | ${statusLabel}</div>
-                </div>
-                <span class="pill-${isDelivered ? 'green' : 'yellow'} pill-status-sm">${statusLabel}</span>
-                ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}">Livrer</button>` : ""}
-            </div>`;
-        }).join("");
-    }
-
     function switchDashboardView(profileType) {
         const isTraveler = profileType === "traveler";
         const isCargo = profileType === "cargo";
@@ -411,15 +376,9 @@
         const paidReservations = reservationsResp?.data || [];
         state.parcelRequests = parcelRequests;
         state.clientConversations = conversations;
-        state.clientValidated = paidReservations;
-
-        if (els.clientStatOffers) els.clientStatOffers.textContent = `${compatibleOffers.length}`;
-        if (els.clientStatDiscussions) els.clientStatDiscussions.textContent = `${conversations.length}`;
-        if (els.clientStatPayments) els.clientStatPayments.textContent = `${paidReservations.length}`;
 
         renderClientRequests(parcelRequests);
         renderClientDiscussions(conversations);
-        renderClientValidated(paidReservations);
     }
 
     function openChatPage(threadId = "", offerId = "") {
@@ -852,33 +811,6 @@
             }
         });
 
-        // Bouton "Livrer" dans Gestion de mes colis
-        els.clientValidatedList?.addEventListener("click", async (event) => {
-            const livrerBtn = event.target.closest("[data-livrer]");
-            if (livrerBtn) {
-                const reservationId = livrerBtn.getAttribute("data-livrer");
-                if (!reservationId || !confirm("Marquer ce colis comme livre ?")) return;
-                try {
-                    if (window.ccSupabase) {
-                        const { error } = await window.ccSupabase.from("reservations").update({
-                            status: "livre",
-                            updated_at: new Date().toISOString()
-                        }).eq("id", reservationId);
-                        if (error) throw error;
-                    }
-                    loadClientDashboard();
-                } catch (e) {
-                    alert("Erreur: " + (e.message || "Impossible de mettre a jour."));
-                }
-            }
-            // Clic sur la ligne → ouvrir la discussion
-            const itemRow = event.target.closest("[data-thread-id]");
-            if (itemRow) {
-                const threadId = itemRow.getAttribute("data-thread-id");
-                if (threadId) openChatPage(threadId);
-            }
-        });
-
         function openVoirTousModal(title, kicker, items, renderItem) {
             if (!els.voirTousModal) return;
             if (els.voirTousKicker) els.voirTousKicker.textContent = kicker || "";
@@ -1041,30 +973,6 @@
                     <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
                 </div>
             `);
-        });
-
-        // Client "Voir tous" colis
-        document.getElementById("client-voir-tous-colis")?.addEventListener("click", () => {
-            const items = state.clientValidated || [];
-            openVoirTousModal("Gestion de mes colis", "Colis", items, (item, i) => {
-                const origin = item.offers?.origin || item.offer_origin || "";
-                const dest = item.offers?.destination || item.offer_destination || "";
-                const ownerName = item.offers?.owner_name || item.offer_owner_name || 
-                    (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id)?.travelerName || "Voyageur";
-                const conv = (state.clientConversations || []).find(c => c.reservation_id == item.id || c.reservationId == item.id);
-                const threadId = conv?.id || item.thread_id || null;
-                const status = item.status === "paid" ? "en_cours" : item.status;
-                const statusLabel = status === "en_cours" ? "En cours" : (status === "livre" ? "Livre" : status);
-                const isDelivered = status === "livre";
-                return `<div class="cargo-file-item ${threadId ? 'clickable' : ''}" data-reservation-id="${window.CCCommon.escapeHtml(item.id)}" ${threadId ? `data-thread-id="${window.CCCommon.escapeHtml(threadId)}"` : ""}>
-                    <div class="cargo-file-index">${i + 1}</div>
-                    <div class="file-content">
-                        <div class="file-title">${window.CCCommon.escapeHtml(origin || "")} &rarr; ${window.CCCommon.escapeHtml(dest || "")}</div>
-                        <div class="file-desc">${window.CCCommon.escapeHtml(ownerName)} | ${item.kg ? item.kg + " kg" : ""} | ${statusLabel}</div>
-                    </div>
-                    ${!isDelivered ? `<button class="cargo-ops-btn" data-livrer="${window.CCCommon.escapeHtml(item.id)}">Livrer</button>` : `<span class="pill-green pill-status-sm">Livre</span>`}
-                </div>`;
-            });
         });
 
         // Cargo "Voir tous" trajets (uniquement les non-archivés)
