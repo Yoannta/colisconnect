@@ -1291,3 +1291,13 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 - Panneau replié : hauteur réduite à son bouton (plus de boîte vide de 280px) ; `align-items: start` sur `.client-grid`
 - `setupClientAccordions()` est câblée AVANT le garde `requireAuth()` (sinon jamais câblée quand le visiteur n'est pas connecté)
 - Cache-bust : `dashboard.js?v=19`, `style.css?v=54`
+
+
+### 🖼️ Dashboard voyageur : l'illustration remplace le tracé du graphique (carte « Offre active »)
+- L'encadré de trajet affiche l'illustration fournie (avion, colis, épingles dorées) à la place du tracé doré + pastilles dessinés en CSS
+- Nouveau fichier : `assets/card-image-version/traveler-route-gold.webp` (1600×440, 17 Ko, rogné au cadre, ratio conservé : aucune déformation)
+- `dashboard.js` : `<img class="traveler-route-image">` (width/height déclarés + `alt`) remplace la ligne et les pastilles
+- `style.css` : `.traveler-route-visual` devient un cadre nu (radius 10px, overflow hidden) ; purge des règles mortes `.traveler-route-line`, `.traveler-route-pin*` et de l'override mobile `min-height: 116px`
+- Les puces (route / date / prix), la jauge, le résumé et les boutons Modifier / Supprimer sont inchangés
+- Cache-bust : `dashboard.js?v=20`, `style.css?v=55`
+

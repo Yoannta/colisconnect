@@ -196,9 +196,7 @@
 
         els.activeOfferCard.innerHTML = `
             <div class="traveler-route-visual">
-                <div class="traveler-route-line"></div>
-                <span class="traveler-route-pin traveler-route-pin-start"></span>
-                <span class="traveler-route-pin traveler-route-pin-end"></span>
+                <img class="traveler-route-image" src="assets/card-image-version/traveler-route-gold.webp" width="1600" height="440" alt="Illustration du trajet : point de départ, colis transporté en avion, point d'arrivée" decoding="async">
             </div>
             <div class="traveler-route-chips">
                 <span class="traveler-chip">${window.CCCommon.escapeHtml(routeLine)}</span>

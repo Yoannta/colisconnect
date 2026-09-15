@@ -5580,50 +5580,16 @@ input[data-country-select="true"]::placeholder {
 }
 
 .dashboard-page .traveler-route-visual {
+    /* Cadre de l'illustration du trajet : l'image fournie occupe tout le cadre */
     position: relative;
-    min-height: 220px;
     border-radius: 10px;
-    border: 1px solid var(--line);
-    background:
-        linear-gradient(90deg, transparent 49.5%, var(--d-grid) 50%, transparent 50.5%),
-        linear-gradient(0deg, transparent 49.5%, var(--d-grid) 50%, transparent 50.5%),
-        linear-gradient(135deg, rgba(255, 179, 71, 0.03), var(--d-surface-0)),
-        var(--d-panel-strong);
     overflow: hidden;
 }
 
-.dashboard-page .traveler-route-line {
-    position: absolute;
-    left: 11%;
-    right: 13%;
-    top: 56%;
-    height: 3px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #ffbe5c 0%, var(--emerald-bright) 100%);
-    box-shadow: 0 0 26px rgba(255, 179, 71, 0.55);
-    transform: rotate(-7deg);
-}
-
-.dashboard-page .traveler-route-pin {
-    position: absolute;
-    width: 18px;
-    height: 18px;
-    border-radius: 999px;
-    background: var(--emerald-bright);
-    border: 3px solid var(--d-pin-ring);
-    box-shadow: 0 0 0 7px rgba(255, 179, 71, 0.14);
-}
-
-.dashboard-page .traveler-route-pin-start {
-    left: 12%;
-    top: 58%;
-    background: #ffd08a;
-    box-shadow: 0 0 0 7px rgba(255, 190, 92, 0.14);
-}
-
-.dashboard-page .traveler-route-pin-end {
-    right: 16%;
-    top: 40%;
+.dashboard-page .traveler-route-image {
+    display: block;
+    width: 100%;
+    height: auto;
 }
 
 .dashboard-page .traveler-route-chips {
@@ -7325,11 +7291,6 @@ input[data-country-select="true"]::placeholder {
         max-height: none;
         min-height: 0;
         overflow: visible;
-    }
-
-    .mobile-mode .dashboard-page .traveler-route-visual {
-        min-height: 116px;
-        border-radius: 12px;
     }
 
     .mobile-mode .dashboard-page .traveler-route-chips {
