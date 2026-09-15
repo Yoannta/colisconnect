@@ -932,15 +932,15 @@
             const supabase = window.ccSupabase;
             const uid = window.CCCommon.state?.user?.id;
             try {
-                // Suppression via une fonction de la base (fiabilite) : le site n'a pas de
-                // serveur, donc la base ne peut pas identifier l'utilisateur par sa session
-                // -> elle refusait l'operation. La fonction verifie le proprietaire (user_id)
-                // et fait le travail cote base. Repli en archivage si la ligne n'existe plus.
-                const { data: nDel, error: e1 } = await supabase.rpc("cc_delete_own_offer", { p_offer_id: Number(offerId), p_user_id: uid });
+                // Suppression via une fonction de la base. Elle est SECURISEE : elle
+                // n'accepte aucun identifiant d'utilisateur du client, elle utilise
+                // l'identite reelle de la session (auth.uid()) et n'agit que sur ses
+                // propres annonces. Repli en archivage si la ligne n'existe plus.
+                const { data: nDel, error: e1 } = await supabase.rpc("cc_delete_own_offer", { p_offer_id: Number(offerId) });
                 if (e1) throw e1;
                 let fait = nDel || 0;
                 if (!fait) {
-                    const { data: nArch, error: e2 } = await supabase.rpc("cc_archive_own_offer", { p_offer_id: Number(offerId), p_user_id: uid });
+                    const { data: nArch, error: e2 } = await supabase.rpc("cc_archive_own_offer", { p_offer_id: Number(offerId) });
                     if (e2) throw e2;
                     fait = nArch || 0;
                 }
