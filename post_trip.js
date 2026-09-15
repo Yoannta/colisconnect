@@ -371,6 +371,28 @@
         els.contactNote.classList.remove("hidden");
     }
 
+    // Numero actuellement saisi dans la modale (indicatif + local, sans espaces).
+    function currentEnteredNumber() {
+        return `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`.replace(/\s+/g, "");
+    }
+
+    // Le numero saisi est-il deja valide ? (contact de l'annonce, ou numero valide
+    // dans cette session) -> aucun nouveau code a demander.
+    function isAlreadyValidatedNumber() {
+        if (!editingOfferId) return false;
+        const cur = currentEnteredNumber();
+        if (!cur) return false;
+        return [paymentState.storedContact, paymentState.accountNumber].filter(Boolean).some((n) => n === cur);
+    }
+
+    // Note affichee quand le numero visible est deja valide.
+    function noteIfAlreadyValidated() {
+        if (paymentState.storedContact && currentEnteredNumber() === paymentState.storedContact) {
+            return "Numéro déjà enregistré et validé avec cette annonce : aucune vérification nécessaire. Si vous le modifiez, un code sera demandé.";
+        }
+        return "Numéro vérifié à l'instant : aucune nouvelle vérification nécessaire. Si vous le modifiez, un code sera demandé.";
+    }
+
     // Le bouton ouvert est-il la 1re ligne de contact (celle de l'annonce) ?
     function isStoredContactRow(btn) {
         if (!btn || !btn.closest) return false;
@@ -419,7 +441,9 @@
         // enregistre (valide a la creation) -> enregistrable SANS nouveau code.
         // Toute autre ligne (nouveau numero ajoute) reste soumise a la verification.
         if (editingOfferId && paymentState.storedContact && isStoredContactRow(paymentTrigger)) {
-            const parts = splitPhoneNumber(paymentState.storedContact);
+            // On reaffiche le contact courant : celui enregistre a la creation (deja valide)
+            // ou celui que l'utilisateur vient de valider dans cette session.
+            const parts = splitPhoneNumber(paymentState.accountNumber || paymentState.storedContact);
             if (els.indicatifInput && parts.code) els.indicatifInput.value = parts.code;
             if (els.indicatifInput && !parts.code) els.indicatifInput.selectedIndex = 0;
             if (els.localNumberInput) els.localNumberInput.value = parts.local;
@@ -427,7 +451,7 @@
             paymentState.selectedMethodName = "Contact Direct";
             paymentState.isVerified = true;
             if (els.confirmBtn) els.confirmBtn.disabled = false;
-            setContactNote("Numéro déjà enregistré et validé avec cette annonce : aucune vérification nécessaire. Si vous le modifiez, un code sera demandé.");
+            setContactNote(noteIfAlreadyValidated());
         } else if (editingOfferId) {
             setContactNote("Nouveau numéro : un code de vérification sera demandé.");
         } else {
@@ -507,22 +531,15 @@
             }
         };
 
-        // Le numero saisi est-il exactement celui deja enregistre sur l'annonce ?
-        const sameAsStoredContact = () => {
-            if (!editingOfferId || !paymentState.storedContact) return false;
-            const cur = `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`.replace(/\s+/g, "");
-            return !!cur && cur === paymentState.storedContact;
-        };
-
         // Si on change le numéro après l'avoir vérifié, on réinitialise la vérification.
-        // Exception (mode modification) : le contact deja enregistre sur l'annonce a ete
-        // valide a sa creation -> accepte tel quel, aucun code a ressaisir.
+        // Exception (mode modification) : un numero deja valide (celui de l'annonce, ou
+        // celui valide dans cette session) reste accepte tel quel -> aucun code a ressaisir.
         const resetVerificationIfNeeded = () => {
-            if (sameAsStoredContact()) {
+            if (isAlreadyValidatedNumber()) {
                 paymentState.isVerified = true;
                 resetOtpControls();
                 if (els.confirmBtn) els.confirmBtn.disabled = false;
-                setContactNote("Numéro déjà enregistré et validé avec cette annonce : aucune vérification nécessaire. Si vous le modifiez, un code sera demandé.");
+                setContactNote(noteIfAlreadyValidated());
                 return;
             }
             if (editingOfferId && paymentState.storedContact && isStoredContactRow(paymentTrigger)) {
