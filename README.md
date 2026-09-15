@@ -1259,3 +1259,24 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 - Colonne `needed_by_date` rendue nullable (bloquait l'insertion de demandes sans date)
 - Syntaxe TypeScript `as any` nettoyée dans `chat.js`
 
+---
+
+## Journal des mises à jour — 2026-09-15
+
+### 🧹 Dashboard chercheur : suppression des sections mortes
+- Retrait des 3 cartes stats : « offres compatibles cette semaine », « discussions a traiter », « paiement pret a valider »
+  (`#client-stat-offers`, `#client-stat-discussions`, `#client-stat-payments`, conteneur `.client-stats`)
+- Retrait du panneau « Gestion de mes colis » (`.client-validated-panel`, `#client-validated-list`, bouton « Voir tous »)
+- Conservés : hero « Bienvenue + Verifier mon identite », « Mes demandes de trajet », « Mes discussions en cours », switch de vue Chercheur/Voyageur/Cargo
+
+### 🎨 `style.css`
+- `.client-head` : la bannière `.client-hero` occupe toute la largeur (plus de colonne stats à droite)
+- `.client-grid` : 3 colonnes → 2 colonnes (`minmax(0,1fr) minmax(0,1.5fr)` ; 2 colonnes égales ≤1180px ; 1 colonne ≤800px et en mode mobile)
+- Purge des règles `.client-stats`, `.client-stat-card`, `.client-validated*`
+
+### 🧹 `dashboard.js`
+- Suppression du code mort : `els.clientStat*`, `els.clientValidatedList`, `renderClientValidated()`, handler « Livrer », handler « Voir tous colis », `state.clientValidated`
+
+### 🔄 Cache-bust
+- `dashboard.js?v=18`, `style.css?v=53`
+
