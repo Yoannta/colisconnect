@@ -202,6 +202,27 @@
         if (visible) updateExtraDatesAddBtn();
     }
 
+    // Affichage du type d'annonce (voyageur simple / cargo) : bouton surligne + champs
+    // coherents. Source unique : utilisee par le clic utilisateur ET par la modification
+    // d'une annonce existante (avant, le type n'etait pas re-selectionne a l'arrivee).
+    function applyProfileTypeUI(choice) {
+        const cargo = choice === "cargo";
+        selectedProfileTypeChoice = cargo ? "cargo" : "traveler";
+        document.getElementById("step1-errors")?.classList.add("hidden");
+        document.getElementById("btn-traveler-choice")?.classList.toggle("selected", !cargo);
+        document.getElementById("btn-cargo-choice")?.classList.toggle("selected", cargo);
+        document.getElementById("trip-extra-fields")?.classList.remove("hidden");
+        document.getElementById("kilos-group")?.classList.toggle("hidden", cargo);
+        const section = document.getElementById("transport-mode-section");
+        if (section) section.style.display = cargo ? "block" : "none";
+        // [CARGO] dates multiples : visibles pour le cargo, masquees pour le voyageur simple
+        setExtraTripDatesVisible(cargo);
+        if (!cargo) {
+            selectedTransportMode = null;
+            document.querySelectorAll(".transport-mode-btn").forEach((b) => b.classList.remove("selected"));
+        }
+    }
+
     function addExtraTripDateRow() {
         const box = els.tripExtraDates;
         if (!box) return;
@@ -847,7 +868,10 @@
                 const val = (v === null || v === undefined) ? "" : v;
                 if (el.value === String(val)) return;
                 el.value = val;
-                el.dispatchEvent(new Event("input", { bubbles: true }));
+                // On ne simule QUE "change" : "input" rouvre la liste de suggestions du
+                // composant pays (comme si l'utilisateur venait de taper) -> a l'arrivee sur
+                // la page de modification le pays s'affichait comme "pas encore selectionne".
+                // "change" suffit : le selecteur de devise ecoute change ET input.
                 el.dispatchEvent(new Event("change", { bubbles: true }));
             };
             set("departure", offer.origin);
@@ -864,6 +888,10 @@
             if (extras.length && typeof window.ccSetExtraTripDates === "function") {
                 try { window.ccSetExtraTripDates(extras); } catch (e) { }
             }
+            updateExtraDatesAddBtn();
+            // Rien ne doit s'afficher comme "en cours de saisie" tant que l'utilisateur n'a
+            // pas touche un champ : on referme toute liste de suggestions ouverte.
+            document.querySelectorAll(".cc-suggestions-list").forEach((l) => { l.style.display = "none"; });
         };
 
         // Les champs pays/villes sont construits (puis parfois reconstruits) par le
@@ -871,8 +899,9 @@
         // qu'elles tiennent.
         [0, 300, 800, 1600, 2600, 4000].forEach((d) => setTimeout(remplir, d));
 
-        // Type d'annonce (voyageur / cargo) deduit du mode enregistre
-        selectedProfileTypeChoice = offer.mode ? "cargo" : "traveler";
+        // Type d'annonce (voyageur / cargo) deduit du mode enregistre : meme logique que le
+        // clic utilisateur (bouton surligne + champs coherents), sinon le type repartait vide.
+        applyProfileTypeUI(offer.mode ? "cargo" : "traveler");
         if (offer.mode) {
             selectedTransportMode = offer.mode;
             document.querySelectorAll(".modal-transport-btn, .transport-mode-btn, .mode-btn").forEach((btn) => {
@@ -1036,31 +1065,11 @@
 
         // Choix du type de profil
         document.getElementById("btn-traveler-choice")?.addEventListener("click", () => {
-            selectedProfileTypeChoice = "traveler";
-            document.getElementById("step1-errors")?.classList.add("hidden");
-            document.getElementById("btn-traveler-choice").classList.add("selected");
-            document.getElementById("btn-cargo-choice")?.classList.remove("selected");
-            selectedTransportMode = null;
-
-            document.getElementById("trip-extra-fields")?.classList.remove("hidden");
-            document.getElementById("kilos-group")?.classList.remove("hidden");
-            document.getElementById("transport-mode-section").style.display = "none";
-            document.querySelectorAll(".transport-mode-btn").forEach(b => b.classList.remove("selected"));
-            // [CARGO] dates multiples : masquées pour le voyageur simple
-            setExtraTripDatesVisible(false);
+            applyProfileTypeUI("traveler");
         });
 
         document.getElementById("btn-cargo-choice")?.addEventListener("click", () => {
-            selectedProfileTypeChoice = "cargo";
-            document.getElementById("step1-errors")?.classList.add("hidden");
-            document.getElementById("btn-cargo-choice").classList.add("selected");
-            document.getElementById("btn-traveler-choice")?.classList.remove("selected");
-
-            document.getElementById("trip-extra-fields")?.classList.remove("hidden");
-            document.getElementById("kilos-group")?.classList.add("hidden");
-            document.getElementById("transport-mode-section").style.display = "block";
-            // [CARGO] dates multiples : bouton « Ajouter une autre date » visible
-            setExtraTripDatesVisible(true);
+            applyProfileTypeUI("cargo");
         });
 
         // [CARGO] « Ajouter une autre date » : nouvelle ligne supprimable pour le même trajet
