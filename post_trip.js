@@ -502,9 +502,29 @@
     }
 
     // ---- Submit trip ----
+    // Anti-doublon (cause identifiee par Yoyo) : pendant la latence de publication il
+    // cliquait plusieurs fois sur « Publier » -> autant d'annonces que de clics.
+    // Le verrou est pose DES LE 1er CLIC, avant toute attente, et le bouton est
+    // desactive immediatement ; il reste verrouille 2 s apres la fin pour absorber
+    // les clics arrives trop tard.
+    let submitting = false;
+
     async function submitTrip(event) {
         event.preventDefault();
 
+        if (submitting) {
+            console.warn("Publication deja en cours — clic ignore.");
+            return;
+        }
+        submitting = true;
+        const submitBtnEarly = els.form?.querySelector("button[type='submit']");
+        const initialBtnText = submitBtnEarly?.textContent || "Publier mon trajet";
+        if (submitBtnEarly) {
+            submitBtnEarly.disabled = true;
+            submitBtnEarly.textContent = "Publication...";
+        }
+
+        try {
         if (!window.CCCommon.requireCompletedProfile("post_trip.html")) return;
 
         const departureCountry = String(els.departure?.value || "").trim();
@@ -534,6 +554,18 @@
 
         // Soumettre directement (les champs sont visibles)
         await proceedSubmitTrip();
+        } finally {
+            // Reautorisation apres un court delai : absorbe les clics arrives
+            // pendant/juste apres la publication (cause des annonces en double).
+            setTimeout(() => {
+                submitting = false;
+                const b = els.form?.querySelector("button[type='submit']");
+                if (b) {
+                    b.disabled = false;
+                    b.textContent = initialBtnText;
+                }
+            }, 2000);
+        }
     }
 
     // Anti-double-publication : un seul envoi a la fois.
