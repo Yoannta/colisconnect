@@ -799,23 +799,44 @@
 
     async function initEditMode() {
         if (!EDIT_OFFER_ID) return;
+
+        let offer = null;
         try {
-            // Les champs pays/villes sont construits par le composant partage : on attend
-            // qu'ils soient presents avant de remplir.
-            for (let i = 0; i < 50 && !document.getElementById("departure"); i++) {
+            // On attend que la session ET les champs pays/villes soient prets.
+            for (let i = 0; i < 30; i++) {
+                if (window.ccSupabase && document.getElementById("departure")) break;
                 await new Promise((r) => setTimeout(r, 100));
             }
-            if (!window.ccSupabase) return;
+            if (!window.ccSupabase) {
+                console.warn("[modif] Supabase indisponible");
+                alert("Connexion indisponible : impossible de charger l'annonce a modifier.");
+                return;
+            }
             const res = await window.ccSupabase.from("offers").select("*").eq("id", Number(EDIT_OFFER_ID)).maybeSingle();
             if (res.error) throw res.error;
-            const offer = res.data;
-            if (!offer) { alert("Annonce introuvable."); return; }
-            editingOfferId = offer.id;
+            offer = res.data;
+        } catch (e) {
+            console.error("[modif] chargement impossible:", e);
+            alert("Impossible de charger l'annonce a modifier : " + (e && e.message ? e.message : e));
+            return;
+        }
+        if (!offer) {
+            alert("Annonce introuvable (#" + EDIT_OFFER_ID + ").");
+            return;
+        }
+        editingOfferId = offer.id;
 
+        // Remplissage du formulaire avec l'annonce existante (l'utilisateur ne modifie
+        // que ce qu'il veut, il n'a plus a tout ressaisir).
+        const remplir = () => {
+            if (!editingOfferId) return;
             const set = (id, v) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                el.value = (v === null || v === undefined) ? "" : v;
+                const val = (v === null || v === undefined) ? "" : v;
+                if (el.value === String(val)) return;
+                el.value = val;
+                el.dispatchEvent(new Event("input", { bubbles: true }));
                 el.dispatchEvent(new Event("change", { bubbles: true }));
             };
             set("departure", offer.origin);
@@ -827,32 +848,43 @@
             set("price", offer.price_per_kg ?? "");
             set("price-currency", offer.base_currency || "");
             if (els.notes) els.notes.value = offer.description || "";
-
-            // Mode de transport (cargo) : on coche le bouton correspondant
-            if (offer.mode) {
-                selectedTransportMode = offer.mode;
-                document.querySelectorAll(".modal-transport-btn, .transport-mode-btn").forEach((btn) => {
-                    const val = btn.dataset.mode || btn.dataset.value || "";
-                    btn.classList.toggle("selected", String(val) === String(offer.mode));
-                });
+            // Annexe : dates supplementaires (cargo)
+            const extras = Array.isArray(offer.extra_dates) ? offer.extra_dates : [];
+            if (extras.length && typeof window.ccSetExtraTripDates === "function") {
+                try { window.ccSetExtraTripDates(extras); } catch (e) { }
             }
-            // Type d'annonce (voyageur / cargo) : deduit du mode enregistre
-            selectedProfileTypeChoice = offer.mode ? "cargo" : "traveler";
+        };
 
-            // Textes de la page
-            document.querySelectorAll("h1").forEach((h) => {
-                if (/publi/i.test(h.textContent || "")) h.textContent = "Modifier mon trajet";
+        // Les champs pays/villes sont construits (puis parfois reconstruits) par le
+        // composant partage : on reapplique les valeurs plusieurs fois pour etre sur
+        // qu'elles tiennent.
+        [0, 300, 800, 1600, 2600, 4000].forEach((d) => setTimeout(remplir, d));
+
+        // Type d'annonce (voyageur / cargo) deduit du mode enregistre
+        selectedProfileTypeChoice = offer.mode ? "cargo" : "traveler";
+        if (offer.mode) {
+            selectedTransportMode = offer.mode;
+            document.querySelectorAll(".modal-transport-btn, .transport-mode-btn, .mode-btn").forEach((btn) => {
+                const val = btn.dataset.mode || btn.dataset.value || "";
+                if (val && String(val) === String(offer.mode)) btn.classList.add("selected");
             });
-            const submitBtn = document.getElementById("trip-form")?.querySelector("button[type='submit']");
-            if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
-            const banner = document.getElementById("draft-banner");
-            if (banner) banner.classList.add("hidden");
-
-            console.log("✅ Mode modification : annonce", editingOfferId, "chargee");
-        } catch (e) {
-            console.error("Chargement de l'annonce impossible:", e);
-            alert("Impossible de charger cette annonce pour modification : " + (e.message || e));
         }
+
+        // Textes de la page
+        document.querySelectorAll("h1").forEach((h) => {
+            if (/publi/i.test(h.textContent || "")) h.textContent = "Modifier mon trajet";
+        });
+        const submitBtn = document.getElementById("trip-form")?.querySelector("button[type='submit']");
+        if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
+        const banner = document.getElementById("draft-banner");
+        if (banner) {
+            banner.classList.remove("hidden");
+            const txt = banner.querySelector("span");
+            if (txt) txt.textContent = "Mode modification — votre annonce est pre-remplie. Changez seulement ce que vous voulez.";
+            const clearBtn = document.getElementById("draft-clear-btn");
+            if (clearBtn) clearBtn.style.display = "none";
+        }
+        console.log("[modif] annonce", editingOfferId, "chargee dans le formulaire");
     }
 
     function bindEvents() {
@@ -1254,9 +1286,6 @@
         // l'annonce en cours de modification).
         if (EDIT_OFFER_ID) { try { localStorage.removeItem("cc_trip_draft"); } catch (e) { } }
         await window.CCCommon.init("post_trip");
-        // initEditMode APRES l'init : les champs pays/villes doivent exister avant
-        // d'etre pre-remplis.
-        await initEditMode();
 
         // Restauration du brouillon si présent
         const saved = localStorage.getItem("cc_trip_draft");
@@ -1292,6 +1321,11 @@
         bindModalEvents();
         bindEvents();
         initWizard();
+
+        // ATTENTION : EN DERNIER. Les champs pays/villes viennent d'etre crees par
+        // initLocationFields(). Les remplir avant ne servait a rien (elements
+        // inexistants) -> le formulaire s'ouvrait VIDE.
+        await initEditMode();
     }
 
     bootstrap().catch((error) => {
