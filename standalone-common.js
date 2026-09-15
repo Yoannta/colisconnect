@@ -1294,6 +1294,13 @@
             const { data: { session } } = await window.ccSupabase.auth.getSession();
             if (session) {
                 setSession(session.access_token, { ...session.user, ...session.user.user_metadata });
+                // Memoriser le refresh_token : indispensable pour restaurer la session
+                // au chargement des pages une fois le JWT expire (voir supabase-init.js).
+                // Couvre tous les modes de connexion (mot de passe, lien magique, OAuth).
+                try {
+                    if (session.refresh_token) localStorage.setItem("cc_refresh_token", session.refresh_token);
+                    if (session.access_token) localStorage.setItem("cc_auth_token", session.access_token);
+                } catch (e) { /* stockage indisponible */ }
                 // Nettoyer l'URL du hash access_token pour éviter les affichages bizarres
                 if (window.location.hash.includes("access_token")) {
                     window.history.replaceState(null, null, window.location.pathname + window.location.search);
