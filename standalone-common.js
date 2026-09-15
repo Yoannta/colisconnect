@@ -739,26 +739,30 @@
                     return { success: true };
                 }
                 if (options.method === "POST") {
-                    const { data: profile, error: pErr } = await window.ccSupabase.from('profiles').select('profile_type').eq('id', state.user?.id).single();
-                    if (pErr) throw pErr;
+                    // Le type a verifier est celui de l'OFFRE EN COURS de publication
+                    // (parametre ?type=traveler|cargo), PAS le profil du compte :
+                    // publier une offre cargo ne doit pas etre bloque par une offre voyageur
+                    // deja active (ni l'inverse). Les deux types sont comptes separement.
+                    const _paramsCL = new URLSearchParams((p.split("?")[1]) || "");
+                    const wantCargo = String(_paramsCL.get("type") || "").toLowerCase() === "cargo";
+                    const today = new Date().toISOString().split('T')[0];
+                    const { data: activeOffers, error: activeErr } = await window.ccSupabase.from('offers')
+                        .select('id, mode')
+                        .eq('user_id', state.user?.id)
+                        .eq('status', 'active')
+                        .gte('departure_date', today);
+                    if (activeErr) throw activeErr;
 
-                    const profileType = profile?.profile_type;
-                    if (profileType === 'traveler' || profileType === 'cargo') {
-                        const today = new Date().toISOString().split('T')[0];
-                        const { data: activeOffers, error: activeErr } = await window.ccSupabase.from('offers')
-                            .select('id')
-                            .eq('user_id', state.user?.id)
-                            .eq('status', 'active')
-                            .gte('departure_date', today);
-                        if (activeErr) throw activeErr;
+                    // Separation stricte : mode vide = offre voyageur, mode renseigne = cargo
+                    const count = (activeOffers || []).filter(
+                        (o) => (String(o.mode || "").trim() !== "") === wantCargo
+                    ).length;
 
-                        const count = activeOffers ? activeOffers.length : 0;
-                        if (profileType === 'traveler' && count >= 1) {
-                            throw new Error("Limite atteinte : " + count + " trajet actif compte (un voyageur simple n'en autorise qu'un). Si vous venez de supprimer votre annonce, elle est encore comptee : supprimez-la depuis la liste de vos annonces ou attendez son expiration.");
-                        }
-                        if (profileType === 'cargo' && count >= 5) {
-                            throw new Error("Limite atteinte : " + count + " trajets actifs comptes (maximum 5 en cargo).");
-                        }
+                    if (!wantCargo && count >= 1) {
+                        throw new Error("Limite atteinte : " + count + " offre voyageur active (maximum 1 pour un voyageur simple). Les offres cargo ne sont pas comptees ici.");
+                    }
+                    if (wantCargo && count >= 5) {
+                        throw new Error("Limite atteinte : " + count + " offres cargo actives (maximum 5).");
                     }
 
                     const mapping = {
