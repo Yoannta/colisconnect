@@ -536,7 +536,31 @@
         await proceedSubmitTrip();
     }
 
+    // Anti-double-publication : un seul envoi a la fois.
+    let publishing = false;
+
     async function proceedSubmitTrip() {
+        if (publishing) {
+            console.warn("Publication deja en cours — envoi ignore.");
+            return;
+        }
+        publishing = true;
+        // Anti-doublon : meme annonce renvoyee coup sur coup (typiquement apres une
+        // erreur reseau alors que l'envoi avait en fait abouti) -> confirmation.
+        const _sigAnim = [
+            els.departure?.value?.trim(), els.destination?.value?.trim(),
+            els.cityDeparture?.value?.trim(), els.cityDestination?.value?.trim(),
+            els.dateDepart?.value, els.kilos?.value, els.price?.value
+        ].join("|");
+        try {
+            const _last = JSON.parse(localStorage.getItem("cc_last_publish") || "null");
+            if (_last && _last.sig === _sigAnim && (Date.now() - (_last.at || 0)) < 180000) {
+                if (!window.confirm("Vous venez de publier cette meme annonce il y a moins de 3 minutes.\n\nLa publier une deuxieme fois ?")) {
+                    publishing = false;
+                    return;
+                }
+            }
+        } catch (e) { /* stockage indisponible */ }
         const departureCountry = String(els.departure?.value || "").trim();
         const destinationCountry = String(els.destination?.value || "").trim();
 
@@ -666,7 +690,9 @@
 
             els.form?.reset();
             clearExtraTripDates();
+            document.getElementById("draft-banner")?.classList.add("hidden");
             localStorage.removeItem("cc_trip_draft");
+            try { localStorage.setItem("cc_last_publish", JSON.stringify({ sig: _sigAnim, at: Date.now() })); } catch (e) { }
             paymentState.selectedMethod = null;
             paymentState.selectedMethodName = null;
             paymentState.accountNumber = null;
@@ -687,6 +713,7 @@
             }
             alert(error.message || "Erreur publication.");
         } finally {
+            publishing = false;
             if (submitBtn) {
                 submitBtn.disabled = false;
                 submitBtn.textContent = initialText;
@@ -1104,6 +1131,7 @@
                 // On garde le brouillon jusqu'à la publication réussie ou suppression manuelle
                 // localStorage.removeItem("cc_trip_draft"); // Optionnel : on peut le laisser si on veut
                 // localStorage.removeItem("cc_trip_draft"); // Optionnel : on peut le laisser si on veut
+                document.getElementById("draft-banner")?.classList.remove("hidden");
             } catch (e) {
                 console.error("Erreur restauration brouillon", e);
             }

@@ -27,7 +27,7 @@
     <script defer src="standalone-common.js?v=7"></script>
     <script defer src="admin-banner.js"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=18"></script>
+    <script defer src="post_trip.js?v=19"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -601,10 +601,48 @@
         }
         /* Champ « Date du voyage » : largeur reduite (il etait aussi long que la
            colonne et sortait de son cadre) */
+        .draft-banner {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            padding: 10px 12px; margin-bottom: 10px; border-radius: 12px;
+            border: 1px solid rgba(255, 179, 71, 0.35); background: rgba(255, 179, 71, 0.10);
+            color: #ffd08a; font-size: 0.82rem; line-height: 1.3;
+        }
+        .draft-banner.hidden { display: none; }
+        .draft-banner-clear {
+            flex-shrink: 0; border: 1px solid rgba(255, 179, 71, 0.45);
+            background: rgba(255, 179, 71, 0.15); color: #ffd08a; border-radius: 9px;
+            padding: 6px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+        }
         #date-depart {
             width: 100% !important;
             max-width: 250px;
             min-width: 0;
+        }
+        /* Options du selecteur de devise (le CSS avait disparu lors d'une
+           restructuration : les choix s'affichaient bruts) */
+        #currency-popover { max-height: 260px; overflow-y: auto; }
+        .currency-opt-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            padding: 8px 10px;
+            margin: 0 0 4px;
+            border: 0;
+            border-radius: 9px;
+            background: transparent;
+            color: #f0f7f6;
+            font-size: 0.82rem;
+            text-align: left;
+            cursor: pointer;
+        }
+        .currency-opt-btn:last-child { margin-bottom: 0; }
+        .currency-opt-btn:hover { background: rgba(255, 179, 71, 0.14); }
+        .currency-opt-btn .c-code { flex-shrink: 0; font-weight: 800; color: #ffb347; }
+        .currency-opt-btn .c-name {
+            flex: 1 1 auto; min-width: 0; overflow: hidden;
+            text-overflow: ellipsis; white-space: nowrap;
+            opacity: 0.85; font-size: 0.76rem;
         }
         .colis-row-del:hover {
             color: #ff6b6b;
@@ -929,6 +967,10 @@
 
                 <section class="trip-form-card glass-panel" data-animate>
                     <form class="trip-form" id="trip-form">
+                        <div id="draft-banner" class="draft-banner hidden">
+                            <span>Brouillon restauré — vos informations ont été conservées.</span>
+                            <button type="button" class="draft-banner-clear" id="draft-clear-btn">Effacer</button>
+                        </div>
                         <!-- Barre de progression du wizard -->
                         <div class="wizard-progress" aria-label="Progression">
                             <div class="wp-step active" data-wstep="1"><span class="wp-dot">1</span><span class="wp-label">Voyage</span></div>

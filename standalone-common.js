@@ -686,19 +686,22 @@
 
                 // Validation & règles de transition de profil type (non-regression)
                 if (mappedBody.profile_type !== undefined) {
-                    const currentType = state.user?.profile_type || null;
+                    // Le type ACTUEL est RELU DEPUIS LA BASE (et non depuis l'etat en memoire) :
+                    // sinon un profil non charge / obsolete laissait passer une retrogradation
+                    // silencieuse (ex. cargo -> traveler lors d'une publication d'offre).
+                    let currentType = state.user?.profile_type || null;
+                    try {
+                        const { data: fresh } = await window.ccSupabase
+                            .from('profiles').select('profile_type').eq('id', state.user?.id).single();
+                        if (fresh && fresh.profile_type) currentType = fresh.profile_type;
+                    } catch (e) { /* en cas d'echec on garde la valeur en memoire */ }
                     const nextType = mappedBody.profile_type;
 
-                    // client → traveler/cargo : OK (upgrade)
-                    // traveler → client : NON (downgrade interdit)
-                    // traveler → cargo : OK (upgrade latéral autorisé)
-                    // cargo → client ou traveler : NON (downgrade interdit)
-                    const regression =
-                        (currentType === 'traveler' && nextType === 'client') ||
-                        (currentType === 'cargo' && (nextType === 'client' || nextType === 'traveler'));
-
+                    // Hierarchie metier : client(1) < traveler(2) < cargo(3).
+                    const rank = { client: 1, traveler: 2, cargo: 3 };
+                    const regression = (rank[nextType] || 0) < (rank[currentType] || 0);
                     if (regression) {
-                        console.warn(`Non-regression: passage de ${currentType} vers ${nextType} interdit`);
+                        console.warn(`Non-regression: passage de ${currentType} vers ${nextType} refuse`);
                         delete mappedBody.profile_type;
                     }
                 }
@@ -751,10 +754,10 @@
 
                         const count = activeOffers ? activeOffers.length : 0;
                         if (profileType === 'traveler' && count >= 1) {
-                            throw new Error("Limite de trajet dépassée : En tant que voyageur simple, vous ne pouvez publier qu'un seul trajet actif à la fois.");
+                            throw new Error("Limite atteinte : " + count + " trajet actif compte (un voyageur simple n'en autorise qu'un). Si vous venez de supprimer votre annonce, elle est encore comptee : supprimez-la depuis la liste de vos annonces ou attendez son expiration.");
                         }
                         if (profileType === 'cargo' && count >= 5) {
-                            throw new Error("Limite de trajets dépassée : En tant que cargo, vous ne pouvez pas avoir plus de 5 trajets actifs simultanément.");
+                            throw new Error("Limite atteinte : " + count + " trajets actifs comptes (maximum 5 en cargo).");
                         }
                     }
 
