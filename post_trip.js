@@ -883,6 +883,26 @@
             set("price", offer.price_per_kg ?? "");
             set("price-currency", offer.base_currency || "");
             if (els.notes) els.notes.value = offer.description || "";
+
+            // DEVISE : afficher celle choisie lors de la creation de l'annonce (l'une des
+            // deux devises proposees : pays de depart / pays d'arrivee). Le bouton du
+            // formulaire restait sur "Devise" car seul le champ cache etait rempli.
+            // L'utilisateur peut toujours en choisir une autre : la liste est reconstruite
+            // juste apres par updateCurrencySelector().
+            const devise = String(offer.base_currency || offer.baseCurrency || "").toUpperCase();
+            if (devise) {
+                const inp = document.getElementById("price-currency");
+                if (inp) inp.value = devise;
+                const aff = document.getElementById("current-currency-text");
+                if (aff) aff.textContent = (window.CCCommon && window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(devise) : devise);
+                if (typeof updateCurrencySelector === "function") updateCurrencySelector();
+                // updateCurrencySelector() remet la devise du pays si la valeur courante ne
+                // figure pas dans sa liste : on reimpose celle de l'annonce.
+                const inp2 = document.getElementById("price-currency");
+                if (inp2) inp2.value = devise;
+                const aff2 = document.getElementById("current-currency-text");
+                if (aff2) aff2.textContent = (window.CCCommon && window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(devise) : devise);
+            }
             // Annexe : dates supplementaires (cargo)
             const extras = Array.isArray(offer.extra_dates) ? offer.extra_dates : [];
             if (extras.length && typeof window.ccSetExtraTripDates === "function") {
