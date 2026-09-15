@@ -568,13 +568,289 @@
         }
     }
 
-    function bindModalEvents() {
+function bindModalEvents() {
+        els.currencyToggle = document.getElementById("currency-toggle-btn");
+        els.currencyPopover = document.getElementById("currency-popover");
+        els.currentCurrencyText = document.getElementById("current-currency-text");
+        els.paymentMethodInput = document.getElementById("payment-method");
+        els.paymentQrInput = document.getElementById("payment-qr");
+        els.paymentMethodLabel = document.getElementById("payment-method-label");
+        els.openBtn = document.getElementById("open-payment-method-btn");
+        els.addContactBtn = document.getElementById("addContactBtn");
+        els.modal = document.getElementById("payment-method-modal");
+        els.closeBtn = document.getElementById("close-payment-modal-btn");
+        els.stepChoose = document.getElementById("pm-step-choose");
+        els.stepUpload = document.getElementById("pm-step-upload");
+        els.choicesContainer = document.getElementById("pm-choices-container");
+        els.backBtn = document.getElementById("pm-back-btn");
+        els.uploadTitle = document.getElementById("pm-upload-title");
+        els.indicatifInput = document.getElementById("phonePrefix");
+        els.localNumberInput = document.getElementById("phoneMainNumber");
+        els.confirmBtn = document.getElementById("pm-confirm-btn");
+        els.verifySmsBtn = document.getElementById("pm-verify-sms-btn");
+        els.otpSection = document.getElementById("pm-otp-section");
+        els.otpInput = document.getElementById("pm-otp-code");
+        els.confirmOtpBtn = document.getElementById("pm-confirm-otp-btn");
+        els.publishModal = document.getElementById("publish-success-modal");
+        els.publishOkBtn = document.getElementById("publish-success-ok-btn");
+        els.publishMsg = document.getElementById("publish-success-msg");
+        els.currencyToggle = document.getElementById("currency-toggle-btn");
+        els.currencyPopover = document.getElementById("currency-popover");
+        els.currentCurrencyText = document.getElementById("current-currency-text");
         els.profileTypeModal = document.getElementById("modal-profile-type");
         els.choiceTraveler = document.getElementById("choice-traveler");
         els.choiceCargo = document.getElementById("choice-cargo");
         els.modalTransportMode = document.getElementById("modal-transport-mode");
         els.modalTransportBtns = document.querySelectorAll(".modal-transport-btn");
         els.confirmProfileTypeBtn = document.getElementById("btn-confirm-profile-type");
+
+        // ── Restaure : branchements contact / paiement (avaient ete effaces) ──
+        // Délégation : chaque ligne de contact (fixe ou ajoutée) ouvre la modale ;
+        // le ✕ d'une ligne AJOUTÉE la supprime
+        const rowsBox = document.getElementById("payment-contact-rows");
+        if (rowsBox) {
+            rowsBox.addEventListener("click", (e) => {
+                const del = e.target.closest(".contact-row-del");
+                if (del) {
+                    const row = del.closest(".payment-contact-row");
+                    if (row && !row.querySelector("#open-payment-method-btn")) row.remove();
+                    return;
+                }
+                const btn = e.target.closest(".contact-row-btn");
+                if (btn) {
+                    paymentTrigger = btn;
+                    openModal();
+                }
+            });
+        }
+        // Bouton dynamique "+ Autre numéro" : crée une nouvelle ligne de contact
+        els.addContactBtn?.addEventListener("click", () => {
+            if (!rowsBox) return;
+            const row = document.createElement("div");
+            row.className = "payment-contact-row";
+            row.innerHTML = `
+                <button type="button" class="btn secondary payment-method-btn contact-row-btn">
+                    <span class="pm-label">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        <span>Mon numero de contact</span>
+                    </span>
+                </button>
+                <button type="button" class="colis-row-del contact-row-del" aria-label="Supprimer cette ligne" title="Supprimer cette ligne">✕</button>`;
+            rowsBox.appendChild(row);
+        });
+        els.closeBtn?.addEventListener("click", closeModal);
+        els.modal?.addEventListener("click", (e) => {
+            if (e.target === els.modal) closeModal();
+        });
+        els.backBtn?.addEventListener("click", () => showPmStep("choose"));
+
+        // Validation combinée : sélection indicatif + numéro local
+        const updateVerifyButton = () => {
+            const ind = els.indicatifInput?.value || "";
+            const loc = els.localNumberInput?.value.trim() || "";
+            if (els.verifySmsBtn) {
+                els.verifySmsBtn.disabled = !ind || loc.length < 5;
+            }
+        };
+
+        // Si on change le numéro après l'avoir vérifié, on réinitialise la vérification
+        const resetVerificationIfNeeded = () => {
+            if (!paymentState.isVerified) return;
+            paymentState.isVerified = false;
+            resetOtpControls();
+            if (els.confirmBtn) els.confirmBtn.disabled = true;
+        };
+
+        els.indicatifInput?.addEventListener("change", () => {
+            updateVerifyButton();
+            resetVerificationIfNeeded();
+        });
+        els.localNumberInput?.addEventListener("input", (e) => {
+            updateVerifyButton();
+            resetVerificationIfNeeded();
+        });
+
+        // Click "Vérifier" (SMS)
+        els.verifySmsBtn?.addEventListener("click", async () => {
+            const fullPhone = `${els.indicatifInput.value.trim()}${els.localNumberInput.value.trim()}`;
+            els.verifySmsBtn.disabled = true;
+            els.verifySmsBtn.innerHTML = '<span class="spinner-sm"></span>';
+
+            // Simulation envoi SMS
+            setTimeout(() => {
+                els.verifySmsBtn.innerHTML = "Envoyé ✓";
+                els.verifySmsBtn.style.color = "#ffb347";
+                els.otpSection?.classList.remove("hidden");
+
+                els.indicatifInput.disabled = true;
+                els.localNumberInput.disabled = true;
+
+                els.otpInput.focus();
+                alert(`SIMULATION : Code SMS envoyé au ${fullPhone}\nCode : 123456`);
+            }, 1200);
+        });
+
+        // Click "Valider" (OTP)
+        els.confirmOtpBtn?.addEventListener("click", () => {
+            const code = els.otpInput.value.trim();
+            if (code === "123456") {
+                paymentState.isVerified = true;
+                // Message de succès SANS détruire le champ + bouton OTP.
+                // (L'ancien innerHTML supprimait les contrôles de la section →
+                // pour un 2e numéro, plus aucun champ de code ne s'affichait
+                // et "Enregistrer" restait bloqué.)
+                let status = els.otpSection.querySelector(".pm-otp-success");
+                if (!status) {
+                    status = document.createElement("p");
+                    status.className = "pm-otp-success";
+                    status.style.cssText = "color: #ffb347; font-weight: 700; margin: 0;";
+                    els.otpSection.appendChild(status);
+                }
+                status.textContent = "✓ Numéro vérifié avec succès";
+                const wrap = els.otpSection.querySelector(".otp-input-wrap");
+                if (wrap) wrap.style.display = "none";
+                if (els.confirmBtn) els.confirmBtn.disabled = false;
+            } else {
+                alert("Code invalide. Réessayez avec 123456.");
+            }
+        });
+
+        // Empêcher de placer le curseur avant le '+' au clic
+        els.phoneNumberInput?.addEventListener("click", () => {
+            const prefix = "+";
+            const start = els.phoneNumberInput.selectionStart;
+            if (start < prefix.length) {
+                const len = prefix.length;
+                els.phoneNumberInput.setSelectionRange(len, len);
+            }
+        });
+
+        els.confirmBtn?.addEventListener("click", confirmPaymentMethod);
+
+        // Popup succès : "Voir mes offres" redirige vers les résultats
+        els.publishOkBtn?.addEventListener("click", () => {
+            window.location.href = "results.html";
+        });
+    }
+
+
+    // ═══════ MODULE CONTACT / PAIEMENT — RESTAURE ═══════
+    // Ce module avait ete EFFACE du JS lors d'une refonte : les boutons
+    // « Mon numero de contact » / « + Ajouter un autre contact » et la modale
+    // de saisie du numero ne fonctionnaient plus (le HTML, lui, etait intact).
+
+    function _getDeparture() { return document.getElementById("departure"); }
+
+    function _getDestination() { return document.getElementById("destination"); }
+
+    function openModal() {
+        const dep = _getDeparture();
+        if (!dep?.value) {
+            alert("Veuillez d'abord choisir un pays de départ.");
+            return;
+        }
+        els.modal?.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+
+        // Aller directement à la saisie du numéro
+        selectPaymentProvider("direct_contact", "Contact Direct");
+    }
+
+    function closeModal() {
+        els.modal?.classList.add("hidden");
+        document.body.style.overflow = "";
+    }
+
+    function resetOtpControls() {
+        if (!els.otpSection) return;
+        const wrap = els.otpSection.querySelector(".otp-input-wrap");
+        if (wrap) wrap.style.display = "";
+        els.otpSection.querySelector(".pm-otp-success")?.remove();
+        if (els.otpInput) els.otpInput.value = "";
+        els.otpSection.classList.add("hidden");
+    }
+
+    function selectPaymentProvider(methodId, methodName) {
+        paymentState.selectedMethod = methodId;
+        paymentState.selectedMethodName = methodName;
+        paymentState.isVerified = false; // Reset verification state
+
+        // Titre dynamique
+        if (els.uploadTitle) {
+            els.uploadTitle.textContent = "Votre numéro de contact";
+        }
+
+        // Reset complet : section OTP restaurée + bouton SMS réinitialisé
+        // (sans ça, un 2e numéro gardait l'état "Envoyé ✓" et le vieux message
+        // de succès sans champ de code → impossible de valider)
+        resetOtpControls();
+        if (els.verifySmsBtn) {
+            els.verifySmsBtn.disabled = true;
+            els.verifySmsBtn.innerHTML = "Vérifier";
+            els.verifySmsBtn.style.color = "";
+        }
+
+        if (els.indicatifInput) {
+            els.indicatifInput.disabled = false;
+            els.indicatifInput.selectedIndex = 0;
+        }
+        if (els.localNumberInput) {
+            els.localNumberInput.disabled = false;
+            els.localNumberInput.value = "";
+        }
+
+        setTimeout(() => els.localNumberInput?.focus(), 100);
+
+        if (els.confirmBtn) {
+            els.confirmBtn.disabled = true;
+        }
+
+        showPmStep("upload");
+    }
+
+    function confirmPaymentMethod() {
+        const fullNumber = `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`;
+        paymentState.accountNumber = fullNumber;
+        if (!paymentState.selectedMethod || !paymentState.accountNumber) return;
+
+        // Store in hidden fields
+        if (els.paymentMethodInput) els.paymentMethodInput.value = paymentState.selectedMethod;
+        if (els.paymentQrInput) els.paymentQrInput.value = paymentState.accountNumber;
+
+        // Met à jour le label du bouton qui a ouvert la modale (1er ou 2e)
+        const labelEl = paymentTrigger
+            ? paymentTrigger.querySelector(".pm-label")
+            : els.paymentMethodLabel;
+        if (labelEl) {
+            const displayCode = els.indicatifInput?.value || "";
+            const displayLocal = els.localNumberInput?.value || "";
+            labelEl.innerHTML = `📞 Contact : <strong>${displayCode}</strong> ${displayLocal}`;
+        }
+        closeModal();
+    }
+
+    async function fetchAvailableMethods(country) {
+        try {
+            const data = await window.CCCommon.api(`/api/payments/methods?country=${encodeURIComponent(country)}`);
+            return data;
+        } catch (err) {
+            console.error("Erreur découverte réseaux:", err);
+            return { status: "fallback", methods: [{ id: "bank", name: "Virement" }] };
+        }
+    }
+
+    async function renderDynamicPaymentChoices() {
+        return;
+    }
+
+    function showPmStep(step) {
+        if (step === "choose") {
+            els.stepChoose?.classList.remove("hidden");
+            els.stepUpload?.classList.add("hidden");
+        } else {
+            els.stepChoose?.classList.add("hidden");
+            els.stepUpload?.classList.remove("hidden");
+        }
     }
 
     function bindEvents() {

@@ -756,10 +756,10 @@
 
                         const count = activeOffers ? activeOffers.length : 0;
                         if (profileType === 'traveler' && count >= 1) {
-                            throw new Error("Limite de trajet dépassée : En tant que voyageur simple, vous ne pouvez publier qu'un seul trajet actif à la fois.");
+                            throw new Error(`Limite atteinte : ${count} trajet actif compte (un voyageur simple n'en autorise qu'un). Si vous venez de supprimer votre annonce, elle est encore comptee : supprimez-la depuis la liste de vos annonces ou attendez son expiration.`);
                         }
                         if (profileType === 'cargo' && count >= 5) {
-                            throw new Error("Limite de trajets dépassée : En tant que cargo, vous ne pouvez pas avoir plus de 5 trajets actifs simultanément.");
+                            throw new Error(`Limite atteinte : ${count} trajets actifs comptes (maximum 5 en cargo).`);
                         }
                     }
 
