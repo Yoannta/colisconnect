@@ -932,6 +932,15 @@
             const supabase = window.ccSupabase;
             const uid = window.CCCommon.state?.user?.id;
             try {
+                // FILET DE SECURITE : si la session n'est plus valide, la base refusera
+                // toute ecriture. On previent clairement l'utilisateur au lieu d'afficher
+                // une erreur incomprehensible ("annonce introuvable").
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) {
+                    alert("Ta session a expire. Reconnecte-toi pour pouvoir supprimer ton annonce.");
+                    window.location.href = "auth.html";
+                    return;
+                }
                 // Suppression via une fonction de la base. Elle est SECURISEE : elle
                 // n'accepte aucun identifiant d'utilisateur du client, elle utilise
                 // l'identite reelle de la session (auth.uid()) et n'agit que sur ses
