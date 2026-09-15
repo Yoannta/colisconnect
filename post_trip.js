@@ -477,9 +477,25 @@
         if (labelEl) {
             const displayCode = els.indicatifInput?.value || "";
             const displayLocal = els.localNumberInput?.value || "";
-            labelEl.innerHTML = `📞 Contact : <strong>${displayCode}</strong> ${displayLocal}`;
+            const box = document.getElementById("payment-contact-rows");
+            const firstRow = box ? box.querySelector(".payment-contact-row") : null;
+            const isSecond = !!paymentTrigger && !!firstRow
+                && paymentTrigger.closest(".payment-contact-row") !== firstRow;
+            labelEl.innerHTML = `📞 ${isSecond ? "2e contact" : "Contact"} : <strong>${displayCode}</strong> ${displayLocal}`;
         }
         closeModal();
+    }
+
+    // Plafond : 2 contacts maximum. Le bouton "+ Ajouter un autre numero" disparait
+    // des que la 2e ligne existe, et revient si on supprime cette 2e ligne.
+    function syncAddContactBtn() {
+        const box = document.getElementById("payment-contact-rows");
+        if (!box || !els.addContactBtn) return;
+        if (box.querySelectorAll(".payment-contact-row").length >= 2) {
+            els.addContactBtn.classList.add("hidden");
+        } else {
+            els.addContactBtn.classList.remove("hidden");
+        }
     }
 
     function bindModalEvents() {
@@ -491,7 +507,10 @@
                 const del = e.target.closest(".contact-row-del");
                 if (del) {
                     const row = del.closest(".payment-contact-row");
-                    if (row && !row.querySelector("#open-payment-method-btn")) row.remove();
+                    if (row && !row.querySelector("#open-payment-method-btn")) {
+                        row.remove();
+                        syncAddContactBtn();
+                    }
                     return;
                 }
                 const btn = e.target.closest(".contact-row-btn");
@@ -504,6 +523,8 @@
         // Bouton dynamique "+ Autre numéro" : crée une nouvelle ligne de contact
         els.addContactBtn?.addEventListener("click", () => {
             if (!rowsBox) return;
+            // Plafond dur : 2 contacts maximum (le bouton est aussi masque a 2 lignes)
+            if (rowsBox.querySelectorAll(".payment-contact-row").length >= 2) return;
             const row = document.createElement("div");
             row.className = "payment-contact-row";
             row.innerHTML = `
@@ -515,6 +536,7 @@
                 </button>
                 <button type="button" class="colis-row-del contact-row-del" aria-label="Supprimer cette ligne" title="Supprimer cette ligne">✕</button>`;
             rowsBox.appendChild(row);
+            syncAddContactBtn();
         });
         els.closeBtn?.addEventListener("click", closeModal);
         els.modal?.addEventListener("click", (e) => {

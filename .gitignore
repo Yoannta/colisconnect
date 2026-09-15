@@ -38,6 +38,7 @@ _probe-*
 test-results/
 playwright-report/
 diag-*.png
+cap-*.png
 contact-modif*.png
 
 # Notes internes du projet (a voir plus tard) - restent en local, pas sur le depot public
