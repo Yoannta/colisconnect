@@ -966,9 +966,9 @@
                         // Trajet : le formulaire de publication (post_trip.html) n'a pas encore
                         // de mode édition -> on garde le tableau de bord pour l'instant
                         // (l'unification post_trip ↔ dashboard est l'étape suivante).
-                        if (typeof window.openOfferEditor === "function") {
-                            window.openOfferEditor(ownOfferId);
-                        }
+                        // On ouvre LE formulaire officiel de publication en mode modification
+                        // (aucune copie => aucun ecart avec la page post_trip).
+                        window.location.href = "post_trip.html?editOffer=" + encodeURIComponent(ownOfferId);
                     }
                     return;
                 }
@@ -1027,149 +1027,6 @@
         togglePill("pill-urgent", "filterUrgent");
 
     
-    // ═══ MODIFICATION DE TRAJET (meme fonctionnement que la modification de demande :
-    //     la fenetre s'ouvre directement sur cette page, plus de redirection dashboard) ═══
-    let editingOfferId = null;
-
-    function editTripFeedback(msg, isError) {
-        const el = document.getElementById("edit-trip-feedback");
-        if (!el) return;
-        el.textContent = msg || "";
-        el.classList.toggle("hidden", !msg);
-        el.style.color = isError ? "#ff8b7a" : "#8ef0b8";
-    }
-
-    window.openOfferEditor = (offerId) => {
-        const offer = (state.offers || []).find((o) => String(o.id) === String(offerId));
-        if (!offer) { alert("Trajet introuvable. Rechargez la page puis reessayez."); return; }
-        editingOfferId = offer.id;
-
-        // Autocompletion des pays (meme source que le reste du site)
-        const dl = document.getElementById("edit-trip-country-list");
-        if (dl && !dl.children.length) {
-            (window.CCCommon?.COUNTRY_OPTIONS || []).forEach((c) => {
-                const opt = document.createElement("option");
-                opt.value = c;
-                dl.appendChild(opt);
-            });
-        }
-        const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = (v === null || v === undefined) ? "" : v; };
-        set("edit-trip-origin", offer.origin);
-        set("edit-trip-city-origin", offer.city_origin || offer.cityDeparture || "");
-        set("edit-trip-destination", offer.destination);
-        set("edit-trip-city-destination", offer.city_destination || offer.cityDestination || "");
-        set("edit-trip-date", String(offer.departure_date || offer.departureDate || "").slice(0, 10));
-        set("edit-trip-kg", offer.available_kg ?? offer.availableKg ?? "");
-        set("edit-trip-price", offer.price_per_kg ?? offer.pricePerKg ?? "");
-        set("edit-trip-notes", offer.description || "");
-        editTripFeedback("");
-
-        // ── Memes composants que le formulaire de publication ───────────────────
-        // Villes : autocompletion liee au pays (sinon on devait tout taper a la main)
-        try {
-            const setup = window.CCCommon?.setupCityAutocomplete;
-            if (typeof setup === "function") {
-                setup(document.getElementById("edit-trip-city-origin"), document.getElementById("edit-trip-origin"));
-                setup(document.getElementById("edit-trip-city-destination"), document.getElementById("edit-trip-destination"));
-            }
-        } catch (e) { console.warn("Autocompletion villes indisponible:", e); }
-
-        // Devise : liste deroulante (memes devises que la publication)
-        try {
-            const sel = document.getElementById("edit-trip-currency");
-            if (sel && !sel.dataset.filled) {
-                const devises = Array.from(new Set(Object.values(window.CCCommon?.COUNTRY_CURRENCIES || {}))).sort();
-                sel.innerHTML = devises.map((c) =>
-                    '<option value="' + c + '">' + c + ' \u2014 ' + (window.CCCommon?.currencyName?.(c) || c) + '</option>'
-                ).join("");
-                sel.dataset.filled = "1";
-            }
-            // Selection de la devise de l'annonce (apres remplissage de la liste)
-            const curVal = String(offer.base_currency || offer.baseCurrency || window.CCCommon?.getUserCurrency?.() || "").toUpperCase();
-            if (sel && curVal) {
-                if (!Array.from(sel.options).some((o) => o.value === curVal)) {
-                    const opt = document.createElement("option");
-                    opt.value = curVal; opt.textContent = curVal;
-                    sel.appendChild(opt);
-                }
-                sel.value = curVal;
-            }
-        } catch (e) { console.warn("Liste des devises indisponible:", e); }
-        document.getElementById("edit-trip-modal")?.classList.remove("hidden");
-    };
-
-    function closeOfferEditor() {
-        document.getElementById("edit-trip-modal")?.classList.add("hidden");
-        editingOfferId = null;
-    }
-
-    async function saveOfferEditsFromPage(event) {
-        event.preventDefault();
-        if (!editingOfferId) return;
-        const supabase = window.ccSupabase;
-        if (!supabase) { editTripFeedback("Connexion indisponible.", true); return; }
-
-        const val = (id) => String(document.getElementById(id)?.value || "").trim();
-        const origin = val("edit-trip-origin");
-        const destination = val("edit-trip-destination");
-        const date = val("edit-trip-date");
-        if (!origin || !destination || !date) {
-            editTripFeedback("Renseignez le pays de depart, le pays d'arrivee et la date.", true);
-            return;
-        }
-        const kg = Number(val("edit-trip-kg") || 0);
-        if (kg <= 0) { editTripFeedback("Indiquez un nombre de kilos valide.", true); return; }
-
-        const btn = document.getElementById("save-edit-trip");
-        if (btn) { btn.disabled = true; btn.textContent = "Enregistrement..."; }
-        try {
-            const body = {
-                origin: origin,
-                destination: destination,
-                city_origin: val("edit-trip-city-origin"),
-                city_destination: val("edit-trip-city-destination"),
-                departure_date: date,
-                available_kg: kg,
-                price_per_kg: Number(val("edit-trip-price") || 0),
-                base_currency: (val("edit-trip-currency") || "EUR").toUpperCase(),
-                description: val("edit-trip-notes") || null,
-                title: "Trajet " + origin + " -> " + destination,
-                updated_at: new Date().toISOString()
-            };
-            // Codes pays : sans eux le drapeau resterait celui de l'ancien pays
-            try {
-                if (typeof window.CCCommon._getCountryCode === "function") {
-                    const codes = await Promise.all([
-                        window.CCCommon._getCountryCode(origin),
-                        window.CCCommon._getCountryCode(destination)
-                    ]);
-                    if (codes[0]) body.origin_country_code = String(codes[0]).toUpperCase();
-                    if (codes[1]) body.destination_country_code = String(codes[1]).toUpperCase();
-                }
-            } catch (e) { /* drapeau inchange si la resolution echoue */ }
-
-            const res = await supabase.from("offers").update(body).eq("id", editingOfferId).select("id");
-            if (res.error) throw res.error;
-            if (!res.data || !res.data.length) {
-                throw new Error("Modification non enregistree : la base n'a mis a jour aucune ligne (session expiree ?).");
-            }
-            editTripFeedback("Trajet mis a jour.", false);
-            closeOfferEditor();
-            // Rafraichir la liste affichee
-            try { await loadOffers(); } catch (e) { window.location.reload(); }
-        } catch (err) {
-            editTripFeedback(err.message || "Modification impossible.", true);
-        } finally {
-            if (btn) { btn.disabled = false; btn.textContent = "Enregistrer"; }
-        }
-    }
-
-    document.getElementById("edit-trip-form")?.addEventListener("submit", saveOfferEditsFromPage);
-    document.getElementById("close-edit-trip-modal")?.addEventListener("click", closeOfferEditor);
-    document.getElementById("cancel-edit-trip")?.addEventListener("click", closeOfferEditor);
-    document.getElementById("edit-trip-modal")?.addEventListener("click", (e) => {
-        if (e.target === document.getElementById("edit-trip-modal")) closeOfferEditor();
-    });
 
 }
 

@@ -540,7 +540,9 @@
             return;
         }
 
-        if (!paymentState.selectedMethod || !paymentState.accountNumber) {
+        // En MODIFICATION, le contact est deja enregistre : on ne le redemande pas
+        // (sinon l'enregistrement serait bloque a chaque modification).
+        if (!editingOfferId && (!paymentState.selectedMethod || !paymentState.accountNumber)) {
             alert("Veuillez choisir un moyen de paiement et fournir votre numéro de compte.");
             openModal();
             return;
@@ -685,6 +687,13 @@
             refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : ""
         };
 
+        // En modification, si aucun nouveau contact n'a ete saisi, on conserve celui
+        // de l'annonce (sinon on l'effacerait en enregistrant).
+        if (editingOfferId && !paymentState.selectedMethod) {
+            delete payload.paymentMethod;
+            delete payload.paymentQr;
+        }
+
         const submitBtn = els.form?.querySelector("button[type='submit']");
         const initialText = submitBtn?.textContent || "Publier mon trajet";
 
@@ -700,10 +709,37 @@
             const uniqueDates = Array.from(new Set(
                 tripDates.map((s) => String(s || "").trim()).filter(Boolean)
             )).sort(); // ISO aaaa-mm-jj : tri lexicographique = tri chronologique
-            const created = await window.CCCommon.api("/api/offers", {
-                method: "POST",
-                body: { ...payload, departureDate: uniqueDates[0], extraDates: uniqueDates.slice(1) }
-            });
+            // ── ENREGISTREMENT ────────────────────────────────────────────────
+            // Si on arrive par « Modifier mon trajet » (post_trip.html?editOffer=...),
+            // on MET A JOUR l'annonce existante. Sinon : publication normale.
+            // On reutilise LE formulaire officiel -> aucun ecart avec la publication.
+            const fullPayload = { ...payload, departureDate: uniqueDates[0], extraDates: uniqueDates.slice(1) };
+            let created;
+            if (editingOfferId) {
+                // Le payload est en camelCase (API) : on le traduit vers les colonnes reelles
+                const MAP = {
+                    availableKg: "available_kg", pricePerKg: "price_per_kg",
+                    departureDate: "departure_date", extraDates: "extra_dates",
+                    baseCurrency: "base_currency", paymentMethod: "payment_method",
+                    paymentQr: "payment_qr", referralCode: "referral_code",
+                    cityDeparture: "city_origin", cityDestination: "city_destination",
+                    originCountryCode: "origin_country_code", destCountryCode: "destination_country_code"
+                };
+                const bodyUpdate = {};
+                Object.keys(fullPayload).forEach((k) => {
+                    if (fullPayload[k] === undefined) return;
+                    bodyUpdate[MAP[k] || k] = fullPayload[k];
+                });
+                bodyUpdate.updated_at = new Date().toISOString();
+                const res = await window.ccSupabase.from("offers").update(bodyUpdate).eq("id", editingOfferId).select("id");
+                if (res.error) throw res.error;
+                if (!res.data || !res.data.length) {
+                    throw new Error("Modification non enregistree : la base n'a mis a jour aucune ligne (session expiree ?).");
+                }
+                created = { item: { id: editingOfferId } };
+            } else {
+                created = await window.CCCommon.api("/api/offers", { method: "POST", body: fullPayload });
+            }
 
             // Mise à jour du profil APRÈS publication réussie
             if (selectedProfileTypeChoice) {
@@ -750,6 +786,72 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = initialText;
             }
+        }
+    }
+
+
+    // ═══════ MODE MODIFICATION D'UNE ANNONCE (post_trip.html?editOffer=<id>) ═══════
+    // On reutilise TEL QUEL le formulaire officiel de publication : memes champs, meme
+    // selecteur de devise, memes villes, memes prix speciaux. Aucune copie => aucune
+    // divergence possible avec la publication (contrairement a une fenetre recopiee).
+    const EDIT_OFFER_ID = new URLSearchParams(window.location.search).get("editOffer");
+    let editingOfferId = null;
+
+    async function initEditMode() {
+        if (!EDIT_OFFER_ID) return;
+        try {
+            // Les champs pays/villes sont construits par le composant partage : on attend
+            // qu'ils soient presents avant de remplir.
+            for (let i = 0; i < 50 && !document.getElementById("departure"); i++) {
+                await new Promise((r) => setTimeout(r, 100));
+            }
+            if (!window.ccSupabase) return;
+            const res = await window.ccSupabase.from("offers").select("*").eq("id", Number(EDIT_OFFER_ID)).maybeSingle();
+            if (res.error) throw res.error;
+            const offer = res.data;
+            if (!offer) { alert("Annonce introuvable."); return; }
+            editingOfferId = offer.id;
+
+            const set = (id, v) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.value = (v === null || v === undefined) ? "" : v;
+                el.dispatchEvent(new Event("change", { bubbles: true }));
+            };
+            set("departure", offer.origin);
+            set("city-departure", offer.city_origin || "");
+            set("destination", offer.destination);
+            set("city-destination", offer.city_destination || "");
+            set("date-depart", String(offer.departure_date || "").slice(0, 10));
+            set("kilos", offer.available_kg ?? "");
+            set("price", offer.price_per_kg ?? "");
+            set("price-currency", offer.base_currency || "");
+            if (els.notes) els.notes.value = offer.description || "";
+
+            // Mode de transport (cargo) : on coche le bouton correspondant
+            if (offer.mode) {
+                selectedTransportMode = offer.mode;
+                document.querySelectorAll(".modal-transport-btn, .transport-mode-btn").forEach((btn) => {
+                    const val = btn.dataset.mode || btn.dataset.value || "";
+                    btn.classList.toggle("selected", String(val) === String(offer.mode));
+                });
+            }
+            // Type d'annonce (voyageur / cargo) : deduit du mode enregistre
+            selectedProfileTypeChoice = offer.mode ? "cargo" : "traveler";
+
+            // Textes de la page
+            document.querySelectorAll("h1").forEach((h) => {
+                if (/publi/i.test(h.textContent || "")) h.textContent = "Modifier mon trajet";
+            });
+            const submitBtn = document.getElementById("trip-form")?.querySelector("button[type='submit']");
+            if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
+            const banner = document.getElementById("draft-banner");
+            if (banner) banner.classList.add("hidden");
+
+            console.log("✅ Mode modification : annonce", editingOfferId, "chargee");
+        } catch (e) {
+            console.error("Chargement de l'annonce impossible:", e);
+            alert("Impossible de charger cette annonce pour modification : " + (e.message || e));
         }
     }
 
@@ -1148,7 +1250,13 @@
     }
 
     async function bootstrap() {
+        // En modification : le brouillon local est ignore (il ecraserait les valeurs de
+        // l'annonce en cours de modification).
+        if (EDIT_OFFER_ID) { try { localStorage.removeItem("cc_trip_draft"); } catch (e) { } }
         await window.CCCommon.init("post_trip");
+        // initEditMode APRES l'init : les champs pays/villes doivent exister avant
+        // d'etre pre-remplis.
+        await initEditMode();
 
         // Restauration du brouillon si présent
         const saved = localStorage.getItem("cc_trip_draft");

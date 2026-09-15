@@ -300,7 +300,7 @@
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=45"></script>
+    <script defer src="results.js?v=46"></script>
 
 </head>
 
@@ -529,62 +529,6 @@
     </script>
 
 
-    <!-- MODALE MODIFICATION DE TRAJET : meme fonctionnement que la modale de demande
-         (edition sur place, sans redirection vers le dashboard) -->
-    <div id="edit-trip-modal" class="modal hidden" role="dialog" aria-modal="true">
-        <div class="modal-card demande-modal-card">
-            <button class="close-modal" id="close-edit-trip-modal" type="button">x</button>
-            <div id="edit-trip-content">
-                <h2 id="edit-trip-title" style="margin:0 0 8px 0;font-size:22px;font-weight:700;">Modifier mon trajet</h2>
-                <p class="demande-subtitle">Mettez a jour les informations de votre trajet.</p>
-                <form class="demande-form" id="edit-trip-form" novalidate>
-                    <div class="demande-field">
-                        <label for="edit-trip-origin">Pays de depart</label>
-                        <input type="text" id="edit-trip-origin" class="demande-input" list="edit-trip-country-list" placeholder="Ex: France" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-city-origin">Ville de depart</label>
-                        <input type="text" id="edit-trip-city-origin" class="demande-input" placeholder="Ex: Paris" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-destination">Pays d'arrivee</label>
-                        <input type="text" id="edit-trip-destination" class="demande-input" list="edit-trip-country-list" placeholder="Ex: Senegal" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-city-destination">Ville d'arrivee</label>
-                        <input type="text" id="edit-trip-city-destination" class="demande-input" placeholder="Ex: Dakar" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-date">Date de depart</label>
-                        <input type="date" id="edit-trip-date" class="demande-input">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-kg">Kilos disponibles</label>
-                        <input type="number" id="edit-trip-kg" class="demande-input" min="1" placeholder="Ex: 25">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-price">Prix par kilo</label>
-                        <input type="number" id="edit-trip-price" class="demande-input" min="0" step="0.01" placeholder="Ex: 8">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-currency">Devise</label>
-                        <select id="edit-trip-currency" class="demande-input"></select>
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-trip-notes">Description (optionnel)</label>
-                        <textarea id="edit-trip-notes" class="demande-input" rows="3" placeholder="Precisions sur votre trajet..."></textarea>
-                    </div>
-                    <div id="edit-trip-feedback" class="demande-feedback hidden"></div>
-                    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
-                        <button type="button" class="btn secondary" id="cancel-edit-trip">Annuler</button>
-                        <button type="submit" class="btn primary" id="save-edit-trip">Enregistrer</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <datalist id="edit-trip-country-list"></datalist>
 
     <!-- MODALE DEMANDE DE TRAJET -->
     <div id="demande-trajet-modal" class="modal hidden" role="dialog" aria-modal="true">
