@@ -525,6 +525,23 @@
             title: `Trajet ${String(els.offerOrigin?.value || "").trim()} -> ${String(els.offerDestination?.value || "").trim()}`
         };
 
+        // CODES PAYS : le drapeau affiche sur les cartes est construit a partir du code
+        // ISO enregistre dans l'offre (origin_country_code / destination_country_code).
+        // L'edition mettait bien a jour le NOM du pays mais pas son code : le drapeau
+        // restait donc celui de l'ancien pays. On resout les codes ici.
+        try {
+            if (typeof window.CCCommon._getCountryCode === "function") {
+                const [codeDepart, codeArrivee] = await Promise.all([
+                    window.CCCommon._getCountryCode(payload.origin),
+                    window.CCCommon._getCountryCode(payload.destination)
+                ]);
+                if (codeDepart) payload.origin_country_code = String(codeDepart).toUpperCase();
+                if (codeArrivee) payload.destination_country_code = String(codeArrivee).toUpperCase();
+            }
+        } catch (e) {
+            console.warn("Codes pays non resolus (le drapeau peut rester inchange):", e);
+        }
+
         if (!payload.origin || !payload.destination || !payload.departure_date) {
             setFeedback("Remplis le depart, l'arrivee et la date.", true);
             return;
