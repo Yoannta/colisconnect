@@ -6058,6 +6058,94 @@ input[data-country-select="true"]::placeholder {
     gap: 8px;
 }
 
+/* ===== Client : panneaux en bouton deroulant (accordeon) ===== */
+.dashboard-page .client-acc-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--d-surface-1);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--emerald-bright);
+    font: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.dashboard-page .client-acc-toggle:hover {
+    background: var(--d-surface-2);
+    border-color: rgba(255, 179, 71, 0.35);
+}
+
+.dashboard-page .client-acc-toggle:active {
+    transform: translateY(1px);
+}
+
+.dashboard-page .client-acc-toggle:focus-visible {
+    outline: 2px solid var(--emerald-bright);
+    outline-offset: 2px;
+}
+
+.dashboard-page .client-acc-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-page .client-acc-chevron {
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.dashboard-page .dashboard-panel.is-open .client-acc-chevron {
+    transform: rotate(180deg);
+}
+
+.dashboard-page .client-acc-body {
+    margin-top: 14px;
+}
+
+.dashboard-page .client-acc-body[hidden] {
+    display: none;
+}
+
+/* Panneau replie : il se reduit a son bouton (plus de boite vide de 280px) */
+.dashboard-page .client-grid {
+    align-items: start;
+}
+
+.dashboard-page .client-grid .dashboard-panel:not(.is-open) {
+    min-height: 0;
+}
+
+.dashboard-page .client-acc-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.dashboard-page .client-acc-body:not([hidden]) {
+    animation: cc-acc-open 0.25s ease;
+}
+
+@keyframes cc-acc-open {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-page .client-acc-body:not([hidden]) { animation: none; }
+    .dashboard-page .client-acc-chevron { transition: none; }
+}
 .dashboard-page .client-plus-btn {
     width: 28px;
     height: 28px;
@@ -7189,6 +7277,15 @@ input[data-country-select="true"]::placeholder {
 
     .mobile-mode .dashboard-page .panel-head-right {
         gap: 6px;
+    }
+    .mobile-mode .dashboard-page .client-acc-toggle {
+        padding: 10px;
+        font-size: 0.98rem;
+    }
+
+    .mobile-mode .dashboard-page .client-acc-actions {
+        gap: 6px;
+        margin-bottom: 10px;
     }
 
     .mobile-mode .dashboard-page .cargo-see-all-btn,

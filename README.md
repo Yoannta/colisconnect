@@ -1280,3 +1280,14 @@ Si tu ouvres une nouvelle session et que tu dois reprendre le travail :
 ### 🔄 Cache-bust
 - `dashboard.js?v=18`, `style.css?v=53`
 
+
+### 🪗 Dashboard chercheur : sections en bouton déroulant
+- « Mes demandes de trajet » et « Mes discussions en cours » ne s'affichent plus directement : chaque panneau est replié par défaut
+  derrière un bouton cliquable (titre + flèche, `aria-expanded` / `aria-controls`)
+- Au clic : déroulé de la liste complète avec les mêmes actions par ligne (demandes → Modifier / Supprimer ; discussions → Voir)
+  plus la ligne d'actions du panneau (« Voir tous », « Nouvelle demande ») dans la partie dépliée
+- Sensation de cliquable : survol (fond + bordure), appui, focus clavier, flèche qui pivote à 180°, animation d'ouverture
+  (désactivée si `prefers-reduced-motion`)
+- Panneau replié : hauteur réduite à son bouton (plus de boîte vide de 280px) ; `align-items: start` sur `.client-grid`
+- `setupClientAccordions()` est câblée AVANT le garde `requireAuth()` (sinon jamais câblée quand le visiteur n'est pas connecté)
+- Cache-bust : `dashboard.js?v=19`, `style.css?v=54`

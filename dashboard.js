@@ -315,6 +315,22 @@
         }).join("");
     }
 
+    // ===== PANNEAUX ACCORDEON (dashboard chercheur) =====
+    // Bouton deroulant : le contenu reste cache tant que le client n'a pas clique.
+    function setupClientAccordions() {
+        document.querySelectorAll("[data-accordion-toggle]").forEach((btn) => {
+            if (btn.dataset.accordionReady === "1") return;
+            const body = document.getElementById(btn.getAttribute("aria-controls") || "");
+            if (!body) return;
+            btn.dataset.accordionReady = "1";
+            btn.addEventListener("click", () => {
+                const willOpen = btn.getAttribute("aria-expanded") !== "true";
+                btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
+                body.hidden = !willOpen;
+                btn.closest(".dashboard-panel")?.classList.toggle("is-open", willOpen);
+            });
+        });
+    }
     function switchDashboardView(profileType) {
         const isTraveler = profileType === "traveler";
         const isCargo = profileType === "cargo";
@@ -1278,6 +1294,11 @@
 
     async function bootstrap() {
         await window.CCCommon.init("dashboard");
+
+        // Boutons deroulants : UI pure, cablee AVANT le garde d'auth
+        // (bootstrap s'arrete sur requireAuth : sinon jamais cable pour un visiteur).
+        setupClientAccordions();
+
         if (!window.CCCommon.requireAuth("dashboard.html")) return;
 
         const user = window.CCCommon.state.user;

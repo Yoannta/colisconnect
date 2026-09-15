@@ -19,7 +19,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=53">
+    <link rel="stylesheet" href="style.css?v=54">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
@@ -29,7 +29,7 @@
 
     <script defer src="standalone-common.js?v=16"></script>
     <script defer src="admin-banner.js"></script>
-    <script defer src="dashboard.js?v=18"></script>
+    <script defer src="dashboard.js?v=19"></script>
 </head>
 
 <body class="dashboard-page">
@@ -156,28 +156,36 @@
 
             <div class="client-grid">
                 <article class="dashboard-panel client-requests-panel">
-                    <div class="panel-head">
-                        <h3>Mes demandes de trajet</h3>
-                        <div class="panel-head-right">
+                    <button class="client-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="client-requests-body">
+                        <span class="client-acc-title">Mes demandes de trajet</span>
+                        <svg class="client-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="client-acc-body" id="client-requests-body" hidden>
+                        <div class="client-acc-actions">
                             <button class="cargo-see-all-btn" id="client-voir-tous-propositions">Voir tous</button>
                             <button class="client-plus-btn action-plus-btn" title="Nouvelle demande">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                 <span>Nouvelle demande</span>
                             </button>
                         </div>
-                    </div>
-                    <div id="client-requests-list" class="client-request-list">
-                        <div class="loading-state">Chargement...</div>
+                        <div id="client-requests-list" class="client-request-list">
+                            <div class="loading-state">Chargement...</div>
+                        </div>
                     </div>
                 </article>
 
                 <section class="dashboard-panel client-discussions-panel">
-                    <div class="panel-head">
-                        <h3>Mes discussions en cours</h3>
-                        <button class="cargo-see-all-btn" id="client-voir-tous-discussions">Voir tous</button>
-                    </div>
-                    <div id="client-discussions-list" class="client-discussion-list">
-                        <div class="loading-state">Chargement...</div>
+                    <button class="client-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="client-discussions-body">
+                        <span class="client-acc-title">Mes discussions en cours</span>
+                        <svg class="client-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="client-acc-body" id="client-discussions-body" hidden>
+                        <div class="client-acc-actions">
+                            <button class="cargo-see-all-btn" id="client-voir-tous-discussions">Voir tous</button>
+                        </div>
+                        <div id="client-discussions-list" class="client-discussion-list">
+                            <div class="loading-state">Chargement...</div>
+                        </div>
                     </div>
                 </section>
             </div>
