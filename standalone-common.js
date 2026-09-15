@@ -739,12 +739,25 @@
                     return { success: true };
                 }
                 if (options.method === "POST") {
-                    // Le type a verifier est celui de l'OFFRE EN COURS de publication
-                    // (parametre ?type=traveler|cargo), PAS le profil du compte :
-                    // publier une offre cargo ne doit pas etre bloque par une offre voyageur
-                    // deja active (ni l'inverse). Les deux types sont comptes separement.
-                    const _paramsCL = new URLSearchParams((p.split("?")[1]) || "");
-                    const wantCargo = String(_paramsCL.get("type") || "").toLowerCase() === "cargo";
+                    // Type de l'offre EN COURS de publication = le choix explicite fait dans
+                    // le formulaire (body.profileType) ; a defaut, un mode de transport
+                    // renseigne vaut cargo. NE PAS se baser sur le profil du compte : une
+                    // offre voyageur active bloquait la publication d'une offre cargo.
+                    const _bodyCL = options.body || {};
+                    const wantCargo = String(_bodyCL.profileType || "").toLowerCase() === "cargo"
+                        || String(_bodyCL.mode || "").trim() !== "";
+
+                    // Classement d'une offre EXISTANTE d'apres son champ mode :
+                    //   vide                        -> voyageur
+                    //   'traveler'/'voyageur'/'simple' -> voyageur (ancien bug : le type de
+                    //                                 profil etait ecrit dans mode)
+                    //   avion / bateau / les_deux ...  -> cargo
+                    const _isCargoOffer = (o) => {
+                        const m = String(o.mode || "").trim().toLowerCase();
+                        if (m === "" || m === "traveler" || m === "voyageur" || m === "simple") return false;
+                        return true;
+                    };
+
                     const today = new Date().toISOString().split('T')[0];
                     const { data: activeOffers, error: activeErr } = await window.ccSupabase.from('offers')
                         .select('id, mode')
@@ -753,16 +766,13 @@
                         .gte('departure_date', today);
                     if (activeErr) throw activeErr;
 
-                    // Separation stricte : mode vide = offre voyageur, mode renseigne = cargo
-                    const count = (activeOffers || []).filter(
-                        (o) => (String(o.mode || "").trim() !== "") === wantCargo
-                    ).length;
+                    const count = (activeOffers || []).filter((o) => _isCargoOffer(o) === wantCargo).length;
 
                     if (!wantCargo && count >= 1) {
-                        throw new Error("Limite atteinte : " + count + " offre voyageur active (maximum 1 pour un voyageur simple). Les offres cargo ne sont pas comptees ici.");
+                        throw new Error("Limite atteinte : " + count + " offre(s) voyageur active(s) (maximum 1 pour un voyageur simple). Les offres cargo ne sont pas comptees ici.");
                     }
                     if (wantCargo && count >= 5) {
-                        throw new Error("Limite atteinte : " + count + " offres cargo actives (maximum 5).");
+                        throw new Error("Limite atteinte : " + count + " offre(s) cargo active(s) (maximum 5).");
                     }
 
                     const mapping = {
