@@ -149,13 +149,13 @@
         if (!els.profileTypeBadge) return;
         const label = getProfileTypeLabel(user);
         if (!label || label === "Non défini") {
-            els.profileTypeBadge.classList.add("hidden");
+            els.profileTypeBadge?.classList.add("hidden");
             return;
         }
-        els.profileTypeBadge.classList.remove("hidden");
-        els.profileTypeBadge.textContent = label;
-        els.profileTypeBadge.classList.remove("accent-traveler", "accent-cargo", "accent-client", "accent-none");
-        els.profileTypeBadge.classList.add(getProfileTypeClass(user));
+        els.profileTypeBadge?.classList.remove("hidden");
+        if (els.profileTypeBadge) els.profileTypeBadge.textContent = label;
+        els.profileTypeBadge?.classList.remove("accent-traveler", "accent-cargo", "accent-client", "accent-none");
+        els.profileTypeBadge?.classList.add(getProfileTypeClass(user));
     }
 
     function renderStats(offer, requests) {
@@ -225,7 +225,7 @@
             </div>`;
 
         if (els.quickSummaryText) {
-            els.quickSummaryText.textContent = `${getRouteLabel(offer)} | ${formatDateLong(offer.departureDate || offer.departure_date)} | ${remainingKg} kg restants`;
+            if (els.quickSummaryText) els.quickSummaryText.textContent = `${getRouteLabel(offer)} | ${formatDateLong(offer.departureDate || offer.departure_date)} | ${remainingKg} kg restants`;
         }
     }
 
@@ -677,10 +677,10 @@
             const currency = getCurrencyCode(user, state.activeOffer);
 
             if (els.dashboardUser) {
-                els.dashboardUser.textContent = user?.fullName || "Voyageur";
+                if (els.dashboardUser) els.dashboardUser.textContent = user?.fullName || "Voyageur";
             }
             if (els.userChip) {
-                els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
+                if (els.userChip) els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
             }
             renderProfileChip(user);
             renderStats(state.activeOffer, requests);
@@ -688,19 +688,19 @@
             renderRequests(requests, state.activeOffer);
 
             if (els.manageOfferBtn) {
-                els.manageOfferBtn.textContent = state.activeOffer ? "Modifier mon offre" : "Publier mon trajet";
+                if (els.manageOfferBtn) els.manageOfferBtn.textContent = state.activeOffer ? "Modifier mon offre" : "Publier mon trajet";
             }
             if (els.editOfferBtn) {
-                els.editOfferBtn.disabled = !state.activeOffer;
+                if (els.editOfferBtn) els.editOfferBtn.disabled = !state.activeOffer;
             }
             if (els.openMessagesBtn) {
-                els.openMessagesBtn.href = state.activeOffer ? `chat.html?offerId=${encodeURIComponent(String(state.activeOffer.id))}` : "chat.html";
+                if (els.openMessagesBtn) els.openMessagesBtn.href = state.activeOffer ? `chat.html?offerId=${encodeURIComponent(String(state.activeOffer.id))}` : "chat.html";
             }
 
             if (els.quickSummaryText && state.activeOffer) {
-                els.quickSummaryText.textContent = `${getRouteLabel(state.activeOffer)} | ${formatAmount(Number(state.activeOffer.pricePerKg || state.activeOffer.price_per_kg || 0), state.activeOffer.baseCurrency || state.activeOffer.base_currency || currency)}/kg`;
+                if (els.quickSummaryText) els.quickSummaryText.textContent = `${getRouteLabel(state.activeOffer)} | ${formatAmount(Number(state.activeOffer.pricePerKg || state.activeOffer.price_per_kg || 0), state.activeOffer.baseCurrency || state.activeOffer.base_currency || currency)}/kg`;
             } else if (els.quickSummaryText) {
-                els.quickSummaryText.textContent = "Aucune offre active pour le moment.";
+                if (els.quickSummaryText) els.quickSummaryText.textContent = "Aucune offre active pour le moment.";
             }
         } else if (viewType === "cargo") {
             await loadCargoDashboard();
@@ -1365,15 +1365,15 @@
         updateDashboardToggleState(state.currentView);
 
         if (els.dashboardUser) {
-            els.dashboardUser.textContent = user?.fullName || "Voyageur";
+            if (els.dashboardUser) els.dashboardUser.textContent = user?.fullName || "Voyageur";
         }
 
         if (els.userChip) {
-            els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
+            if (els.userChip) els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
         }
 
         if (els.openMessagesBtn) {
-            els.openMessagesBtn.href = "chat.html";
+            if (els.openMessagesBtn) els.openMessagesBtn.href = "chat.html";
         }
 
         // Remplir les noms de bienvenue
