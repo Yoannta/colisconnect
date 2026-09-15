@@ -960,15 +960,26 @@
                     await supabase.from("chat_messages").delete().in("thread_id", threadIds);
                     await supabase.from("chat_threads").delete().in("id", threadIds);
                 }
-                // 7. Supprimer l'offre — et VERIFIER que la ligne est bien partie :
-                // une policy RLS manquante ne renvoie aucune erreur, l'app annoncerait
-                // un succes alors que rien n'a ete supprime.
+                // 7. Retirer l'annonce. On tente la suppression reelle ; si la base la refuse
+                // (policy RLS DELETE absente sur offers), on ARCHIVE l'annonce — exactement
+                // comme le fait deja le tableau de bord cargo. Resultat identique pour
+                // l'utilisateur : l'annonce disparait du tableau de bord et n'est plus
+                // comptee dans la limite de publication.
                 const { data: deletedRows, error: delErr } = await supabase
                     .from("offers").delete().eq("id", offerId).select("id");
                 if (delErr) throw delErr;
                 if (!deletedRows || !deletedRows.length) {
-                    alert("Suppression non effectuee : la base n'a supprime aucune ligne (droits de suppression manquants sur les offres).");
-                    return;
+                    const { data: archivedRows, error: archErr } = await supabase
+                        .from("offers")
+                        .update({ status: "archived", updated_at: new Date().toISOString() })
+                        .eq("id", offerId)
+                        .eq("user_id", window.CCCommon.state?.user?.id)
+                        .select("id");
+                    if (archErr) throw archErr;
+                    if (!archivedRows || !archivedRows.length) {
+                        alert("Retrait impossible : la base refuse l'operation (autorisation manquante sur vos offres).");
+                        return;
+                    }
                 }
                 // 8. Recharger
                 const viewType = state.currentView || "";
