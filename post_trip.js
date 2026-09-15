@@ -48,6 +48,8 @@
         publishModal: document.getElementById("publish-success-modal"),
         publishOkBtn: document.getElementById("publish-success-ok-btn"),
         publishMsg: document.getElementById("publish-success-msg"),
+        // Note "deja valide / code demande" (mode modification)
+        contactNote: document.getElementById("pm-contact-note"),
         // Currency Custom
         currencyToggle: document.getElementById("currency-toggle-btn"),
         currencyPopover: document.getElementById("currency-popover"),
@@ -67,7 +69,11 @@
     const paymentState = {
         selectedMethod: null, // "mtn_cm" etc
         selectedMethodName: null,
-        accountNumber: null
+        accountNumber: null,
+        // Mode modification : contact deja enregistre sur l'annonce (deja valide a
+        // la creation) -> reaffiche sans redemander de code tant qu'il ne change pas.
+        storedContact: null,
+        storedMethod: null
     };
 
     let selectedProfileTypeChoice = null;
@@ -339,6 +345,41 @@
         els.otpSection.classList.add("hidden");
     }
 
+    // [CONTACT MODIF] Decoupe "+330612345678" en indicatif connu + numero local.
+    function splitPhoneNumber(full) {
+        const num = String(full || "").replace(/\s+/g, "");
+        let best = "";
+        if (els.indicatifInput) {
+            els.indicatifInput.querySelectorAll("option").forEach((o) => {
+                const v = String(o.value || "").trim();
+                if (v.startsWith("+") && num.startsWith(v) && v.length > best.length) best = v;
+            });
+        }
+        if (!best) return { code: "", local: num };
+        return { code: best, local: num.slice(best.length) };
+    }
+
+    // Note sous le champ : deja valide (annonce existante) ou code a saisir.
+    function setContactNote(text) {
+        if (!els.contactNote) return;
+        if (!text) {
+            els.contactNote.textContent = "";
+            els.contactNote.classList.add("hidden");
+            return;
+        }
+        els.contactNote.textContent = text;
+        els.contactNote.classList.remove("hidden");
+    }
+
+    // Le bouton ouvert est-il la 1re ligne de contact (celle de l'annonce) ?
+    function isStoredContactRow(btn) {
+        if (!btn || !btn.closest) return false;
+        const row = btn.closest(".payment-contact-row");
+        const first = document.querySelector("#payment-contact-rows .payment-contact-row");
+        if (!row || !first) return false;
+        return row === first && !!row.querySelector("#open-payment-method-btn");
+    }
+
     function selectPaymentProvider(methodId, methodName) {
         paymentState.selectedMethod = methodId;
         paymentState.selectedMethodName = methodName;
@@ -372,6 +413,25 @@
 
         if (els.confirmBtn) {
             els.confirmBtn.disabled = true;
+        }
+
+        // [CONTACT MODIF] Ligne du contact de l'annonce : on reaffiche le numero deja
+        // enregistre (valide a la creation) -> enregistrable SANS nouveau code.
+        // Toute autre ligne (nouveau numero ajoute) reste soumise a la verification.
+        if (editingOfferId && paymentState.storedContact && isStoredContactRow(paymentTrigger)) {
+            const parts = splitPhoneNumber(paymentState.storedContact);
+            if (els.indicatifInput && parts.code) els.indicatifInput.value = parts.code;
+            if (els.indicatifInput && !parts.code) els.indicatifInput.selectedIndex = 0;
+            if (els.localNumberInput) els.localNumberInput.value = parts.local;
+            paymentState.selectedMethod = paymentState.storedMethod || "direct_contact";
+            paymentState.selectedMethodName = "Contact Direct";
+            paymentState.isVerified = true;
+            if (els.confirmBtn) els.confirmBtn.disabled = false;
+            setContactNote("Numéro déjà enregistré et validé avec cette annonce : aucune vérification nécessaire. Si vous le modifiez, un code sera demandé.");
+        } else if (editingOfferId) {
+            setContactNote("Nouveau numéro : un code de vérification sera demandé.");
+        } else {
+            setContactNote("");
         }
 
         showStep("upload");
@@ -447,8 +507,27 @@
             }
         };
 
-        // Si on change le numéro après l'avoir vérifié, on réinitialise la vérification
+        // Le numero saisi est-il exactement celui deja enregistre sur l'annonce ?
+        const sameAsStoredContact = () => {
+            if (!editingOfferId || !paymentState.storedContact) return false;
+            const cur = `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`.replace(/\s+/g, "");
+            return !!cur && cur === paymentState.storedContact;
+        };
+
+        // Si on change le numéro après l'avoir vérifié, on réinitialise la vérification.
+        // Exception (mode modification) : le contact deja enregistre sur l'annonce a ete
+        // valide a sa creation -> accepte tel quel, aucun code a ressaisir.
         const resetVerificationIfNeeded = () => {
+            if (sameAsStoredContact()) {
+                paymentState.isVerified = true;
+                resetOtpControls();
+                if (els.confirmBtn) els.confirmBtn.disabled = false;
+                setContactNote("Numéro déjà enregistré et validé avec cette annonce : aucune vérification nécessaire. Si vous le modifiez, un code sera demandé.");
+                return;
+            }
+            if (editingOfferId && !paymentState.isVerified) {
+                setContactNote("Numéro modifié : un code de vérification est nécessaire.");
+            }
             if (!paymentState.isVerified) return;
             paymentState.isVerified = false;
             resetOtpControls();
@@ -857,6 +936,25 @@
             return;
         }
         editingOfferId = offer.id;
+
+        // [CONTACT] On reaffiche le numero de contact enregistre a la creation de l'annonce.
+        // Il a deja ete valide a ce moment-la -> aucun code redemande tant qu'il n'est pas
+        // modifie. S'il change de numero ou en ajoute un autre, la verification par code
+        // redevient obligatoire (voir selectPaymentProvider / resetVerificationIfNeeded).
+        const storedContact = String(offer.payment_qr || "").trim();
+        if (storedContact) {
+            paymentState.storedContact = storedContact;
+            paymentState.storedMethod = String(offer.payment_method || "direct_contact").trim() || "direct_contact";
+            paymentState.selectedMethod = paymentState.storedMethod;
+            paymentState.selectedMethodName = "Contact Direct";
+            paymentState.accountNumber = storedContact;
+            paymentState.isVerified = true;
+            if (els.paymentMethodInput) els.paymentMethodInput.value = paymentState.storedMethod;
+            if (els.paymentQrInput) els.paymentQrInput.value = storedContact;
+            const parts = splitPhoneNumber(storedContact);
+            const rowLabel = document.querySelector("#payment-contact-rows .contact-row-btn .pm-label");
+            if (rowLabel) rowLabel.innerHTML = `📞 Contact : <strong>${parts.code}</strong> ${parts.local}`;
+        }
 
         // Remplissage du formulaire avec l'annonce existante (l'utilisateur ne modifie
         // que ce qu'il veut, il n'a plus a tout ressaisir).
