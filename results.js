@@ -875,6 +875,8 @@
             const val = item.getAttribute("data-value");
             if (val) {
                 state.userCurrency = val;
+            // Memoriser le choix (valable 3 h) : sans ca, il etait perdu au rechargement
+            window.CCCommon.saveCurrencyChoice?.(val);
                 // Acronyme local a l'ecran ("FCFA"), jamais le code ISO
                 if (valSpan) valSpan.textContent = displayCur(val);
                 menuEl.classList.add("hidden");
@@ -1059,7 +1061,7 @@
         const user = window.CCCommon.state?.user;
         const userCountry = user?.country || user?.location;
         if (userCountry) {
-            state.userCurrency = COUNTRY_CURRENCIES[userCountry] || 'EUR';
+            state.userCurrency = window.CCCommon.getUserCurrency?.() || COUNTRY_CURRENCIES[userCountry] || 'EUR'; // choix manuel encore valide sinon pays de residence
         }
         const valSpan = document.getElementById("current-currency-val");
         if (valSpan) {

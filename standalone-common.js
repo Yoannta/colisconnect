@@ -462,7 +462,40 @@
      * Utilise COUNTRY_CURRENCIES pour la correspondance pays → devise.
      * Fallback: EUR si l'utilisateur n'a pas de pays défini.
      */
+    // ── DEVISE CHOISIE MANUELLEMENT (Yoyo) ──────────────────────────────────────────
+    // Le choix de devise de l'utilisateur etait garde en memoire seule : au rechargement
+    // de la page, l'affichage repartait sur la devise du pays de residence.
+    // Ici : le choix est memorise 3 h et l'expiration est GLISSANTE (chaque visite
+    // repousse le delai) -> il ne revient a la devise du pays de residence qu'apres
+    // 3 h sans venir sur le site. Le pays de residence du profil n'est JAMAIS modifie.
+    const CURRENCY_CHOICE_TTL_MS = 3 * 60 * 60 * 1000; // 3 heures
+
+    function saveCurrencyChoice(code) {
+        try {
+            const c = String(code || "").toUpperCase();
+            if (!c) { localStorage.removeItem("cc_currency_choice"); return; }
+            localStorage.setItem("cc_currency_choice", JSON.stringify({ code: c, at: Date.now() }));
+        } catch (e) { /* stockage indisponible */ }
+    }
+
+    function getCurrencyChoice() {
+        try {
+            const raw = JSON.parse(localStorage.getItem("cc_currency_choice") || "null");
+            if (!raw || !raw.code) return null;
+            if (Date.now() - (raw.at || 0) > CURRENCY_CHOICE_TTL_MS) {
+                localStorage.removeItem("cc_currency_choice");
+                return null;
+            }
+            raw.at = Date.now(); // delai glissant : 3 h d'inactivite reelle
+            localStorage.setItem("cc_currency_choice", JSON.stringify(raw));
+            return raw.code;
+        } catch (e) { return null; }
+    }
+
     function getUserCurrency() {
+        // Un choix explicite encore valide (moins de 3 h) prime sur la devise du pays.
+        const manual = getCurrencyChoice();
+        if (manual) return manual;
         const user = state.user;
         const country = user?.country || user?.user_metadata?.country || "";
         return COUNTRY_CURRENCIES[country] || "EUR";
@@ -2876,6 +2909,8 @@
         convertCurrency,
         getSmartRoundedAmount,
         getUserCurrency,
+        saveCurrencyChoice,
+        getCurrencyChoice,
         loadExchangeRates,
         EXCHANGE_RATES,
         COUNTRY_CURRENCIES,
