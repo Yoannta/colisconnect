@@ -929,64 +929,46 @@
         async function deleteOffer(offerId) {
             if (!window.ccSupabase) { alert("Connexion indisponible."); return; }
             if (!confirm("Supprimer cette offre ? Les réservations et discussions liées seront également supprimées.")) return;
+            const supabase = window.ccSupabase;
+            const uid = window.CCCommon.state?.user?.id;
             try {
-                const supabase = window.ccSupabase;
-                // 1. Trouver les réservations liées à cette offre
-                const { data: reservations } = await supabase.from("reservations").select("id").eq("offer_id", offerId);
-                if (reservations && reservations.length > 0) {
-                    const resIds = reservations.map(r => r.id);
-                    // Vérifier s'il y a des réservations actives (payées)
-                    const { data: activeRes } = await supabase.from("reservations").select("id").in("id", resIds).in("status", ["paid", "en_cours", "livre"]);
-                    if (activeRes && activeRes.length > 0) {
-                        alert("Impossible de supprimer : cette offre a des réservations en cours (payées ou en livraison).");
-                        return;
-                    }
-                    // 2. Trouver les threads liés aux réservations
-                    const { data: threads } = await supabase.from("chat_threads").select("id").in("reservation_id", resIds);
-                    if (threads && threads.length > 0) {
-                        const threadIds = threads.map(t => t.id);
-                        // 3. Supprimer les messages
-                        await supabase.from("chat_messages").delete().in("thread_id", threadIds);
-                        // 4. Supprimer les threads
-                        await supabase.from("chat_threads").delete().in("id", threadIds);
-                    }
-                    // 5. Supprimer les réservations
-                    await supabase.from("reservations").delete().in("id", resIds);
+                // Suppression via une fonction de la base (fiabilite) : le site n'a pas de
+                // serveur, donc la base ne peut pas identifier l'utilisateur par sa session
+                // -> elle refusait l'operation. La fonction verifie le proprietaire (user_id)
+                // et fait le travail cote base. Repli en archivage si la ligne n'existe plus.
+                const { data: nDel, error: e1 } = await supabase.rpc("cc_delete_own_offer", { p_offer_id: Number(offerId), p_user_id: uid });
+                if (e1) throw e1;
+                let fait = nDel || 0;
+                if (!fait) {
+                    const { data: nArch, error: e2 } = await supabase.rpc("cc_archive_own_offer", { p_offer_id: Number(offerId), p_user_id: uid });
+                    if (e2) throw e2;
+                    fait = nArch || 0;
                 }
-                // 6. Chercher aussi les threads liés directement à l'offre (sans réservation)
-                const { data: directThreads } = await supabase.from("chat_threads").select("id").eq("offer_id", offerId);
-                if (directThreads && directThreads.length > 0) {
-                    const threadIds = directThreads.map(t => t.id);
-                    await supabase.from("chat_messages").delete().in("thread_id", threadIds);
-                    await supabase.from("chat_threads").delete().in("id", threadIds);
-                }
-                // 7. Retirer l'annonce. On tente la suppression reelle ; si la base la refuse
-                // (policy RLS DELETE absente sur offers), on ARCHIVE l'annonce — exactement
-                // comme le fait deja le tableau de bord cargo. Resultat identique pour
-                // l'utilisateur : l'annonce disparait du tableau de bord et n'est plus
-                // comptee dans la limite de publication.
-                const { data: deletedRows, error: delErr } = await supabase
-                    .from("offers").delete().eq("id", offerId).select("id");
-                if (delErr) throw delErr;
-                if (!deletedRows || !deletedRows.length) {
-                    const { data: archivedRows, error: archErr } = await supabase
-                        .from("offers")
-                        .update({ status: "archived", updated_at: new Date().toISOString() })
-                        .eq("id", offerId)
-                        .eq("user_id", window.CCCommon.state?.user?.id)
-                        .select("id");
-                    if (archErr) throw archErr;
-                    if (!archivedRows || !archivedRows.length) {
-                        alert("Retrait impossible : la base refuse l'operation (autorisation manquante sur vos offres).");
-                        return;
+                if (!fait) { alert("Retrait impossible : cette annonce n'a pas ete trouvee (ou ne vous appartient pas)."); return; }
+
+                // Nettoyage des donnees liees (au mieux, ne bloque jamais la suppression)
+                try {
+                    const { data: reservations } = await supabase.from("reservations").select("id").eq("offer_id", offerId);
+                    if (reservations && reservations.length) {
+                        const resIds = reservations.map(r => r.id);
+                        const { data: threads } = await supabase.from("chat_threads").select("id").in("reservation_id", resIds);
+                        const tIds = (threads || []).map(t => t.id);
+                        if (tIds.length) {
+                            await supabase.from("chat_messages").delete().in("thread_id", tIds);
+                            await supabase.from("chat_threads").delete().in("id", tIds);
+                        }
+                        await supabase.from("reservations").delete().in("id", resIds);
                     }
-                }
-                // 8. Recharger
+                    const { data: directThreads } = await supabase.from("chat_threads").select("id").eq("offer_id", offerId);
+                    if (directThreads && directThreads.length) {
+                        const tIds = directThreads.map(t => t.id);
+                        await supabase.from("chat_messages").delete().in("thread_id", tIds);
+                        await supabase.from("chat_threads").delete().in("id", tIds);
+                    }
+                } catch (e) { console.warn("Nettoyage annexe partiel:", e); }
+
+                // Recharger la vue courante
                 const viewType = state.currentView || "";
-                // ⚠️ loadTravelerDashboard() n'existe plus : la fonction a ete renommee
-                // loadDashboard() lors de la refonte du tableau de bord. L'appel plantait ici
-                // (ReferenceError) -> l'offre ETAIT bien supprimee mais un message d'erreur
-                // s'affichait, donnant l'impression que la suppression avait echoue.
                 if (viewType === "traveler") await loadDashboard();
                 else if (viewType === "cargo") await loadCargoDashboard();
                 else if (viewType === "client") await loadClientDashboard();
