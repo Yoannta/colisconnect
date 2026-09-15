@@ -960,12 +960,25 @@
                     await supabase.from("chat_messages").delete().in("thread_id", threadIds);
                     await supabase.from("chat_threads").delete().in("id", threadIds);
                 }
-                // 7. Supprimer l'offre
-                await supabase.from("offers").delete().eq("id", offerId);
+                // 7. Supprimer l'offre — et VERIFIER que la ligne est bien partie :
+                // une policy RLS manquante ne renvoie aucune erreur, l'app annoncerait
+                // un succes alors que rien n'a ete supprime.
+                const { data: deletedRows, error: delErr } = await supabase
+                    .from("offers").delete().eq("id", offerId).select("id");
+                if (delErr) throw delErr;
+                if (!deletedRows || !deletedRows.length) {
+                    alert("Suppression non effectuee : la base n'a supprime aucune ligne (droits de suppression manquants sur les offres).");
+                    return;
+                }
                 // 8. Recharger
                 const viewType = state.currentView || "";
-                if (viewType === "traveler") loadTravelerDashboard();
-                else if (viewType === "cargo") loadCargoDashboard();
+                // ⚠️ loadTravelerDashboard() n'existe plus : la fonction a ete renommee
+                // loadDashboard() lors de la refonte du tableau de bord. L'appel plantait ici
+                // (ReferenceError) -> l'offre ETAIT bien supprimee mais un message d'erreur
+                // s'affichait, donnant l'impression que la suppression avait echoue.
+                if (viewType === "traveler") await loadDashboard();
+                else if (viewType === "cargo") await loadCargoDashboard();
+                else if (viewType === "client") await loadClientDashboard();
             } catch (e) {
                 alert("Erreur lors de la suppression: " + (e.message || ""));
             }
