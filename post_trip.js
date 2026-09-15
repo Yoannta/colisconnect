@@ -278,12 +278,17 @@
     }
 
     // Popup de succès du site (remplace l'alerte navigateur "yoannta.github.io says")
-    function showPublishSuccess(destination, count) {
+    // isEdit = true en mode modification -> on parle d'un enregistrement, pas d'une publication.
+    function showPublishSuccess(destination, count, isEdit) {
         if (els.publishMsg) {
             const n = Number(count) || 1;
-            els.publishMsg.textContent = n > 1
-                ? `Vos ${n} trajets vers ${destination} ont bien été publiés.`
-                : `Votre trajet vers ${destination} a bien été publié.`;
+            if (isEdit) {
+                els.publishMsg.textContent = "Vos modifications ont bien été enregistrées.";
+            } else {
+                els.publishMsg.textContent = n > 1
+                    ? `Vos ${n} trajets vers ${destination} ont bien été publiés.`
+                    : `Votre trajet vers ${destination} a bien été publié.`;
+            }
         }
         els.publishModal?.classList.remove("hidden");
     }
@@ -598,32 +603,38 @@
         const departureCountry = String(els.departure?.value || "").trim();
         const destinationCountry = String(els.destination?.value || "").trim();
 
-        // Verifier la limite de publication par type (mode="" pour voyageur, mode!=="" pour cargo)
-        const isCargo = selectedProfileTypeChoice === "cargo";
         // [ENTREPRISE / CARGO] Dates multiples : collecte de la date principale + dates ajoutées
         const tripDates = collectTripDates();
         if (!tripDates.length) {
             alert("Veuillez choisir une date de voyage.");
             return;
         }
-        try {
-            const myOffers = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
-            const activeOffers = (myOffers?.items || []).filter(o => String(o.status || "").toLowerCase() === "active");
-            // Filtrer par mode : voyageur = mode vide, cargo = mode non vide
-            const offersOfType = activeOffers.filter(o => {
-                const m = String(o.mode || "").trim();
-                return isCargo ? m !== "" : m === "";
-            });
-            const activeCount = offersOfType.length;
-            const limit = isCargo ? 5 : 1;
 
-            if (activeCount >= limit) {
-                const label = isCargo ? "entreprise cargo" : "voyageur simple";
-                alert(`Limite de trajet depassee : En tant que ${label}, vous ne pouvez publier que ${limit} trajet${limit > 1 ? 's' : ''} actif${limit > 1 ? 's' : ''} à la fois.`);
-                return;
+        // Limite de publication par type (mode="" pour voyageur, mode!=="" pour cargo)
+        // ⚠ AUCUNE verification en MODIFICATION : l'annonce en cours d'edition est deja
+        // comptee parmi les annonces actives -> on refusait une modification pourtant
+        // legitime ("limite atteinte" alors que rien de nouveau n'est publie).
+        if (!editingOfferId) {
+            const isCargo = selectedProfileTypeChoice === "cargo";
+            try {
+                const myOffers = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
+                const activeOffers = (myOffers?.items || []).filter(o => String(o.status || "").toLowerCase() === "active");
+                // Filtrer par mode : voyageur = mode vide, cargo = mode non vide
+                const offersOfType = activeOffers.filter(o => {
+                    const m = String(o.mode || "").trim();
+                    return isCargo ? m !== "" : m === "";
+                });
+                const activeCount = offersOfType.length;
+                const limit = isCargo ? 5 : 1;
+
+                if (activeCount >= limit) {
+                    const label = isCargo ? "entreprise cargo" : "voyageur simple";
+                    alert(`Limite de trajet depassee : En tant que ${label}, vous ne pouvez publier que ${limit} trajet${limit > 1 ? 's' : ''} actif${limit > 1 ? 's' : ''} à la fois.`);
+                    return;
+                }
+            } catch (e) {
+                console.warn("Impossible de verifier le nombre d'offres actives.", e);
             }
-        } catch (e) {
-            console.warn("Impossible de verifier le nombre d'offres actives.", e);
         }
 
         const isCargoMode = selectedProfileTypeChoice === "cargo";
@@ -758,8 +769,8 @@
 
             els.form?.reset();
             clearExtraTripDates();
-            document.getElementById("draft-banner")?.classList.add("hidden");
-            localStorage.removeItem("cc_trip_draft");
+            document.getElementById("edit-notice")?.classList.add("hidden");
+            try { localStorage.removeItem("cc_trip_draft"); } catch (e) { }
             try { localStorage.setItem("cc_last_publish", JSON.stringify({ sig: _sigAnim, at: Date.now() })); } catch (e) { }
             paymentState.selectedMethod = null;
             paymentState.selectedMethodName = null;
@@ -769,7 +780,7 @@
                 if (l !== els.paymentMethodLabel) l.innerHTML = els.paymentMethodLabel.innerHTML;
             });
             // Popup de succès du site (remplace l'alerte navigateur) — redirection au clic
-            showPublishSuccess(created?.destination || payload.destination, 1);
+            showPublishSuccess(created?.destination || payload.destination, 1, !!editingOfferId);
         } catch (error) {
             if (error?.status === 401) {
                 window.CCCommon.openAuthGate("post_trip.html");
@@ -876,14 +887,7 @@
         });
         const submitBtn = document.getElementById("trip-form")?.querySelector("button[type='submit']");
         if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
-        const banner = document.getElementById("draft-banner");
-        if (banner) {
-            banner.classList.remove("hidden");
-            const txt = banner.querySelector("span");
-            if (txt) txt.textContent = "Mode modification — votre annonce est pre-remplie. Changez seulement ce que vous voulez.";
-            const clearBtn = document.getElementById("draft-clear-btn");
-            if (clearBtn) clearBtn.style.display = "none";
-        }
+        document.getElementById("edit-notice")?.classList.remove("hidden");
         console.log("[modif] annonce", editingOfferId, "chargee dans le formulaire");
     }
 
@@ -1282,29 +1286,11 @@
     }
 
     async function bootstrap() {
-        // En modification : le brouillon local est ignore (il ecraserait les valeurs de
-        // l'annonce en cours de modification).
-        if (EDIT_OFFER_ID) { try { localStorage.removeItem("cc_trip_draft"); } catch (e) { } }
+        // Plus de restauration de brouillon : l'ancien mecanisme (cc_trip_draft) n'est
+        // plus ecrit par personne et rechargeait EN SILENCE d'anciennes donnees (risque
+        // de republier une vieille annonce). On purge la cle residuelle du navigateur.
+        try { localStorage.removeItem("cc_trip_draft"); } catch (e) { }
         await window.CCCommon.init("post_trip");
-
-        // Restauration du brouillon si présent
-        const saved = localStorage.getItem("cc_trip_draft");
-        if (saved) {
-            try {
-                const draft = JSON.parse(saved);
-                if (els.departure) els.departure.value = draft.departure || "";
-                if (els.destination) els.destination.value = draft.destination || "";
-                if (els.dateDepart) els.dateDepart.value = draft.dateDepart || "";
-                if (els.kilos) els.kilos.value = draft.kilos || "";
-                if (els.price) els.price.value = draft.price || "";
-                // On garde le brouillon jusqu'à la publication réussie ou suppression manuelle
-                // localStorage.removeItem("cc_trip_draft"); // Optionnel : on peut le laisser si on veut
-                // localStorage.removeItem("cc_trip_draft"); // Optionnel : on peut le laisser si on veut
-                document.getElementById("draft-banner")?.classList.remove("hidden");
-            } catch (e) {
-                console.error("Erreur restauration brouillon", e);
-            }
-        }
 
         initCountryDatalist();
         initDateMin();

@@ -35,3 +35,6 @@ reference-results-page/
 .playwright/
 _probe-*.js
 .tmp-*.txt
+
+# Notes internes du projet (a voir plus tard) - restent en local, pas sur le depot public
+A-VOIR-PLUS-TARD.md
