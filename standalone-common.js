@@ -629,6 +629,14 @@
             if (p.includes("/auth/login")) {
                 const { data, error } = await window.ccSupabase.auth.signInWithPassword({ email: options.body.email, password: options.body.password });
                 if (error) throw error;
+                // On memorise aussi le refresh_token : il permet de RESTAURER la session
+                // au chargement des pages (voir supabase-init.js). Sans lui, apres une
+                // heure la session expire et la base refuse toute ecriture (suppression,
+                // modification) alors que la lecture continue de fonctionner.
+                try {
+                    if (data?.session?.refresh_token) localStorage.setItem("cc_refresh_token", data.session.refresh_token);
+                    if (data?.session?.access_token) localStorage.setItem("cc_auth_token", data.session.access_token);
+                } catch (e) { /* stockage indisponible */ }
                 return { token: data.session.access_token, user: { ...data.user, ...data.user.user_metadata } };
             }
             if (p.includes("/auth/register")) {
