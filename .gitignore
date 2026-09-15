@@ -33,8 +33,12 @@ reference-results-page/
 # Profils navigateur et fichiers de test - ne JAMAIS committer (cookies, mots de passe)
 .pw-profile*/
 .playwright/
-_probe-*.js
+_probe-*
 .tmp-*.txt
+test-results/
+playwright-report/
+diag-*.png
+contact-modif*.png
 
 # Notes internes du projet (a voir plus tard) - restent en local, pas sur le depot public
 A-VOIR-PLUS-TARD.md
