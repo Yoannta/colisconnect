@@ -483,6 +483,15 @@
                 && paymentTrigger.closest(".payment-contact-row") !== firstRow;
             labelEl.innerHTML = `📞 ${isSecond ? "2e contact" : "Contact"} : <strong>${displayCode}</strong> ${displayLocal}`;
         }
+        // [2e CONTACT] On marque la ligne du contact qui vient d'etre confirme (1re ou 2e).
+        // C'est ce marquage qui permet d'envoyer le 2e numero dans l'annonce.
+        const confirmedRow = (paymentTrigger && paymentTrigger.closest)
+            ? paymentTrigger.closest(".payment-contact-row")
+            : null;
+        if (confirmedRow) {
+            confirmedRow.dataset.contactMethod = paymentState.selectedMethod || "";
+            confirmedRow.dataset.contactNumber = paymentState.accountNumber || "";
+        }
         closeModal();
     }
 
@@ -496,6 +505,34 @@
         } else {
             els.addContactBtn.classList.remove("hidden");
         }
+    }
+
+    // [2e CONTACT] Recree la 2e ligne de contact (mode modification) avec les valeurs
+    // deja enregistrees, marquees dans les memes data-* qu'a la saisie. Sans cette ligne,
+    // un simple enregistrement des modifications effacerait le 2e numero de l'annonce.
+    function addSecondContactRow(method, number) {
+        const box = document.getElementById("payment-contact-rows");
+        if (!box || box.querySelectorAll(".payment-contact-row").length >= 2) return;
+        const row = document.createElement("div");
+        row.className = "payment-contact-row";
+        row.dataset.contactMethod = method || "direct_contact";
+        row.dataset.contactNumber = number || "";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn secondary payment-method-btn contact-row-btn";
+        btn.innerHTML = '<span class="pm-label">Mon numero de contact</span>';
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "colis-row-del contact-row-del";
+        del.setAttribute("aria-label", "Supprimer cette ligne");
+        del.textContent = "✕";
+        row.appendChild(btn);
+        row.appendChild(del);
+        box.appendChild(row);
+        const parts = splitPhoneNumber(number || "");
+        const label = btn.querySelector(".pm-label");
+        if (label) label.innerHTML = `📞 2e contact : <strong>${parts.code}</strong> ${parts.local}`;
+        syncAddContactBtn();
     }
 
     function bindModalEvents() {
@@ -837,6 +874,23 @@
             refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : ""
         };
 
+        // [2e CONTACT] Facultatif (plafond de 2 contacts par annonce). La 2e ligne est
+        // marquee au moment ou le numero est confirme dans la modale.
+        // Publication sans 2e ligne : rien n'est envoye (colonnes NULL par defaut).
+        // Modification : la 2e ligne est recreee depuis l'annonce, donc son absence
+        // signifie que l'utilisateur l'a retiree -> on efface le 2e contact.
+        const contactRows = Array.from(
+            document.querySelectorAll("#payment-contact-rows .payment-contact-row")
+        );
+        const secondRow = contactRows[1] || null;
+        if (secondRow) {
+            payload.paymentMethod2 = secondRow.dataset.contactMethod || "";
+            payload.paymentQr2 = secondRow.dataset.contactNumber || "";
+        } else if (editingOfferId) {
+            payload.paymentMethod2 = "";
+            payload.paymentQr2 = "";
+        }
+
         // En modification, si aucun nouveau contact n'a ete saisi, on conserve celui
         // de l'annonce (sinon on l'effacerait en enregistrant).
         if (editingOfferId && !paymentState.selectedMethod) {
@@ -871,7 +925,8 @@
                     availableKg: "available_kg", pricePerKg: "price_per_kg",
                     departureDate: "departure_date", extraDates: "extra_dates",
                     baseCurrency: "base_currency", paymentMethod: "payment_method",
-                    paymentQr: "payment_qr", referralCode: "referral_code",
+                    paymentQr: "payment_qr", paymentMethod2: "payment_method_2",
+                    paymentQr2: "payment_qr_2", referralCode: "referral_code",
                     cityDeparture: "city_origin", cityDestination: "city_destination",
                     originCountryCode: "origin_country_code", destCountryCode: "destination_country_code"
                 };
@@ -993,6 +1048,14 @@
             const parts = splitPhoneNumber(storedContact);
             const rowLabel = document.querySelector("#payment-contact-rows .contact-row-btn .pm-label");
             if (rowLabel) rowLabel.innerHTML = `📞 Contact : <strong>${parts.code}</strong> ${parts.local}`;
+        }
+
+        // [2e CONTACT] Si l'annonce a un 2e numero enregistre, on recree la 2e ligne de
+        // contact (pre-remplie) : sinon un simple enregistrement des modifications
+        // effacerait ce 2e numero. L'utilisateur peut la retirer avec le ✕.
+        const storedContact2 = String(offer.payment_qr_2 || "").trim();
+        if (storedContact2) {
+            addSecondContactRow(String(offer.payment_method_2 || "direct_contact").trim(), storedContact2);
         }
 
         // Remplissage du formulaire avec l'annonce existante (l'utilisateur ne modifie

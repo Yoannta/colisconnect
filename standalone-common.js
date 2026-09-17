@@ -835,6 +835,8 @@
                         baseCurrency: 'base_currency',
                         paymentMethod: 'payment_method',
                         paymentQr: 'payment_qr',
+                        paymentMethod2: 'payment_method_2',
+                        paymentQr2: 'payment_qr_2',
                         referralCode: 'referral_code',
                         cityDeparture: 'city_origin',
                         cityDestination: 'city_destination',
