@@ -928,7 +928,8 @@
                     paymentQr: "payment_qr", paymentMethod2: "payment_method_2",
                     paymentQr2: "payment_qr_2", referralCode: "referral_code",
                     cityDeparture: "city_origin", cityDestination: "city_destination",
-                    originCountryCode: "origin_country_code", destCountryCode: "destination_country_code"
+                    originCountryCode: "origin_country_code", destCountryCode: "destination_country_code",
+                    specialPrices: "special_prices"
                 };
                 const bodyUpdate = {};
                 Object.keys(fullPayload).forEach((k) => {
