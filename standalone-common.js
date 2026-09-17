@@ -2880,7 +2880,12 @@
     // Ces champs ne doivent accepter QUE des chiffres (+ une decimale).
     // Delegation au document : couvre aussi les champs crees dynamiquement.
     const NUMERIC_SEL = 'input[type="number"], input[data-numeric]';
-    function isNumericField(el) { return !!(el && el.matches && el.matches(NUMERIC_SEL)); }
+    const PHONE_SEL = 'input[type="tel"], input[data-phone]';
+    const CODE_SEL = "#cc-auth-otp-input, #pm-otp-code, .otp-field, input[data-code]";
+    function estPrix(el) { return !!(el && el.matches && el.matches(NUMERIC_SEL)); }
+    function estTelephone(el) { return !!(el && el.matches && el.matches(PHONE_SEL)); }
+    function estCode(el) { return !!(el && el.matches && el.matches(CODE_SEL)); }
+    function isNumericField(el) { return estPrix(el) || estTelephone(el) || estCode(el); }
     function cleanNumber(el) {
         const brut = String(el.value || "");
         let v = brut.replace(/[^0-9.,]/g, "");
@@ -2889,22 +2894,51 @@
         if (v !== brut) el.value = v;
         return v;
     }
+    function cleanPhone(el) {
+        const brut = String(el.value || "");
+        let v = brut.replace(/[^0-9+\-(). ]/g, "");
+        if (v.indexOf("+") !== -1) v = (v.charAt(0) === "+" ? "+" : "") + v.replace(/\+/g, "");
+        if (v !== brut) el.value = v;
+        return v;
+    }
+    function cleanCode(el) {
+        const brut = String(el.value || "");
+        const v = brut.replace(/[^0-9]/g, "").slice(0, 6);
+        if (v !== brut) el.value = v;
+        return v;
+    }
+    function cleanField(el) {
+        if (estCode(el)) return cleanCode(el);
+        if (estTelephone(el)) return cleanPhone(el);
+        return cleanNumber(el);
+    }
     function prepareNumericField(el) {
-        if (!isNumericField(el)) return;
-        if (!el.getAttribute("inputmode")) el.setAttribute("inputmode", "decimal");
-        el.setAttribute("autocomplete", "off");
+        if (estPrix(el)) {
+            if (!el.getAttribute("inputmode")) el.setAttribute("inputmode", "decimal");
+            el.setAttribute("autocomplete", "off");
+        } else if (estTelephone(el)) {
+            el.setAttribute("inputmode", "tel");
+            el.setAttribute("autocomplete", "off");
+        } else if (estCode(el)) {
+            el.setAttribute("inputmode", "numeric");
+            el.setAttribute("autocomplete", "one-time-code");
+            el.setAttribute("maxlength", "6");
+        }
     }
     function installerGardeFouNumerique() {
-        document.querySelectorAll(NUMERIC_SEL).forEach(prepareNumericField);
+        document.querySelectorAll(NUMERIC_SEL + ", " + PHONE_SEL + ", " + CODE_SEL).forEach(prepareNumericField);
         if (!document.body || document.body.dataset.numericGuard === "on") return;
         document.body.dataset.numericGuard = "on";
         document.addEventListener("keydown", (e) => {
-            if (!isNumericField(e.target)) return;
+            const el = e.target;
+            if (!isNumericField(el)) return;
             if (e.ctrlKey || e.metaKey || e.altKey) return;
-            if (e.key && e.key.length === 1 && /[^0-9.,]/.test(e.key)) e.preventDefault();
+            if (!e.key || e.key.length !== 1) return;
+            const ok = estCode(el) ? /[0-9]/ : (estTelephone(el) ? /[0-9+\-(). ]/ : /[0-9.,]/);
+            if (!ok.test(e.key)) e.preventDefault();
         }, true);
-        document.addEventListener("input", (e) => { if (isNumericField(e.target)) cleanNumber(e.target); }, true);
-        document.addEventListener("change", (e) => { if (isNumericField(e.target)) cleanNumber(e.target); }, true);
+        document.addEventListener("input", (e) => { if (isNumericField(e.target)) cleanField(e.target); }, true);
+        document.addEventListener("change", (e) => { if (isNumericField(e.target)) cleanField(e.target); }, true);
         document.addEventListener("focusin", (e) => { prepareNumericField(e.target); }, true);
     }
 
