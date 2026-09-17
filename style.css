@@ -1005,11 +1005,6 @@ body.post-trip-page .colis-row-del {
     color: #8a7a5f;
     border-color: rgba(255,179,71,0.22);
 }
-body.post-trip-page .currency-toggle {
-    background: rgba(255,140,0,0.10) !important;
-    border: 1px solid rgba(255,179,71,0.35) !important;
-    color: #ffb347 !important;
-}
 /* ═══ Champs du formulaire — contours harmonisés sur .popup-trigger-btn (Yoyo 2026-08) ═══
    Tous les champs des étapes 1-4 : radius 12px « circulaire », pleine largeur,
    même padding/hauteur que le bouton « Choisir les types refusés ». */
@@ -1093,18 +1088,6 @@ body.post-trip-page .phone-input-row input {
 }
 /* Popover devise — thème obsidian (Yoyo : « texte blanc sur fond presque blanc » +
    bord émeraude de l'ancien CSS) */
-body.post-trip-page .currency-popover {
-    background: rgba(16,16,16,0.96);
-}
-body.post-trip-page .currency-opt-name {
-    color: #f0f7f6;
-}
-body.post-trip-page .currency-opt-code {
-    color: #ffb347;
-}
-body.post-trip-page .currency-opt:hover {
-    background: rgba(255,140,0,0.12);
-}
 /* Moyen de transport — bordure or VISIBLE (Yoyo : les 3 boutons « toujours dans
    le style ancien » — bordure var(--line) 15% quasi invisible + texte clair sur
    crème en mode clair) */
@@ -1494,15 +1477,6 @@ body.post-trip-page.light .colis-name-input::placeholder {
 }
 
 /* Devise */
-body.post-trip-page.light .currency-toggle {
-    background: rgba(184, 134, 11, 0.12) !important;
-    border-color: rgba(184, 134, 11, 0.4) !important;
-    color: #8a6d1f !important;
-}
-body.post-trip-page.light #currency-popover {
-    background: #fdfaf4 !important;
-    border-color: rgba(184, 134, 11, 0.3) !important;
-}
 
 /* Contact */
 body.post-trip-page.light .payment-method-btn,
@@ -1608,19 +1582,6 @@ body.post-trip-page.light .pt-modal-close {
     color: #8a7a5f !important;
 }
 /* Popover devise — mode clair */
-body.post-trip-page.light .currency-popover {
-    background: #fdfaf4 !important;
-    box-shadow: 0 10px 40px rgba(120, 90, 20, 0.18) !important;
-}
-body.post-trip-page.light .currency-opt-name {
-    color: #3a2f1e !important;
-}
-body.post-trip-page.light .currency-opt-code {
-    color: #8a6d1f !important;
-}
-body.post-trip-page.light .currency-opt:hover {
-    background: rgba(184, 134, 11, 0.12) !important;
-}
 /* Modale paiement — mode clair : aura or + bouton Vérifier visible */
 body.post-trip-page.light .phone-main-input:focus {
     border-color: #b8860b !important;
@@ -2726,72 +2687,9 @@ html.cc-nav-ready .mobile-bottom-nav {
     outline: none;
 }
 
-.currency-selector-custom {
-    position: relative;
-    padding: 0 12px;
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.currency-toggle {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    border: none;
-    color: var(--emerald-bright);
-    font-weight: 700;
-    cursor: pointer;
-    font-size: 0.95rem;
-    padding: 10px 4px;
-    transition: opacity 0.2s;
-}
-
-.currency-toggle:hover {
-    opacity: 0.8;
-}
-
-.currency-popover {
-    position: absolute;
-    top: calc(100% + 5px);
-    right: 0;
-    width: 160px;
-    z-index: 1000;
-    padding: 6px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    animation: fadeInSlide 0.2s ease-out;
-    border: 1px solid rgba(255, 179, 71, 0.3);
-}
-
-.currency-popover.hidden {
-    display: none;
-}
-
-.currency-opt {
-    padding: 10px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-}
-
-.currency-opt:hover {
-    background: rgba(255, 179, 71, 0.15);
-}
-
-.currency-opt-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: white;
-}
-
-.currency-opt-code {
-    font-size: 0.7rem;
-    color: var(--emerald-bright);
-    opacity: 0.8;
-}
-
+/* DEVISE — l'apparence du sélecteur de devise n'est plus définie ici : elle est
+   injectée par devise.js (modèle unique du site, partagé par toutes les pages).
+   Pour changer le look d'une devise, modifier UNIQUEMENT devise.js. */
 .chat-meta {
     color: var(--muted);
     font-size: 0.92rem;
@@ -13279,93 +13177,6 @@ body.dashboard-page.light #btn-faire-demande-trajet
     flex: 1;
     min-width: 0;
 }
-.dmd-currency {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 12px 13px;
-    color: #b0b0b0;
-    font-size: 0.9rem;
-    font-weight: 700;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-/* Devise au choix sur chaque colis (devise du pays de depart / d'arrivee) — comme le
-   formulaire des voyageurs. Le chip est un <button> : on reimpose son fond (le reset
-   Tailwind des boutons, [type="button"], est de meme specificite que .dmd-currency
-   mais place plus loin) avec une specificite superieure. */
-.dmd-cur-picker {
-    position: relative;
-    flex: 0 0 auto;
-    display: inline-flex;
-}
-.dmd-price-row .dmd-cur-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 12px 13px;
-    color: #b0b0b0;
-    font-family: inherit;
-    font-size: 0.9rem;
-    font-weight: 700;
-    line-height: 1;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s;
-}
-.dmd-price-row .dmd-cur-btn:hover {
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-.dmd-price-row .dmd-cur-btn[aria-expanded="true"] {
-    border-color: #ffb347;
-    color: #ffb347;
-}
-.dmd-cur-caret {
-    font-size: 0.62rem;
-    opacity: 0.8;
-    line-height: 1;
-}
-.dmd-cur-pop {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 6px);
-    z-index: 60;
-    min-width: 210px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: 6px;
-    background: #14171a;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    border-radius: 12px;
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55);
-}
-.dmd-cur-pop[hidden] {
-    display: none;
-}
-.dmd-cur-opt {
-    text-align: left;
-    background: transparent;
-    border: none;
-    border-radius: 8px;
-    padding: 9px 10px;
-    color: #e8f4f1;
-    font-family: inherit;
-    font-size: 0.84rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-.dmd-cur-opt:hover {
-    background: rgba(255, 255, 255, 0.07);
-}
-.dmd-cur-opt.active {
-    background: rgba(255, 179, 71, 0.12);
-    color: #ffb347;
-}
 .dmd-hint {
     font-size: 0.8rem;
     line-height: 1.35;
@@ -13632,31 +13443,6 @@ body.results-page.light .dmd-price-mode-btn.active {
     background: linear-gradient(135deg, #e9a614, #f1b52b);
     color: #fff;
     box-shadow: 0 2px 8px rgba(233, 166, 20, 0.35);
-}
-body.results-page.light .dmd-currency {
-    background: rgba(184, 134, 11, 0.1);
-    border-color: rgba(184, 134, 11, 0.25);
-    color: #8a6d1f;
-}
-body.results-page.light .dmd-price-row .dmd-cur-btn {
-    background: rgba(184, 134, 11, 0.1);
-    border-color: rgba(184, 134, 11, 0.25);
-    color: #8a6d1f;
-}
-body.results-page.light .dmd-cur-pop {
-    background: #fffdf8;
-    border-color: rgba(58, 47, 30, 0.16);
-    box-shadow: 0 18px 40px rgba(58, 47, 30, 0.18);
-}
-body.results-page.light .dmd-cur-opt {
-    color: #3a2f1e;
-}
-body.results-page.light .dmd-cur-opt:hover {
-    background: rgba(58, 47, 30, 0.06);
-}
-body.results-page.light .dmd-cur-opt.active {
-    background: rgba(184, 134, 11, 0.12);
-    color: #8a6d1f;
 }
 body.results-page.light .dmd-hint {
     color: #9a8a6d;

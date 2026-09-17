@@ -73,6 +73,19 @@
         voirTousList: document.getElementById("voir-tous-list"),
     };
 
+    // [DEVISE] Sélecteur unique du site (voir devise.js)
+    let offerCurrencyPicker = null;
+    function mountOfferCurrencyPicker() {
+        const host = document.getElementById("offer-currency-picker");
+        if (!host || !window.CCDevise || offerCurrencyPicker) return offerCurrencyPicker;
+        offerCurrencyPicker = window.CCDevise.picker(host, {
+            inputId: "offer-base-currency",
+            placeholder: "Devise"
+        });
+        return offerCurrencyPicker;
+    }
+
+
     function getUserCurrency() {
         return window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR";
     }
@@ -434,38 +447,17 @@
         if (els.offerAvailableKg) els.offerAvailableKg.value = String(offer.availableKg ?? offer.available_kg ?? "");
         if (els.offerPricePerKg) els.offerPricePerKg.value = String(offer.pricePerKg ?? offer.price_per_kg ?? "");
 
-        // === Devise intelligente : proposer uniquement les devises des pays de l'offre ===
-        const datalist = document.getElementById("offer-currency-list");
-        const currencyInput = els.offerBaseCurrency;
-        const COUNTRY_CURRENCIES = window.CCCommon?.COUNTRY_CURRENCIES || {};
-
-        const originCur = COUNTRY_CURRENCIES[offer.origin] || "";
-        const destCur = COUNTRY_CURRENCIES[offer.destination] || "";
-        const userCur = getUserCurrency();
-
-        // Ensemble des devises pertinentes (origine, destination, + EUR neutre si absent)
-        const relevantSet = new Set();
-        if (originCur) relevantSet.add(originCur);
-        if (destCur) relevantSet.add(destCur);
-        if (originCur !== "EUR" && destCur !== "EUR") relevantSet.add("EUR"); // neutre
-
-        // Si pas de devise trouvée, fallback vers EUR
-        if (relevantSet.size === 0) relevantSet.add(userCur);
-
-        // Premier choix : devise de l'origine (ou destination si origine inconnue)
-        const preferred = originCur || destCur || userCur;
-
-        // Remplir le datalist
-        if (datalist) {
-            datalist.innerHTML = Array.from(relevantSet)
-                .map(code => `<option value="${code}">${code}</option>`)
-                .join("");
-        }
-
-        // Pré-sélectionner la valeur existante ou la devise préférée
-        if (currencyInput) {
+        // === [DEVISE] Modèle unique du site (devise.js) : mêmes devises et même
+        // apparence que le formulaire de publication des offres ===
+        mountOfferCurrencyPicker();
+        if (offerCurrencyPicker) {
             const existing = String(offer.baseCurrency || offer.base_currency || "").toUpperCase();
-            currencyInput.value = existing || preferred;
+            const opts = window.CCDevise.optionsForCountries(offer.origin || "", offer.destination || "", { fallback: getUserCurrency() });
+            if (existing && !opts.some((o) => o.value === existing)) {
+                opts.unshift({ value: existing, label: "Devise de l'annonce" });
+            }
+            offerCurrencyPicker.setOptions(opts);
+            offerCurrencyPicker.set(existing || opts[0]?.value || getUserCurrency());
         }
 
         setFeedback("");

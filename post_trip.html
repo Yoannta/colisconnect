@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=53"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=56"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
@@ -24,10 +24,11 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js"></script>
 
-    <script defer src="standalone-common.js?v=19"></script>
+    <script defer src="standalone-common.js?v=20"></script>
+    <script defer src="devise.js?v=1"></script>
     <script defer src="admin-banner.js"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=31"></script>
+    <script defer src="post_trip.js?v=32"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -613,33 +614,6 @@
             width: 100% !important;
             max-width: 250px;
             min-width: 0;
-        }
-        /* Options du selecteur de devise (le CSS avait disparu lors d'une
-           restructuration : les choix s'affichaient bruts) */
-        #currency-popover { max-height: 260px; overflow-y: auto; }
-        .currency-opt-btn {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            padding: 8px 10px;
-            margin: 0 0 4px;
-            border: 0;
-            border-radius: 9px;
-            background: transparent;
-            color: #f0f7f6;
-            font-size: 0.82rem;
-            text-align: left;
-            cursor: pointer;
-        }
-        .currency-opt-btn:last-child { margin-bottom: 0; }
-        .currency-opt-btn:hover { background: rgba(255, 179, 71, 0.14); }
-        .currency-opt-btn .c-code { flex-shrink: 0; font-weight: 800; color: #ffb347; }
-        .currency-opt-btn .c-name {
-            flex: 1 1 auto; min-width: 0; overflow: hidden;
-            text-overflow: ellipsis; white-space: nowrap;
-            opacity: 0.85; font-size: 0.76rem;
-        }
         .colis-row-del:hover {
             color: #ff6b6b;
             border-color: rgba(255,107,107,0.5);
@@ -1055,15 +1029,7 @@
                                     <label for="price">Prix par kilo</label>
                                     <div style="display: flex; align-items: center; gap: 10px;">
                                         <input type="number" id="price" class="form-input" placeholder="0" min="0" style="width: 120px;">
-                                        <div class="currency-selector-custom" id="currency-selector-wrap" style="position: relative;">
-                                            <button type="button" id="currency-toggle-btn" class="currency-toggle"
-                                                style="background: rgba(255, 179, 71, 0.1); border: 1px solid rgba(255, 179, 71, 0.3); border-radius: 20px; color: #ffb347; font-size: 0.85rem; font-weight: 700; padding: 6px 14px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;">
-                                                <span id="current-currency-text">Devise</span>
-                                                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                                            </button>
-                                            <div id="currency-popover" class="currency-popover hidden glass-panel"
-                                                style="position: absolute; top: calc(100% + 8px); right: 0; width: 150px; z-index: 1000; padding: 8px; border: 1px solid rgba(255, 179, 71, 0.35); box-shadow: 0 10px 40px rgba(0,0,0,0.6);"></div>
-                                        </div>
+                                        <div id="currency-selector-wrap"></div>
                                         <input type="hidden" id="price-currency" value="">
                                     </div>
                                 </div>

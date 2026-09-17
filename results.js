@@ -1484,26 +1484,6 @@
                     removeColisBox(delBtn.closest(".dmd-colis-box"));
                     return;
                 }
-                // Sélecteur de devise du colis : ouverture / fermeture de la liste
-                const curBtn = e.target.closest(".dmd-cur-btn");
-                if (curBtn) {
-                    const pop = curBtn.parentElement?.querySelector(".dmd-cur-pop");
-                    if (pop) {
-                        const willOpen = pop.hidden;
-                        closeCurPops(willOpen ? pop : null);
-                        pop.hidden = !willOpen;
-                        curBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-                    }
-                    return;
-                }
-                // Choix d'une devise (celle du départ ou celle de l'arrivée)
-                const curOpt = e.target.closest(".dmd-cur-opt");
-                if (curOpt) {
-                    const box = curOpt.closest(".dmd-colis-box");
-                    if (box) setBoxCurrency(box, curOpt.dataset.cur);
-                    syncDmdCurrencies();
-                    return;
-                }
             });
             // Nom + champ « combien » pilotent en direct libellé et placeholder du montant
             colisZone.addEventListener("input", (e) => {
@@ -1543,70 +1523,47 @@
         // Acronyme lisible d'une devise ("FCFA" et non "XOF")
         const curSym = (code) => window.CCCommon?.currencySymbol?.(code) || code;
         const curName = (code) => window.CCCommon?.currencyName?.(code) || code;
+        // [DEVISE] Modèle unique du site (devise.js) : mêmes devises et même
+        // apparence que le formulaire de publication des offres.
         const dmdCurOptions = () => {
-            const dep = currencyOfCountry(document.getElementById("demande-origin")?.value);
-            const dst = currencyOfCountry(document.getElementById("demande-destination")?.value);
-            const opts = [];
-            if (dep) opts.push({ value: dep, label: `Devise du pays de depart (${curSym(dep)})`, name: curName(dep) });
-            if (dst && dst !== dep) opts.push({ value: dst, label: `Devise du pays d'arrivee (${curSym(dst)})`, name: curName(dst) });
-            if (!opts.length) {
-                const fb = fallbackCurrency();
-                opts.push({ value: fb, label: `Devise du compte (${curSym(fb)})`, name: curName(fb) });
-            }
-            // Deux devises differentes peuvent partager un acronyme (FCFA pour XOF/XAF,
-            // "kr" pour SEK/NOK/DKK) : dans ce cas seulement, on precise le nom complet.
-            const syms = opts.map((o) => curSym(o.value));
-            if (new Set(syms).size < opts.length) {
-                opts.forEach((o) => {
-                    // Nom court : "Franc CFA (BCEAO)" -> "BCEAO", sinon le nom complet
-                    const court = (o.name.match(/\(([^)]+)\)$/) || [null, o.name])[1];
-                    o.label = o.label.replace(/\(([^)]*)\)$/, (m, s) => `(${s} - ${court})`);
-                });
-            }
-            return opts;
+            const dep = document.getElementById("demande-origin")?.value;
+            const dst = document.getElementById("demande-destination")?.value;
+            return window.CCDevise.optionsForCountries(dep, dst, {
+                requireKnown: true,
+                fallback: fallbackCurrency()
+            });
         };
-        // Devise courante d'un colis : celle deja choisie, sinon celle affichee dans la puce
-        // (etat initial), sinon la devise du compte.
-        // Retrouve un code ISO depuis un acronyme affiche ("FCFA" -> XOF)
-        const codeFromSymbol = (txt) => {
-            const meta = window.CCCommon?.CURRENCY_META || {};
-            const key = String(txt || "").trim().toUpperCase();
-            if (meta[key]) return key;
-            return Object.keys(meta).find((c) => String(meta[c].symbol).toUpperCase() === key) || null;
-        };
-        const boxCurrencyOf = (box) => box?.dataset.currency
-            || codeFromSymbol(box?.querySelector(".dmd-cur-val")?.textContent)
-            || fallbackCurrency();
+        // Devise courante d'un colis (celle deja choisie, sinon celle du compte)
+        const boxCurrencyOf = (box) => box?.dataset.currency || fallbackCurrency();
         const setBoxCurrency = (box, cur) => {
             if (!box || !cur) return;
             box.dataset.currency = cur;
-            const tag = box.querySelector(".dmd-cur-val") || box.querySelector(".dmd-colis-cur");
-            if (tag) tag.textContent = curSym(cur);
+            if (box.__ccPicker) box.__ccPicker.set(cur);
         };
-        const closeCurPops = (except) => {
-            document.querySelectorAll(".dmd-cur-pop").forEach((pop) => {
-                if (pop === except) return;
-                pop.hidden = true;
-                pop.parentElement?.querySelector(".dmd-cur-btn")?.setAttribute("aria-expanded", "false");
+        // Monte le sélecteur unique sur une boîte colis (une seule fois par boîte)
+        const attachBoxPicker = (box) => {
+            const host = box.querySelector(".dmd-cur-picker");
+            if (!host || !window.CCDevise || box.__ccPicker) return box.__ccPicker;
+            box.__ccPicker = window.CCDevise.picker(host, {
+                value: box.dataset.currency || "",
+                placeholder: "Devise",
+                onChange: (cur) => { box.dataset.currency = cur; }
             });
-        };
-        const renderCurPop = (box, opts) => {
-            const pop = box.querySelector(".dmd-cur-pop");
-            const btn = box.querySelector(".dmd-cur-btn");
-            if (!pop) return;
-            const cur = boxCurrencyOf(box);
-            pop.innerHTML = opts.map((o) => (`<button type="button" class="dmd-cur-opt${o.value === cur ? " active" : ""}"` +
-                ` role="option" aria-selected="${o.value === cur}" data-cur="${o.value}">${o.label}</button>`)).join("");
-            pop.hidden = true;
-            if (btn) btn.setAttribute("aria-expanded", "false");
+            return box.__ccPicker;
         };
         // Recale les devises proposees : celle choisie doit rester disponible dans la liste
         const syncDmdCurrencies = () => {
             const opts = dmdCurOptions();
             const allowed = opts.map((o) => o.value);
             getColisBoxes().forEach((box) => {
-                if (!allowed.includes(boxCurrencyOf(box))) setBoxCurrency(box, allowed[0]);
-                renderCurPop(box, opts);
+                const picker = attachBoxPicker(box);
+                if (!picker) return;
+                const cur = boxCurrencyOf(box);
+                const list = (cur && !allowed.includes(cur))
+                    ? [{ value: cur, label: "Devise choisie" }].concat(opts)
+                    : opts;
+                picker.setOptions(list);
+                if (!picker.get()) picker.set(allowed[0] || cur || "");
             });
         };
         // La devise suit les pays choisis a l'etape 1 (comme le formulaire des voyageurs)
@@ -1615,10 +1572,6 @@
             if (!el) return;
             el.addEventListener("input", syncDmdCurrencies);
             el.addEventListener("change", syncDmdCurrencies);
-        });
-        // Un clic ailleurs referme la liste des devises
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest(".dmd-cur-picker")) closeCurPops();
         });
         syncDmdCurrencies();
 

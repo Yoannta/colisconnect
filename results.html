@@ -283,7 +283,7 @@
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=53"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=56"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
 
@@ -294,13 +294,14 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js"></script>
 
-    <script defer src="standalone-common.js?v=19"></script>
+    <script defer src="standalone-common.js?v=20"></script>
+    <script defer src="devise.js?v=1"></script>
 
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=47"></script>
+    <script defer src="results.js?v=48"></script>
 
 </head>
 
@@ -588,7 +589,7 @@
                     <!-- ÉTAPE 2 — Colis : un cadre par colis (nom, mode, combien, montant) + « Ajouter un autre colis » -->
                     <div class="dmd-step" data-step="2">
                         <div class="dmd-colis-zone" id="demande-colis-rows">
-                            <div class="dmd-colis-box" data-colis="1" data-currency="XOF">
+                            <div class="dmd-colis-box" data-colis="1">
                                 <div class="dmd-colis-box-head">
                                     <span class="dmd-colis-title">Colis 1</span>
                                     <button type="button" class="dmd-colis-del" title="Supprimer ce colis" aria-label="Supprimer ce colis">✕</button>
@@ -618,15 +619,7 @@
                                     <div class="dmd-price-row">
                                         <input type="number" class="demande-input dmd-price-input"
                                             placeholder="Ex: 2500" min="0" step="any" inputmode="decimal">
-                                        <div class="dmd-cur-picker">
-                                            <button type="button" class="dmd-currency dmd-colis-cur dmd-cur-btn"
-                                                aria-haspopup="listbox" aria-expanded="false"
-                                                title="Choisir la devise">
-                                                <span class="dmd-cur-val">FCFA</span>
-                                                <span class="dmd-cur-caret" aria-hidden="true">▼</span>
-                                            </button>
-                                            <div class="dmd-cur-pop" role="listbox" hidden></div>
-                                        </div>
+                                        <div class="dmd-cur-picker"></div>
                                     </div>
                                 </div>
                             </div>

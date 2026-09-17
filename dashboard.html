@@ -19,7 +19,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=55">
+    <link rel="stylesheet" href="style.css?v=56">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
@@ -27,9 +27,10 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js"></script>
 
-    <script defer src="standalone-common.js?v=19"></script>
+    <script defer src="standalone-common.js?v=20"></script>
+    <script defer src="devise.js?v=1"></script>
     <script defer src="admin-banner.js"></script>
-    <script defer src="dashboard.js?v=20"></script>
+    <script defer src="dashboard.js?v=21"></script>
 </head>
 
 <body class="dashboard-page">
@@ -337,8 +338,8 @@
                         </label>
                         <label class="form-field">
                             <span>Devise</span>
-                            <input id="offer-base-currency" type="text" list="offer-currency-list" class="estimator-input" placeholder="Sélectionner une devise" autocomplete="off" />
-                            <datalist id="offer-currency-list"></datalist>
+                            <div id="offer-currency-picker"></div>
+                            <input id="offer-base-currency" type="hidden" value="" />
                         </label>
                     </div>
 

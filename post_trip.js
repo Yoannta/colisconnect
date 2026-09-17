@@ -18,9 +18,6 @@
         kilos: document.getElementById("kilos"),
         price: document.getElementById("price"),
         priceCurrencyInput: document.getElementById("price-currency"),  // [MULTI-CURRENCY]
-        currencyToggle: document.getElementById("currency-toggle-btn"),
-        currencyPopover: document.getElementById("currency-popover"),
-        currentCurrencyText: document.getElementById("current-currency-text"),
         paymentMethodInput: document.getElementById("payment-method"),
         paymentQrInput: document.getElementById("payment-qr"),
         paymentMethodLabel: document.getElementById("payment-method-label"),
@@ -50,11 +47,6 @@
         publishMsg: document.getElementById("publish-success-msg"),
         // Note "deja valide / code demande" (mode modification)
         contactNote: document.getElementById("pm-contact-note"),
-        // Currency Custom
-        currencyToggle: document.getElementById("currency-toggle-btn"),
-        currencyPopover: document.getElementById("currency-popover"),
-        currentCurrencyText: document.getElementById("current-currency-text"),
-        priceCurrencyInput: document.getElementById("price-currency"),
         // profile_type modal
         profileTypeModal: document.getElementById("profile-type-modal"),
         choiceTraveler: document.getElementById("profile-choice-traveler"),
@@ -116,51 +108,36 @@
     }
 
     // [MULTI-CURRENCY] Met à jour le sélecteur de monnaie selon les pays choisis
+    // [DEVISE] Sélecteur monté depuis le modèle unique du site (devise.js) :
+    // une seule apparence de devise pour toutes les pages.
+    let ccPicker = null;
+
+    function mountCurrencySelector() {
+        const host = document.getElementById("currency-selector-wrap");
+        if (!host || !window.CCDevise) return ccPicker;
+        ccPicker = window.CCDevise.picker(host, {
+            inputId: "price-currency",
+            btnId: "currency-toggle-btn",
+            labelId: "current-currency-text",
+            placeholder: "Devise",
+            keepEmpty: true,
+            onChange: function () {
+                // Les badges "prix special" affichent la devise : on les rafraichit
+                if (window.ccRefreshUniteLabel) {
+                    document.querySelectorAll(".colis-detail-row").forEach(function (r) { window.ccRefreshUniteLabel(r); });
+                }
+            }
+        });
+        return ccPicker;
+    }
+
+    // [MULTI-CURRENCY] Met à jour les devises proposées selon les pays choisis
     function updateCurrencySelector() {
-        if (!els.priceCurrencyInput) return;
+        const picker = ccPicker || mountCurrencySelector();
+        if (!picker) return;
         const dep = String(els.departure?.value || "").trim();
         const dst = String(els.destination?.value || "").trim();
-        const depCur = COUNTRY_CURRENCIES[dep] || "EUR";
-        const dstCur = COUNTRY_CURRENCIES[dst] || "EUR";
-
-        const options = [];
-        options.push({ value: depCur, label: `Pays de départ` });
-        if (dstCur !== depCur) options.push({ value: dstCur, label: `Pays d'arrivée` });
-
-        if (els.currencyPopover) {
-            els.currencyPopover.innerHTML = options.map(o => `
-                <div class="currency-opt" data-value="${o.value}">
-                    <span class="currency-opt-name">${ccSym(o.value)}</span>
-                    <span class="currency-opt-code">${o.label}</span>
-                </div>
-            `).join("");
-
-            els.currencyPopover.querySelectorAll(".currency-opt").forEach(opt => {
-                opt.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const val = opt.dataset.value;
-                    if (els.priceCurrencyInput) els.priceCurrencyInput.value = val;
-                    if (els.currentCurrencyText) els.currentCurrencyText.textContent = ccSym(val);
-                    els.currencyPopover.classList.add("hidden");
-                    // Les badges "prix special" affichent la devise : on les rafraichit
-                    if (window.ccRefreshUniteLabel) {
-                        document.querySelectorAll(".colis-detail-row").forEach(function (r) { window.ccRefreshUniteLabel(r); });
-                    }
-                });
-            });
-        }
-
-        // Vérifier si la sélection actuelle est toujours valide
-        const current = els.priceCurrencyInput.value;
-        const isStillValid = options.some(o => o.value === current);
-
-        if (!isStillValid) {
-            // On ne force pas le premier si rien n'est sélectionné au départ pour garder "Devise"
-            if (current !== "" && options.length > 0) {
-                els.priceCurrencyInput.value = options[0].value;
-                if (els.currentCurrencyText) els.currentCurrencyText.textContent = ccSym(options[0].value);
-            }
-        }
+        picker.setOptions(window.CCDevise.optionsForCountries(dep, dst, { fallback: "EUR" }));
     }
 
     function isValidCountry(value) {
@@ -1085,24 +1062,19 @@
             set("price-currency", offer.base_currency || "");
             if (els.notes) els.notes.value = offer.description || "";
 
-            // DEVISE : afficher celle choisie lors de la creation de l'annonce (l'une des
-            // deux devises proposees : pays de depart / pays d'arrivee). Le bouton du
-            // formulaire restait sur "Devise" car seul le champ cache etait rempli.
-            // L'utilisateur peut toujours en choisir une autre : la liste est reconstruite
-            // juste apres par updateCurrencySelector().
+            // DEVISE : on reprend la devise de l'annonce, même si elle ne figure pas
+            // dans la liste des devises des pays (l'utilisateur peut en changer).
             const devise = String(offer.base_currency || offer.baseCurrency || "").toUpperCase();
             if (devise) {
-                const inp = document.getElementById("price-currency");
-                if (inp) inp.value = devise;
-                const aff = document.getElementById("current-currency-text");
-                if (aff) aff.textContent = (window.CCCommon && window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(devise) : devise);
-                if (typeof updateCurrencySelector === "function") updateCurrencySelector();
-                // updateCurrencySelector() remet la devise du pays si la valeur courante ne
-                // figure pas dans sa liste : on reimpose celle de l'annonce.
-                const inp2 = document.getElementById("price-currency");
-                if (inp2) inp2.value = devise;
-                const aff2 = document.getElementById("current-currency-text");
-                if (aff2) aff2.textContent = (window.CCCommon && window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(devise) : devise);
+                const picker = ccPicker || mountCurrencySelector();
+                if (picker) {
+                    const dep = String(els.departure?.value || "").trim();
+                    const dst = String(els.destination?.value || "").trim();
+                    const opts = window.CCDevise.optionsForCountries(dep, dst, { fallback: "EUR" });
+                    if (!opts.some((o) => o.value === devise)) opts.unshift({ value: devise, label: "Devise de l'annonce" });
+                    picker.setOptions(opts);
+                    picker.set(devise);
+                }
             }
             // Annexe : dates supplementaires (cargo)
             const extras = Array.isArray(offer.extra_dates) ? offer.extra_dates : [];
@@ -1142,16 +1114,6 @@
     }
 
     function bindEvents() {
-        // [CURRENCY-POPOVER] Gestion de la bulle
-        els.currencyToggle?.addEventListener("click", (e) => {
-            e.stopPropagation();
-            els.currencyPopover?.classList.toggle("hidden");
-        });
-
-        document.addEventListener("click", () => {
-            els.currencyPopover?.classList.add("hidden");
-        });
-
         // ===== POPUP TYPES DE COLIS =====
         const colisOverlay = document.getElementById("colisPopupOverlay");
         const colisGrid = document.getElementById("colisOptionsGrid");
