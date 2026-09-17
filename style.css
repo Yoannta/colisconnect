@@ -12805,10 +12805,15 @@ body.results-page.light .cc3-special-toggle-gold {
     stroke-width: 1.9;
 }
 
-/* Corbeille (suppression de MES demandes) + rangée d'actions du pied de carte */
+/* Corbeille (suppression de MES publications) + actions du pied de carte.
+   Colonne alignée à DROITE : la corbeille se place AU-DESSUS du bouton
+   « Modifier ma demande / mon trajet ». Empilée, elle ne peut plus chevaucher
+   le nom de l'utilisateur (avant : tout tenait sur une seule rangée, trop
+   étroite sur les petites cartes). */
 .cc3-actions {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-end;
     gap: 6px;
     flex-shrink: 0;
 }

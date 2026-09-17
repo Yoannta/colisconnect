@@ -746,6 +746,9 @@
       editAttr: isOwnOffer ? `data-edit-own-offer="${offer.id}"` : "",
       editLabel: "Modifier mon trajet",
       editAriaLabel: "Modifier mon trajet publie",
+      // Corbeille : suppression de mon propre trajet (avec confirmation)
+      deleteAttr: isOwnOffer ? `data-delete-own-offer="${offer.id}"` : "",
+      deleteLabel: "Supprimer mon trajet",
       dataAttr: isOwnOffer ? "" : `data-reserve-offer="${offer.id}"`,
       ariaLabel: `Contacter ${offer.ownerName || "ce voyageur"}`
     })}
@@ -935,6 +938,63 @@
         }
     }
 
+    // ── Suppression d'un de MES trajets (carte d'offre) ────────────────────────
+    // Même mécanique que le tableau de bord : fonction de la base sécurisée
+    // (elle n'accepte aucun identifiant d'utilisateur venant du client, elle se
+    // base sur l'identité réelle de la session et n'agit que sur ses propres
+    // annonces), avec repli en archivage si la ligne n'existe plus. On vérifie
+    // qu'une ligne a bien été touchée : 0 => on le dit au lieu de faire semblant.
+    async function deleteOffre(offerId) {
+        const id = String(offerId || "").trim();
+        if (!id) return;
+        if (!window.ccSupabase) {
+            window.alert("Suppression indisponible : mode dégradé sans base de données.");
+            return;
+        }
+        if (!window.confirm("Supprimer définitivement ce trajet ?\n\nLes réservations et discussions liées seront également supprimées. Cette action est irréversible.")) return;
+        try {
+            const { data: nDel, error: e1 } = await window.ccSupabase.rpc("cc_delete_own_offer", { p_offer_id: Number(id) });
+            if (e1) throw e1;
+            let fait = nDel || 0;
+            if (!fait) {
+                const { data: nArch, error: e2 } = await window.ccSupabase.rpc("cc_archive_own_offer", { p_offer_id: Number(id) });
+                if (e2) throw e2;
+                fait = nArch || 0;
+            }
+            if (!fait) {
+                throw new Error("Suppression refusee par la base de donnees (aucune ligne supprimee) : ce trajet n'a pas ete trouve, ou il ne vous appartient pas.");
+            }
+
+            // Nettoyage des donnees liees (au mieux, ne bloque jamais la suppression)
+            try {
+                const { data: reservations } = await window.ccSupabase.from("reservations").select("id").eq("offer_id", id);
+                if (reservations && reservations.length) {
+                    const resIds = reservations.map((r) => r.id);
+                    const { data: threads } = await window.ccSupabase.from("chat_threads").select("id").in("reservation_id", resIds);
+                    const tIds = (threads || []).map((t) => t.id);
+                    if (tIds.length) {
+                        await window.ccSupabase.from("chat_messages").delete().in("thread_id", tIds);
+                        await window.ccSupabase.from("chat_threads").delete().in("id", tIds);
+                    }
+                    await window.ccSupabase.from("reservations").delete().in("id", resIds);
+                }
+                const { data: directThreads } = await window.ccSupabase.from("chat_threads").select("id").eq("offer_id", id);
+                if (directThreads && directThreads.length) {
+                    const tIds = directThreads.map((t) => t.id);
+                    await window.ccSupabase.from("chat_messages").delete().in("thread_id", tIds);
+                    await window.ccSupabase.from("chat_threads").delete().in("id", tIds);
+                }
+            } catch (e) { console.warn("Nettoyage annexe partiel:", e); }
+
+            // Retrait immediat de la carte, puis etat mis a jour
+            state.offers = (state.offers || []).filter((o) => String(o.id) !== id);
+            renderOffers();
+        } catch (err) {
+            console.error("Erreur suppression trajet:", err);
+            window.alert("Erreur: " + (err.message || "Suppression impossible."));
+        }
+    }
+
     function bindEvents() {
         initCustomCurrencyDropdown();
 
@@ -949,6 +1009,12 @@
                 const delOwnBtn = event.target.closest("button[data-delete-own-demand]");
                 if (delOwnBtn) {
                     deleteDemande(delOwnBtn.getAttribute("data-delete-own-demand"));
+                    return;
+                }
+                // Corbeille : suppression de mon propre trajet (avec confirmation)
+                const delOwnOfferBtn = event.target.closest("button[data-delete-own-offer]");
+                if (delOwnOfferBtn) {
+                    deleteOffre(delOwnOfferBtn.getAttribute("data-delete-own-offer"));
                     return;
                 }
                 if (editOwnBtn) {
