@@ -2876,11 +2876,45 @@
     }
 
     // Auto-exécution
+    // === CHAMPS NUMERIQUES (prix, poids) : garde-fou global ===
+    // Ces champs ne doivent accepter QUE des chiffres (+ une decimale).
+    // Delegation au document : couvre aussi les champs crees dynamiquement.
+    const NUMERIC_SEL = 'input[type="number"], input[data-numeric]';
+    function isNumericField(el) { return !!(el && el.matches && el.matches(NUMERIC_SEL)); }
+    function cleanNumber(el) {
+        const brut = String(el.value || "");
+        let v = brut.replace(/[^0-9.,]/g, "");
+        const i = v.search(/[.,]/);
+        if (i !== -1) v = v.slice(0, i + 1) + v.slice(i + 1).replace(/[.,]/g, "");
+        if (v !== brut) el.value = v;
+        return v;
+    }
+    function prepareNumericField(el) {
+        if (!isNumericField(el)) return;
+        if (!el.getAttribute("inputmode")) el.setAttribute("inputmode", "decimal");
+        el.setAttribute("autocomplete", "off");
+    }
+    function installerGardeFouNumerique() {
+        document.querySelectorAll(NUMERIC_SEL).forEach(prepareNumericField);
+        if (!document.body || document.body.dataset.numericGuard === "on") return;
+        document.body.dataset.numericGuard = "on";
+        document.addEventListener("keydown", (e) => {
+            if (!isNumericField(e.target)) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            if (e.key && e.key.length === 1 && /[^0-9.,]/.test(e.key)) e.preventDefault();
+        }, true);
+        document.addEventListener("input", (e) => { if (isNumericField(e.target)) cleanNumber(e.target); }, true);
+        document.addEventListener("change", (e) => { if (isNumericField(e.target)) cleanNumber(e.target); }, true);
+        document.addEventListener("focusin", (e) => { prepareNumericField(e.target); }, true);
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         setTimeout(setupAllCountryInputs, 150);
+        setTimeout(installerGardeFouNumerique, 150);
     });
 
     window.CCCommon = {
+        installNumericGuards: installerGardeFouNumerique,
         state,
         api,
         setSession,
