@@ -13517,8 +13517,11 @@ body.results-page .nav-link.is-active {
     box-shadow: inset 0 -3px 0 var(--line-glow);
 }
 
-/* Boutons « Se connecter » / modales d'auth : l'ancien CSS finissait en vert */
-body.results-page .btn.primary {
+/* Boutons « Se connecter » / modales d'auth : l'ancien CSS finissait en vert.
+   Ajouté pour verification.html (2026-09) : sans ça le bouton principal et le
+   bouton « Login » de l'en-tête gardaient le dégradé or → vert #10b981. */
+body.results-page .btn.primary,
+body.verification-page .btn.primary {
     background: linear-gradient(135deg, var(--emerald-bright), #d99a0e);
 }
 
