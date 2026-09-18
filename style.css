@@ -74,7 +74,8 @@
    étendu à body.chat-page (chat.html, alignement 2026-09).
    ============================================================ */
 body.results-page,
-body.chat-page {
+body.chat-page,
+body.verification-page {
     --emerald-bright: #ffb347;
     --emerald-glow: rgba(255, 179, 71, 0.15);
     --emerald-deep: #4a3a10;
@@ -87,7 +88,8 @@ body.chat-page {
 
 /* Variante thème clair : or plus foncé pour rester lisible sur le crème */
 body.results-page.light,
-body.chat-page.light {
+body.chat-page.light,
+body.verification-page.light {
     --emerald-bright: #b8860b;
     --emerald-glow: rgba(184, 134, 11, 0.12);
     --emerald-deep: #8a6410;
@@ -471,7 +473,8 @@ button {
    ROLLBACK : git reset --hard ROLLBACK-OBSIDIAN
    ============================================================ */
 body.results-page,
-body.chat-page {
+body.chat-page,
+body.verification-page {
     background-color: #050505;
     background-image:
         radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.55) 100%),
@@ -492,7 +495,8 @@ body.chat-page {
 
 /* Ligne d'or fine en haut de page */
 body.results-page::before,
-body.chat-page::before {
+body.chat-page::before,
+body.verification-page::before {
     content: '';
     position: fixed;
     top: 0; left: 0; right: 0;
@@ -508,11 +512,13 @@ body.chat-page::before {
 
 /* Orbes d'ambiance : respiration lente (doré au lieu du vert) */
 body.results-page .ambient-a,
-body.chat-page .ambient-a {
+body.chat-page .ambient-a,
+body.verification-page .ambient-a {
     background: radial-gradient(circle, rgba(255,140,0,0.12), transparent 70%);
 }
 body.results-page .ambient-b,
-body.chat-page .ambient-b {
+body.chat-page .ambient-b,
+body.verification-page .ambient-b {
     background: radial-gradient(circle, rgba(212,160,23,0.09), transparent 70%);
 }
 
@@ -1081,7 +1087,9 @@ body.post-trip-page .pt-modal-card {
     box-shadow: 0 24px 70px rgba(0,0,0,0.6);
 }
 body.post-trip-page .phone-prefix-select,
-body.post-trip-page .phone-input-row input {
+body.post-trip-page .phone-input-row input,
+body.verification-page .phone-prefix-select,
+body.verification-page .phone-input-row input {
     background: #161616;
     border-color: rgba(255,179,71,0.3);
     color: #f7f2e9;
@@ -1132,7 +1140,8 @@ body.post-trip-page.light .step-errors {
     color: #b34840 !important;
 }
 /* Modale paiement — aura or au focus (Yoyo : « truc lumineux vert de l'ancien style ») */
-body.post-trip-page .phone-main-input:focus {
+body.post-trip-page .phone-main-input:focus,
+body.verification-page .phone-main-input:focus {
     border-color: #ffb347 !important;
     box-shadow: 0 0 0 3px rgba(255,140,0,0.15) !important;
 }
@@ -1573,7 +1582,9 @@ body.post-trip-page.light .phone-label {
     color: #5a4632 !important;
 }
 body.post-trip-page.light .phone-prefix-select,
-body.post-trip-page.light .phone-input-row input {
+body.post-trip-page.light .phone-input-row input,
+body.verification-page.light .phone-prefix-select,
+body.verification-page.light .phone-input-row input {
     background: #fffdf8 !important;
     border-color: rgba(184, 134, 11, 0.35) !important;
     color: #3a2f1e !important;
@@ -14371,4 +14382,168 @@ body.dashboard-page div[style*="linear-gradient(135deg, #4c82ff"] {
    illisible sur la carte sombre ; on suit la palette des 2 thèmes. */
 body.dashboard-page #cc-auth-switch-text {
     color: var(--muted) !important;
+}
+
+/* ==========================================================================
+   PAGE VÉRIFICATION — OBSIDIAN LUXE (or) / GOLD LIGHT            2026-09
+   verification.html était la SEULE page sans classe de thème sur <body> :
+   elle retombait sur la palette « Emerald » du :root (vert/menthe) = l'ancien
+   CSS. En plus, --radius-sm n'est défini nulle part dans ce fichier → tous les
+   champs tombaient à 0px (angles droits) et la rangée téléphone n'avait aucun
+   style : le <select> natif restait blanc, minuscule et décalé = « champ qui
+   sort du cadre ». Ici : jetons or/obsidienne repris de body.dashboard-page,
+   puis correctifs des champs. Tout est scopé à body.verification-page.
+   ROLLBACK : git checkout HEAD~1 -- style.css verification.html
+   ========================================================================== */
+body.verification-page {
+    --text: #f2ece1;
+    --muted: #b0a795;
+    --primary: var(--emerald-bright);
+    --secondary: #d4a017;
+    --accent: #ffb347;
+    --surface: rgba(255, 255, 255, 0.03);
+    --surface-strong: rgba(12, 12, 13, 0.94);
+    --deep-glass: rgba(20, 18, 14, 0.55);
+    /* Arrondis absents du :root → champs et boutons à angles droits */
+    --radius-sm: 12px;
+    --radius: 20px;
+}
+
+body.verification-page.light {
+    --text: #3a2f1e;
+    --muted: #6d6252;
+    --secondary: #b8860b;
+    --accent: #a9760a;
+    --surface: rgba(255, 255, 255, 0.72);
+    --surface-strong: rgba(253, 250, 244, 0.95);
+    --deep-glass: rgba(255, 255, 255, 0.62);
+}
+
+/* ── Carte : même matière que sur les autres pages ─────────────────────── */
+body.verification-page .form-card {
+    background: var(--surface-strong);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 20px 55px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Champs : arrondis + bordure or (sinon restent ceux du navigateur) ─── */
+body.verification-page input:not([type="checkbox"]):not([type="radio"]),
+body.verification-page textarea,
+body.verification-page select {
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 179, 71, 0.28);
+    color: var(--text);
+    color-scheme: dark;
+}
+body.verification-page input:focus,
+body.verification-page textarea:focus,
+body.verification-page select:focus {
+    outline: none;
+    border-color: var(--emerald-bright);
+    box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.18);
+}
+body.verification-page input::placeholder {
+    color: rgba(176, 167, 149, 0.72);
+}
+
+/* ── Rangée téléphone : préfixe + numéro sur une ligne, même hauteur ───── */
+body.verification-page .phone-input-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+body.verification-page .phone-prefix-select {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 104px;
+    min-height: 51px;
+    padding: 0 12px;
+    font-size: 0.95rem;
+    cursor: pointer;
+}
+body.verification-page .phone-main-input {
+    flex: 1 1 150px;
+    min-width: 0; /* sans ça l'item flex refuse de rétrécir → débordement */
+}
+
+/* ── Pièce justificative : bouton natif blanc « Choose File » → or ─────── */
+body.verification-page input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(255, 179, 71, 0.4);
+    border-radius: var(--radius-sm);
+    color: var(--muted);
+    font-size: 0.88rem;
+}
+body.verification-page input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 8px 14px;
+    border: 1px solid rgba(255, 179, 71, 0.45);
+    border-radius: 10px;
+    background: rgba(255, 179, 71, 0.14);
+    color: #ffd08a;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+body.verification-page input[type="file"]::file-selector-button:hover {
+    background: rgba(255, 179, 71, 0.24);
+}
+
+/* ── Progression : barre à l'or ────────────────────────────────────────── */
+body.verification-page .profile-progress-track {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+}
+body.verification-page .profile-progress-bar {
+    background: linear-gradient(90deg, #d4a017, #ffb347);
+    box-shadow: 0 0 12px rgba(255, 179, 71, 0.35);
+}
+
+/* ── Modale de connexion partagée (standalone-common.js) : le texte #333 en
+      dur et la pastille bleu→vert étaient illisibles sur la carte obsidienne
+      (même correctif que body.dashboard-page, l. 14364) ─────────────────── */
+body.verification-page #cc-auth-switch-text {
+    color: var(--muted) !important;
+}
+body.verification-page div[style*="linear-gradient(135deg, #4c82ff"] {
+    background: linear-gradient(135deg, #f0c35a, #b87b10) !important;
+}
+body.verification-page #cc-auth-email-input {
+    background-color: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 179, 71, 0.25);
+    color: #fff;
+    color-scheme: dark;
+}
+body.verification-page #cc-auth-phone-input {
+    background-color: transparent;
+    color: #fff;
+    color-scheme: dark;
+}
+
+/* Variante claire des champs */
+body.verification-page.light .form-card {
+    box-shadow: 0 18px 44px rgba(90, 70, 20, 0.16);
+}
+body.verification-page.light input:not([type="checkbox"]):not([type="radio"]),
+body.verification-page.light textarea,
+body.verification-page.light select,
+body.verification-page.light .phone-prefix-select,
+body.verification-page.light input[type="file"] {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(184, 134, 11, 0.3) !important;
+    color: #3a2f1e !important;
+    color-scheme: light;
+}
+body.verification-page.light input[type="file"]::file-selector-button {
+    background: rgba(184, 134, 11, 0.12);
+    border-color: rgba(184, 134, 11, 0.45);
+    color: #6d4f10;
 }

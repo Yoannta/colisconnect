@@ -16,11 +16,11 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=57">    <!-- Supabase Core & Init -->    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>    <script src="supabase-init.js?v=2"></script>
+    <link rel="stylesheet" href="style.css?v=59">    <!-- Supabase Core & Init -->    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>    <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
     <!-- Header unifié (source unique) -->
-    <script defer src="shared-header.js?v=57"></script>
+    <script defer src="shared-header.js?v=59"></script>
 
     <script defer src="standalone-common.js?v=20"></script>
     <script defer src="devise.js?v=1"></script>
@@ -29,7 +29,7 @@
     <script defer src="verification.js"></script>
 </head>
 
-<body>
+<body class="verification-page">
     <div class="noise-layer" aria-hidden="true"></div>
     <div class="ambient ambient-a" aria-hidden="true"></div>
     <div class="ambient ambient-b" aria-hidden="true"></div>
@@ -170,9 +170,9 @@
     <div id="wait-modal" class="modal hidden"
         style="z-index: 10000; position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center;">
         <div class="modal-card"
-            style="text-align: center; max-width: 400px; background: var(--bg-card); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color);">
+            style="text-align: center; max-width: 400px; background: var(--surface-strong); padding: 2rem; border-radius: var(--radius-sm); border: 1px solid var(--line);">
             <div style="font-size: 3rem; margin-bottom: 1rem;">⏳</div>
-            <h3 style="color: var(--brand-accent); margin-bottom: 1rem;">Analyse en cours</h3>
+            <h3 style="color: var(--emerald-bright); margin-bottom: 1rem;">Analyse en cours</h3>
             <p style="line-height: 1.6; margin-bottom: 1.5rem;">
                 Vos informations ont été enregistrées avec succès.
                 <br><br>
