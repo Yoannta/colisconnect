@@ -21,7 +21,7 @@
 (function () {
   'use strict';
 
-  var VERSION = '2.3.0';
+  var VERSION = '2.4.0';
   var CLE_FERME = 'cc-mascotte-ferme';   // "ne plus afficher" (30 jours)
   var JOURS     = 30;
   var CLE_JET   = 'cc-mascotte-jet';     // la scene du jet : une seule fois / 12 h
@@ -298,8 +298,8 @@
   /* ---------------------------------------------------------------- style -- */
   var CSS = [
     /* le rail : toute la largeur, en bas de l'ecran, transparent aux clics */
-    '.ccm-root{position:fixed;left:0;right:0;bottom:0;height:196px;pointer-events:none;z-index:60}',
-    '.ccm-perso{position:absolute;bottom:8px;left:0;width:110px;height:155px;pointer-events:auto;cursor:pointer;',
+    '.ccm-root{position:fixed;left:0;right:0;bottom:0;height:110px;pointer-events:none;z-index:60}',
+    '.ccm-perso{position:absolute;bottom:8px;left:0;width:56px;height:79px;pointer-events:auto;cursor:pointer;',
       'opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease}',
     '.ccm-root.ccm-pret .ccm-perso{opacity:1;transform:translateY(0)}',
     '.ccm-perso.ccm-parti{opacity:0;transform:translateY(16px);pointer-events:none}',
@@ -584,8 +584,15 @@
     '@keyframes ccmPousse{0%{transform:rotate(0)}30%{transform:rotate(-72deg)}62%{transform:rotate(-64deg)}100%{transform:rotate(0)}}',
     '@keyframes ccmBoudeBras{0%{transform:rotate(2deg)}100%{transform:rotate(-3.5deg)}}',
 
-    /* petits ecrans */
-    '@media (max-width:620px){.ccm-root{height:152px}.ccm-perso{width:88px;height:124px;bottom:6px}}',
+    /* ---- SA TAILLE -------------------------------------------------------
+       Il fait la MOITIE de sa taille d'origine (110 x 155 px au depart).
+       Tout le reste suit tout seul : la porte, la distance de marche, la
+       position des bulles et les gestes se calculent a partir de
+       perso.offsetWidth / offsetHeight. Pour le regrossir : remonter la
+       valeur de base (56 x 79) et les trois paliers ci-dessous. */
+    '@media (min-width:1500px){.ccm-root{height:122px}.ccm-perso{width:64px;height:90px}}',
+    '@media (max-width:900px){.ccm-root{height:100px}.ccm-perso{width:50px;height:70px}}',
+    '@media (max-width:620px){.ccm-root{height:92px}.ccm-perso{width:46px;height:65px;bottom:6px}}',
     '@media (max-width:620px){.ccm-bulle{font-size:13px;max-width:70vw}}',
 
     /* mode calme du navigateur = personnage immobile */
@@ -682,6 +689,12 @@
 
     root.appendChild(perso);
     document.body.appendChild(root);
+
+    /* Sa marche est ralentie d'autant qu'il a ete reduit : la vitesse est en
+       pixels/seconde et ne suivait pas la taille, ses pieds patinaient. */
+    if (typeof o.vitesse !== 'number') {
+      vitesse = Math.max(18, Math.round(46 * (perso.offsetWidth || 110) / 110));
+    }
 
     var bulleTxt   = perso.querySelector('.ccm-bulle-texte');
     var bulleOuvrir= perso.querySelector('.ccm-bulle-ouvrir');
@@ -1095,7 +1108,10 @@
       var l = perso.offsetWidth || 110, h = perso.offsetHeight || 155;
       var r = perso.getBoundingClientRect();
       var sol = Math.round(r.bottom - h * 0.078);        // la ligne de ses pieds
-      var dw = Math.max(54, Math.round(l * 0.8)), dh = Math.round(dw * 1.75);
+      /* la porte suit sa taille (elle mesure 0,8 fois sa largeur et 1,75 fois
+         celle-ci en hauteur) ; le plancher a ete abaisse avec lui : 54 px pour
+         un personnage de 110, 24 px pour un personnage de 56. */
+      var dw = Math.max(24, Math.round(l * 0.8)), dh = Math.round(dw * 1.75);
       var vw = window.innerWidth;
       var dist = Math.round(l * 1.3 + dw * 0.4);
       var aDroite = (x + l + dist + dw) < (vw - 10);
@@ -1120,9 +1136,12 @@
       }
       /* le trait de la porte fermee : il doit rester devant lui, a petite distance */
       var trait = dw * (10 / 96);
+      /* l'ecart entre lui et la porte suit sa taille : 20 px quand il faisait
+         110 px de large, 10 px maintenant qu'il en fait 56. */
+      var ecart = Math.round(l * 0.18);
       porteCible = porteSens > 0
-        ? Math.round(gp + trait - l * 0.95 - 20)
-        : Math.round(gp + dw - trait + l * 0.073 + 20);
+        ? Math.round(gp + trait - l * 0.95 - ecart)
+        : Math.round(gp + dw - trait + l * 0.073 + ecart);
       requestAnimationFrame(function () { if (porte) porte.classList.add('ccm-porte-pose'); });
     }
 
