@@ -7433,6 +7433,14 @@ input[data-country-select="true"]::placeholder {
     top: -11px;
 }
 
+/* Libellé du bouton central « + » (Publier offre) — même style que les autres onglets */
+.mob-nav-item.highlight .plus-label {
+    font-size: 0.64rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 .mob-nav-item .plus-btn {
     width: 44px;
     height: 44px;

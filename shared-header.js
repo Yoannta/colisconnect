@@ -85,6 +85,7 @@
   ];
   var mobPlus = {
     href: 'post_trip.html',
+    label: 'Publier offre',
     icon: '<div class="plus-btn"><span>+</span></div>'
   };
   var mobTail = [
@@ -115,6 +116,7 @@
   var plusCls = 'mob-nav-item highlight' + (activePage === 'post_trip.html' ? ' active' : '');
   mobNavHTML += '\n        <a href="' + mobPlus.href + '" class="' + plusCls + '">\n' +
     '            ' + mobPlus.icon + '\n' +
+    '            <span class="plus-label">' + mobPlus.label + '</span>\n' +
     '        </a>';
   // Items de queue (Messages, Partenaire, Profil)
   mobTail.forEach(function (it) {
