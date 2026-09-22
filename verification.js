@@ -224,18 +224,24 @@
         show(editBtn, hasSaved || hasValue);
 
         if (!editing) {
-            // ---- REPOS ----
+            // ---- REPOS : champ verrouille ----
             if (numberEl) { numberEl.readOnly = true; numberEl.style.cursor = "default"; }
             if (prefixEl) prefixEl.disabled = true;
             editBtn?.classList.remove("is-locked");
-            show(sendBtn, false);                   // cache : rien a faire ici
-            show(isOne ? pel.otpSection : pel.otpSection2, false);
-            if (hasSaved) setStatus(statusEl, "");
-            refreshSubmitState();
-            return;
+        } else {
+            // ---- EDITION : champ editable ----
+            if (numberEl) { numberEl.readOnly = false; numberEl.style.cursor = ""; }
+            if (prefixEl) prefixEl.disabled = false;
+            editBtn?.classList.add("is-locked");
+            // On guide l'utilisateur : tant que le numero n'a pas bouge, rien ne s'affiche.
+            if (!String(numberEl?.value || "").trim()) {
+                setStatus(statusEl, "Saisissez votre numero, puis cliquez sur Envoyer un code.");
+            } else if (sameAsSaved(idx) && !verified) {
+                setStatus(statusEl, "Modifiez le numero : le bouton Envoyer un code apparaitra des qu'il change.");
+            }
         }
 
-        // ---- EDITION ----
+        // L'affichage du bouton est evalue dans TOUS les cas (repos comme edition)
         if (numberEl) { numberEl.readOnly = false; numberEl.style.cursor = ""; }
         if (prefixEl) prefixEl.disabled = false;
         editBtn?.classList.add("is-locked");
@@ -243,16 +249,21 @@
         // REGLE DEMANDEE : le bouton "Envoyer un code" n'existe a l'ecran que si le
         // numero affiche DIFFERE de celui deja enregistre. Il apparait des la premiere
         // frappe / suppression, et disparait si on remet exactement l'ancien numero.
+        // REGLE UNIQUE ET SIMPLE : le bouton "Envoyer un code" est visible des que le
+        // numero affiche DIFFERE de celui deja enregistre (et qu'il n'est pas encore
+        // verifie). Aucune autre condition, aucun etat intermediaire.
         const changed = !sameAsSaved(idx);
-        if (changed && !verified) {
+        const typed = String(numberEl?.value || "").trim().length > 0;
+        const sent = isOne ? ph.sent1 : ph.sent2;
+
+        if (changed && typed && !verified) {
             show(sendBtn, true);
-            if (!ph[idx === 1 ? "sent1" : "sent2"]) {
+            if (!sent) {
                 sendBtn.disabled = false;
                 sendBtn.textContent = "Envoyer un code";
             }
             setStatus(statusEl, "");
         } else {
-            // numero identique a l'enregistre (ou deja verifie) : rien a l'ecran
             show(sendBtn, false);
             show(isOne ? pel.otpSection : pel.otpSection2, false);
             if (isOne) ph.sent1 = false; else ph.sent2 = false;
@@ -560,8 +571,6 @@
 
     async function bootstrap() {
         await window.CCCommon.init("verification");
-        if (!window.CCCommon.requireAuth("verification.html")) return;
-        renderProgress(window.CCCommon.state.user);
 
         // Le telephone est initialise EN PREMIER et isole : si cette partie echoue,
         // le reste de la page (dont l'enregistrement) continue de fonctionner.
@@ -570,6 +579,9 @@
         } catch (e) {
             console.error("Initialisation telephone impossible:", e);
         }
+
+        if (!window.CCCommon.requireAuth("verification.html")) return;
+        renderProgress(window.CCCommon.state.user);
 
         await loadAdminMessages();
 
