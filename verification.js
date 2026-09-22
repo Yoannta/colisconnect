@@ -180,15 +180,21 @@
     }
     function fullOf(prefixEl, numberEl) {
         const pre = String(prefixEl?.value || "").trim();
-        const num = String(numberEl?.value || "").replace(/\s+/g, " ").trim();
-        return num ? `${pre} ${num}`.replace(/\s/g, "") : "";
+        const num = String(numberEl?.value || "").trim();
+        return num ? `${pre} ${num}` : "";
+    }
+    // Comparaison sur les CHIFFRES uniquement : insensible aux espaces, points,
+    // tirets et a la maniere dont le numero a ete saisi ou stocke.
+    function digitsOf(str) {
+        return String(str || "").replace(/\D/g, "");
     }
     function sameAsSaved(idx) {
         const pre = idx === 1 ? els.phonePrefix : pel.prefix2;
         const num = idx === 1 ? els.phoneNumber : pel.number2;
         const ref = idx === 1 ? ph.saved1 : ph.saved2;
-        const cur = fullOf(pre, num);
-        return Boolean(ref) && cur === String(ref).replace(/\s/g, "");
+        const refDigits = digitsOf(ref);
+        if (!refDigits) return false;              // rien d'enregistre -> tout est "change"
+        return digitsOf(`${pre ? pre.value : ""}${num ? num.value : ""}`) === refDigits;
     }
 
     // --- le bouton "Enregistrer" general ---
@@ -260,21 +266,16 @@
             show(sendBtn, false);
             show(isOne ? pel.otpSection : pel.otpSection2, false);
             setStatus(statusEl, "");
-        } else if (editing) {
-            // En modification : le bouton est TOUJOURS visible.
-            // Il s'active des que le numero affiche differe de celui enregistre.
+        } else if (changed && typed && !sent) {
+            // Le numero affiche differe de celui enregistre : le bouton apparait.
             show(sendBtn, true);
-            if (sent) {
-                sendBtn.disabled = true;
-                sendBtn.textContent = "Code envoye";
-            } else if (changed && typed) {
-                sendBtn.disabled = false;
-                sendBtn.textContent = "Envoyer un code";
-                setStatus(statusEl, "");
-            } else {
-                sendBtn.disabled = true;
-                sendBtn.textContent = "Envoyer un code";
-            }
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Envoyer un code";
+            setStatus(statusEl, "");
+        } else if (sent) {
+            show(sendBtn, true);
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Code envoye";
         } else {
             show(sendBtn, false);
             show(isOne ? pel.otpSection : pel.otpSection2, false);
@@ -442,9 +443,16 @@
             pel.number2?.focus();
         });
 
-        // la saisie reevalue l'etat a chaque frappe
-        els.phoneNumber?.addEventListener("input", () => refreshPhone(1));
-        pel.number2?.addEventListener("input", () => refreshPhone(2));
+        // La saisie reevalue l'etat sur TOUS les evenements possibles : frappe,
+        // clavier, collage, remplissage automatique, changement d'indicatif.
+        ["input", "keyup", "change", "paste", "cut", "blur"].forEach((evt) => {
+            els.phoneNumber?.addEventListener(evt, () => refreshPhone(1));
+            pel.number2?.addEventListener(evt, () => refreshPhone(2));
+        });
+        els.phonePrefix?.addEventListener("input", () => refreshPhone(1));
+        els.phonePrefix?.addEventListener("change", () => refreshPhone(1));
+        pel.prefix2?.addEventListener("input", () => refreshPhone(2));
+        pel.prefix2?.addEventListener("change", () => refreshPhone(2));
 
         refreshPhone(1);
         refreshPhone(2);
