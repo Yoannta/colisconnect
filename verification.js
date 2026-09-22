@@ -262,20 +262,25 @@
         const typed = String(numberEl?.value || "").trim().length > 0;
         const sent = isOne ? ph.sent1 : ph.sent2;
 
-        if (verified) {
-            show(sendBtn, false);
-            show(isOne ? pel.otpSection : pel.otpSection2, false);
-            setStatus(statusEl, "");
-        } else if (changed && typed && !sent) {
+        // ORDRE CRITIQUE : on teste d'abord si le numero a CHANGE.
+        // Avant, 'verified' etait teste en premier ; comme un numero deja
+        // enregistre est marque "verifie" au chargement, la branche 'verified'
+        // s'executait toujours et le bouton restait masque meme apres modification.
+        if (changed && typed && !sent) {
             // Le numero affiche differe de celui enregistre : le bouton apparait.
             show(sendBtn, true);
             sendBtn.disabled = false;
             sendBtn.textContent = "Envoyer un code";
             setStatus(statusEl, "");
-        } else if (sent) {
+        } else if (sent && !verified) {
             show(sendBtn, true);
             sendBtn.disabled = true;
             sendBtn.textContent = "Code envoye";
+        } else if (verified && !changed) {
+            // Numero deja valide et inchange : rien a faire ici.
+            show(sendBtn, false);
+            show(isOne ? pel.otpSection : pel.otpSection2, false);
+            setStatus(statusEl, "");
         } else {
             show(sendBtn, false);
             show(isOne ? pel.otpSection : pel.otpSection2, false);
