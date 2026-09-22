@@ -14595,3 +14595,44 @@ body.verification-page #verification-send-code-2:disabled {
     opacity: 0.55;
     cursor: not-allowed;
 }
+
+/* ============================================================
+   [2026-09] Page verification.html : icone crayon pour deverrouiller
+   un numero de telephone deja enregistre (champ en lecture seule).
+   ============================================================ */
+body.verification-page .phone-edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    flex: 0 0 38px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 179, 71, 0.45);
+    background: rgba(255, 179, 71, 0.08);
+    color: #ffb347;
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0;
+}
+body.verification-page .phone-edit-btn:hover {
+    background: rgba(255, 179, 71, 0.18);
+    border-color: #ffb347;
+}
+body.verification-page .phone-edit-btn.is-locked {
+    opacity: 0.55;
+}
+/* Champ verrouille : on montre clairement qu'il n'est pas editable */
+body.verification-page .phone-main-input[readonly] {
+    opacity: 0.78;
+    cursor: default;
+    background: rgba(148, 163, 184, 0.10);
+}
+body.verification-page.light .phone-edit-btn {
+    border-color: rgba(184, 134, 11, 0.45);
+    background: rgba(184, 134, 11, 0.10);
+    color: #8a6d1f;
+}
+body.verification-page.light .phone-edit-btn:hover {
+    background: rgba(184, 134, 11, 0.18);
+}
