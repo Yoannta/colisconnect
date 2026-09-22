@@ -256,13 +256,25 @@
         const typed = String(numberEl?.value || "").trim().length > 0;
         const sent = isOne ? ph.sent1 : ph.sent2;
 
-        if (changed && typed && !verified) {
+        if (verified) {
+            show(sendBtn, false);
+            show(isOne ? pel.otpSection : pel.otpSection2, false);
+            setStatus(statusEl, "");
+        } else if (editing) {
+            // En modification : le bouton est TOUJOURS visible.
+            // Il s'active des que le numero affiche differe de celui enregistre.
             show(sendBtn, true);
-            if (!sent) {
+            if (sent) {
+                sendBtn.disabled = true;
+                sendBtn.textContent = "Code envoye";
+            } else if (changed && typed) {
                 sendBtn.disabled = false;
                 sendBtn.textContent = "Envoyer un code";
+                setStatus(statusEl, "");
+            } else {
+                sendBtn.disabled = true;
+                sendBtn.textContent = "Envoyer un code";
             }
-            setStatus(statusEl, "");
         } else {
             show(sendBtn, false);
             show(isOne ? pel.otpSection : pel.otpSection2, false);
