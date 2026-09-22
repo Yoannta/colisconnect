@@ -215,10 +215,13 @@
         const editing  = isOne ? ph.editing1 : ph.editing2;
         const verified = isOne ? ph.verified1 : ph.verified2;
         const saved    = isOne ? ph.saved1 : ph.saved2;
-        const hasSaved = Boolean(String(saved || "").trim());
+        const hasSaved = Boolean(String(saved || "").trim()) ||
+                         String(isOne ? els.phoneNumber?.value : pel.number2?.value || "").trim().length > 0;
 
-        // le crayon n'existe que s'il y a un numero deja enregistre
-        show(editBtn, hasSaved);
+        // Le crayon sert a modifier un numero EXISTANT : on l'affiche des qu'un
+        // numero est present (enregistre en base OU deja affiche dans le champ).
+        const hasValue = String(numberEl?.value || "").trim().length > 0;
+        show(editBtn, hasSaved || hasValue);
 
         if (!editing) {
             // ---- REPOS ----
@@ -372,8 +375,11 @@
     }
 
     function setupPhoneVerification() {
-        ph.saved1 = String(window.CCCommon.state.user?.phoneNumber || "").trim();
-        ph.saved2 = String(window.CCCommon.state.user?.phoneNumber2 || "").trim();
+        // On accepte les deux ecritures (l'API renvoie phoneNumber, la base phone_number)
+        // et, en dernier recours, la valeur deja presente dans le champ.
+        const u = window.CCCommon.state.user || {};
+        ph.saved1 = String(u.phoneNumber || u.phone_number || els.phoneNumber?.value || "").trim();
+        ph.saved2 = String(u.phoneNumber2 || u.phone_number_2 || pel.number2?.value || "").trim();
         ph.verified1 = Boolean(ph.saved1);
         ph.verified2 = Boolean(ph.saved2);
 
@@ -556,6 +562,15 @@
         await window.CCCommon.init("verification");
         if (!window.CCCommon.requireAuth("verification.html")) return;
         renderProgress(window.CCCommon.state.user);
+
+        // Le telephone est initialise EN PREMIER et isole : si cette partie echoue,
+        // le reste de la page (dont l'enregistrement) continue de fonctionner.
+        try {
+            setupPhoneVerification();
+        } catch (e) {
+            console.error("Initialisation telephone impossible:", e);
+        }
+
         await loadAdminMessages();
 
         // Populate country datalist
@@ -564,8 +579,6 @@
         if (countryList && countryOptions.length) {
             countryList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
-
-        setupPhoneVerification();
 
         bindEvents();
     }
