@@ -14601,7 +14601,7 @@ body.verification-page #verification-send-code-2:disabled {
    un numero de telephone deja enregistre (champ en lecture seule).
    ============================================================ */
 body.verification-page .phone-edit-btn {
-    display: inline-flex !important;
+    display: inline-flex;
     align-items: center !important;
     justify-content: center !important;
     width: 48px !important;
@@ -14652,7 +14652,7 @@ body.verification-page.light .phone-edit-btn:hover {
    ============================================================ */
 body.verification-page .phone-verify-btn {
     flex: 1 1 100% !important;      /* passe SOUS le numero, pleine largeur */
-    display: flex !important;
+    display: flex;
     align-items: center !important;
     justify-content: center !important;
     background: rgba(255, 179, 71, 0.08) !important;
@@ -14685,5 +14685,4 @@ body.verification-page.light .phone-verify-btn:not(:disabled):hover {
     border-color: #8a6d1f !important;
 }
 
-/* Les boutons sont pilotes par style.display (voir verification.js) : on ne met
    pas de display !important sur [hidden] pour ne pas bloquer leur apparition. */
