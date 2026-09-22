@@ -14601,19 +14601,22 @@ body.verification-page #verification-send-code-2:disabled {
    un numero de telephone deja enregistre (champ en lecture seule).
    ============================================================ */
 body.verification-page .phone-edit-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px;
-    height: 38px;
-    flex: 0 0 38px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 179, 71, 0.45);
-    background: rgba(255, 179, 71, 0.08);
-    color: #ffb347;
-    cursor: pointer;
-    transition: all 0.2s;
-    padding: 0;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    flex: 0 0 38px !important;
+    border-radius: 10px !important;
+    border: 1px solid rgba(255, 179, 71, 0.55) !important;
+    background: rgba(255, 179, 71, 0.10) !important;
+    color: #ffb347 !important;
+    cursor: pointer !important;
+    transition: all 0.2s !important;
+    padding: 0 !important;
+    line-height: 1 !important;
+    font-size: 0 !important;
 }
 body.verification-page .phone-edit-btn:hover {
     background: rgba(255, 179, 71, 0.18);
@@ -14629,9 +14632,9 @@ body.verification-page .phone-main-input[readonly] {
     background: rgba(148, 163, 184, 0.10);
 }
 body.verification-page.light .phone-edit-btn {
-    border-color: rgba(184, 134, 11, 0.45);
-    background: rgba(184, 134, 11, 0.10);
-    color: #8a6d1f;
+    border-color: rgba(184, 134, 11, 0.55) !important;
+    background: rgba(184, 134, 11, 0.12) !important;
+    color: #8a6d1f !important;
 }
 body.verification-page.light .phone-edit-btn:hover {
     background: rgba(184, 134, 11, 0.18);

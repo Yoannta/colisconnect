@@ -454,8 +454,22 @@
 
             const token = window.CCCommon.state.token;
             window.CCCommon.setSession(token, payload?.user || null);
-            if (body.phoneNumber) phoneState.verified1 = true;
-            if (body.phoneNumber2) phoneState.verified2 = true;
+            if (body.phoneNumber) {
+                // Numero enregistre : plus besoin du bouton "Envoyer un code",
+                // et le champ redevient verrouille.
+                phoneState.verified1 = true;
+                savedPhone.one = String(body.phoneNumber || "").trim();
+                if (pel.sendCode) { pel.sendCode.hidden = true; pel.sendCode.disabled = true; }
+                lockNumber(els.phonePrefix, els.phoneNumber, pel.edit1, true);
+                setPhoneStatus(pel.status, "");
+            }
+            if (body.phoneNumber2) {
+                phoneState.verified2 = true;
+                savedPhone.two = String(body.phoneNumber2 || "").trim();
+                if (pel.sendCode2) { pel.sendCode2.hidden = true; pel.sendCode2.disabled = true; }
+                lockNumber(pel.prefix2, pel.number2, pel.edit2, true);
+                setPhoneStatus(pel.status2, "");
+            }
             renderProgress(payload?.user || null);
             const completion = window.CCCommon.getProfileCompletion(payload?.user || null);
 
