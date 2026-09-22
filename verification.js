@@ -124,9 +124,19 @@
     // ============================================================
     const OTP_DEMO_CODE = "123456";
 
-    const phoneState = {
-        verified1: false,   // le numero principal est-il verifie ?
-        verified2: false    // le second numero (si present) est-il verifie ?
+    // ============================================================
+    //  ETAT DU TELEPHONE (logique volontairement simple)
+    //  - repos      : champ verrouille, bouton "Envoyer un code" CACHE
+    //  - edition    : (clic sur le crayon) champ editable, bouton VISIBLE
+    //                 mais GRISE tant que le numero n'a pas reellement change
+    //  - modifie    : le numero differe de celui enregistre -> bouton actif
+    //  - abandon    : l'utilisateur part ailleurs -> tout revient au repos
+    // ============================================================
+    const ph = {
+        saved1: "", saved2: "",           // numeros de reference (enregistres)
+        editing1: false, editing2: false, // en cours de modification ?
+        verified1: false, verified2: false,
+        sent1: false, sent2: false        // un code a-t-il ete envoye ?
     };
 
     const pel = {
@@ -135,6 +145,7 @@
         otpInput: document.getElementById("verification-otp-code"),
         confirmOtp: document.getElementById("verification-confirm-otp"),
         status: document.getElementById("verification-phone-status"),
+        edit1: document.getElementById("verification-phone-edit"),
         addPhone: document.getElementById("verification-add-phone"),
         wrap2: document.getElementById("verification-phone2-wrap"),
         prefix2: document.getElementById("verification-phone-prefix-2"),
@@ -144,236 +155,263 @@
         otpInput2: document.getElementById("verification-otp-code-2"),
         confirmOtp2: document.getElementById("verification-confirm-otp-2"),
         status2: document.getElementById("verification-phone-status-2"),
-        edit1: document.getElementById("verification-phone-edit"),
         edit2: document.getElementById("verification-phone-edit-2")
     };
 
-    // Numeros tels qu'enregistres (pour savoir si l'utilisateur les a modifies).
-    // Remplis dans setupPhoneVerification() car state.user n'existe qu'apres init().
-    const savedPhone = { one: "", two: "" };
-
-    function setPhoneStatus(el, text, ok = false) {
+    // --- petits utilitaires ---
+    function show(el, visible) {
+        if (!el) return;
+        if (visible) el.removeAttribute("hidden");
+        else el.setAttribute("hidden", "");
+    }
+    function setStatus(el, text, ok) {
         if (!el) return;
         el.textContent = text || "";
         el.style.color = ok ? "#aef6d2" : "#ffc8b7";
     }
-
-    // Compose la valeur complete (indicatif + numero) d'un champ.
-    function fullNumber(prefixEl, numberEl) {
+    function fullOf(prefixEl, numberEl) {
         const pre = String(prefixEl?.value || "").trim();
         const num = String(numberEl?.value || "").replace(/\s+/g, " ").trim();
-        return num ? `${pre} ${num}`.trim() : "";
+        return num ? `${pre} ${num}`.replace(/\s/g, "") : "";
+    }
+    function sameAsSaved(idx) {
+        const pre = idx === 1 ? els.phonePrefix : pel.prefix2;
+        const num = idx === 1 ? els.phoneNumber : pel.number2;
+        const ref = idx === 1 ? ph.saved1 : ph.saved2;
+        const cur = fullOf(pre, num);
+        return Boolean(ref) && cur === String(ref).replace(/\s/g, "");
     }
 
-    // Verrouille / deverrouille un numero : verrouille = lecture seule + crayon dispo.
-    function lockNumber(prefixEl, numberEl, editBtn, locked) {
-        if (numberEl) {
-            numberEl.readOnly = !!locked;
-            numberEl.style.cursor = locked ? "default" : "";
-        }
-        if (prefixEl) prefixEl.disabled = !!locked;
-        if (editBtn) editBtn.classList.toggle("is-locked", !!locked);
-        if (editBtn) editBtn.title = locked ? "Modifier ce numero" : "Terminer la modification";
-    }
-
-    // Un numero est-il identique a celui deja enregistre ?
-    function isSameAsSaved(prefixEl, numberEl, savedValue) {
-        const cur = fullNumber(prefixEl, numberEl).replace(/\s/g, "");
-        const ref = String(savedValue || "").replace(/\s/g, "");
-        return Boolean(ref) && cur === ref;
-    }
-
-    // Le bouton "Enregistrer" est bloque uniquement si un numero a ETE MODIFIE
-    // sans avoir ete re-verifie. Un numero identique a l'enregistre ne demande rien.
+    // --- le bouton "Enregistrer" general ---
     function refreshSubmitState() {
         const btn = els.form?.querySelector('button[type="submit"]');
         if (!btn) return;
-
-        const num1 = fullNumber(els.phonePrefix, els.phoneNumber);
-        const changed1 = num1 && !isSameAsSaved(els.phonePrefix, els.phoneNumber, savedPhone.one);
-        const needs1 = Boolean(changed1) && !phoneState.verified1;
-
-        const num2 = fullNumber(pel.prefix2, pel.number2);
-        const changed2 = num2 && !isSameAsSaved(pel.prefix2, pel.number2, savedPhone.two);
-        const needs2 = Boolean(changed2) && !phoneState.verified2;
-
-        const needsCheck = needs1 || needs2;
-        btn.disabled = needsCheck;
-        btn.title = needsCheck ? "Verifiez d'abord le numero modifie avec le code recu par SMS" : "";
-        if (!needsCheck && btn.dataset.saving !== "1") btn.textContent = "Enregistrer les modifications";
+        // bloque seulement si un numero MODIFIE n'a pas ete verifie
+        const need1 = ph.editing1 && !sameAsSaved(1) && !ph.verified1;
+        const need2 = ph.editing2 && !sameAsSaved(2) && !ph.verified2;
+        const need = need1 || need2;
+        btn.disabled = need;
+        btn.title = need ? "Verifiez le numero modifie avec le code recu par SMS" : "";
+        if (!need && btn.dataset.saving !== "1") btn.textContent = "Enregistrer les modifications";
     }
 
-    function bindVerifyButton(prefixEl, numberEl, sendBtn, section, input, confirmBtn, statusEl, flagKey) {
+    // --- affiche/actualise l'etat visuel d'un numero (idx = 1 ou 2) ---
+    function refreshPhone(idx) {
+        const isOne = idx === 1;
+        const prefixEl = isOne ? els.phonePrefix : pel.prefix2;
+        const numberEl = isOne ? els.phoneNumber : pel.number2;
+        const editBtn  = isOne ? pel.edit1 : pel.edit2;
+        const sendBtn  = isOne ? pel.sendCode : pel.sendCode2;
+        const statusEl = isOne ? pel.status : pel.status2;
+        const editing  = isOne ? ph.editing1 : ph.editing2;
+        const verified = isOne ? ph.verified1 : ph.verified2;
+        const saved    = isOne ? ph.saved1 : ph.saved2;
+        const hasSaved = Boolean(String(saved || "").trim());
+
+        // le crayon n'existe que s'il y a un numero deja enregistre
+        show(editBtn, hasSaved);
+
+        if (!editing) {
+            // ---- REPOS ----
+            if (numberEl) { numberEl.readOnly = true; numberEl.style.cursor = "default"; }
+            if (prefixEl) prefixEl.disabled = true;
+            editBtn?.classList.remove("is-locked");
+            show(sendBtn, false);                   // cache : rien a faire ici
+            show(isOne ? pel.otpSection : pel.otpSection2, false);
+            if (hasSaved) setStatus(statusEl, "");
+            refreshSubmitState();
+            return;
+        }
+
+        // ---- EDITION ----
+        if (numberEl) { numberEl.readOnly = false; numberEl.style.cursor = ""; }
+        if (prefixEl) prefixEl.disabled = false;
+        editBtn?.classList.add("is-locked");
+
+        const changed = !sameAsSaved(idx);
+        if (changed && !verified) {
+            // le numero a change : le bouton d'envoi est utile et actif
+            show(sendBtn, true);
+            if (!ph[idx === 1 ? "sent1" : "sent2"]) {
+                sendBtn.disabled = false;
+                sendBtn.textContent = "Envoyer un code";
+            }
+            setStatus(statusEl, "");
+        } else if (verified) {
+            show(sendBtn, false);
+            setStatus(statusEl, "");
+        } else {
+            // rien n'a encore change : le bouton est visible mais GRISE
+            show(sendBtn, true);
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Envoyer un code";
+            setStatus(statusEl, "Modifiez le numero : le bouton s'activera des qu'il change.");
+        }
+        refreshSubmitState();
+    }
+
+    // --- abandon : on remet tout au repos sans rien enregistrer ---
+    function cancelEdit(idx) {
+        const isOne = idx === 1;
+        const numberEl = isOne ? els.phoneNumber : pel.number2;
+        const prefixEl = isOne ? els.phonePrefix : pel.prefix2;
+        const saved = isOne ? ph.saved1 : ph.saved2;
+
+        // restaure la valeur d'origine
+        if (String(saved || "").trim()) {
+            const parts = String(saved).trim().split(" ");
+            const pre = parts[0] || "";
+            const loc = parts.slice(1).join(" ");
+            if (prefixEl) {
+                const o = Array.from(prefixEl.options).find(op => op.value === pre);
+                if (o) prefixEl.value = pre;
+            }
+            if (numberEl) numberEl.value = loc;
+        } else if (numberEl) {
+            numberEl.value = "";
+        }
+        if (isOne) { ph.editing1 = false; ph.sent1 = false; ph.verified1 = Boolean(String(saved).trim()); }
+        else       { ph.editing2 = false; ph.sent2 = false; ph.verified2 = Boolean(String(saved).trim()); }
+        const otpIn = isOne ? pel.otpInput : pel.otpInput2;
+        if (otpIn) otpIn.value = "";
+        refreshPhone(idx);
+    }
+
+    // --- crayon : entrer / sortir du mode edition ---
+    function bindCrayon(idx) {
+        const editBtn = idx === 1 ? pel.edit1 : pel.edit2;
+        const numberEl = idx === 1 ? els.phoneNumber : pel.number2;
+        editBtn?.addEventListener("click", () => {
+            const editing = idx === 1 ? ph.editing1 : ph.editing2;
+            if (editing) {
+                // re-clic = annuler (retour au numero enregistre)
+                cancelEdit(idx);
+            } else {
+                if (idx === 1) ph.editing1 = true; else ph.editing2 = true;
+                refreshPhone(idx);
+                numberEl?.focus();
+            }
+        });
+    }
+
+    // --- bouton "Envoyer un code" + validation du code ---
+    function bindSendAndVerify(idx) {
+        const isOne = idx === 1;
+        const prefixEl = isOne ? els.phonePrefix : pel.prefix2;
+        const numberEl = isOne ? els.phoneNumber : pel.number2;
+        const sendBtn  = isOne ? pel.sendCode : pel.sendCode2;
+        const section  = isOne ? pel.otpSection : pel.otpSection2;
+        const input    = isOne ? pel.otpInput : pel.otpInput2;
+        const confirmB = isOne ? pel.confirmOtp : pel.confirmOtp2;
+        const statusEl = isOne ? pel.status : pel.status2;
+
         sendBtn?.addEventListener("click", () => {
-            const local = String(numberEl?.value || "").replace(/\D/g, "");
-            if (local.length < 6) {
-                setPhoneStatus(statusEl, "Saisissez d'abord un numero valide.");
+            if (sendBtn.disabled) return;
+            const full = fullOf(prefixEl, numberEl);
+            if (full.replace(/\D/g, "").length < 6) {
+                setStatus(statusEl, "Saisissez d'abord un numero valide.");
                 numberEl?.focus();
                 return;
             }
-            const full = `${String(prefixEl?.value || "").trim()} ${local}`;
-            section?.classList.remove("hidden");
-            setPhoneStatus(statusEl, `Code envoye au ${full}.`);
-            // Le bouton indique que le code est parti (plus de double envoi a l'aveugle)
+            if (isOne) ph.sent1 = true; else ph.sent2 = true;
+            show(section, true);
             sendBtn.disabled = true;
             sendBtn.textContent = "Code envoye";
-            // Simulation identique au reste du site (post_trip.js)
-            window.alert(`SIMULATION : Code SMS envoye au ${full}\nCode : ${OTP_DEMO_CODE}`);
+            setStatus(statusEl, "");
+            window.alert(`SIMULATION : Code SMS envoye au ${prefixEl?.value} ${numberEl?.value}\nCode : ${OTP_DEMO_CODE}`);
             input?.focus();
         });
 
-        confirmBtn?.addEventListener("click", () => {
+        confirmB?.addEventListener("click", () => {
             const code = String(input?.value || "").trim();
             if (code !== OTP_DEMO_CODE) {
-                phoneState[flagKey] = false;
-                setPhoneStatus(statusEl, "Code invalide. Verifiez le code recu par SMS.");
-                sendBtn.hidden = false;
-                sendBtn.disabled = false;
-                sendBtn.textContent = "Renvoyer un code";
-                refreshSubmitState();
+                if (isOne) { ph.verified1 = false; ph.sent1 = false; }
+                else       { ph.verified2 = false; ph.sent2 = false; }
+                setStatus(statusEl, "Code invalide. Reessayez.");
+                show(section, false);
+                refreshPhone(idx);
                 return;
             }
-            phoneState[flagKey] = true;
+            if (isOne) ph.verified1 = true; else ph.verified2 = true;
             if (input) input.value = "";
-            section?.classList.add("hidden");
-            // Numero verifie : le bouton disparait (plus d'envoi possible, aucun
-            // libelle "verifie" affiche, comme demande).
-            sendBtn.hidden = true;
-            sendBtn.disabled = true;
-            setPhoneStatus(statusEl, "");
-            refreshSubmitState();
+            show(section, false);
+            refreshPhone(idx);
         });
-    }
 
-    // Clic sur le crayon : deverrouille / reverrouille le champ.
-    function bindEditButton(prefixEl, numberEl, editBtn, flagKey, savedValue) {
-        editBtn?.addEventListener("click", () => {
-            const locked = numberEl?.readOnly !== false;
-            if (locked) {
-                // deverrouillage : l'utilisateur peut saisir
-                lockNumber(prefixEl, numberEl, editBtn, false);
-                numberEl?.focus();
-                setPhoneStatus(flagKey === "verified1" ? pel.status : pel.status2,
-                               "Modifiez le numero puis enregistrez. Un code sera demande s'il change.");
-                phoneState[flagKey] = false;
-                if (flagKey === "verified1" && pel.sendCode) {
-                    pel.sendCode.hidden = false; pel.sendCode.disabled = false;
-                    pel.sendCode.textContent = "Envoyer un code";
-                }
-                if (flagKey === "verified2" && pel.sendCode2) {
-                    pel.sendCode2.hidden = false; pel.sendCode2.disabled = false;
-                    pel.sendCode2.textContent = "Envoyer un code";
-                }
-                pel.otpSection?.classList.add("hidden");
-                pel.otpSection2?.classList.add("hidden");
-            } else {
-                // reverrouillage : si le numero est inchange, on le considere valide
-                lockNumber(prefixEl, numberEl, editBtn, true);
-                const st = flagKey === "verified1" ? pel.status : pel.status2;
-                if (isSameAsSaved(prefixEl, numberEl, savedValue)) {
-                    phoneState[flagKey] = true;
-                    const sb = flagKey === "verified1" ? pel.sendCode : pel.sendCode2;
-                    if (sb) { sb.hidden = true; sb.disabled = true; }
-                    setPhoneStatus(st, "");
-                }
-            }
-            refreshSubmitState();
+        // sortie du champ : si rien n'a ete modifie ET aucun code en cours -> on abandonne
+        numberEl?.addEventListener("blur", () => {
+            window.setTimeout(() => {
+                const active = document.activeElement;
+                const section2 = isOne ? pel.otpSection : pel.otpSection2;
+                const inBlock = (active && (
+                    active === numberEl || active === sendBtn || active === input ||
+                    (active.closest && active.closest(".phone-section-container")) ||
+                    active === (isOne ? pel.edit1 : pel.edit2)
+                ));
+                if (inBlock) return;                        // l'utilisateur est encore dans la zone
+                const editing = isOne ? ph.editing1 : ph.editing2;
+                if (!editing) return;
+                const verified = isOne ? ph.verified1 : ph.verified2;
+                if (verified) return;                       // deja valide, on garde
+                const sent = isOne ? ph.sent1 : ph.sent2;
+                if (sent || (section2 && !section2.hasAttribute("hidden"))) return; // code en cours
+                cancelEdit(idx);                            // sinon : on annule proprement
+            }, 250);
         });
+
+        // changement d'indicatif : on reevalue l'etat
+        prefixEl?.addEventListener("change", () => refreshPhone(idx));
     }
 
     function setupPhoneVerification() {
-        // Ici la session est chargee : on memorise les numeros de reference.
-        savedPhone.one = String(window.CCCommon.state.user?.phoneNumber || "").trim();
-        savedPhone.two = String(window.CCCommon.state.user?.phoneNumber2 || "").trim();
+        ph.saved1 = String(window.CCCommon.state.user?.phoneNumber || "").trim();
+        ph.saved2 = String(window.CCCommon.state.user?.phoneNumber2 || "").trim();
+        ph.verified1 = Boolean(ph.saved1);
+        ph.verified2 = Boolean(ph.saved2);
 
-        // le select du 2e numero reprend la meme liste que le premier
-        if (pel.prefix2 && els.phonePrefix) {
-            pel.prefix2.innerHTML = els.phonePrefix.innerHTML;
+        if (pel.prefix2 && els.phonePrefix) pel.prefix2.innerHTML = els.phonePrefix.innerHTML;
+
+        // --- remplissage initial ---
+        function fill(idx, saved) {
+            const prefixEl = idx === 1 ? els.phonePrefix : pel.prefix2;
+            const numberEl = idx === 1 ? els.phoneNumber : pel.number2;
+            if (!String(saved || "").trim()) return false;
+            const parts = String(saved).trim().split(" ");
+            const pre = parts[0] || "";
+            const loc = parts.slice(1).join(" ");
+            if (prefixEl) {
+                const o = Array.from(prefixEl.options).find(op => op.value === pre);
+                if (o) prefixEl.value = pre;
+            }
+            if (numberEl && !numberEl.value) numberEl.value = loc;
+            return true;
+        }
+        const filled1 = fill(1, ph.saved1);
+
+        if (ph.saved2) {
+            pel.wrap2?.classList.remove("hidden");
+            show(pel.addPhone, false);                  // limite : 2 numeros maximum
+            fill(2, ph.saved2);
         }
 
-        bindVerifyButton(els.phonePrefix, els.phoneNumber, pel.sendCode, pel.otpSection,
-                         pel.otpInput, pel.confirmOtp, pel.status, "verified1");
-        bindVerifyButton(pel.prefix2, pel.number2, pel.sendCode2, pel.otpSection2,
-                         pel.otpInput2, pel.confirmOtp2, pel.status2, "verified2");
+        bindCrayon(1); bindCrayon(2);
+        bindSendAndVerify(1); bindSendAndVerify(2);
 
-        bindEditButton(els.phonePrefix, els.phoneNumber, pel.edit1, "verified1", savedPhone.one);
-        bindEditButton(pel.prefix2, pel.number2, pel.edit2, "verified2", savedPhone.two);
-
-        // Afficher le second numero
+        // bouton "+ Ajouter un autre numero"
         pel.addPhone?.addEventListener("click", () => {
-            if (!pel.wrap2) return;
-            const hidden = pel.wrap2.classList.toggle("hidden");
-            // LIMITE : un seul numero supplementaire (2 au total).
-            // Le bouton disparait des que le 2e numero est affiche.
-            pel.addPhone.hidden = !hidden;
-            if (!hidden) {
-                pel.number2?.focus();
-                if (pel.edit2) pel.edit2.hidden = false;
-            }
-            else {
-                // retirer = on oublie la verification du 2e numero
-                phoneState.verified2 = false;
-                if (pel.number2) pel.number2.value = "";
-                if (pel.otpInput2) pel.otpInput2.value = "";
-                pel.otpSection2?.classList.add("hidden");
-                setPhoneStatus(pel.status2, "");
-            }
+            pel.wrap2?.classList.remove("hidden");
+            show(pel.addPhone, false);                  // un seul numero supplementaire
+            refreshPhone(2);
+            pel.number2?.focus();
         });
 
-        // Reprise du numero deja enregistre : il est considere comme verifie
-        // (sinon l'utilisateur devrait le re-valider a chaque visite).
-        const saved = String(window.CCCommon.state.user?.phoneNumber || "").trim();
-        if (saved) {
-            // Numero deja enregistre : verrouille en lecture seule, aucun message affiche.
-            // Le crayon permet de le deverrouiller pour le modifier.
-            phoneState.verified1 = true;
-            if (pel.sendCode) { pel.sendCode.hidden = true; pel.sendCode.disabled = true; }
-            lockNumber(els.phonePrefix, els.phoneNumber, pel.edit1, true);
-            setPhoneStatus(pel.status, "");
-        } else {
-            if (pel.edit1) pel.edit1.hidden = true;   // rien a modifier tant que rien n'est enregistre
-        }
+        // la saisie reevalue l'etat a chaque frappe
+        els.phoneNumber?.addEventListener("input", () => refreshPhone(1));
+        pel.number2?.addEventListener("input", () => refreshPhone(2));
 
-        // Second numero deja enregistre : on rouvre le bloc et on le remplit.
-        const saved2 = String(window.CCCommon.state.user?.phoneNumber2 || "").trim();
-        if (saved2 && pel.wrap2 && pel.number2) {
-            const parts2 = saved2.split(" ");
-            const pre2 = parts2[0] || "";
-            const loc2 = parts2.slice(1).join(" ");
-            if (pel.prefix2) {
-                const o2 = Array.from(pel.prefix2.options).find(o => o.value === pre2);
-                if (o2) pel.prefix2.value = pre2;
-            }
-            pel.number2.value = loc2;
-            pel.wrap2.classList.remove("hidden");
-            // LIMITE : maximum 2 numeros -> le bouton d'ajout disparait
-            if (pel.addPhone) pel.addPhone.hidden = true;
-            phoneState.verified2 = true;
-            if (pel.sendCode2) { pel.sendCode2.hidden = true; pel.sendCode2.disabled = true; }
-            lockNumber(pel.prefix2, pel.number2, pel.edit2, true);
-            setPhoneStatus(pel.status2, "");
-        }
-
-        els.phoneNumber?.addEventListener("input", () => {
-            // modifier le numero invalide la verification precedente
-            const current = `${String(els.phonePrefix?.value || "").trim()} ${String(els.phoneNumber?.value || "").trim()}`.trim();
-            if (current !== saved && phoneState.verified1) {
-                phoneState.verified1 = false;
-                if (pel.sendCode) { pel.sendCode.hidden = false; pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
-                setPhoneStatus(pel.status, "");
-            }
-            refreshSubmitState();
-        });
-        els.phonePrefix?.addEventListener("change", () => {
-            if (phoneState.verified1) {
-                phoneState.verified1 = false;
-                if (pel.sendCode) { pel.sendCode.hidden = false; pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
-                setPhoneStatus(pel.status, "");
-            }
-            refreshSubmitState();
-        });
-
-        refreshSubmitState();
+        refreshPhone(1);
+        refreshPhone(2);
+        if (!filled1) show(pel.edit1, false);
     }
 
     async function submitVerification(event) {
@@ -407,12 +445,16 @@
         const prefix = String(els.phonePrefix?.value || "+33").trim();
         const number = String(els.phoneNumber?.value || "").trim();
         if (number) {
-            // Un numero IDENTIQUE a celui deja enregistre ne demande aucun code.
-            // Seul un numero MODIFIE doit etre re-verifie (couvre aussi la
-            // soumission au clavier / avec Entree).
-            const changed1 = !isSameAsSaved(els.phonePrefix, els.phoneNumber, savedPhone.one);
-            if (changed1 && !phoneState.verified1) {
+            // un numero identique a celui deja enregistre ne demande aucun code ;
+            // seul un numero MODIFIE doit avoir ete verifie.
+            const changed1 = !sameAsSaved(1);
+            const wasSaved1 = Boolean(String(ph.saved1 || "").trim());
+            if (changed1 && wasSaved1 && !ph.verified1) {
                 setFeedback("Numero modifie : verifiez-le avec le code recu par SMS avant d'enregistrer.");
+                return;
+            }
+            if (changed1 && !wasSaved1 && !ph.verified1) {
+                setFeedback("Verifiez votre numero avec le code recu par SMS avant d'enregistrer.");
                 return;
             }
             body.phoneNumber = `${prefix} ${number}`;
@@ -422,9 +464,9 @@
         const prefix2 = String(pel.prefix2?.value || "+33").trim();
         const number2 = String(pel.number2?.value || "").trim();
         if (number2) {
-            const changed2 = !isSameAsSaved(pel.prefix2, pel.number2, savedPhone.two);
-            if (changed2 && !phoneState.verified2) {
-                setFeedback("Second numero modifie : verifiez-le avec le code recu par SMS avant d'enregistrer.");
+            const changed2 = !sameAsSaved(2);
+            if (changed2 && !ph.verified2) {
+                setFeedback("Second numero : verifiez-le avec le code recu par SMS avant d'enregistrer.");
                 return;
             }
             body.phoneNumber2 = `${prefix2} ${number2}`;
@@ -454,21 +496,16 @@
 
             const token = window.CCCommon.state.token;
             window.CCCommon.setSession(token, payload?.user || null);
+            // apres enregistrement : les numeros deviennent les nouvelles references
             if (body.phoneNumber) {
-                // Numero enregistre : plus besoin du bouton "Envoyer un code",
-                // et le champ redevient verrouille.
-                phoneState.verified1 = true;
-                savedPhone.one = String(body.phoneNumber || "").trim();
-                if (pel.sendCode) { pel.sendCode.hidden = true; pel.sendCode.disabled = true; }
-                lockNumber(els.phonePrefix, els.phoneNumber, pel.edit1, true);
-                setPhoneStatus(pel.status, "");
+                ph.saved1 = String(body.phoneNumber).trim();
+                ph.verified1 = true; ph.editing1 = false; ph.sent1 = false;
+                refreshPhone(1);
             }
             if (body.phoneNumber2) {
-                phoneState.verified2 = true;
-                savedPhone.two = String(body.phoneNumber2 || "").trim();
-                if (pel.sendCode2) { pel.sendCode2.hidden = true; pel.sendCode2.disabled = true; }
-                lockNumber(pel.prefix2, pel.number2, pel.edit2, true);
-                setPhoneStatus(pel.status2, "");
+                ph.saved2 = String(body.phoneNumber2).trim();
+                ph.verified2 = true; ph.editing2 = false; ph.sent2 = false;
+                refreshPhone(2);
             }
             renderProgress(payload?.user || null);
             const completion = window.CCCommon.getProfileCompletion(payload?.user || null);

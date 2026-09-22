@@ -14684,3 +14684,10 @@ body.verification-page.light .phone-verify-btn:not(:disabled):hover {
     background: rgba(184, 134, 11, 0.18) !important;
     border-color: #8a6d1f !important;
 }
+
+/* [hidden] doit gagner contre display:flex !important des boutons */
+body.verification-page .phone-verify-btn[hidden],
+body.verification-page .phone-edit-btn[hidden],
+body.verification-page .phone-input-row [hidden] {
+    display: none !important;
+}
