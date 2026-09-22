@@ -14604,10 +14604,14 @@ body.verification-page .phone-edit-btn {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 38px !important;
-    height: 38px !important;
-    min-width: 38px !important;
-    flex: 0 0 38px !important;
+    width: 48px !important;
+    /* Même hauteur que le champ de saisie en face (align-self: stretch +
+       height auto -> le bouton suit la hauteur reelle de l'input). */
+    height: auto !important;
+    min-height: 0 !important;
+    align-self: stretch !important;
+    min-width: 48px !important;
+    flex: 0 0 48px !important;
     border-radius: 10px !important;
     border: 1px solid rgba(255, 179, 71, 0.55) !important;
     background: rgba(255, 179, 71, 0.10) !important;
@@ -14638,4 +14642,45 @@ body.verification-page.light .phone-edit-btn {
 }
 body.verification-page.light .phone-edit-btn:hover {
     background: rgba(184, 134, 11, 0.18);
+}
+
+/* ============================================================
+   [2026-09] Page verification.html : bouton "Envoyer un code"
+   Reprise EXACTE du bouton equivalent du formulaire d'offre
+   (post_trip.html .phone-verify-btn) : pleine largeur SOUS le champ,
+   contour et texte dores.
+   ============================================================ */
+body.verification-page .phone-verify-btn {
+    flex: 1 1 100% !important;      /* passe SOUS le numero, pleine largeur */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 179, 71, 0.08) !important;
+    border: 1px solid rgba(255, 179, 71, 0.5) !important;
+    border-radius: 12px !important;
+    padding: 14px 16px !important;
+    color: #ffb347 !important;
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    transition: all 0.2s !important;
+    margin-top: 4px !important;
+}
+body.verification-page .phone-verify-btn:not(:disabled):hover {
+    background: rgba(255, 179, 71, 0.15) !important;
+    border-color: #ffb347 !important;
+}
+body.verification-page .phone-verify-btn:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+}
+body.verification-page.light .phone-verify-btn {
+    background: rgba(184, 134, 11, 0.10) !important;
+    border-color: rgba(184, 134, 11, 0.5) !important;
+    color: #6d4f10 !important;
+}
+body.verification-page.light .phone-verify-btn:not(:disabled):hover {
+    background: rgba(184, 134, 11, 0.18) !important;
+    border-color: #8a6d1f !important;
 }
