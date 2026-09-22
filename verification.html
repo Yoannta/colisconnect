@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=59">    <!-- Supabase Core & Init -->    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>    <script src="supabase-init.js?v=2"></script>
+    <link rel="stylesheet" href="style.css?v=60">    <!-- Supabase Core & Init -->    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>    <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
     <!-- Header unifié (source unique) -->
@@ -26,7 +26,7 @@
     <script defer src="devise.js?v=1"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
     <script defer src="admin-banner.js"></script>
-    <script defer src="verification.js?v=2"></script>
+    <script defer src="verification.js?v=3"></script>
 </head>
 
 <body class="verification-page">
@@ -141,7 +141,7 @@
                         </div>
 
                         <div style="margin-top:14px;">
-                            <button type="button" id="verification-add-phone" class="btn ghost btn-sm">+ Ajouter un autre numero</button>
+                            <button type="button" id="verification-add-phone" class="btn-add-type">+ Ajouter un autre numéro</button>
                         </div>
                     </div>
                     <label>Piece justificative (photo CNI/Passeport)

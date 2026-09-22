@@ -14550,3 +14550,48 @@ body.verification-page.light input[type="file"]::file-selector-button {
     border-color: rgba(184, 134, 11, 0.45);
     color: #6d4f10;
 }
+
+/* ============================================================
+   [2026-09] Page verification.html : bouton "+ Ajouter un autre numéro"
+   Reprise EXACTE du design du bouton equivalent du formulaire de
+   publication d'offre (post_trip.html .btn-add-type) : contour
+   pointille dore, texte dore, pleine largeur -> beaucoup plus visible.
+   + etat desactive du bouton "Envoyer un code".
+   ============================================================ */
+body.verification-page .btn-add-type {
+    width: 100%;
+    background: transparent;
+    border: 1px dashed rgba(255, 179, 71, 0.45);
+    border-radius: 12px;
+    padding: 11px 16px;
+    color: #ffb347;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 6px;
+}
+body.verification-page .btn-add-type:hover {
+    background: rgba(255, 179, 71, 0.10);
+    border-color: #ffb347;
+}
+body.verification-page .btn-add-type:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+body.verification-page.light .btn-add-type {
+    background: rgba(184, 134, 11, 0.10);
+    border-color: rgba(184, 134, 11, 0.45);
+    color: #8a6d1f;
+}
+body.verification-page.light .btn-add-type:hover {
+    background: rgba(184, 134, 11, 0.18);
+    border-color: #8a6d1f;
+}
+
+/* Bouton "Envoyer un code" : etat desactive visible une fois le code envoye / verifie */
+body.verification-page #verification-send-code:disabled,
+body.verification-page #verification-send-code-2:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}

@@ -174,6 +174,9 @@
             const full = `${String(prefixEl?.value || "").trim()} ${local}`;
             section?.classList.remove("hidden");
             setPhoneStatus(statusEl, `Code envoye au ${full}.`);
+            // Le bouton indique que le code est parti (plus de double envoi a l'aveugle)
+            sendBtn.disabled = true;
+            sendBtn.textContent = "Code envoye";
             // Simulation identique au reste du site (post_trip.js)
             window.alert(`SIMULATION : Code SMS envoye au ${full}\nCode : ${OTP_DEMO_CODE}`);
             input?.focus();
@@ -184,12 +187,17 @@
             if (code !== OTP_DEMO_CODE) {
                 phoneState[flagKey] = false;
                 setPhoneStatus(statusEl, "Code invalide. Verifiez le code recu par SMS.");
+                sendBtn.disabled = false;
+                sendBtn.textContent = "Renvoyer un code";
                 refreshSubmitState();
                 return;
             }
             phoneState[flagKey] = true;
             if (input) input.value = "";
             section?.classList.add("hidden");
+            // Le bouton ne doit plus rester actif une fois le numero verifie.
+            sendBtn.disabled = true;
+            sendBtn.textContent = "✓ Numero verifie";
             setPhoneStatus(statusEl, "✓ Numero verifie avec succes.", true);
             refreshSubmitState();
         });
@@ -227,6 +235,7 @@
         const saved = String(window.CCCommon.state.user?.phoneNumber || "").trim();
         if (saved) {
             phoneState.verified1 = true;
+            if (pel.sendCode) { pel.sendCode.disabled = true; pel.sendCode.textContent = "✓ Numero verifie"; }
             setPhoneStatus(pel.status, "✓ Numero deja enregistre et verifie.", true);
         }
 
@@ -250,15 +259,19 @@
         els.phoneNumber?.addEventListener("input", () => {
             // modifier le numero invalide la verification precedente
             const current = `${String(els.phonePrefix?.value || "").trim()} ${String(els.phoneNumber?.value || "").trim()}`.trim();
-            if (current !== saved) {
+            if (current !== saved && phoneState.verified1) {
                 phoneState.verified1 = false;
-                if (pel.status && !pel.status.textContent.includes("enregistre")) setPhoneStatus(pel.status, "");
+                if (pel.sendCode) { pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
+                setPhoneStatus(pel.status, "");
             }
             refreshSubmitState();
         });
         els.phonePrefix?.addEventListener("change", () => {
-            phoneState.verified1 = false;
-            setPhoneStatus(pel.status, "");
+            if (phoneState.verified1) {
+                phoneState.verified1 = false;
+                if (pel.sendCode) { pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
+                setPhoneStatus(pel.status, "");
+            }
             refreshSubmitState();
         });
 
