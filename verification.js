@@ -161,14 +161,16 @@
     // --- petits utilitaires ---
     function show(el, visible) {
         if (!el) return;
-        // Important : le CSS du site applique 'display: flex !important' sur ces
-        // boutons. Un simple style.display="none" serait donc IGNORE.
-        // -> pour masquer on pose display:none AVEC priorite important,
-        // -> pour afficher on retire la propriete (le CSS reprend la main).
+        // Le site masque ses blocs de DEUX facons : la classe .hidden
+        // (.hidden { display: none !important; }) et l'attribut hidden.
+        // Il faut donc gerer les deux, sinon la section du code restait
+        // invisible meme apres un clic sur "Envoyer un code".
         if (visible) {
+            el.classList.remove("hidden");
             el.removeAttribute("hidden");
             el.style.removeProperty("display");
         } else {
+            el.classList.add("hidden");
             el.setAttribute("hidden", "");
             el.style.setProperty("display", "none", "important");
         }
