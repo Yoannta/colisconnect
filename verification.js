@@ -187,6 +187,7 @@
             if (code !== OTP_DEMO_CODE) {
                 phoneState[flagKey] = false;
                 setPhoneStatus(statusEl, "Code invalide. Verifiez le code recu par SMS.");
+                sendBtn.hidden = false;
                 sendBtn.disabled = false;
                 sendBtn.textContent = "Renvoyer un code";
                 refreshSubmitState();
@@ -195,10 +196,11 @@
             phoneState[flagKey] = true;
             if (input) input.value = "";
             section?.classList.add("hidden");
-            // Le bouton ne doit plus rester actif une fois le numero verifie.
+            // Numero verifie : le bouton disparait (plus d'envoi possible, aucun
+            // libelle "verifie" affiche, comme demande).
+            sendBtn.hidden = true;
             sendBtn.disabled = true;
-            sendBtn.textContent = "✓ Numero verifie";
-            setPhoneStatus(statusEl, "✓ Numero verifie avec succes.", true);
+            setPhoneStatus(statusEl, "");
             refreshSubmitState();
         });
     }
@@ -234,9 +236,11 @@
         // (sinon l'utilisateur devrait le re-valider a chaque visite).
         const saved = String(window.CCCommon.state.user?.phoneNumber || "").trim();
         if (saved) {
+            // Numero deja enregistre : considere comme verifie, sans aucun message
+            // ni libelle "verifie" a l'ecran.
             phoneState.verified1 = true;
-            if (pel.sendCode) { pel.sendCode.disabled = true; pel.sendCode.textContent = "✓ Numero verifie"; }
-            setPhoneStatus(pel.status, "✓ Numero deja enregistre et verifie.", true);
+            if (pel.sendCode) { pel.sendCode.hidden = true; pel.sendCode.disabled = true; }
+            setPhoneStatus(pel.status, "");
         }
 
         // Second numero deja enregistre : on rouvre le bloc et on le remplit.
@@ -253,7 +257,8 @@
             pel.wrap2.classList.remove("hidden");
             if (pel.addPhone) pel.addPhone.textContent = "Retirer le second numero";
             phoneState.verified2 = true;
-            setPhoneStatus(pel.status2, "✓ Second numero deja enregistre et verifie.", true);
+            if (pel.sendCode2) { pel.sendCode2.hidden = true; pel.sendCode2.disabled = true; }
+            setPhoneStatus(pel.status2, "");
         }
 
         els.phoneNumber?.addEventListener("input", () => {
@@ -261,7 +266,7 @@
             const current = `${String(els.phonePrefix?.value || "").trim()} ${String(els.phoneNumber?.value || "").trim()}`.trim();
             if (current !== saved && phoneState.verified1) {
                 phoneState.verified1 = false;
-                if (pel.sendCode) { pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
+                if (pel.sendCode) { pel.sendCode.hidden = false; pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
                 setPhoneStatus(pel.status, "");
             }
             refreshSubmitState();
@@ -269,7 +274,7 @@
         els.phonePrefix?.addEventListener("change", () => {
             if (phoneState.verified1) {
                 phoneState.verified1 = false;
-                if (pel.sendCode) { pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
+                if (pel.sendCode) { pel.sendCode.hidden = false; pel.sendCode.disabled = false; pel.sendCode.textContent = "Envoyer un code"; }
                 setPhoneStatus(pel.status, "");
             }
             refreshSubmitState();
