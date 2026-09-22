@@ -161,8 +161,17 @@
     // --- petits utilitaires ---
     function show(el, visible) {
         if (!el) return;
-        if (visible) el.removeAttribute("hidden");
-        else el.setAttribute("hidden", "");
+        // Important : le CSS du site applique 'display: flex !important' sur ces
+        // boutons. Un simple style.display="none" serait donc IGNORE.
+        // -> pour masquer on pose display:none AVEC priorite important,
+        // -> pour afficher on retire la propriete (le CSS reprend la main).
+        if (visible) {
+            el.removeAttribute("hidden");
+            el.style.removeProperty("display");
+        } else {
+            el.setAttribute("hidden", "");
+            el.style.setProperty("display", "none", "important");
+        }
     }
     function setStatus(el, text, ok) {
         if (!el) return;
@@ -228,24 +237,23 @@
         if (prefixEl) prefixEl.disabled = false;
         editBtn?.classList.add("is-locked");
 
+        // REGLE DEMANDEE : le bouton "Envoyer un code" n'existe a l'ecran que si le
+        // numero affiche DIFFERE de celui deja enregistre. Il apparait des la premiere
+        // frappe / suppression, et disparait si on remet exactement l'ancien numero.
         const changed = !sameAsSaved(idx);
         if (changed && !verified) {
-            // le numero a change : le bouton d'envoi est utile et actif
             show(sendBtn, true);
             if (!ph[idx === 1 ? "sent1" : "sent2"]) {
                 sendBtn.disabled = false;
                 sendBtn.textContent = "Envoyer un code";
             }
             setStatus(statusEl, "");
-        } else if (verified) {
-            show(sendBtn, false);
-            setStatus(statusEl, "");
         } else {
-            // rien n'a encore change : le bouton est visible mais GRISE
-            show(sendBtn, true);
-            sendBtn.disabled = true;
-            sendBtn.textContent = "Envoyer un code";
-            setStatus(statusEl, "Modifiez le numero : le bouton s'activera des qu'il change.");
+            // numero identique a l'enregistre (ou deja verifie) : rien a l'ecran
+            show(sendBtn, false);
+            show(isOne ? pel.otpSection : pel.otpSection2, false);
+            if (isOne) ph.sent1 = false; else ph.sent2 = false;
+            setStatus(statusEl, "");
         }
         refreshSubmitState();
     }

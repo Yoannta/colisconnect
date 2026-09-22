@@ -14685,9 +14685,5 @@ body.verification-page.light .phone-verify-btn:not(:disabled):hover {
     border-color: #8a6d1f !important;
 }
 
-/* [hidden] doit gagner contre display:flex !important des boutons */
-body.verification-page .phone-verify-btn[hidden],
-body.verification-page .phone-edit-btn[hidden],
-body.verification-page .phone-input-row [hidden] {
-    display: none !important;
-}
+/* Les boutons sont pilotes par style.display (voir verification.js) : on ne met
+   pas de display !important sur [hidden] pour ne pas bloquer leur apparition. */
