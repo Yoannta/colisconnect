@@ -22,11 +22,11 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js?v=59"></script>
 
-    <script defer src="standalone-common.js?v=20"></script>
+    <script defer src="standalone-common.js?v=21"></script>
     <script defer src="devise.js?v=1"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
     <script defer src="admin-banner.js"></script>
-    <script defer src="verification.js"></script>
+    <script defer src="verification.js?v=2"></script>
 </head>
 
 <body class="verification-page">
@@ -104,6 +104,44 @@
                                 <option value="+41">🇨🇭 +41</option>
                             </select>
                             <input type="tel" class="phone-main-input" id="verification-phone-number" placeholder="07 00 00 00 00" autocomplete="off">
+                            <button type="button" id="verification-send-code" class="btn ghost btn-sm">Envoyer un code</button>
+                        </div>
+
+                        <!-- Section de verification par code (apparait apres l'envoi) -->
+                        <div id="verification-otp-section" class="hidden" style="margin-top:12px;">
+                            <div class="otp-input-wrap">
+                                <label class="phone-label" for="verification-otp-code">Code recu par SMS</label>
+                                <input type="text" id="verification-otp-code" inputmode="numeric" maxlength="6"
+                                       placeholder="123456" autocomplete="one-time-code"
+                                       style="letter-spacing:6px;text-align:center;">
+                                <button type="button" id="verification-confirm-otp" class="btn primary btn-sm">Verifier le code</button>
+                            </div>
+                        </div>
+
+                        <p id="verification-phone-status" class="admin-note" style="margin-top:8px;"></p>
+
+                        <!-- Second numero (optionnel) -->
+                        <div id="verification-phone2-wrap" class="hidden" style="margin-top:18px;">
+                            <label class="phone-label">Second numero de telephone</label>
+                            <div class="phone-input-row">
+                                <select class="phone-prefix-select" id="verification-phone-prefix-2"></select>
+                                <input type="tel" class="phone-main-input" id="verification-phone-number-2" placeholder="07 00 00 00 00" autocomplete="off">
+                                <button type="button" id="verification-send-code-2" class="btn ghost btn-sm">Envoyer un code</button>
+                            </div>
+                            <div id="verification-otp-section-2" class="hidden" style="margin-top:12px;">
+                                <div class="otp-input-wrap">
+                                    <label class="phone-label" for="verification-otp-code-2">Code recu par SMS</label>
+                                    <input type="text" id="verification-otp-code-2" inputmode="numeric" maxlength="6"
+                                           placeholder="123456" autocomplete="one-time-code"
+                                           style="letter-spacing:6px;text-align:center;">
+                                    <button type="button" id="verification-confirm-otp-2" class="btn primary btn-sm">Verifier le code</button>
+                                </div>
+                            </div>
+                            <p id="verification-phone-status-2" class="admin-note" style="margin-top:8px;"></p>
+                        </div>
+
+                        <div style="margin-top:14px;">
+                            <button type="button" id="verification-add-phone" class="btn ghost btn-sm">+ Ajouter un autre numero</button>
                         </div>
                     </div>
                     <label>Piece justificative (photo CNI/Passeport)

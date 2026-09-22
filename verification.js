@@ -114,6 +114,157 @@
         });
     }
 
+    // ============================================================
+    //  VERIFICATION DU NUMERO PAR CODE SMS
+    //  Reutilise le meme principe que la page d'annonce (post_trip.js) :
+    //  code de demonstration 123456.
+    //  Tant que le numero saisi n'est pas verifie, le bouton
+    //  "Enregistrer" reste desactive -> plus d'enregistrement silencieux
+    //  d'un numero non valide.
+    // ============================================================
+    const OTP_DEMO_CODE = "123456";
+
+    const phoneState = {
+        verified1: false,   // le numero principal est-il verifie ?
+        verified2: false    // le second numero (si present) est-il verifie ?
+    };
+
+    const pel = {
+        sendCode: document.getElementById("verification-send-code"),
+        otpSection: document.getElementById("verification-otp-section"),
+        otpInput: document.getElementById("verification-otp-code"),
+        confirmOtp: document.getElementById("verification-confirm-otp"),
+        status: document.getElementById("verification-phone-status"),
+        addPhone: document.getElementById("verification-add-phone"),
+        wrap2: document.getElementById("verification-phone2-wrap"),
+        prefix2: document.getElementById("verification-phone-prefix-2"),
+        number2: document.getElementById("verification-phone-number-2"),
+        sendCode2: document.getElementById("verification-send-code-2"),
+        otpSection2: document.getElementById("verification-otp-section-2"),
+        otpInput2: document.getElementById("verification-otp-code-2"),
+        confirmOtp2: document.getElementById("verification-confirm-otp-2"),
+        status2: document.getElementById("verification-phone-status-2")
+    };
+
+    function setPhoneStatus(el, text, ok = false) {
+        if (!el) return;
+        el.textContent = text || "";
+        el.style.color = ok ? "#aef6d2" : "#ffc8b7";
+    }
+
+    // Le bouton "Enregistrer" est bloque tant qu'un numero saisi n'est pas verifie.
+    function refreshSubmitState() {
+        const btn = els.form?.querySelector('button[type="submit"]');
+        if (!btn) return;
+        const hasNumber = String(els.phoneNumber?.value || "").trim().length > 0;
+        const needsCheck = hasNumber && !phoneState.verified1;
+        btn.disabled = needsCheck;
+        btn.title = needsCheck ? "Verifiez d'abord votre numero avec le code recu par SMS" : "";
+        if (!needsCheck && btn.dataset.saving !== "1") btn.textContent = "Enregistrer les modifications";
+    }
+
+    function bindVerifyButton(prefixEl, numberEl, sendBtn, section, input, confirmBtn, statusEl, flagKey) {
+        sendBtn?.addEventListener("click", () => {
+            const local = String(numberEl?.value || "").replace(/\D/g, "");
+            if (local.length < 6) {
+                setPhoneStatus(statusEl, "Saisissez d'abord un numero valide.");
+                numberEl?.focus();
+                return;
+            }
+            const full = `${String(prefixEl?.value || "").trim()} ${local}`;
+            section?.classList.remove("hidden");
+            setPhoneStatus(statusEl, `Code envoye au ${full}.`);
+            // Simulation identique au reste du site (post_trip.js)
+            window.alert(`SIMULATION : Code SMS envoye au ${full}\nCode : ${OTP_DEMO_CODE}`);
+            input?.focus();
+        });
+
+        confirmBtn?.addEventListener("click", () => {
+            const code = String(input?.value || "").trim();
+            if (code !== OTP_DEMO_CODE) {
+                phoneState[flagKey] = false;
+                setPhoneStatus(statusEl, "Code invalide. Verifiez le code recu par SMS.");
+                refreshSubmitState();
+                return;
+            }
+            phoneState[flagKey] = true;
+            if (input) input.value = "";
+            section?.classList.add("hidden");
+            setPhoneStatus(statusEl, "✓ Numero verifie avec succes.", true);
+            refreshSubmitState();
+        });
+    }
+
+    function setupPhoneVerification() {
+        // le select du 2e numero reprend la meme liste que le premier
+        if (pel.prefix2 && els.phonePrefix) {
+            pel.prefix2.innerHTML = els.phonePrefix.innerHTML;
+        }
+
+        bindVerifyButton(els.phonePrefix, els.phoneNumber, pel.sendCode, pel.otpSection,
+                         pel.otpInput, pel.confirmOtp, pel.status, "verified1");
+        bindVerifyButton(pel.prefix2, pel.number2, pel.sendCode2, pel.otpSection2,
+                         pel.otpInput2, pel.confirmOtp2, pel.status2, "verified2");
+
+        // Afficher le second numero
+        pel.addPhone?.addEventListener("click", () => {
+            if (!pel.wrap2) return;
+            const hidden = pel.wrap2.classList.toggle("hidden");
+            pel.addPhone.textContent = hidden ? "+ Ajouter un autre numero" : "Retirer le second numero";
+            if (!hidden) pel.number2?.focus();
+            else {
+                // retirer = on oublie la verification du 2e numero
+                phoneState.verified2 = false;
+                if (pel.number2) pel.number2.value = "";
+                if (pel.otpInput2) pel.otpInput2.value = "";
+                pel.otpSection2?.classList.add("hidden");
+                setPhoneStatus(pel.status2, "");
+            }
+        });
+
+        // Reprise du numero deja enregistre : il est considere comme verifie
+        // (sinon l'utilisateur devrait le re-valider a chaque visite).
+        const saved = String(window.CCCommon.state.user?.phoneNumber || "").trim();
+        if (saved) {
+            phoneState.verified1 = true;
+            setPhoneStatus(pel.status, "✓ Numero deja enregistre et verifie.", true);
+        }
+
+        // Second numero deja enregistre : on rouvre le bloc et on le remplit.
+        const saved2 = String(window.CCCommon.state.user?.phoneNumber2 || "").trim();
+        if (saved2 && pel.wrap2 && pel.number2) {
+            const parts2 = saved2.split(" ");
+            const pre2 = parts2[0] || "";
+            const loc2 = parts2.slice(1).join(" ");
+            if (pel.prefix2) {
+                const o2 = Array.from(pel.prefix2.options).find(o => o.value === pre2);
+                if (o2) pel.prefix2.value = pre2;
+            }
+            pel.number2.value = loc2;
+            pel.wrap2.classList.remove("hidden");
+            if (pel.addPhone) pel.addPhone.textContent = "Retirer le second numero";
+            phoneState.verified2 = true;
+            setPhoneStatus(pel.status2, "✓ Second numero deja enregistre et verifie.", true);
+        }
+
+        els.phoneNumber?.addEventListener("input", () => {
+            // modifier le numero invalide la verification precedente
+            const current = `${String(els.phonePrefix?.value || "").trim()} ${String(els.phoneNumber?.value || "").trim()}`.trim();
+            if (current !== saved) {
+                phoneState.verified1 = false;
+                if (pel.status && !pel.status.textContent.includes("enregistre")) setPhoneStatus(pel.status, "");
+            }
+            refreshSubmitState();
+        });
+        els.phonePrefix?.addEventListener("change", () => {
+            phoneState.verified1 = false;
+            setPhoneStatus(pel.status, "");
+            refreshSubmitState();
+        });
+
+        refreshSubmitState();
+    }
+
     async function submitVerification(event) {
         event.preventDefault();
         if (!window.CCCommon.requireAuth("verification.html")) return;
@@ -144,7 +295,26 @@
 
         const prefix = String(els.phonePrefix?.value || "+33").trim();
         const number = String(els.phoneNumber?.value || "").trim();
-        if (number) body.phoneNumber = `${prefix} ${number}`;
+        if (number) {
+            // [FILEt] refuser un numero non verifie (le bouton est deja desactive,
+            // ceci couvre le cas d'une soumission clavier / Entree).
+            if (!phoneState.verified1) {
+                setFeedback("Verifiez votre numero avec le code recu par SMS avant d'enregistrer.");
+                return;
+            }
+            body.phoneNumber = `${prefix} ${number}`;
+        }
+
+        // Second numero (optionnel) : uniquement s'il est saisi ET verifie
+        const prefix2 = String(pel.prefix2?.value || "+33").trim();
+        const number2 = String(pel.number2?.value || "").trim();
+        if (number2) {
+            if (!phoneState.verified2) {
+                setFeedback("Verifiez votre second numero avec le code recu par SMS avant d'enregistrer.");
+                return;
+            }
+            body.phoneNumber2 = `${prefix2} ${number2}`;
+        }
 
         const idFile = els.idDocument?.files?.[0];
         if (idFile) {
@@ -170,6 +340,8 @@
 
             const token = window.CCCommon.state.token;
             window.CCCommon.setSession(token, payload?.user || null);
+            if (body.phoneNumber) phoneState.verified1 = true;
+            if (body.phoneNumber2) phoneState.verified2 = true;
             renderProgress(payload?.user || null);
             const completion = window.CCCommon.getProfileCompletion(payload?.user || null);
 
@@ -219,6 +391,8 @@
         if (countryList && countryOptions.length) {
             countryList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
+
+        setupPhoneVerification();
 
         bindEvents();
     }

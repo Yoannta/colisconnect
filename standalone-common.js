@@ -720,6 +720,15 @@
                 const u = { ...user, ...user.user_metadata, ...(profile || {}), id: user.id };
                 if (u.is_verified !== undefined) u.isVerified = u.is_verified;
                 if (u.is_active !== undefined) u.isActive = u.is_active;
+                // [FIX 2026-09] La base stocke 'phone_number' mais l'UI lit 'phoneNumber'.
+                // Sans ce mapping : le numero n'etait jamais reaffiche apres actualisation
+                // ET le pourcentage de completion restait bloque (hasPhone=false).
+                if (u.phone_number !== undefined) u.phoneNumber = u.phone_number;
+                if (u.phone_number_2 !== undefined) u.phoneNumber2 = u.phone_number_2;
+                if (u.identity_document !== undefined) u.identityDocument = u.identity_document;
+                if (u.profile_photo !== undefined) u.profilePhoto = u.profile_photo;
+                if (u.profile_type !== undefined) u.profileType = u.profile_type;
+                if (u.kyc_status !== undefined) u.kycStatus = u.kyc_status;
                 return { user: u };
             }
 
@@ -728,6 +737,7 @@
                 const mapping = {
                     fullName: 'full_name',
                     phoneNumber: 'phone_number',
+                    phoneNumber2: 'phone_number_2',
                     country: 'country',
                     identityDocumentData: 'identity_document',
                     profilePhotoData: 'profile_photo',
