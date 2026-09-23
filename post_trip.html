@@ -614,7 +614,6 @@
             width: 100% !important;
             max-width: 250px;
             min-width: 0;
-        }
         .colis-row-del:hover {
             color: #ff6b6b;
             border-color: rgba(255,107,107,0.5);
@@ -1562,6 +1561,22 @@
             });
         })();
     </script>
+
+    <!-- [FIX 2026-09] Les modales "Types de colis" s'affichaient en texte brut :
+         la regle .popup-overlay { display: none; } du <style> principal est inactive
+         (accolade manquante plus haut dans la feuille) et la fermer casserait le
+         reste du formulaire. On masque donc les deux modales ici, uniquement elles. -->
+    <style>
+        #colisPopupOverlay,
+        #refusedPopupOverlay {
+            display: none !important;
+        }
+        #colisPopupOverlay.active,
+        #refusedPopupOverlay.active {
+            display: flex !important;
+        }
+    </style>
+
 </body>
 
 </html>
