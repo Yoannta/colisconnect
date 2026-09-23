@@ -515,11 +515,25 @@
             border-color: #ffb347;
             box-shadow: 0 0 0 2px rgba(255, 179, 71,0.15);
         }
-        .price-mode-btn.active {
-            background: rgba(255, 179, 71,0.28);
-            border-color: #ffb347;
-            color: #ffd08a;
-            box-shadow: 0 0 0 2px rgba(255, 179, 71,0.15);
+        /* Choix du mode de prix : le bouton choisi s'illumine comme le bouton « Oui »
+           (meme degrade dore et meme halo). Avant, la difference etait trop discrete
+           (fond a 0.28 d'opacite) et on ne voyait pas ce qui etait selectionne. */
+        .price-mode-btn.active,
+        .price-mode-btn.active:hover {
+            background: linear-gradient(135deg, #e9a614, #f1b52b) !important;
+            border-color: #f1b52b !important;
+            color: #1c1400 !important;
+            font-weight: 700 !important;
+            box-shadow: 0 10px 22px -6px rgba(192, 133, 10, 0.55),
+                        0 0 0 2px rgba(255, 179, 71, 0.35) !important;
+            filter: brightness(1.05);
+        }
+        /* Theme clair : texte blanc comme le bouton Oui */
+        body.post-trip-page.light .price-mode-btn.active,
+        body.post-trip-page.light .price-mode-btn.active:hover {
+            background: linear-gradient(135deg, #e9a614, #f1b52b) !important;
+            color: #ffffff !important;
+            border-color: #f1b52b !important;
         }
         .special-price-line {
             display: flex;
