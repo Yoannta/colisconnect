@@ -115,6 +115,75 @@ const sc = lire('standalone-common.js') || '';
   console.log('    ' + (ok ? 'OK       ' : 'MANQUANT ') + c + '  (genere par JS)');
 });
 
+/* --- 5. controle de guide.json ------------------------------------------- */
+/* Chaque etape de chaque parcours doit pointer sur une cible qui existe
+   VRAIMENT dans le site, et sur une page qui existe. */
+console.log('');
+console.log('=== CONTROLE DE guide.json ===');
+console.log('');
+
+const cheminJSON = path.join(RACINE, 'guide.json');
+let toutes = new Set();
+
+/* on rassemble toutes les cibles declarees dans les fichiers du site */
+for (const f of FICHIERS) {
+  const c = lire(f);
+  if (c) ciblesDe(c).forEach(function (x) { toutes.add(x); });
+}
+/* les 4 cibles pays/ville construites par JS */
+['departure-country', 'departure-city', 'arrival-country', 'arrival-city'].forEach(function (x) { toutes.add(x); });
+
+if (!fs.existsSync(cheminJSON)) {
+  console.log('  guide.json ABSENT');
+  manquantes.push('guide.json manquant');
+} else {
+  let g;
+  try {
+    g = JSON.parse(fs.readFileSync(cheminJSON, 'utf8'));
+    console.log('  JSON valide');
+  } catch (e) {
+    console.log('  JSON INVALIDE : ' + e.message);
+    manquantes.push('guide.json invalide');
+  }
+  if (g) {
+    const pages = {};
+    FICHIERS.filter(function (f) { return /\.html$/.test(f); }).forEach(function (f) { pages[f] = true; });
+    let etapes = 0;
+    const parcours = g.journeys || {};
+    Object.keys(parcours).forEach(function (nom) {
+      const steps = parcours[nom].etapes || [];
+      let okParcours = true;
+      steps.forEach(function (st, i) {
+        etapes++;
+        if (st.cible && !toutes.has(st.cible)) {
+          console.log('  MANQUANT  parcours "' + nom + '" etape ' + (i + 1) + ' : cible "' + st.cible + '" inexistante');
+          manquantes.push(nom + ' -> ' + st.cible);
+          okParcours = false;
+        }
+        if (st.page && st.page !== 'any' && !pages[st.page]) {
+          console.log('  MANQUANT  parcours "' + nom + '" etape ' + (i + 1) + ' : page "' + st.page + '" inexistante');
+          manquantes.push(nom + ' -> page ' + st.page);
+          okParcours = false;
+        }
+      });
+      if (okParcours) {
+        console.log('  OK        ' + nom + '  (' + steps.length + ' etape' + (steps.length > 1 ? 's' : '') + ')');
+      }
+    });
+    console.log('');
+    console.log('  ' + Object.keys(parcours).length + ' parcours, ' + etapes + ' etapes au total');
+    const intents = g.intents || {};
+    console.log('  ' + Object.keys(intents).length + ' intentions declarees');
+    /* chaque intent doit pointer sur un parcours existant */
+    Object.keys(intents).forEach(function (k) {
+      if (!parcours[intents[k].parcours]) {
+        console.log('  MANQUANT  intention "' + k + '" pointe sur le parcours inconnu "' + intents[k].parcours + '"');
+        manquantes.push('intent ' + k);
+      }
+    });
+  }
+}
+
 console.log('');
 if (manquantes.length) {
   console.log('RESULTAT : ' + manquantes.length + ' cible(s) manquante(s) sur ' + total);

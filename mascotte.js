@@ -1515,7 +1515,19 @@
     placer: function (x, y) { return courant ? courant.placer(x, y) : false; },
     jet: function (force) { return courant ? courant.jet(force) : false; },
     oublierJet: oublierJet,
-    monte: function () { return !!courant; }
+    monte: function () { return !!courant; },
+    /* --- API de guidage : enveloppes defensives sur l'instance courante --- */
+    saluer: function () { return courant ? courant.saluer() : false; },
+    parler: function (message) { return courant ? courant.parler(message) : false; },
+    marche: function () { return courant ? courant.marche() : false; },
+    arret: function () { return courant ? courant.arret() : false; },
+    stop: function () { return courant ? courant.stop() : false; },
+    regarder: function (direction) { return courant ? courant.regarder(direction) : false; },
+    cacher: function () { return courant ? courant.cacher() : false; },
+    afficher: function () { return courant ? courant.afficher() : false; },
+    getPosition: function () { return courant ? courant.getPosition() : undefined; },
+    getSize: function () { return courant ? courant.getSize() : undefined; },
+    pointer: function (direction) { return courant ? courant.pointer(direction) : false; }
   };
 
   function autoMonte() {
