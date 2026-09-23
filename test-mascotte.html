@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Mascotte 2D — ColisConnect</title>
+  <style>
+    :root { --primary:#13ecc8; --fond:#0b1116; --panneau:#101a20; --texte:#eef7f5; }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; min-height:100vh; background:var(--fond); color:var(--texte);
+      font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+      padding:24px 24px 160px; /* la marge du bas laisse vivre la mascotte */
+    }
+    h1 { font-size:20px; margin:0 0 4px; }
+    h1 .v { color:var(--primary); font-size:12px; font-weight:600; letter-spacing:.4px; }
+    .sous { color:#8fa3ad; font-size:13px; margin:0 0 20px; }
+    .grille { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:20px; }
+    button {
+      background:#13212a; color:var(--texte); border:1px solid rgba(19,236,200,.28);
+      border-radius:10px; padding:10px 14px; font:600 13px/1 inherit; cursor:pointer;
+      transition:background .15s ease, transform .05s ease;
+    }
+    button:hover { background:#1a2c38; }
+    button:active { transform:translateY(1px); }
+    button.ok { border-color:#4caf7d; color:#8fe3b5; }
+    .cible {
+      display:flex; align-items:center; justify-content:center; gap:8px;
+      width:220px; height:80px; margin:8px auto 20px; border-radius:14px;
+      background:#0f6b5e; color:#fff; font-weight:700; border:2px dashed var(--primary);
+    }
+    .cible span { font-size:26px; }
+    #journal {
+      background:var(--panneau); border:1px solid rgba(238,247,245,.14); border-radius:12px;
+      padding:12px 14px; font:12.5px/1.55 ui-monospace,Consolas,Menlo,monospace;
+      white-space:pre-wrap; word-break:break-word; max-height:340px; overflow:auto;
+    }
+    #journal .ligne { display:block; padding:1px 0; }
+    #journal .ok { color:#8fe3b5; }
+    #journal .ko { color:#ff9c86; }
+    #journal .info { color:#9fc8d6; }
+    #journal .sep { color:#455a63; margin-top:2px; }
+  </style>
+</head>
+<body>
+  <h1>Test Mascotte 2D libre <span class="v">v2.6</span></h1>
+  <p class="sous">
+    Charge mascotte.js, monte «&nbsp;Le Petit Voyageur&nbsp;» et exerce les 4 modes de déplacement.
+    Chaque résultat s'écrit dans le journal ci-dessous (aucune console nécessaire).
+  </p>
+
+  <div class="grille">
+    <button id="b-walk">TEST WALK → walkTo(200, 300)</button>
+    <button id="b-fly">TEST FLY → flyTo(900, 500)</button>
+    <button id="b-teleport">TEST TELEPORT → teleportTo(100, 100)</button>
+    <button id="b-point">TEST POINT → pointTo(#cible)</button>
+    <button id="b-position">TEST POSITION</button>
+    <button id="b-retour">TEST RETOUR → sortirDeLibre()</button>
+  </div>
+  <div class="grille">
+    <button id="b-s390">TEST 390×844</button>
+    <button id="b-s768">TEST 768×1024</button>
+    <button id="b-sdesktop">TEST DESKTOP</button>
+    <button id="b-mode">TEST CHOIX MODE</button>
+  </div>
+
+  <div class="cible" id="cible"><span>🎯</span> Cible de pointTo</div>
+
+  <div id="journal" role="log" aria-live="polite"></div>
+
+  <script src="mascotte.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    var journal = document.getElementById('journal');
+    var m;
+
+    function log(msg, cls) {
+      var l = document.createElement('span');
+      l.className = 'ligne ' + (cls || 'info');
+      l.textContent = msg;
+      journal.appendChild(l);
+      journal.scrollTop = journal.scrollHeight;
+    }
+    function sep() { log('──────────────────────────────', 'sep'); }
+    function ts() { var d = new Date(); return d.toLocaleTimeString(); }
+
+    function posTxt(p) {
+      if (!p) return 'inconnu';
+      return 'x=' + Math.round(p.x) + ', y=' + Math.round(p.y) + (p.libre ? ' (libre)' : ' (bande)');
+    }
+    function sizeTxt(s) {
+      return s ? (s.largeur + '×' + s.hauteur + ' px') : 'inconnu';
+    }
+
+    /* verifie que la mascotte est dans les marges (12 px) de l'ecran */
+    function verifierMarges(p, s) {
+      if (!p || !s) return ' (marges : n/a)';
+      var marge = 12;
+      var dansX = p.x >= marge && p.x + s.largeur <= window.innerWidth - marge;
+      var dansY = p.y >= marge && p.y + s.hauteur <= window.innerHeight - marge;
+      return (dansX && dansY) ? ' ✅ dans les marges' : ' ❌ HORS marges';
+    }
+
+    /* ===== monte la mascotte (relancer = toujours visible, meme si "ne plus afficher") ===== */
+    try {
+      m = CCMascotte.relancer({
+        salutation: 'Je suis en mode test de déplacement 2D.',
+        delai: 600000,   // pas de salut automatique pendant le test
+        vitesse: 140
+      });
+      log('Mascotte montée (version ' + CCMascotte.version + ')', 'ok');
+      log('getSize() → ' + sizeTxt(m.getSize()));
+    } catch (e) {
+      log('Erreur de montage : ' + e.message, 'ko');
+    }
+
+    /* ===== TEST WALK ===== */
+    document.getElementById('b-walk').addEventListener('click', function () {
+      sep(); log('[' + ts() + '] TEST WALK → walkTo(200, 300)');
+      m.walkTo(200, 300).then(function (ok) {
+        log('walkTo terminé → ' + (ok ? 'ok' : 'annulé') + ' · ' + posTxt(m.getPosition()), ok ? 'ok' : 'ko');
+      });
+    });
+
+    /* ===== TEST FLY ===== */
+    document.getElementById('b-fly').addEventListener('click', function () {
+      sep(); log('[' + ts() + '] TEST FLY → flyTo(900, 500)');
+      m.flyTo(900, 500).then(function (ok) {
+        log('flyTo terminé → ' + (ok ? 'ok' : 'annulé') + ' · ' + posTxt(m.getPosition()), ok ? 'ok' : 'ko');
+      });
+    });
+
+    /* ===== TEST TELEPORT ===== */
+    document.getElementById('b-teleport').addEventListener('click', function () {
+      sep(); log('[' + ts() + '] TEST TELEPORT → teleportTo(100, 100)');
+      m.teleportTo(100, 100).then(function (ok) {
+        log('teleportTo terminé → ' + (ok ? 'ok' : 'annulé') + ' · ' + posTxt(m.getPosition()), ok ? 'ok' : 'ko');
+      });
+    });
+
+    /* ===== TEST POINT ===== */
+    document.getElementById('b-point').addEventListener('click', function () {
+      sep(); log('[' + ts() + '] TEST POINT → pointTo(#cible)');
+      var ok = m.pointTo('#cible');
+      log('pointTo → ' + (ok ? 'true (bras tendu, corps orienté)' : 'false'), ok ? 'ok' : 'ko');
+      log('   position inchangée : ' + posTxt(m.getPosition()));
+    });
+
+    /* ===== TEST POSITION ===== */
+    document.getElementById('b-position').addEventListener('click', function () {
+      sep(); log('[' + ts() + '] TEST POSITION');
+      log('getPosition() → ' + posTxt(m.getPosition()));
+      log('getSize()     → ' + sizeTxt(m.getSize()));
+      log('choisirMode(cible lointaine) → ' + m.choisirMode(2000, 2000), 'info');
+      log('choisirMode(près) → ' + m.choisirMode(220, 320), 'info');
+    });
+
+    /* ===== TEST RETOUR ===== */
+    document.getElementById('b-retour').addEventListener('click', function () {
+      sep(); log('[' + ts() + '] TEST RETOUR → sortirDeLibre()');
+      var ok = m.sortirDeLibre();
+      var p = m.getPosition();
+      var vh = window.innerHeight;
+      var s = m.getSize();
+      var bas = Math.abs((p.y + s.hauteur) - (vh - 8)) < 40; /* ~8px du bas de la bande */
+      log('sortirDeLibre → ' + (ok ? 'true' : 'false'), ok ? 'ok' : 'ko');
+      log('   position après retour : ' + posTxt(p) + (bas ? ' ✅ en bas' : ' ⚠ pas en bas ?'));
+    });
+
+    /* ===== tests de tailles d'écran ===== */
+    function testTaille(label, w, h, cibleX, cibleY) {
+      sep(); log('[' + ts() + '] ' + label + ' — taille demandée ' + w + '×' + h);
+      try { window.resizeTo(w, h); } catch (e) { log('   resizeTo non supporté : ' + e.message); }
+      setTimeout(function () {
+        log('   fenêtre réelle : ' + window.innerWidth + '×' + window.innerHeight);
+        /* on envoie la mascotte vers un point lointain : elle doit rester
+           dans les marges de l'écran quelle que soit la taille. */
+        m.teleportTo(cibleX, cibleY).then(function (ok) {
+          var p = m.getPosition(), s = m.getSize();
+          log('   teleportTo(' + cibleX + ',' + cibleY + ') → ' + (ok ? 'ok' : 'annulé') + ' · ' + posTxt(p));
+          log('   getPosition()=' + posTxt(p) + ' getSize()=' + sizeTxt(s) + verifierMarges(p, s), ok ? 'ok' : 'ko');
+        });
+      }, 250);
+    }
+
+    document.getElementById('b-s390').addEventListener('click', function () {
+      testTaille('TEST 390×844', 390, 844, 2000, 3000);
+    });
+    document.getElementById('b-s768').addEventListener('click', function () {
+      testTaille('TEST 768×1024', 768, 1024, 2000, 3000);
+    });
+    document.getElementById('b-sdesktop').addEventListener('click', function () {
+      testTaille('TEST DESKTOP', 1440, 900, 5000, 5000);
+    });
+
+    /* ===== TEST CHOIX MODE (bonus) ===== */
+    document.getElementById('b-mode').addEventListener('click', function () {
+      sep(); log('[' + ts() + '] TEST CHOIX MODE (auto, selon la distance)');
+      var p = m.getPosition();
+      log('   position courante : ' + posTxt(p));
+      log('   cible 250px  → mode "' + m.choisirMode(p.x + 180, p.y) + '" (≤ 420 → walk)');
+      log('   cible 800px  → mode "' + m.choisirMode(p.x + 800, p.y) + '" (≤ 1600 → fly)');
+      log('   cible 3000px → mode "' + m.choisirMode(p.x + 3000, p.y) + '" (> 1600 → teleport)');
+      log('   (le "mode" de guide.json est une préférence : la distance prime.)', 'info');
+    });
+
+    log('Prêt. Cliquez sur les boutons pour lancer chaque test.', 'ok');
+  })();
+  </script>
+</body>
+</html>
