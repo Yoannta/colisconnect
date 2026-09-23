@@ -979,7 +979,7 @@
                         <div id="profile-choice-section" class="form-group">
                             <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
                             <div class="profile-select-grid">
-                                <button type="button" class="profile-select-btn" id="btn-traveler-choice">
+                                <button type="button" class="profile-select-btn" id="btn-traveler-choice" data-guide="trip-type">
                                     <span class="ps-icon">👤</span>
                                     <span class="ps-body">
                                         <span class="ps-title">Voyageur simple</span>
@@ -987,7 +987,7 @@
                                     </span>
                                     <span class="ps-check">✓</span>
                                 </button>
-                                <button type="button" class="profile-select-btn" id="btn-cargo-choice">
+                                <button type="button" class="profile-select-btn" id="btn-cargo-choice" data-guide="trip-type">
                                     <span class="ps-icon">🏢</span>
                                     <span class="ps-body">
                                         <span class="ps-title">Entreprise / Cargo</span>
@@ -1004,7 +1004,7 @@
 
                         <div class="form-group">
                             <label for="date-depart">Date du voyage</label>
-                            <input type="date" id="date-depart" class="form-input" required>
+                            <input type="date" id="date-depart" data-guide="trip-date" class="form-input" required>
                             <!-- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet (mêmes départ/destination) -->
                             <div id="trip-extra-dates-wrap" class="hidden">
                                 <div id="trip-extra-dates" class="trip-extra-dates"></div>
@@ -1081,26 +1081,26 @@
                             <div class="wizard-question-box">
                                 <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de colis ?</p>
                                 <div class="wizard-yesno">
-                                    <button type="button" class="btn primary" id="special-yes">Oui</button>
-                                    <button type="button" class="btn secondary" id="special-no">Non</button>
+                                    <button type="button" class="btn primary" id="special-yes" data-guide="special-price-yes">Oui</button>
+                                    <button type="button" class="btn secondary" id="special-no" data-guide="special-price-no">Non</button>
                                 </div>
                             </div>
                         <div class="form-group">
                             <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                            <button type="button" class="popup-trigger-btn" id="openColisPopupBtn">
+                            <button type="button" class="popup-trigger-btn" id="openColisPopupBtn" data-guide="parcel-types">
                                 <span id="selectedColisText">Choisir les types de colis</span>
                                 <span>▼</span>
                             </button>
                         </div>
                             <div id="special-prices-panel" class="hidden">
                         <div class="form-group" id="colis-details-group">
-                            <div id="colis-detail-rows">
+                            <div id="colis-detail-rows" data-guide="special-price-line">
                                 <div class="colis-detail-row" data-row="0">
                                     <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
                                         <span class="colis-name-label">Nom du colis</span>
                                         <span>▼</span>
                                     </button>
-                                    <div class="colis-price-modes" data-row="0">
+                                    <div class="colis-price-modes" data-guide="special-price-mode" data-row="0">
                                         <button type="button" class="price-mode-btn" data-mode="kilo" data-row="0">prix/kilo</button>
                                         <span class="price-or">ou</span>
                                         <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
@@ -1112,13 +1112,13 @@
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" class="btn-add-type" id="addColisTypeBtn">+ Ajouter un autre prix spécial</button>
+                            <button type="button" class="btn-add-type" id="addColisTypeBtn" data-guide="special-price-add">+ Ajouter un autre prix spécial</button>
                         </div>
                             </div><!-- /special-prices-panel -->
                         <div class="special-sep"></div>
                         <div class="form-group">
                             <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                            <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn">
+                            <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn" data-guide="parcel-refused">
                                 <span id="selectedRefusedText">Choisir les types refusés</span>
                                 <span>▼</span>
                             </button>
@@ -1155,14 +1155,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <button type="button" id="addContactBtn" class="btn-add-type">+ Ajouter un autre numéro</button>
+                                <button type="button" id="addContactBtn" data-guide="contacts" class="btn-add-type">+ Ajouter un autre numéro</button>
                                 <input type="hidden" id="payment-method" name="paymentMethod">
                                 <input type="hidden" id="payment-qr" name="paymentQr">
                             </div>
                             <div class="wizard-footer">
                                 <div class="wizard-nav">
                                     <button type="button" class="btn secondary wizard-prev">← Retour</button>
-                                    <button type="submit" class="btn primary" id="submit-trip-btn">Publier mon trajet →</button>
+                                    <button type="submit" class="btn primary" id="submit-trip-btn" data-guide="submit">Publier mon trajet →</button>
                                 </div>
                                 <div class="wizard-step-info">
                                     <span class="wsi-text">Étape 4 sur 4</span>

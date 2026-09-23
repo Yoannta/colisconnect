@@ -15,13 +15,16 @@
        onChat     : function () { ouvrirMonAssistant(); }
      });
 
-   API : CCMascotte.mount(opts) | CCMascotte.relancer() | CCMascotte.ranger()
-         CCMascotte.enrager() | CCMascotte.poser()
+   API (disponible sur l'instance retournee par mount() ET sur CCMascotte) :
+     mount(opts), relancer(opts), ranger(), enrager(), poser(), choper(x,y),
+     relacher(), placer(x,y), jet(force), oublierJet(), monte(),
+     saluer(), parler(message), marche(), arret(), stop(), regarder(dir),
+     cacher(), afficher(), getPosition(), getSize(), pointer(dir)
    ========================================================================== */
 (function () {
   'use strict';
 
-  var VERSION = '2.4.0';
+  var VERSION = '2.5.0';
   var CLE_FERME = 'cc-mascotte-ferme';   // "ne plus afficher" (30 jours)
   var JOURS     = 30;
   var CLE_JET   = 'cc-mascotte-jet';     // la scene du jet : une seule fois / 12 h
@@ -1401,6 +1404,84 @@
       figer: function (v) {
         root.classList.toggle('ccm-fige', v !== false);
         if (v !== false) stopper(); else repos();
+      },
+      /* ---------------------------------------------------------------- */
+      /*  API de guidage (moteur externe) : enveloppes defensives sur les  */
+      /*  fonctions internes. Aucune n'altere l'apparence ni le SVG.       */
+      /* ---------------------------------------------------------------- */
+      /* demarre la marche dans la direction courante (jusqu'au bord) */
+      marche: function () {
+        if (arret || occupe || pose) return false;
+        var b = bornes();
+        var sens = perso.classList.contains('ccm-vers-gauche') ? -1 : 1;
+        marcheVers(sens < 0 ? b.min : b.max);
+        return true;
+      },
+      /* arrete le deplacement, sans detruire ni fermer la bulle */
+      arret: function () {
+        stopper();
+        return true;
+      },
+      /* arret complet : stoppe, ferme la bulle, retire les dialogues, repos */
+      stop: function () {
+        stopper();
+        nettoyerScene();
+        occupe = false;
+        root.classList.remove('ccm-parle', 'ccm-crie', 'ccm-ecoute', 'ccm-salue');
+        etat('ccm-repos');
+        repos();
+        return true;
+      },
+      /* tourne le personnage vers la gauche ou la droite */
+      regarder: function (direction) {
+        var sens;
+        if (direction === 'gauche') sens = -1;
+        else if (direction === 'droite') sens = 1;
+        else if (typeof direction === 'number') sens = (direction < 0 ? -1 : 1);
+        else return false;
+        tournerVers(sens);
+        return true;
+      },
+      /* affiche la bulle avec un message (socle du salut et du guidage) */
+      parler: function (message) {
+        if (arret) return false;
+        if (message != null) bulleTxt.textContent = String(message);
+        root.classList.add('ccm-parle');
+        cadrerBulle(perso.querySelector('.ccm-bulle'));
+        return true;
+      },
+      /* le rend invisible (sans le retirer du DOM) */
+      cacher: function () {
+        perso.style.opacity = '0';
+        perso.style.pointerEvents = 'none';
+        return true;
+      },
+      /* le rend a nouveau visible */
+      afficher: function () {
+        perso.style.opacity = '';
+        perso.style.pointerEvents = '';
+        return true;
+      },
+      /* position actuelle, en pixels viewport (coin haut-gauche) */
+      getPosition: function () {
+        var r = perso.getBoundingClientRect();
+        return { x: r.left, y: r.top };
+      },
+      /* taille actuelle du personnage, en pixels */
+      getSize: function () {
+        return { largeur: perso.offsetWidth || 110, hauteur: perso.offsetHeight || 155 };
+      },
+      /* PREMIER JET de la fonction "doigt" (pointer). Le rendu visuel complet
+         (dessin du doigt + halo) est une tache ulterieure : ici, on pose seulement
+         la classe 'ccm-pointe' (et une classe de direction) sur le SVG pour que le
+         futur CSS s'accroche dessus, et on retourne un booleen propre. */
+      pointer: function (direction) {
+        var svg = perso.querySelector('.ccm-svg');
+        if (!svg) return false;
+        var sens = (direction === 'gauche' || direction < 0) ? -1 : 1;
+        svg.classList.remove('ccm-pointe-gauche', 'ccm-pointe-droite');
+        svg.classList.add('ccm-pointe', sens < 0 ? 'ccm-pointe-gauche' : 'ccm-pointe-droite');
+        return true;
       },
       detruire: function () { arret = true; occupe = true; stopper(); if (obs) obs.disconnect();
         if (minuteurSalut) clearTimeout(minuteurSalut);
