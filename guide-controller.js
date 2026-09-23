@@ -377,7 +377,13 @@
     }
     etat.actif = true;
     etat.parcours = n;
-    etat.etape = 0;
+    /* reprise : guide-session.js peut demander de reprendre a une etape precise
+       (typiquement apres un changement de page). Par defaut on repart a zero. */
+    var depart = 0;
+    if (options && typeof options.etape === 'number' && options.etape >= 0) {
+      depart = options.etape;
+    }
+    etat.etape = depart;
     etat.element = null;
     emettre('debut', { parcours: n, options: options || {} });
 
@@ -388,7 +394,8 @@
 
     var etapes = carte.journeys[n].etapes || [];
     if (!etapes.length) { stop(); return false; }
-    jouerEtape(etapes[0]);
+    if (depart >= etapes.length) { stop(); return false; }
+    jouerEtape(etapes[depart]);
     return true;
   }
 
