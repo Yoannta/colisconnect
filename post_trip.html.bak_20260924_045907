@@ -614,7 +614,6 @@
             width: 100% !important;
             max-width: 250px;
             min-width: 0;
-        }
         .colis-row-del:hover {
             color: #ff6b6b;
             border-color: rgba(255,107,107,0.5);
