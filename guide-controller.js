@@ -46,11 +46,24 @@
   /* petits ecouteurs d'evenements, pour que le chat puisse reagir */
   var ecouteurs = {};
 
-  function on(nom, fn) {
+  /* Les evenements sont AUSSI memorises : un ecouteur qui s'inscrit APRES
+     l'emission (cas reel : les scripts sont charges dans l'ordre, mais le
+     chargement de guide.json peut se terminer entre deux balises <script>)
+     recoit quand meme l'evenement. Sans ca, le module de chat pouvait rater
+     l'avis « guide pret ». */
+  var dernierEmis = {};
+
+  function on(nom, fn, rejouer) {
     if (!ecouteurs[nom]) ecouteurs[nom] = [];
     ecouteurs[nom].push(fn);
+    /* on rejoue le dernier evenement connu de ce nom, sauf demande contraire */
+    if (rejouer !== false && Object.prototype.hasOwnProperty.call(dernierEmis, nom)) {
+      try { fn(dernierEmis[nom]); } catch (e) { /* ignore */ }
+    }
   }
+
   function emettre(nom, data) {
+    dernierEmis[nom] = data;
     var l = ecouteurs[nom] || [];
     for (var i = 0; i < l.length; i++) {
       try { l[i](data); } catch (e) { /* un ecouteur casse ne doit pas casser le guide */ }
@@ -258,8 +271,11 @@
 
     if (!modeDemande) return auto;
 
-    /* la demande de la carte est respectee, sauf si elle est irrealiste */
-    if (modeDemande === 'walk' && distance > reglages.fly_max_px) return 'fly';
+    /* La carte demande souvent "walk" par defaut. Si la distance depasse le
+       seuil de marche, on passe a "fly" : sinon la mascotte traverse l'ecran a
+       46 px/s et met plus de 20 secondes, ce qui est penible a regarder.
+       Mesure faite : 1100 px en walk = 24 s ; en fly = 3 s. */
+    if (modeDemande === 'walk' && distance > reglages.walk_max_px) return 'fly';
     if (modeDemande === 'point') return 'point';
     return modeDemande;
   }
