@@ -20,11 +20,20 @@
      relacher(), placer(x,y), jet(force), oublierJet(), monte(),
      saluer(), parler(message), marche(), arret(), stop(), regarder(dir),
      cacher(), afficher(), getPosition(), getSize(), pointer(dir)
+
+   API DE GUIDAGE 2D LIBRE (v2.6) :
+     entrerEnLibre(), sortirDeLibre(),
+     allerVers(px, py, dureeMs)   -> Promise<boolean>
+     walkTo(px, py)               -> Promise<boolean>   (petite distance, jambes)
+     flyTo(px, py)                -> Promise<boolean>   (distance moyenne, envol)
+     teleportTo(px, py)           -> Promise<boolean>   (tres grande distance)
+     pointTo(eltOuX, y)           -> boolean            (se tourne et pointe)
+     choisirMode(px, py)          -> 'walk'|'fly'|'teleport'
    ========================================================================== */
 (function () {
   'use strict';
 
-  var VERSION = '2.5.0';
+  var VERSION = '2.6.0';
   var CLE_FERME = 'cc-mascotte-ferme';   // "ne plus afficher" (30 jours)
   var JOURS     = 30;
   var CLE_JET   = 'cc-mascotte-jet';     // la scene du jet : une seule fois / 12 h

@@ -312,10 +312,26 @@
     var cible = normaliser(etape.cible);
     etat.cible = cible;
 
+    /* ---------------------------------------------------------------------
+       NAVIGATION AUTOMATIQUE (P9)
+       Si l'etape appartient a une AUTRE page et que la cible ne se trouve pas
+       ici, on change de page AVANT d'attendre : sinon on attendrait 4 secondes
+       pour rien. La session (guide-session.js) memorise l'etape, et le guide
+       reprend tout seul sur la page suivante, ou il dira « c'est ici ».
+       Si la cible est DEJA presente ici, on NE navigue PAS.
+       --------------------------------------------------------------------- */
+    var page = normaliser(etape.page);
+    var autrePage = page && page !== 'any' && page !== pageCourante();
+    if (autrePage && !resolve(cible)) {
+      emettre('navigation', { parcours: etat.parcours, index: etat.etape, page: etape.page, cible: cible });
+      navigateToPage(etape.page);
+      return Promise.resolve(true);
+    }
+
     return waitFor(cible).then(function (el) {
       if (!etat.actif) return false;
       if (!el) {
-        /* la cible n'existe pas ici : c'est peut-etre une autre page */
+        /* introuvable meme apres attente : on le signale et on passe */
         emettre('cible_absente', { cible: cible, page: etape.page, parcours: etat.parcours });
         return false;
       }
