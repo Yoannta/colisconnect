@@ -2584,18 +2584,48 @@
         countryInput.addEventListener("change", viderVilleSiPaysChange);
         countryInput.addEventListener("blur", viderVilleSiPaysChange);
 
-        // --- Ville libre (Yoyo 2026-09) : la valeur saisie est CONSERVEE meme si elle ne
-        //     vient pas des suggestions. Avant, le blur/Entree vidait le champ des que la
-        //     ville n'etait pas dans la liste -> une ville absente de la base partait vide. ---
+        // --- Validation stricte de la ville (Yoyo 2026-09) : meme regle que pour le pays.
+        //     Une ville qui ne fait PAS partie des suggestions est refusee : le champ est
+        //     vide et signale en rouge. Il faut donc choisir dans la liste pour que la
+        //     valeur soit conservee dans le formulaire. ---
+        function normaliserVille(t) {
+            return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        }
+
+        async function validerVille() {
+            const val = cityInput.value.trim();
+            if (!val) {
+                cityInput.classList.remove("cc-country-invalid");
+                return;
+            }
+            const pays = countryInput.value.trim();
+            const suggestions = await rechercherVilles(pays, val);
+            const cible = normaliserVille(val);
+            const exact = suggestions.find(v => normaliserVille(v) === cible);
+            if (exact) {
+                cityInput.value = exact;                 // on remet l'orthographe officielle
+                cityInput.classList.remove("cc-country-invalid");
+            } else {
+                cityInput.value = "";                    // saisie libre refusee
+                cityInput.classList.add("cc-country-invalid");
+            }
+        }
+
         cityInput.addEventListener("blur", () => {
-            cityInput.value = cityInput.value.trim();
             setTimeout(() => { list.style.display = "none"; }, 200);
+            validerVille();
         });
 
-        // Entree → on ferme les suggestions et on garde la saisie (suggestion choisie ou non)
+        // Entree → on valide la saisie (suggestion choisie ou saisie libre refusee)
         cityInput.addEventListener("keydown", (e) => {
             if (e.key !== "Enter") return;
             list.style.display = "none";
+            validerVille();
+        });
+
+        // Le clic sur une suggestion est un choix valide : on efface le signalement d'erreur
+        list.addEventListener("click", () => {
+            cityInput.classList.remove("cc-country-invalid");
         });
 
         document.addEventListener("click", (e) => {
