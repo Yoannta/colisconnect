@@ -1382,11 +1382,41 @@
          - si on a deplace le personnage (saisi), on ne declenche pas non plus ;
          - le chat ne s'ouvre pas pendant une scene (le grand depart, une pose).
        --------------------------------------------------------------------- */
-    perso.addEventListener('click', function (e) {
-      if (saisi || arret || occupe) return;      // attrape / scene en cours
-      if (timerAppui) { clearTimeout(timerAppui); annulerAppui(); }
-      e.stopPropagation();
+    /* On se base sur l'appui REEL (pointerdown -> pointerup au meme endroit)
+       plutot que sur l'evenement click : le click est aussi emis apres un appui
+       long, et il peut etre emis deux fois selon les navigateurs. Ici on sait
+       exactement quand c'est un appui court et immobile. */
+    var appuiDepart = null;
+    perso.addEventListener('pointerdown', function (e) {
+      appuiDepart = { x: e.clientX, y: e.clientY, t: Date.now() };
+    });
+    document.addEventListener('pointerup', function (e) {
+      if (!appuiDepart) return;
+      var d = appuiDepart;
+      appuiDepart = null;
+      if (saisi || arret || occupe) return;                  // attrape / scene
+      var bouge = Math.abs(e.clientX - d.x) > 8 || Math.abs(e.clientY - d.y) > 8;
+      var long = (Date.now() - d.t) > 500;                   // appui long = attrape
+      if (bouge || long) return;
+      if (!perso.contains(e.target) && e.target !== perso) return;
+      ouvrirChat();
+    });
+
+    /* Filet de securite : certains environnements (clic programme, navigateurs
+       anciens, aides techniques) n'emettent pas d'evenement pointer complet.
+       On ecoute aussi 'click', avec un delai minimal pour ne pas declencher
+       deux fois quand les deux chemins se produisent. */
+    var dernierChat = 0;
+    function ouvrirChat() {
+      var maintenant = Date.now();
+      if (maintenant - dernierChat < 250) return;   // anti-rebond : un seul appel
+      dernierChat = maintenant;
       if (typeof o.onChat === 'function') o.onChat();
+    }
+    perso.addEventListener('click', function (e) {
+      if (saisi || arret || occupe) return;
+      e.stopPropagation();
+      ouvrirChat();
     });
     perso.addEventListener('contextmenu', function (e) { if (saisi) e.preventDefault(); });
 
