@@ -67,41 +67,11 @@
     } catch (e) { /* ignore */ }
   }
 
-  /* ------------------------------------------------------- le bouton ARRET -- */
-  var BOUTON_ID = 'cc-guide-stop';
-  function montrerBoutonArret() {
-    if (document.getElementById(BOUTON_ID)) return;
-    var b = document.createElement('button');
-    b.id = BOUTON_ID;
-    b.type = 'button';
-    b.setAttribute('aria-label', "Arreter le guide");
-    b.textContent = '\u2715  Arreter le guide';
-    b.style.cssText = [
-      'position:fixed',
-      'right:12px',
-      'bottom:12px',
-      'z-index:9500',
-      'padding:9px 14px',
-      'border-radius:999px',
-      'border:1px solid rgba(255,179,71,0.55)',
-      'background:rgba(20,16,8,0.92)',
-      'color:#f1b52b',
-      'font:700 12.5px/1 inherit',
-      'cursor:pointer',
-      'box-shadow:0 8px 22px rgba(0,0,0,0.45)'
-    ].join(';');
-    b.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      arreter();
-    });
-    document.body.appendChild(b);
-  }
-
-  function retirerBoutonArret() {
-    var b = document.getElementById(BOUTON_ID);
-    if (b && b.parentNode) b.parentNode.removeChild(b);
-  }
+  /* --------------------------------------------------- arret SANS bouton ----
+     L'arret du guide reste possible PAR LE CODE (CCGuideSession.arreter()) mais
+     AUCUN bouton visible n'est cree : Yoyo veut un flux fluide, sans bouton
+     « Arreter le guide ». Le guide s'arrete tout seul a la fin du parcours, ou
+     quand le visiteur relance le chat pour une nouvelle question. */
 
   /* =============================================================== REPRENDRE */
   /* Au chargement d'une page : si une session est active, on reprend le
@@ -114,7 +84,6 @@
     var debut = Date.now();
     function tenter() {
       if (window.CCGuid && window.CCGuid.pret && window.CCGuid.pret()) {
-        montrerBoutonArret();
         window.CCGuid.startJourney(s.journey, { etape: s.step || 0 });
         return;
       }
@@ -136,7 +105,6 @@
     var ok = window.CCGuid.startJourney(nom, options || {});
     if (!ok) return false;
     ecrire({ active: true, journey: nom, step: (options && options.etape) || 0, target: null });
-    montrerBoutonArret();
     return true;
   }
 
@@ -144,7 +112,6 @@
   function arreter() {
     if (window.CCGuid && window.CCGuid.stop) window.CCGuid.stop();
     effacer();
-    retirerBoutonArret();
   }
 
   /* ------------------------------------------- brancher le controleur dessus */
@@ -159,8 +126,7 @@
       s.target = d.cible;
       ecrire(s);
     });
-    window.CCGuid.on('fin', function () { effacer(); retirerBoutonArret(); });
-    window.CCGuid.on('arret', function () { retirerBoutonArret(); });
+    window.CCGuid.on('fin', function () { effacer(); });
   }
 
   /* ==================================================================== API */

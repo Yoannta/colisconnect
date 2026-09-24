@@ -1372,6 +1372,22 @@
 
     perso.addEventListener('pointerup', annulerAppui);
     perso.addEventListener('pointercancel', annulerAppui);
+
+    /* ---------------------------------------------------------------------
+       UN CLIC SIMPLE SUR LE PERSONNAGE OUVRE LE CHAT.
+       Avant, il fallait passer par le bouton « Discuter avec moi » de la bulle.
+       Yoyo veut : je clique sur la mascotte, le chat s'ouvre.
+       Regles :
+         - l'appui LONG reste reserve a l'attrape (on ne declenche pas le chat) ;
+         - si on a deplace le personnage (saisi), on ne declenche pas non plus ;
+         - le chat ne s'ouvre pas pendant une scene (le grand depart, une pose).
+       --------------------------------------------------------------------- */
+    perso.addEventListener('click', function (e) {
+      if (saisi || arret || occupe) return;      // attrape / scene en cours
+      if (timerAppui) { clearTimeout(timerAppui); annulerAppui(); }
+      e.stopPropagation();
+      if (typeof o.onChat === 'function') o.onChat();
+    });
     perso.addEventListener('contextmenu', function (e) { if (saisi) e.preventDefault(); });
 
     document.addEventListener('pointermove', function (e) { if (saisi) suivre(e.clientX, e.clientY); });

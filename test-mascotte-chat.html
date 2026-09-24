@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test mascotte-chat — ColisConnect</title>
+<!--
+  PAGE DE TEST DU CHAT ASSISTANT — ColisConnect
+  ---------------------------------------------
+  Elle simule une mini-page du site (cibles data-guide) et charge mascotte.js,
+  les trois modules du guide, et mascotte-chat.js — comme une vraie page.
+
+  On SIMULE l'Edge Function avec window.ccSupabase.functions.invoke (mock) pour
+  verifier, sans reseau reel, les 4 chemins :
+    - reponse « guide »        -> le chat se ferme et le guide demarre
+    - reponse « chat »         -> le message s'affiche
+    - reponse « guide_confirmation » -> message + bouton [Me montrer]
+    - IA indisponible          -> comprehension locale (CCGuideIntents.resoudre)
+  A n'utiliser que pour les tests : ne fait pas partie du site.
+-->
+<style>
+  body { background:#0f172a; color:#e8e8e8; font-family:system-ui,sans-serif; margin:0; padding:20px 16px 180px; }
+  h1 { font-size:1.1rem; color:#f1b52b; }
+  .grille { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+  button { padding:10px 14px; border-radius:10px; border:1px solid rgba(255,179,71,.5);
+           background:rgba(255,179,71,.08); color:#f1b52b; font-weight:700; font-size:.82rem; cursor:pointer; }
+  button:hover { background:rgba(255,179,71,.18); }
+  .cible { display:block; width:100%; margin:22px 0; padding:16px; border-radius:12px;
+           border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); text-align:left; }
+  #journal { position:fixed; left:0; right:0; bottom:0; max-height:26vh; overflow:auto;
+             background:rgba(0,0,0,.9); color:#9fe8a0; font:12px/1.5 monospace;
+             padding:10px 12px; white-space:pre-wrap; z-index:99999; }
+  .etat { color:#ffd08a; font-weight:700; }
+</style>
+</head>
+<body>
+
+<h1>Test du chat assistant (mascotte-chat)</h1>
+<p class="etat" id="etat">chargement…</p>
+
+<div class="grille">
+  <button onclick="mode('guide')">IA → guide (publish_trip)</button>
+  <button onclick="mode('chat')">IA → chat</button>
+  <button onclick="mode('confirmation')">IA → guide_confirmation</button>
+  <button onclick="mode('down')">IA → indisponible (fallback local)</button>
+  <button onclick="mode('garbage')">IA → n'importe quoi</button>
+  <button onclick="journalEtat()">État</button>
+</div>
+
+<p class="etat">Cibles data-guide (pour que le guide puisse démarrer) :</p>
+<button class="cible" data-guide="search">🔎 Onglet Recherche (search)</button>
+<button class="cible" data-guide="publish">📤 Publier une offre (publish)</button>
+<button class="cible" data-guide="dashboard">👤 Mon espace (dashboard)</button>
+<div class="cible" data-guide="search-origin">Champ pays de départ (search-origin)</div>
+
+<div id="journal">=== journal ===</div>
+
+<script src="mascotte.js?v=3"></script>
+
+<!-- mock Supabase AVANT mascotte-chat.js : simule l'Edge Function -->
+<script>
+(function () {
+  var MODE = 'guide';
+  window.__setMode = function (m) { MODE = m; logJ('mode IA = ' + m); };
+  window.__mode = function () { return MODE; };
+
+  window.logJ = function (t) {
+    var J = document.getElementById('journal');
+    if (!J) return;
+    J.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + t;
+    J.scrollTop = J.scrollHeight;
+  };
+
+  function reponseDeepSeek(contenu) {
+    return { id:'x', object:'chat.completion', model:'deepseek-chat',
+             choices:[{ index:0, message:{ role:'assistant', content: contenu }, finish_reason:'stop' }] };
+  }
+
+  window.ccSupabase = {
+    functions: {
+      invoke: function (nom, opts) {
+        logJ('invoke(' + nom + ') mode=' + MODE);
+        var body = (opts && opts.body) || {};
+        logJ('   prompt envoyé : ' + body.prompt);
+        return new Promise(function (resolve) {
+          setTimeout(function () {
+            if (MODE === 'guide') {
+              resolve({ data: reponseDeepSeek('{"type":"guide","intent":"publish_trip"}'), error: null });
+            } else if (MODE === 'chat') {
+              resolve({ data: reponseDeepSeek('{"type":"chat","message":"Je peux t\'aider à publier, chercher ou gérer ton profil."}'), error: null });
+            } else if (MODE === 'confirmation') {
+              resolve({ data: reponseDeepSeek('{"type":"guide_confirmation","intent":"find_country","message":"Je peux te montrer où choisir ton pays."}'), error: null });
+            } else if (MODE === 'garbage') {
+              resolve({ data: reponseDeepSeek('salut, voici du <b>HTML</b> et delete_site !'), error: null });
+            } else {
+              // 'down' : l'Edge Function echoue
+              resolve({ data: { error: 'function unavailable' }, error: { message: 'network' } });
+            }
+          }, 120);
+        });
+      }
+    }
+  };
+})();
+</script>
+
+<script src="guide-controller.js"></script>
+<script src="guide-session.js"></script>
+<script src="guide-intents.js"></script>
+<script src="mascotte-chat.js"></script>
+
+<script>
+  function mode(m) { window.__setMode(m); }
+  window.mode = mode;
+
+  function journalEtat() {
+    var s = '--- etat ---\n';
+    s += 'chat ouvert : ' + (window.CCGuideChat && window.CCGuideChat.actif ? window.CCGuideChat.actif() : '?') + '\n';
+    try { s += 'session : ' + JSON.stringify(window.CCGuideSession.lire()) + '\n'; } catch (e) {}
+    try { s += 'guide   : ' + JSON.stringify(window.CCGuid.state()) + '\n'; } catch (e) {}
+    try { s += 'mascotte: ' + JSON.stringify(window.CCMascotte.getPosition()) + '\n'; } catch (e) {}
+    logJ(s);
+  }
+  window.journalEtat = journalEtat;
+
+  if (window.CCGuid && window.CCGuid.on) {
+    window.CCGuid.on('pret', function (d) { logJ('guide.json OK (' + ((d && d.parcours) ? d.parcours.length : 0) + ' parcours)'); });
+    window.CCGuid.on('debut', function (d) { logJ('> debut : ' + (d && d.parcours)); });
+    window.CCGuid.on('etape', function (d) { logJ('   etape -> "' + d.cible + '"'); });
+    window.CCGuid.on('navigation', function (d) { logJ('   -> page : ' + d.page); });
+    window.CCGuid.on('fin', function () { logJ('# fin'); });
+    window.CCGuid.on('arret', function () { logJ('# arret'); });
+    window.CCGuid.on('erreur', function (d) { logJ('! erreur : ' + (d && d.message)); });
+  }
+
+  function majEtat(t) { var E = document.getElementById('etat'); if (E) E.textContent = t; }
+  var compte = 0;
+  var iv = setInterval(function () {
+    compte++;
+    if (window.CCMascotte) majEtat('mascotte prête — clique sur la mascotte (en bas) pour ouvrir le chat');
+    if (compte > 30) clearInterval(iv);
+  }, 500);
+</script>
+</body>
+</html>
