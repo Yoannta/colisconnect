@@ -119,7 +119,7 @@
             inputId: "price-currency",
             btnId: "currency-toggle-btn",
             labelId: "current-currency-text",
-            placeholder: "Devise",
+            placeholder: "Monnaie",
             keepEmpty: true,
             onChange: function () {
                 // Les badges "prix special" affichent la devise : on les rafraichit
@@ -1071,7 +1071,7 @@
                     const dep = String(els.departure?.value || "").trim();
                     const dst = String(els.destination?.value || "").trim();
                     const opts = window.CCDevise.optionsForCountries(dep, dst, { fallback: "EUR" });
-                    if (!opts.some((o) => o.value === devise)) opts.unshift({ value: devise, label: "Devise de l'annonce" });
+                    if (!opts.some((o) => o.value === devise)) opts.unshift({ value: devise, label: "Monnaie de l'annonce" });
                     picker.setOptions(opts);
                     picker.set(devise);
                 }
@@ -1328,36 +1328,75 @@
             setTimeout(() => el.classList.remove("input-error"), 1400);
         }
 
+        // Fait défiler la page jusqu'à un élément en tenant compte du header fixe
+        // (offset haut) et de la marge basse (mascotte ~110 px / nav mobile 64 px).
+        function scrollToField(el) {
+            if (!el) return;
+            const HEADER_OFFSET = 96;
+            const rect = el.getBoundingClientRect();
+            const top = window.scrollY + rect.top - HEADER_OFFSET;
+            window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+        }
+
+        // Effet doré temporaire (~1,5 s) sur un conteneur de boutons à choisir.
+        function pulseGroup(el) {
+            if (!el) return;
+            el.classList.remove("gold-pulse");
+            void el.offsetWidth; // relance l'animation si elle était déjà en cours
+            el.classList.add("gold-pulse");
+            setTimeout(() => el.classList.remove("gold-pulse"), 1500);
+        }
+
+        // UN SEUL champ à la fois : scroll + focus. Pour un GROUPE de boutons
+        // (transport, profil, monnaie), on pulse le conteneur au lieu d'un champ texte.
+        function focusField(el, groupEl) {
+            if (!el) return;
+            scrollToField(groupEl || el);
+            setTimeout(() => {
+                try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); }
+                if (groupEl) pulseGroup(groupEl);
+                else if (el.tagName === "BUTTON") pulseGroup(el);
+            }, 120);
+        }
+
         function goNext() {
-            // Validation minimale — étape 1 : pays de départ/arrivée + date requis
+            // Étape 1 (Voyage) — UN SEUL champ manquant à la fois, dans l'ordre du formulaire.
             if (current === 0) {
                 const errBox1 = document.getElementById("step1-errors");
                 if (errBox1) errBox1.classList.add("hidden");
-                const req = ["departure", "destination", "date-depart"];
-                for (const id of req) {
-                    const el = document.getElementById(id);
-                    if (el && !el.value.trim()) {
-                        el.focus();
-                        return;
-                    }
-                }
-                // Choix de profil obligatoire — bloquer si AUCUN choix effectué (Yoyo 2026-09, strict : pas de fallback profil compte)
+
+                // 1) Choix de profil (en tête de l'étape) — groupe de boutons.
                 if (!selectedProfileTypeChoice) {
                     if (errBox1) {
-                        errBox1.innerHTML = "<div>• Veuillez choisir votre profil : Voyageur simple ou Entreprise / Cargo</div>";
+                        errBox1.innerHTML = "<div>• Choisissez votre profil : Voyageur simple ou Entreprise / Cargo</div>";
                         errBox1.classList.remove("hidden");
                     }
-                    // Rouge sur LES DEUX boutons (Yoyo : sinon l'utilisateur croit qu'il doit cliquer uniquement sur Voyageur simple)
-                    ["btn-traveler-choice", "btn-cargo-choice"].forEach(id => {
-                        const btn = document.getElementById(id);
-                        if (btn) markError(btn);
-                    });
+                    const grid = document.querySelector("#profile-choice-section .profile-select-grid");
                     const firstChoice = document.getElementById("btn-traveler-choice");
-                    if (firstChoice) firstChoice.focus();
+                    focusField(firstChoice, grid);
                     return;
                 }
 
-                // [ENTREPRISE / CARGO] Dates multiples : chaque ligne ajoutée doit être
+                // 2) Pays de départ / arrivée + date — le premier champ vide.
+                const req = [
+                    { id: "departure", msg: "Indiquez le pays de départ" },
+                    { id: "destination", msg: "Indiquez le pays d'arrivée" },
+                    { id: "date-depart", msg: "Indiquez la date du voyage" }
+                ];
+                for (const it of req) {
+                    const el = document.getElementById(it.id);
+                    if (el && !el.value.trim()) {
+                        if (errBox1) {
+                            errBox1.innerHTML = "<div>• " + it.msg + "</div>";
+                            errBox1.classList.remove("hidden");
+                        }
+                        markError(el);
+                        focusField(el);
+                        return;
+                    }
+                }
+
+                // 3) [ENTREPRISE / CARGO] Dates multiples : chaque ligne ajoutée doit être
                 // remplie, à partir d'aujourd'hui, et sans doublon (même date saisie 2×).
                 if (selectedProfileTypeChoice === "cargo") {
                     const extraInputs = Array.from(document.querySelectorAll("#trip-extra-dates .trip-extra-date"));
@@ -1393,13 +1432,13 @@
                                 errBox1.classList.remove("hidden");
                             }
                             markError(invalidInput);
-                            invalidInput.focus();
+                            focusField(invalidInput);
                             return;
                         }
                     }
                 }
             }
-            // Étape 2 : champs OBLIGATOIRES (Yoyo 2026-08) — MESSAGE par section manquante
+            // Étape 2 (Colis) — UN SEUL champ manquant à la fois (le premier).
             if (current === 1) {
                 const kilos = document.getElementById("kilos");
                 const price = document.getElementById("price");
@@ -1419,23 +1458,27 @@
                 const deviseManque = !c;
                 const transportManque = transportVisible && !document.querySelector(".transport-mode-btn.selected");
 
-                const manques = [];
-                if (kilosManque) manques.push("Veuillez mettre le nombre de kilos");
-                if (priceManque) manques.push("Veuillez mettre le prix par kilo");
-                if (deviseManque) manques.push("Veuillez choisir la devise");
-                if (transportManque) manques.push("Veuillez choisir le moyen de transport");
+                // UN SEUL champ à la fois, dans l'ordre du formulaire.
+                let target = null;
+                let group = null;
+                let msg = "";
+                if (kilosManque) { target = kilos; msg = "Indiquez le nombre de kilos disponibles"; }
+                else if (priceManque) { target = price; msg = "Indiquez le prix par kilo"; }
+                else if (deviseManque) { target = currencyBtn; msg = "Choisissez votre monnaie"; }
+                else if (transportManque) { target = document.querySelector(".transport-mode-btn"); group = document.querySelector(".transport-mode-grid"); msg = "Choisissez le moyen de transport"; }
 
-                if (manques.length) {
+                if (target) {
                     if (errBox) {
-                        errBox.innerHTML = manques.map(m => "<div>• " + m + "</div>").join("");
+                        errBox.innerHTML = "<div>• " + msg + "</div>";
                         errBox.classList.remove("hidden");
                     }
-                    if (kilosManque) { markError(kilos); kilos.focus(); }
-                    else if (priceManque) { markError(price); price.focus(); }
-                    else if (deviseManque) { markError(currencyBtn); currencyBtn.focus(); }
-                    else if (transportManque) {
-                        const firstBtn = document.querySelector(".transport-mode-btn");
-                        if (firstBtn) firstBtn.focus();
+                    if (transportManque) {
+                        focusField(target, group);
+                    } else if (target === currencyBtn) {
+                        focusField(currencyBtn);
+                    } else {
+                        markError(target);
+                        focusField(target);
                     }
                     return;
                 }

@@ -24,11 +24,11 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js?v=59"></script>
 
-    <script defer src="standalone-common.js?v=25"></script>
-    <script defer src="devise.js?v=1"></script>
+    <script defer src="standalone-common.js?v=26"></script>
+    <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=33"></script>
+    <script defer src="post_trip.js?v=34"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -267,6 +267,19 @@
             border-color: #ffb347;
             color: #ffb347;
             font-weight: 700;
+        }
+
+        /* Surbrillance dorée temporaire d'un GROUPE de boutons à choisir (validation) */
+        .gold-pulse {
+            outline: 2px solid #f1b52b !important;
+            outline-offset: 3px;
+            border-color: #f1b52b !important;
+            animation: goldPulse 0.75s ease-out 2;
+        }
+        @keyframes goldPulse {
+            0% { box-shadow: 0 0 0 0 rgba(241, 181, 43, 0.55); }
+            70% { box-shadow: 0 0 0 12px rgba(241, 181, 43, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(241, 181, 43, 0); }
         }
 
         /* Modal transport buttons */

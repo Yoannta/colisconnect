@@ -440,7 +440,7 @@
                 if (label && label !== key) return label.charAt(0).toUpperCase() + label.slice(1);
             }
         } catch (e) { /* ignore */ }
-        return "Devise " + key;
+        return "Monnaie " + key;
     }
 
     // Libelle complet pour un choix : "Franc CFA (BCEAO) - FCFA"

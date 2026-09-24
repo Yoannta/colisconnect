@@ -92,7 +92,7 @@
         if (o.requireKnown) {
             if (dep) list.push({ value: dep, label: "Pays de départ" });
             if (dst && dst !== dep) list.push({ value: dst, label: "Pays d'arrivée" });
-            if (!list.length && fb) list.push({ value: fb, label: "Devise du compte" });
+            if (!list.length && fb) list.push({ value: fb, label: "Monnaie du compte" });
         } else {
             const d1 = dep || fb;
             const d2 = dst || fb;
@@ -118,13 +118,13 @@
         const o = opts || {};
         let options = Array.isArray(o.options) ? o.options.slice() : [];
         const hidden = o.inputId ? document.getElementById(o.inputId) : null;
-        const placeholder = o.placeholder || "Devise";
+        const placeholder = o.placeholder || "Monnaie";
         let current = String(o.value || (hidden && hidden.value) || "").toUpperCase();
 
         host.classList.add("cc-cur");
         host.innerHTML =
             '<button type="button" class="cc-cur-btn" aria-haspopup="listbox" aria-expanded="false"' +
-            (o.btnId ? ' id="' + o.btnId + '"' : "") + ' title="Choisir la devise">' +
+            (o.btnId ? ' id="' + o.btnId + '"' : "") + ' title="Choisir la monnaie">' +
                 '<span class="cc-cur-val"' + (o.labelId ? ' id="' + o.labelId + '"' : "") + ">" +
                     esc(placeholder) + "</span>" + CARET +
             "</button>" +
@@ -163,7 +163,7 @@
                     "</button>"
                 )).join("");
             } else {
-                pop.innerHTML = '<div class="cc-cur-empty">Devise indisponible</div>';
+                pop.innerHTML = '<div class="cc-cur-empty">Monnaie indisponible</div>';
             }
             const known = options.some((opt) => opt.value === current);
             label.textContent = (current && known) ? symbol(current) : placeholder;
