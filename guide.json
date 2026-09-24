@@ -1,0 +1,234 @@
+{
+  "version": 1,
+  "_commentaire": "Carte du guide ColisConnect. Ce fichier décrit les PARCOURS, jamais les animations : la mascotte et son contrôleur s'occupent du reste. DeepSeek ne lit pas ce fichier : il renvoie seulement un nom de parcours (voir \"intents\"). Les cibles correspondent aux attributs data-guide posés dans le site et vérifiés par check-guide-targets.js.",
+
+  "intents": {
+    "find_country": {
+      "parcours": "find_country",
+      "synonymes": [
+        "pays", "choisir un pays", "changer de pays", "ou sont les pays",
+        "pays de depart", "pays d arrivee", "ou chercher les pays"
+      ],
+      "confirmation": "Je peux te montrer où choisir ton pays."
+    },
+    "publish_trip": {
+      "parcours": "publish_trip",
+      "synonymes": [
+        "publier", "publier un trajet", "publier une offre", "mettre une annonce",
+        "proposer un trajet", "je veux publier", "comment publier"
+      ],
+      "confirmation": "Je peux te guider pour publier ton trajet, étape par étape."
+    },
+    "set_phone": {
+      "parcours": "set_phone",
+      "synonymes": [
+        "telephone", "numero", "mon numero", "verifier mon numero",
+        "changer de numero", "ajouter un numero"
+      ],
+      "confirmation": "Je peux te montrer où gérer ton numéro."
+    },
+    "find_offer": {
+      "parcours": "find_offer",
+      "synonymes": [
+        "chercher", "recherche", "trouver un voyageur", "trouver une offre",
+        "envoyer un colis", "expedier"
+      ],
+      "confirmation": "Je peux te montrer où chercher un voyageur."
+    },
+    "my_profile": {
+      "parcours": "my_profile",
+      "synonymes": [
+        "mon profil", "mon compte", "mes offres", "tableau de bord", "mon espace"
+      ],
+      "confirmation": "Je peux te montrer ton espace."
+    }
+  },
+
+  "journeys": {
+    "find_country": {
+      "label": "Trouver où choisir un pays",
+      "etapes": [
+        {
+          "cible": "search",
+          "page": "any",
+          "mode": "walk",
+          "bulle": "C'est par ici : l'onglet Recherche.",
+          "doigt": true
+        },
+        {
+          "cible": "search-origin",
+          "page": "results.html",
+          "mode": "teleport",
+          "bulle": "Voilà : ici tu choisis ton pays de départ.",
+          "doigt": true
+        }
+      ]
+    },
+
+    "find_offer": {
+      "label": "Chercher un voyageur",
+      "etapes": [
+        {
+          "cible": "search",
+          "page": "any",
+          "mode": "walk",
+          "bulle": "On commence par la recherche.",
+          "doigt": true
+        },
+        {
+          "cible": "search-origin",
+          "page": "results.html",
+          "mode": "teleport",
+          "bulle": "Indique d'où part le colis.",
+          "doigt": true
+        },
+        {
+          "cible": "search-destination",
+          "page": "results.html",
+          "mode": "walk",
+          "bulle": "Puis la destination.",
+          "doigt": true
+        },
+        {
+          "cible": "search-start",
+          "page": "results.html",
+          "mode": "point",
+          "bulle": "Et tu lances la recherche. C'est ici !",
+          "doigt": true
+        }
+      ]
+    },
+
+    "publish_trip": {
+      "label": "Publier un trajet",
+      "etapes": [
+        {
+          "cible": "publish",
+          "page": "any",
+          "mode": "walk",
+          "bulle": "On publie ton trajet : c'est ici.",
+          "doigt": true
+        },
+        {
+          "cible": "trip-type",
+          "page": "post_trip.html",
+          "mode": "teleport",
+          "bulle": "Tu es voyageur seul ou une entreprise ?",
+          "doigt": true
+        },
+        {
+          "cible": "departure-country",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "Ton pays de départ.",
+          "doigt": true
+        },
+        {
+          "cible": "departure-city",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "Puis la ville. Choisis-la dans la liste.",
+          "doigt": true
+        },
+        {
+          "cible": "arrival-country",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "Maintenant le pays d'arrivée.",
+          "doigt": true
+        },
+        {
+          "cible": "arrival-city",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "Et la ville d'arrivée.",
+          "doigt": true
+        },
+        {
+          "cible": "trip-date",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "La date de ton voyage.",
+          "doigt": true
+        },
+        {
+          "cible": "parcel-types",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "Ce que tu acceptes de transporter.",
+          "doigt": true
+        },
+        {
+          "cible": "special-price-yes",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "Un prix spécial ? Choisis Oui, puis kilo ou quantité.",
+          "doigt": true
+        },
+        {
+          "cible": "contacts",
+          "page": "post_trip.html",
+          "mode": "walk",
+          "bulle": "Ton contact, pour que les clients te joignent.",
+          "doigt": true
+        },
+        {
+          "cible": "submit",
+          "page": "post_trip.html",
+          "mode": "point",
+          "bulle": "Et voilà : tu publies !",
+          "doigt": true
+        }
+      ]
+    },
+
+    "set_phone": {
+      "label": "Vérifier son numéro",
+      "etapes": [
+        {
+          "cible": "dashboard",
+          "page": "any",
+          "mode": "walk",
+          "bulle": "Ton numéro se gère depuis ton profil.",
+          "doigt": true
+        },
+        {
+          "cible": "profile-phone",
+          "page": "verification.html",
+          "mode": "teleport",
+          "bulle": "C'est ici. Le crayon permet de le modifier.",
+          "doigt": true
+        },
+        {
+          "cible": "profile-save",
+          "page": "verification.html",
+          "mode": "walk",
+          "bulle": "Puis tu enregistres.",
+          "doigt": true
+        }
+      ]
+    },
+
+    "my_profile": {
+      "label": "Aller à son espace",
+      "etapes": [
+        {
+          "cible": "dashboard",
+          "page": "any",
+          "mode": "walk",
+          "bulle": "Ton espace, c'est ici.",
+          "doigt": true
+        }
+      ]
+    }
+  },
+
+  "reglages": {
+    "_commentaire": "Seuils utilisés par le contrôleur pour choisir le mode de déplacement automatiquement.",
+    "walk_max_px": 420,
+    "fly_max_px": 1600,
+    "marge_ecran_px": 12,
+    "delai_entre_etapes_ms": 2600,
+    "attente_cible_max_ms": 4000
+  }
+}

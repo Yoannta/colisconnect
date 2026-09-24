@@ -2653,15 +2653,21 @@
             const cityId = "city-" + prefix + sep + type;
             const datalistId = container.dataset.listId || "country-options-trip";
 
+            // data-guide : identifie les champs pour le moteur de guidage
+            // (le personnage doit pouvoir pointer « pays de depart », etc.)
+            const guideType = (type === "departure") ? "departure" : "arrival";
             container.innerHTML = `
                 <div class="form-group">
                     <label for="${countryId}">Pays de ${label}</label>
                     <input type="text" id="${countryId}" class="form-input" list="${datalistId}"
+                        data-guide="${guideType}-country"
                         placeholder="Ex: ${countryPlaceholder}" autocomplete="off" required>
                 </div>
                 <div class="form-group">
                     <label for="${cityId}">Ville de ${label}</label>
-                    <input type="text" id="${cityId}" class="form-input" placeholder="Ex: ${cityPlaceholder}" autocomplete="off">
+                    <input type="text" id="${cityId}" class="form-input"
+                        data-guide="${guideType}-city"
+                        placeholder="Ex: ${cityPlaceholder}" autocomplete="off">
                 </div>
             `;
 

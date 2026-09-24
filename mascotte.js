@@ -15,13 +15,25 @@
        onChat     : function () { ouvrirMonAssistant(); }
      });
 
-   API : CCMascotte.mount(opts) | CCMascotte.relancer() | CCMascotte.ranger()
-         CCMascotte.enrager() | CCMascotte.poser()
+   API (disponible sur l'instance retournee par mount() ET sur CCMascotte) :
+     mount(opts), relancer(opts), ranger(), enrager(), poser(), choper(x,y),
+     relacher(), placer(x,y), jet(force), oublierJet(), monte(),
+     saluer(), parler(message), marche(), arret(), stop(), regarder(dir),
+     cacher(), afficher(), getPosition(), getSize(), pointer(dir)
+
+   API DE GUIDAGE 2D LIBRE (v2.6) :
+     entrerEnLibre(), sortirDeLibre(),
+     allerVers(px, py, dureeMs)   -> Promise<boolean>
+     walkTo(px, py)               -> Promise<boolean>   (petite distance, jambes)
+     flyTo(px, py)                -> Promise<boolean>   (distance moyenne, envol)
+     teleportTo(px, py)           -> Promise<boolean>   (tres grande distance)
+     pointTo(eltOuX, y)           -> boolean            (se tourne et pointe)
+     choisirMode(px, py)          -> 'walk'|'fly'|'teleport'
    ========================================================================== */
 (function () {
   'use strict';
 
-  var VERSION = '2.4.0';
+  var VERSION = '2.6.0';
   var CLE_FERME = 'cc-mascotte-ferme';   // "ne plus afficher" (30 jours)
   var JOURS     = 30;
   var CLE_JET   = 'cc-mascotte-jet';     // la scene du jet : une seule fois / 12 h
@@ -459,6 +471,15 @@
     '.ccm-perso{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}',
     '.ccm-perso.ccm-saisi{cursor:grabbing}',
     '.ccm-perso.ccm-libre{position:fixed;bottom:auto}',
+    /* --- guidage 2D libre : envol (flyTo) ------------------------------- */
+    '.ccm-root.ccm-envol .ccm-perso{animation:ccmEnvol .58s ease-in-out infinite alternate}',
+    '.ccm-root.ccm-envol .ccm-ombre{opacity:.12}',
+    '@keyframes ccmEnvol{0%{transform:translateY(0)}100%{transform:translateY(-12px)}}',
+    /* --- guidage 2D libre : teleportation (teleportTo) ------------------ */
+    '.ccm-perso.ccm-teleporte{opacity:0;transition:opacity .2s ease}',
+    /* --- guidage 2D libre : il pointe du doigt (pointTo) ---------------- */
+    '.ccm-svg .ccm-bras-av{transition:transform .32s ease}',
+    '.ccm-root.ccm-pointe .ccm-bras-av{transform:rotate(-88deg)}',
     '.ccm-perso.ccm-bulle-bas .ccm-bulle{top:calc(100% - 6px);bottom:auto;transform:translate(-50%,-8px)}',
     '.ccm-root.ccm-parle .ccm-perso.ccm-bulle-bas .ccm-bulle{transform:translate(-50%,0)}',
     '.ccm-perso.ccm-bulle-bas .ccm-bulle:after{top:-7px;bottom:auto;transform:translateX(-50%) rotate(225deg)}',
@@ -674,6 +695,19 @@
     var texte   = o.salutation || 'Bonjour ! Vous cherchez quelque chose ? Je peux vous aider.';
     var calme   = !!o.calme || document.body.classList.contains('is-calm');
 
+    /* Seuils du guidage 2D. Valeurs par defaut alignees sur guide.json
+       (bloc "reglages" : walk_max_px = 420, fly_max_px = 1600,
+       marge_ecran_px = 12). Le controleur qui lit guide.json peut les
+       surcharger via mount({ seuils: { walk_max_px, fly_max_px,
+       marge_ecran_px } }). Ces seuils servent a choisirMode() : en dessous
+       de walk_max_px on marche, en dessous de fly_max_px on vole, au-dela
+       on se teleporte. */
+    var seuils = {
+      walkMax: (o.seuils && typeof o.seuils.walk_max_px === 'number') ? o.seuils.walk_max_px : 420,
+      flyMax:  (o.seuils && typeof o.seuils.fly_max_px === 'number')  ? o.seuils.fly_max_px  : 1600,
+      marge:   (o.seuils && typeof o.seuils.marge_ecran_px === 'number') ? o.seuils.marge_ecran_px : 12
+    };
+
     var root  = document.createElement('div');
     root.className = 'ccm-root' + (calme ? ' ccm-fige' : '');
 
@@ -710,6 +744,10 @@
 
     /* --- deplacement -------------------------------------------------- */
     var x = 0, largeur = 110, marge = 14, cible = 0, depart = 0, t0 = 0, duree = 0, raf = null, enMarche = false;
+    /* etat du guidage 2D libre : y = position verticale viewport, modeLibre =
+       la mascotte a quitte sa bande du bas. rafGuide et minuteurPointe servent
+       au moteur de guidage (ils ne touchent pas a la marche classique). */
+    var y = 0, modeLibre = false, rafGuide = null, minuteurPointe = null;
     var arret = false;                       // l'automate reprend la main
     var occupe = false;                      // une scene est en cours (salut, colere...)
     var pose   = false;
@@ -805,7 +843,7 @@
       etat('ccm-repos');
     }
 
-    function libre() { return !arret && !occupe && !pose; }
+    function libre() { return !arret && !occupe && !pose && !modeLibre; }
 
     /* un vrai personnage fait parfois... rien. C'est ce qui le rend vivant. */
     function repos() {
@@ -845,7 +883,7 @@
     /* --- le grand moment : il remarque le visiteur -------------------- */
     var dejaSalue = false;
     function saluer() {
-      if (arret || dejaSalue) return;
+      if (arret || modeLibre || dejaSalue) return;
       if (occupe) { minuteurSalut = setTimeout(saluer, 6000); return; }   // occupe : on reprend plus tard
       dejaSalue = true; occupe = true;
       stopper();
@@ -932,7 +970,7 @@
 
     /* --- apres un moment, il va se poser dans son coin ---------------- */
     function sePoser() {
-      if (arret || occupe || pose || detache) return;
+      if (arret || occupe || pose || detache || modeLibre) return;
       pose = true;
       var b = bornes();
       if (Math.abs(x - b.min) < 12) { stopper(); etat('ccm-pose'); return; }
@@ -1334,11 +1372,256 @@
 
     perso.addEventListener('pointerup', annulerAppui);
     perso.addEventListener('pointercancel', annulerAppui);
+
+    /* ---------------------------------------------------------------------
+       UN CLIC SIMPLE SUR LE PERSONNAGE OUVRE LE CHAT.
+       Avant, il fallait passer par le bouton « Discuter avec moi » de la bulle.
+       Yoyo veut : je clique sur la mascotte, le chat s'ouvre.
+       Regles :
+         - l'appui LONG reste reserve a l'attrape (on ne declenche pas le chat) ;
+         - si on a deplace le personnage (saisi), on ne declenche pas non plus ;
+         - le chat ne s'ouvre pas pendant une scene (le grand depart, une pose).
+       --------------------------------------------------------------------- */
+    /* On se base sur l'appui REEL (pointerdown -> pointerup au meme endroit)
+       plutot que sur l'evenement click : le click est aussi emis apres un appui
+       long, et il peut etre emis deux fois selon les navigateurs. Ici on sait
+       exactement quand c'est un appui court et immobile. */
+    var appuiDepart = null;
+    perso.addEventListener('pointerdown', function (e) {
+      appuiDepart = { x: e.clientX, y: e.clientY, t: Date.now() };
+    });
+    document.addEventListener('pointerup', function (e) {
+      if (!appuiDepart) return;
+      var d = appuiDepart;
+      appuiDepart = null;
+      if (saisi || arret || occupe) return;                  // attrape / scene
+      var bouge = Math.abs(e.clientX - d.x) > 8 || Math.abs(e.clientY - d.y) > 8;
+      var long = (Date.now() - d.t) > 500;                   // appui long = attrape
+      if (bouge || long) return;
+      if (!perso.contains(e.target) && e.target !== perso) return;
+      ouvrirChat();
+    });
+
+    /* Filet de securite : certains environnements (clic programme, navigateurs
+       anciens, aides techniques) n'emettent pas d'evenement pointer complet.
+       On ecoute aussi 'click', avec un delai minimal pour ne pas declencher
+       deux fois quand les deux chemins se produisent. */
+    var dernierChat = 0;
+    function ouvrirChat() {
+      var maintenant = Date.now();
+      if (maintenant - dernierChat < 250) return;   // anti-rebond : un seul appel
+      dernierChat = maintenant;
+      if (typeof o.onChat === 'function') o.onChat();
+    }
+    perso.addEventListener('click', function (e) {
+      if (saisi || arret || occupe) return;
+      e.stopPropagation();
+      ouvrirChat();
+    });
     perso.addEventListener('contextmenu', function (e) { if (saisi) e.preventDefault(); });
 
     document.addEventListener('pointermove', function (e) { if (saisi) suivre(e.clientX, e.clientY); });
     document.addEventListener('pointerup', function () { if (saisi) relacher(); });
     document.addEventListener('pointercancel', function () { if (saisi) relacher(); });
+
+    /* =========================================================================
+       GUIDAGE 2D LIBRE
+       -------------------------------------------------------------------------
+       La mascotte quitte sa bande du bas et devient un objet libre du viewport
+       (position:fixed, left/top en pixels). Elle peut monter, descendre, aller
+       en diagonale, sans jamais pousser le contenu ni bloquer un bouton : le
+       .ccm-root reste en pointer-events:none, seul le petit .ccm-perso garde
+       pointer-events:auto (pour rester attrapable/cliquable). Quand le guidage
+       se termine, sortirDeLibre() la ramene dans sa bande, comme avant. */
+    function positionCourante() {
+      var r = perso.getBoundingClientRect();
+      return { x: r.left, y: r.top };
+    }
+
+    function poserLibre(vx, vy) {
+      x = vx; y = vy;
+      perso.style.left = Math.round(vx) + 'px';
+      perso.style.top  = Math.round(vy) + 'px';
+    }
+
+    function entrerEnLibre() {
+      if (modeLibre) return true;
+      if (arret) return false;
+      var r = perso.getBoundingClientRect();
+      var l = perso.offsetWidth || 110, h = perso.offsetHeight || 155;
+      var vw = window.innerWidth, vh = window.innerHeight;
+      modeLibre = true;
+      x = dansLaFenetre(r.left, seuils.marge, Math.max(seuils.marge, vw - l - seuils.marge));
+      y = dansLaFenetre(r.top,  seuils.marge, Math.max(seuils.marge, vh - h - seuils.marge));
+      root.classList.add('ccm-guide');
+      perso.classList.add('ccm-libre');
+      poserLibre(x, y);
+      return true;
+    }
+
+    function sortirDeLibre() {
+      if (!modeLibre) return true;
+      modeLibre = false;
+      perso.classList.remove('ccm-libre', 'ccm-envol', 'ccm-teleporte');
+      root.classList.remove('ccm-guide', 'ccm-envol', 'ccm-pointe');
+      perso.style.top = '';
+      perso.style.left = '';
+      var b = bornes();
+      x = dansLaFenetre(x, b.min, b.max);
+      poser(x);
+      etat('ccm-repos');
+      repos();                 // la vie reprend
+      return true;
+    }
+
+    /* gele l'automate (salut, repos, colere...) le temps du guidage, puis
+       entre en mode libre. Idempotente : sans danger si deja en libre. */
+    function preparerGuidage() {
+      if (arret) return false;
+      if (minuteurSalut) clearTimeout(minuteurSalut);
+      if (minuteurRepos) clearTimeout(minuteurRepos);
+      if (minuteurPose)  clearTimeout(minuteurPose);
+      stopper();
+      nettoyerScene();
+      occupe = false;
+      pose = false;
+      root.classList.remove('ccm-parle', 'ccm-crie', 'ccm-ecoute', 'ccm-salue', 'ccm-envol', 'ccm-pointe');
+      perso.classList.remove('ccm-teleporte', 'ccm-parti');
+      entrerEnLibre();
+      return true;
+    }
+
+    function distanceVers(px, py) {
+      var r = positionCourante();
+      var dx = px - r.x, dy = py - r.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    /* Choisit le mode selon la distance, avec les seuils de guide.json.
+       Le "mode" du parcours dans guide.json est une PREFERENCE : si la
+       distance l'exige, ce moteur renvoie un mode plus capable. Exemples :
+         preference "walk" mais distance > flyMax  -> il faudra "teleport"
+         preference "fly"  mais distance <= walkMax -> "walk" suffit
+       choisirMode() ne renvoie QUE le mode recommande par la distance ; c'est
+       l'appelant (le controleur du parcours) qui tranche entre sa preference
+       et ce resultat. */
+    function choisirMode(px, py) {
+      var d = distanceVers(px, py);
+      if (d <= seuils.walkMax) return 'walk';
+      if (d <= seuils.flyMax) return 'fly';
+      return 'teleport';
+    }
+
+    /* Deplacement anime generique, du point courant vers (px, py).
+       Retourne une promesse resolue a true a l'arrivee (false si arret ou
+       cible invalide). dureeMs optionnel : sinon calculee sur VITESSE. */
+    function allerVers(px, py, dureeMs) {
+      if (!modeLibre && !preparerGuidage()) return Promise.resolve(false);
+      return new Promise(function (resolve) {
+        var l = perso.offsetWidth || 110, h = perso.offsetHeight || 155;
+        var vw = window.innerWidth, vh = window.innerHeight;
+        var cX = dansLaFenetre(px, seuils.marge, Math.max(seuils.marge, vw - l - seuils.marge));
+        var cY = dansLaFenetre(py, seuils.marge, Math.max(seuils.marge, vh - h - seuils.marge));
+        tournerVers(cX >= x ? 1 : -1);
+        var deX = x, deY = y;
+        var d = (typeof dureeMs === 'number' && dureeMs > 0)
+          ? dureeMs
+          : Math.max(240, Math.round(Math.sqrt((cX - deX) * (cX - deX) + (cY - deY) * (cY - deY)) / vitesse * 1000));
+        var t0a = 0;
+        function pas(ts) {
+          if (arret) { rafGuide = null; resolve(false); return; }
+          if (!t0a) t0a = ts;
+          var p = Math.min(1, (ts - t0a) / d);
+          poserLibre(deX + (cX - deX) * p, deY + (cY - deY) * p);
+          if (p < 1) rafGuide = requestAnimationFrame(pas);
+          else { rafGuide = null; resolve(true); }
+        }
+        rafGuide = requestAnimationFrame(pas);
+      });
+    }
+
+    /* marche 2D : petite distance, jambes animees, corps oriente. */
+    function walkTo(px, py) {
+      if (arret) return Promise.resolve(false);
+      if (!preparerGuidage()) return Promise.resolve(false);
+      etat('ccm-marche');
+      return allerVers(px, py).then(function (ok) {
+        if (!arret && modeLibre) etat('ccm-repos');
+        return ok;
+      });
+    }
+
+    /* vole 2D : il quitte legerement le sol (classe ccm-envol) et va plus vite. */
+    function flyTo(px, py) {
+      if (arret) return Promise.resolve(false);
+      if (!preparerGuidage()) return Promise.resolve(false);
+      var d = distanceVers(px, py);
+      var duree = Math.max(360, Math.round(d / (vitesse * 1.8) * 1000));
+      etat('ccm-marche');
+      root.classList.add('ccm-envol');
+      return allerVers(px, py, duree).then(function (ok) {
+        root.classList.remove('ccm-envol');
+        if (!arret && modeLibre) etat('ccm-repos');
+        return ok;
+      });
+    }
+
+    /* teleportation : disparition (opacite -> 0) puis reapparition a la cible. */
+    function teleportTo(px, py) {
+      if (arret) return Promise.resolve(false);
+      if (!preparerGuidage()) return Promise.resolve(false);
+      etat('ccm-repos');
+      return new Promise(function (resolve) {
+        perso.classList.add('ccm-teleporte');
+        setTimeout(function () {
+          if (arret) { resolve(false); return; }
+          var l = perso.offsetWidth || 110, h = perso.offsetHeight || 155;
+          var vw = window.innerWidth, vh = window.innerHeight;
+          var cX = dansLaFenetre(px, seuils.marge, Math.max(seuils.marge, vw - l - seuils.marge));
+          var cY = dansLaFenetre(py, seuils.marge, Math.max(seuils.marge, vh - h - seuils.marge));
+          tournerVers(cX >= x ? 1 : -1);
+          poserLibre(cX, cY);
+          setTimeout(function () {
+            perso.classList.remove('ccm-teleporte');
+            setTimeout(function () { resolve(true); }, 220);
+          }, 40);
+        }, 220);
+      });
+    }
+
+    /* pointe du doigt vers un element (ou des coordonnees). NE se deplace pas.
+       Accepte un element DOM, un selecteur CSS, ou (x, y). Retourne un booleen.
+       TODO (tache ulterieure) : dessiner un vrai doigt + halo autour de la
+       cible. Ici, on tend le bras avant (classe ccm-pointe) et on oriente le
+       corps : c'est deja propre et visible. */
+    function pointTo(elementOuX, elementOuY) {
+      var cX, cY;
+      if (typeof elementOuX === 'string' || (elementOuX && elementOuX.nodeType === 1)) {
+        var el = (typeof elementOuX === 'string') ? document.querySelector(elementOuX) : elementOuX;
+        if (!el) return false;
+        var r = el.getBoundingClientRect();
+        cX = r.left + r.width / 2;
+        cY = r.top + r.height / 2;
+      } else {
+        cX = elementOuX; cY = elementOuY;
+      }
+      if (typeof cX !== 'number' || typeof cY !== 'number' || !isFinite(cX) || !isFinite(cY)) return false;
+      if (arret) return false;
+      if (minuteurSalut) clearTimeout(minuteurSalut);
+      if (minuteurRepos) clearTimeout(minuteurRepos);
+      if (minuteurPose)  clearTimeout(minuteurPose);
+      stopper();
+      nettoyerScene();
+      occupe = false;
+      pose = false;
+      root.classList.remove('ccm-parle', 'ccm-crie', 'ccm-ecoute', 'ccm-salue');
+      var ici = positionCourante();
+      tournerVers(cX >= ici.x ? 1 : -1);
+      root.classList.add('ccm-pointe');
+      if (minuteurPointe) clearTimeout(minuteurPointe);
+      minuteurPointe = setTimeout(function () { root.classList.remove('ccm-pointe'); }, 1800);
+      return true;
+    }
 
     /* --- mise en route ------------------------------------------------ */
     var minuteurSalut = null;
@@ -1353,7 +1636,7 @@
         return;
       }
       setTimeout(function () {
-        if (arret) return;
+        if (arret || modeLibre) return;
         /* une scene a pu prendre la main entre-temps (le grand depart) :
            on ne le fait pas marcher au milieu */
         if (occupe) { minuteurSalut = setTimeout(saluer, delai); return; }
@@ -1402,7 +1685,98 @@
         root.classList.toggle('ccm-fige', v !== false);
         if (v !== false) stopper(); else repos();
       },
+      /* ---------------------------------------------------------------- */
+      /*  API de guidage (moteur externe) : enveloppes defensives sur les  */
+      /*  fonctions internes. Aucune n'altere l'apparence ni le SVG.       */
+      /* ---------------------------------------------------------------- */
+      /* demarre la marche dans la direction courante (jusqu'au bord) */
+      marche: function () {
+        if (arret || occupe || pose) return false;
+        var b = bornes();
+        var sens = perso.classList.contains('ccm-vers-gauche') ? -1 : 1;
+        marcheVers(sens < 0 ? b.min : b.max);
+        return true;
+      },
+      /* arrete le deplacement, sans detruire ni fermer la bulle */
+      arret: function () {
+        stopper();
+        return true;
+      },
+      /* arret complet : stoppe, ferme la bulle, retire les dialogues, repos */
+      stop: function () {
+        stopper();
+        nettoyerScene();
+        occupe = false;
+        root.classList.remove('ccm-parle', 'ccm-crie', 'ccm-ecoute', 'ccm-salue');
+        etat('ccm-repos');
+        repos();
+        return true;
+      },
+      /* tourne le personnage vers la gauche ou la droite */
+      regarder: function (direction) {
+        var sens;
+        if (direction === 'gauche') sens = -1;
+        else if (direction === 'droite') sens = 1;
+        else if (typeof direction === 'number') sens = (direction < 0 ? -1 : 1);
+        else return false;
+        tournerVers(sens);
+        return true;
+      },
+      /* affiche la bulle avec un message (socle du salut et du guidage) */
+      parler: function (message) {
+        if (arret) return false;
+        if (message != null) bulleTxt.textContent = String(message);
+        root.classList.add('ccm-parle');
+        cadrerBulle(perso.querySelector('.ccm-bulle'));
+        return true;
+      },
+      /* le rend invisible (sans le retirer du DOM) */
+      cacher: function () {
+        perso.style.opacity = '0';
+        perso.style.pointerEvents = 'none';
+        return true;
+      },
+      /* le rend a nouveau visible */
+      afficher: function () {
+        perso.style.opacity = '';
+        perso.style.pointerEvents = '';
+        return true;
+      },
+      /* position actuelle, en pixels viewport (coin haut-gauche).
+         En bande du bas, y est la position reelle du haut du personnage ;
+         en mode libre, c'est le y courant (left/top fixes). */
+      getPosition: function () {
+        var r = perso.getBoundingClientRect();
+        return { x: r.left, y: r.top, libre: modeLibre };
+      },
+      /* taille actuelle du personnage, en pixels */
+      getSize: function () {
+        return { largeur: perso.offsetWidth || 110, hauteur: perso.offsetHeight || 155 };
+      },
+      /* --- API DE GUIDAGE 2D LIBRE ------------------------------------ */
+      entrerEnLibre: entrerEnLibre,
+      sortirDeLibre: sortirDeLibre,
+      allerVers: allerVers,
+      walkTo: walkTo,
+      flyTo: flyTo,
+      teleportTo: teleportTo,
+      pointTo: pointTo,
+      choisirMode: choisirMode,
+      /* pointe du doigt vers une direction ('gauche'/'droite' ou +/-).
+         Version amelioree de l'ancien pointer() : oriente le corps et tend le
+         bras avant (classe ccm-pointe sur le root). Le vrai doigt + halo est
+         une tache ulterieure (voir pointTo). */
+      pointer: function (direction) {
+        var sens = (direction === 'gauche' || direction < 0) ? -1 : 1;
+        tournerVers(sens);
+        root.classList.add('ccm-pointe');
+        if (minuteurPointe) clearTimeout(minuteurPointe);
+        minuteurPointe = setTimeout(function () { root.classList.remove('ccm-pointe'); }, 1800);
+        return true;
+      },
       detruire: function () { arret = true; occupe = true; stopper(); if (obs) obs.disconnect();
+        if (rafGuide) { cancelAnimationFrame(rafGuide); rafGuide = null; }
+        if (minuteurPointe) { clearTimeout(minuteurPointe); minuteurPointe = null; }
         if (minuteurSalut) clearTimeout(minuteurSalut);
         if (minuteurRepos) clearTimeout(minuteurRepos);
         if (minuteurPose) clearTimeout(minuteurPose);
@@ -1434,7 +1808,28 @@
     placer: function (x, y) { return courant ? courant.placer(x, y) : false; },
     jet: function (force) { return courant ? courant.jet(force) : false; },
     oublierJet: oublierJet,
-    monte: function () { return !!courant; }
+    monte: function () { return !!courant; },
+    /* --- API de guidage : enveloppes defensives sur l'instance courante --- */
+    saluer: function () { return courant ? courant.saluer() : false; },
+    parler: function (message) { return courant ? courant.parler(message) : false; },
+    marche: function () { return courant ? courant.marche() : false; },
+    arret: function () { return courant ? courant.arret() : false; },
+    stop: function () { return courant ? courant.stop() : false; },
+    regarder: function (direction) { return courant ? courant.regarder(direction) : false; },
+    cacher: function () { return courant ? courant.cacher() : false; },
+    afficher: function () { return courant ? courant.afficher() : false; },
+    getPosition: function () { return courant ? courant.getPosition() : undefined; },
+    getSize: function () { return courant ? courant.getSize() : undefined; },
+    pointer: function (direction) { return courant ? courant.pointer(direction) : false; },
+    /* --- API de guidage 2D libre : enveloppes sur l'instance courante --- */
+    entrerEnLibre: function () { return courant ? courant.entrerEnLibre() : false; },
+    sortirDeLibre: function () { return courant ? courant.sortirDeLibre() : false; },
+    allerVers: function (px, py, d) { return courant ? courant.allerVers(px, py, d) : Promise.resolve(false); },
+    walkTo: function (px, py) { return courant ? courant.walkTo(px, py) : Promise.resolve(false); },
+    flyTo: function (px, py) { return courant ? courant.flyTo(px, py) : Promise.resolve(false); },
+    teleportTo: function (px, py) { return courant ? courant.teleportTo(px, py) : Promise.resolve(false); },
+    pointTo: function (eltOuX, y) { return courant ? courant.pointTo(eltOuX, y) : false; },
+    choisirMode: function (px, py) { return courant ? courant.choisirMode(px, py) : null; }
   };
 
   function autoMonte() {

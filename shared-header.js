@@ -135,4 +135,39 @@
   if (mobRoot) {
     mobRoot.innerHTML = mobNavHTML_full;
   }
+
+  /* ---------------------------------------------------------------------------
+     CIBLES DE GUIDAGE  (mascotte guide — `data-guide`)
+     ---------------------------------------------------------------------------
+     On pose les attributs data-guide sur les liens de navigation, DESKTOP et
+     MOBILE, a un seul endroit : apres le rendu. Chaque lien de nav porte ainsi
+     son identifiant de guidage, et le moteur de guidage n'a plus besoin des IDs
+     HTML (qui peuvent changer) ni d'un attribut a repeter dans chaque page.
+     Le moteur cherche : [data-guide="search"]
+     --------------------------------------------------------------------------- */
+  var GUIDE_PAR_PAGE = {
+    'index.html':     'home',
+    'results.html':   'search',
+    'post_trip.html': 'publish',
+    'chat.html':      'messages',
+    'dashboard.html': 'dashboard',
+    'partner.html':   'partner'
+  };
+  function poserCiblesGuide() {
+    var liens = document.querySelectorAll(
+      'header.site-header .main-nav a.nav-link, .mobile-bottom-nav a.mob-nav-item'
+    );
+    for (var i = 0; i < liens.length; i++) {
+      var a = liens[i];
+      if (a.hasAttribute('data-guide')) continue;
+      var href = (a.getAttribute('href') || '').split('?')[0].split('#')[0];
+      var cible = GUIDE_PAR_PAGE[href];
+      if (cible) a.setAttribute('data-guide', cible);
+    }
+  }
+  poserCiblesGuide();
+  /* le header mobile peut etre (re)monte apres coup : on repasse une fois. */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', poserCiblesGuide);
+  }
 })();

@@ -369,7 +369,7 @@
                                         <span
                                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
                                             style="color:#b9cac4;">flight_takeoff</span>
-                                        <input id="res-origin"
+                                        <input id="res-origin" data-guide="search-origin"
                                             class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
                                             placeholder="Pays de départ" type="text" autocomplete="off" />
                                     </div>
@@ -381,7 +381,7 @@
                                         <span
                                             class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors duration-200"
                                             style="color:#b9cac4;">flight_land</span>
-                                        <input id="res-dest"
+                                        <input id="res-dest" data-guide="search-destination"
                                             class="w-full bg-background border border-white/10 rounded-lg py-3 pl-10 pr-4 text-text-primary focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none transition-all duration-200"
                                             placeholder="Pays d'arrivée" type="text" autocomplete="off" />
                                     </div>
@@ -415,7 +415,7 @@
                                 </div>
                             </div>
 
-                            <button id="new-search-btn" type="button"
+                            <button id="new-search-btn" data-guide="search-start" type="button"
                                 class="bg-primary text-on-primary font-body-md text-body-md font-semibold py-3 px-6 rounded-lg hover:bg-primary-fixed hover:-translate-y-0.5 active:scale-95 active:translate-y-0 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer w-full md:w-auto">
                                 <span class="material-symbols-outlined">search</span>
                                 Rechercher
@@ -465,11 +465,11 @@
             <!-- Boutons de profil (placés sous le titre) -->
             <div class="results-nav-panel">
                 <div class="profile-type-filters">
-                    <button type="button" id="filter-traveler-btn" class="filter-tab active" data-profile-type="traveler">
+                    <button type="button" id="filter-traveler-btn" data-guide="filter-traveler" class="filter-tab active" data-profile-type="traveler">
                         <span class="material-symbols-outlined tab-icon">person</span>
                         <span>Je cherche un voyageur</span>
                     </button>
-                    <button type="button" id="filter-cargo-btn" class="filter-tab" data-profile-type="cargo">
+                    <button type="button" id="filter-cargo-btn" data-guide="filter-cargo" class="filter-tab" data-profile-type="cargo">
                         <span class="material-symbols-outlined tab-icon">local_shipping</span>
                         <span>Je cherche un cargo</span>
                     </button>
@@ -733,8 +733,15 @@
 
     <!-- LE PETIT VOYAGEUR (mascotte) — sa mise en place est dans mascotte-site.js.
          Pour l'enlever de cette page : supprimer ces 2 lignes. -->
-    <script src="mascotte.js?v=2" defer></script>
-    <script src="mascotte-site.js?v=1" defer></script>
+    <script src="mascotte.js?v=5" defer></script>
+    <script src="mascotte-site.js?v=2" defer></script>
+
+    <!-- L'assistant (chat) + le guide. mascotte-chat.js ouvre le panneau de chat
+         au clic sur la mascotte et lance le guide tout seul. -->
+    <script src="guide-controller.js?v=1" defer></script>
+    <script src="guide-session.js?v=1" defer></script>
+    <script src="guide-intents.js?v=1" defer></script>
+    <script src="mascotte-chat.js?v=1" defer></script>
 
 </body>
 

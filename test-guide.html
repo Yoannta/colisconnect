@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test Guide complet — ColisConnect</title>
+<!--
+  PAGE DE TEST DU GUIDAGE — ColisConnect
+  --------------------------------------
+  Elle simule une mini-page du site (avec des cibles data-guide) et charge les
+  quatre modules du guide, exactement comme le fera une vraie page.
+
+  Elle sert a verifier, SANS DeepSeek :
+    - le chargement de guide.json
+    - la resolution d'une demande ecrite (guide-intents)
+    - le parcours complet (guide-controller) : deplacement + halo + bulle
+    - la session entre pages (guide-session) : le bouton « Rouvrir cette page »
+      simule un changement de page en rechargement.
+
+  A n'utiliser que pour les tests : cette page ne fait pas partie du site.
+-->
+<style>
+  body { background:#0f172a; color:#e8e8e8; font-family:system-ui,sans-serif; margin:0; padding:20px 16px 160px; }
+  h1 { font-size:1.1rem; color:#f1b52b; }
+  .grille { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+  button { padding:10px 14px; border-radius:10px; border:1px solid rgba(255,179,71,.5);
+           background:rgba(255,179,71,.08); color:#f1b52b; font-weight:700; font-size:.82rem; cursor:pointer; }
+  button:hover { background:rgba(255,179,71,.18); }
+  .cible { display:block; width:100%; margin:26px 0; padding:16px; border-radius:12px;
+           border:1px solid rgba(255,255,255,.1); background:rgba(255,255,255,.04); }
+  .cible.grande { height:220px; }
+  #journal { position:fixed; left:0; right:0; bottom:0; max-height:34vh; overflow:auto;
+             background:rgba(0,0,0,.86); color:#9fe8a0; font:12px/1.5 monospace;
+             padding:10px 12px; white-space:pre-wrap; z-index:99999; }
+  .etat { color:#ffd08a; font-weight:700; }
+</style>
+</head>
+<body>
+
+<h1>Test du guide complet — v1</h1>
+<p class="etat" id="etat">chargement…</p>
+
+<div class="grille">
+  <button onclick="lancer('find_country')">Parcours : trouver les pays</button>
+  <button onclick="lancer('publish_trip')">Parcours : publier un trajet</button>
+  <button onclick="lancer('set_phone')">Parcours : mon numéro</button>
+  <button onclick="demander('Montre-moi où chercher les pays')">Texte : « montre-moi les pays »</button>
+  <button onclick="demander('comment publier un trajet')">Texte : « comment publier »</button>
+  <button onclick="demander('delete_site')">Texte : « delete_site » (doit échouer)</button>
+  <button onclick="arret()">✕ Arrêter le guide</button>
+  <button onclick="etat()">État / position</button>
+  <button onclick="rouvrir()">Simuler changement de page (recharger)</button>
+</div>
+
+<!-- les cibles data-guide, comme sur les vraies pages -->
+<button class="cible" data-guide="search">🔎 Onglet Recherche (cible : search)</button>
+<button class="cible" data-guide="publish">📤 Publier une offre (cible : publish)</button>
+<button class="cible" data-guide="dashboard">👤 Mon espace (cible : dashboard)</button>
+<div class="cible grande" data-guide="search-origin">Champ pays de départ (cible : search-origin)</div>
+<div class="cible grande" data-guide="departure-country">Champ pays de départ — post_trip (cible : departure-country)</div>
+<button class="cible" data-guide="submit">✅ Publier mon trajet (cible : submit)</button>
+
+<div id="journal">=== journal du guide ===</div>
+
+<script src="mascotte.js?v=5"></script>
+<script src="guide-controller.js"></script>
+<script src="guide-session.js"></script>
+<script src="guide-intents.js"></script>
+<script>
+  /* ---- le journal : on ne suppose RIEN, on verifie chaque etape ---- */
+  var J = document.getElementById('journal');
+  var E = document.getElementById('etat');
+  function log(t) {
+    if (!J) return;
+    J.textContent += '\n[' + new Date().toLocaleTimeString() + '] ' + t;
+    J.scrollTop = J.scrollHeight;
+  }
+  function majEtat(t) { if (E) E.textContent = t; }
+
+  function ouvre(nom) {
+    return !!(window[nom]);
+  }
+
+  log('--- demarrage du test ---');
+  log('modules : mascotte=' + ouvre('CCMascotte') + ' controleur=' + ouvre('CCGuid') +
+      ' session=' + ouvre('CCGuideSession') + ' intents=' + ouvre('CCGuideIntents'));
+
+  if (!window.CCMascotte) {
+    log('! mascotte absente : test impossible');
+    majEtat('ERREUR : mascotte.js non chargee');
+  } else {
+    try {
+      window.CCMascotte.mount({ salutation: 'Je suis la pour te guider !', delai: 1500 });
+      log('mascotte montee');
+      majEtat('mascotte montee');
+    } catch (e) {
+      log('! montage mascotte : ' + e.message);
+      majEtat('ERREUR montage');
+    }
+  }
+
+  if (window.CCGuid && window.CCGuid.on) {
+    window.CCGuid.on('pret', function (d) {
+      var n = (d && d.parcours) ? d.parcours.length : 0;
+      log('guide.json charge -- ' + n + ' parcours');
+      majEtat('guide.json OK -- ' + n + ' parcours');
+    });
+    window.CCGuid.on('debut', function (d) { log('> debut : ' + (d && d.parcours)); });
+    window.CCGuid.on('etape', function (d) {
+      log('   etape ' + ((d.index || 0) + 1) + ' -> cible "' + d.cible + '"');
+    });
+    window.CCGuid.on('navigation', function (d) { log('   -> changement de page vers ' + d.page); });
+    window.CCGuid.on('cible_absente', function (d) { log('   x cible absente : ' + d.cible); });
+    window.CCGuid.on('fin', function (d) { log('# fin : ' + (d && d.parcours)); });
+    window.CCGuid.on('erreur', function (d) { log('! erreur : ' + (d && d.message)); });
+    log('ecouteurs branches');
+  } else {
+    log('! controleur absent');
+  }
+
+  if (window.CCGuid && window.CCGuid.pret && window.CCGuid.pret()) {
+    log('(guide.json deja charge)');
+    majEtat('guide.json deja charge');
+  }
+
+  /* ---- les boutons ---- */
+  function lancer(nom) {
+    log('--- lancer(' + nom + ')');
+    try { window.CCGuideSession.demarrer(nom); }
+    catch (e) { log('! ' + e.message); }
+  }
+  function demander(texte) {
+    var pc = null;
+    try { pc = window.CCGuideIntents.resoudre(texte); } catch (e) { log('! ' + e.message); }
+    log('--- "' + texte + '" => ' + pc);
+    if (pc) { try { window.CCGuideSession.demarrer(pc); } catch (e) { log('! ' + e.message); } }
+    else { log('   REFUSE : aucun parcours autorise ne correspond'); }
+  }
+  function arret() { try { window.CCGuideSession.arreter(); } catch (e) {} log('--- arret demande'); }
+  function etat() {
+    try {
+      var p = window.CCMascotte.getPosition();
+      var t = window.CCMascotte.getSize();
+      log('--- etat ' + JSON.stringify(window.CCGuid.state()) +
+          ' | pos ' + JSON.stringify(p) + ' | taille ' + JSON.stringify(t) +
+          ' | session ' + JSON.stringify(window.CCGuideSession.lire()));
+    } catch (e) { log('! etat : ' + e.message); }
+  }
+  function rouvrir() { location.reload(); }
+
+  window.lancer = lancer; window.demander = demander;
+  window.arret = arret; window.etat = etat; window.rouvrir = rouvrir;
+
+  /* on affiche l'etat au bout de 2 s, quoi qu'il arrive */
+  setTimeout(etat, 2000);
+</script>
+</body>
+</html>
