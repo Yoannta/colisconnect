@@ -59,10 +59,12 @@
     }
 
     function syncProfileTypeButtons() {
-        const activeType = state.filterProfileType;
+        // En mode « demandes », c'est l'onglet « Je cherche un client » qui est
+        // actif ; sinon c'est le sous-choix voyageur/cargo.
+        const activeType = state.mobilePrimaryMode === "demand" ? "client" : state.filterProfileType;
         document.querySelectorAll("[data-profile-type]").forEach((btn) => {
             const type = btn.getAttribute("data-profile-type");
-            if (!type || type === "client") return;
+            if (!type) return;
             const isActive = type === activeType;
             btn.classList.toggle("active", isActive);
             btn.setAttribute("aria-pressed", isActive ? "true" : "false");
@@ -89,7 +91,9 @@
 
     function setProfileType(profileType) {
         state.filterProfileType = profileType;
+        state.mobilePrimaryMode = "traveler";
         syncProfileTypeButtons();
+        syncMobilePrimaryButtons();
         const headLine = document.getElementById("results-headline");
         if (headLine) {
             headLine.innerHTML = profileType === "cargo"
@@ -102,6 +106,7 @@
     function setMobilePrimaryMode(mode) {
         state.mobilePrimaryMode = mode;
         syncMobilePrimaryButtons();
+        syncProfileTypeButtons();
         // Le titre change selon la section
         const headLine = document.getElementById("results-headline");
         if (headLine) {
@@ -1107,6 +1112,15 @@
         });
         document.querySelectorAll('[data-profile-type="cargo"]').forEach((btn) => {
             btn.addEventListener("click", () => setProfileType("cargo"));
+        });
+        // Onglet « Je cherche un client » (les « demandes » de transport) : il
+        // bascule sur le mode demandes (table parcel_requests), comme le bouton
+        // mobile « Voir les demandes ». Les demandes ne vivent PAS dans `offers`.
+        document.querySelectorAll('[data-profile-type="client"]').forEach((btn) => {
+            btn.addEventListener("click", () => {
+                setMobilePrimaryMode("demand");
+                loadDemands();
+            });
         });
         document.querySelectorAll("[data-mobile-mode]").forEach((btn) => {
             btn.addEventListener("click", () => {

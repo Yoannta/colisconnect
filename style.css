@@ -14685,4 +14685,23 @@ body.verification-page.light .phone-verify-btn:not(:disabled):hover {
     border-color: #8a6d1f !important;
 }
 
+/* Les boutons sont pilotes par style.display (voir verification.js) : on ne met
    pas de display !important sur [hidden] pour ne pas bloquer leur apparition. */
+
+/* ============================================================================
+   DEGAGEMENT SOUS LA DERNIERE CARTE (results.html) — Yoyo, 25/09
+   Le bouton flottant « Rechercher » (#new-search-btn) se superposait a la
+   derniere carte et cachait son bouton « Contacter ».
+   On reserve donc de la place SOUS la liste, pour que la derniere carte ne
+   passe plus jamais dessous.
+   La valeur couvre : la hauteur du bouton flottant + la bande de la mascotte
+   (110 px) + une marge de securite.
+   ========================================================================== */
+#offers-list {
+    padding-bottom: 190px;
+}
+
+/* en mode mobile, la barre de navigation du bas (64 px) s'ajoute */
+html.mobile-mode #offers-list {
+    padding-bottom: 250px;
+}

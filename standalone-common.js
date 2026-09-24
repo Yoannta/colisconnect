@@ -207,11 +207,40 @@
         const heroP = document.querySelector(".hero-copy p");
         if (heroP) heroP.textContent = t.hero_p;
 
+        /* ------------------------------------------------------------------
+           majTexte(el, txt) : remplace UNIQUEMENT le texte d'un element,
+           sans effacer ce qu'il contient deja (ex. l'icone SVG posee dans un
+           bouton). Avant on utilisait el.textContent = "..." , ce qui
+           supprimait le SVG du bouton (le colis et l'avion de l'accueil
+           disparaissaient donc au chargement de la page).
+           Le bouton contient PLUSIEURS noeuds texte quand le SVG est entoure
+           de retours a la ligne : on remplit le premier noeud non vide et on
+           supprime les autres, sinon le libelle s'affichait en DOUBLE.
+           ------------------------------------------------------------------ */
+        function majTexte(el, txt) {
+            if (!el) return;
+            var textes = [];
+            for (var i = 0; i < el.childNodes.length; i++) {
+                var n = el.childNodes[i];
+                if (n.nodeType === 3 && n.nodeValue.replace(/\s/g, '') !== '') {
+                    textes.push(n);
+                }
+            }
+            if (textes.length) {
+                textes[0].nodeValue = txt;
+                for (var j = 1; j < textes.length; j++) {
+                    el.removeChild(textes[j]);
+                }
+                return;
+            }
+            el.appendChild(document.createTextNode(txt));
+        }
+
         const findBtn = document.querySelector(".hero-actions .btn.primary");
-        if (findBtn) findBtn.textContent = t.hero_btn_find;
+        if (findBtn) majTexte(findBtn, t.hero_btn_find);
 
         const proposeBtn = document.querySelector(".hero-actions .btn.secondary");
-        if (proposeBtn) proposeBtn.textContent = t.hero_btn_post;
+        if (proposeBtn) majTexte(proposeBtn, t.hero_btn_post);
 
         // Estimator
         const estBadge = document.querySelector(".ProactiveBadge");

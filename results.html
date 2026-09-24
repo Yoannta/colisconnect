@@ -283,7 +283,7 @@
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=59"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=72"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
 
@@ -294,14 +294,14 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js?v=59"></script>
 
-    <script defer src="standalone-common.js?v=22"></script>
+    <script defer src="standalone-common.js?v=25"></script>
     <script defer src="devise.js?v=1"></script>
 
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=48"></script>
+    <script defer src="results.js?v=49"></script>
 
 </head>
 
@@ -473,8 +473,7 @@
                         <span class="material-symbols-outlined tab-icon">local_shipping</span>
                         <span>Je cherche un cargo</span>
                     </button>
-                    <button type="button" id="filter-client-btn" class="filter-tab filter-tab-disabled" disabled
-                        aria-disabled="true" data-profile-type="client">
+                    <button type="button" id="filter-client-btn" data-guide="filter-request" class="filter-tab" data-profile-type="client" aria-pressed="false">
                         <span class="material-symbols-outlined tab-icon">work</span>
                         <span>Je cherche un client</span>
                     </button>
