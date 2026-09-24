@@ -11,7 +11,7 @@
      CCMascotte.mount({
        salutation : 'Bonjour ! Vous cherchez quelque chose ?',
        delai      : 7000,      // ms avant qu'il remarque le visiteur
-       vitesse    : 46,        // pixels / seconde
+       vitesse    : 140,       // pixels / seconde (course)
        onChat     : function () { ouvrirMonAssistant(); }
      });
 
@@ -691,7 +691,7 @@
     injecterCss();
 
     var delai   = typeof o.delai === 'number' ? o.delai : 7000;
-    var vitesse = typeof o.vitesse === 'number' ? o.vitesse : 46;
+    var vitesse = typeof o.vitesse === 'number' ? o.vitesse : 140;
     var texte   = o.salutation || 'Bonjour ! Vous cherchez quelque chose ? Je peux vous aider.';
     var calme   = !!o.calme || document.body.classList.contains('is-calm');
 
@@ -724,10 +724,17 @@
     root.appendChild(perso);
     document.body.appendChild(root);
 
-    /* Sa marche est ralentie d'autant qu'il a ete reduit : la vitesse est en
-       pixels/seconde et ne suivait pas la taille, ses pieds patinaient. */
+    /* Vitesse de deplacement.
+       ATTENTION : avant, la vitesse par defaut etait calculee ainsi
+           46 * (largeur du personnage) / 110
+       Le personnage mesurant 56 px de large, cela donnait 23 px/s et non 46 :
+       la mascotte rampait litteralement (24 s pour traverser l'ecran).
+       Nouvelle vitesse par defaut : 140 px/s, soit environ 3 fois plus vite,
+       et on ne la reduit plus en fonction de la taille (c'est cette reduction
+       qui rendait le guidage interminable). Une vitesse explicite reste
+       prioritaire : mount({ vitesse: 90 }). */
     if (typeof o.vitesse !== 'number') {
-      vitesse = Math.max(18, Math.round(46 * (perso.offsetWidth || 110) / 110));
+      vitesse = 140;
     }
 
     var bulleTxt   = perso.querySelector('.ccm-bulle-texte');
@@ -1556,7 +1563,7 @@
       if (arret) return Promise.resolve(false);
       if (!preparerGuidage()) return Promise.resolve(false);
       var d = distanceVers(px, py);
-      var duree = Math.max(360, Math.round(d / (vitesse * 1.8) * 1000));
+      var duree = Math.max(360, Math.round(d / (vitesse * 2.6) * 1000));
       etat('ccm-marche');
       root.classList.add('ccm-envol');
       return allerVers(px, py, duree).then(function (ok) {
