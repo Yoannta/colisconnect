@@ -35,6 +35,37 @@
         return { destination, origin, minKg };
     }
 
+    // ── [Yoyo] Mes offres / mes demandes en premier ─────────────────────────────
+    // L'utilisateur connecté voit TOUJOURS ses propres publications en tête de
+    // liste (pour pouvoir les modifier/supprimer sans scroller). Les autres
+    // suivent, dans leur ordre actuel. Tri d'AFFICHAGE uniquement (côté client) :
+    // on ne touche ni à la requête SQL ni à la base. Aucun marqueur visuel ajouté.
+    function ownFirst(items) {
+        const currentUserId = window.CCCommon?.state?.user?.id;
+        if (!currentUserId || !Array.isArray(items) || !items.length) return items;
+        const own = [];
+        const others = [];
+        items.forEach((item) => {
+            const ownerId = item.user_id || item.userId || "";
+            if (String(ownerId).trim() !== "" && String(ownerId) === String(currentUserId)) {
+                own.push(item);
+            } else {
+                others.push(item);
+            }
+        });
+        return own.concat(others);
+    }
+
+    // Vrai si l'utilisateur n'a lancé NI recherche NI filtre (affichage par défaut).
+    // Yoyo : « mes offres d'abord » ne s'applique QUE sur la page normale ; dès qu'il
+    // y a une recherche (pays départ/arrivée/date/kilos) ou un filtre, ordre normal.
+    function isDefaultListingView() {
+        const val = (id) => (document.getElementById(id)?.value || "").trim();
+        if (val("res-origin") || val("res-dest") || val("res-date") || val("res-weight")) return false;
+        if (state.filterVerified || state.filterWeight10 || state.filterUrgent) return false;
+        return true;
+    }
+
     async function loadOffers() {
         if (!els.offersList) return;
         // ANTI-RACE : si l'utilisateur a basculé sur l'onglet « Voir les demandes »
@@ -211,7 +242,9 @@
 
     function renderDemands() {
         if (!els.offersList) return;
-        const items = state.demands || [];
+        let items = state.demands || [];
+        // [Yoyo] Mes demandes en premier (toujours : aucune recherche ne filtre les demandes).
+        items = ownFirst(items);
         if (!items.length) {
             els.offersList.innerHTML =
                 '<div class="empty-state">Aucune demande en ce moment.<br>Revenez plus tard !</div>';
@@ -477,6 +510,12 @@
                 return dateA - dateB;
             }
         });
+
+        // [Yoyo] Mes offres en premier sur l'affichage par défaut (aucune recherche
+        // ni filtre actif). Dès qu'une recherche/filtre est lancé, ordre normal.
+        if (isDefaultListingView()) {
+            filteredOffers = ownFirst(filteredOffers);
+        }
 
         // 3. Rendu
         if (!filteredOffers.length) {

@@ -653,7 +653,7 @@
 
         els.confirmBtn?.addEventListener("click", confirmPaymentMethod);
 
-        // Popup succès : "Voir mes offres" redirige vers les résultats
+        // Popup succès : le bouton de confirmation redirige vers les résultats
         els.publishOkBtn?.addEventListener("click", () => {
             window.location.href = "results.html";
         });
