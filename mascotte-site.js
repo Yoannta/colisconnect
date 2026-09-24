@@ -21,8 +21,14 @@
     var s = document.createElement('style');
     s.id = 'ccm-site-style';
     s.textContent = [
-      /* sous le bouton « Filtres » (z-index 50) : le clic reste au bouton */
-      '.ccm-root{z-index:40 !important}',
+      /* La mascotte etait en z-index 40 : elle passait DERRIERE plusieurs
+         elements de page (mesure faite : le bloc social-buttons-grid la
+         recouvrait entierement sur l'accueil), donc on ne la voyait plus.
+         Elle passe a 48 : au-dessus du contenu, mais toujours SOUS le bouton
+         « Filtres » (z-index 50) pour que ce bouton reste cliquable. */
+      '.ccm-root{z-index:48 !important}',
+      /* le personnage lui-meme doit rester au-dessus de sa propre bande */
+      '.ccm-perso{z-index:49 !important}',
       /* sur mobile, au-dessus de la barre du bas (64 px) */
       'html.mobile-mode .ccm-root{bottom:64px !important}'
     ].join('');
