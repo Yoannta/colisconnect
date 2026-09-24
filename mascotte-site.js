@@ -32,8 +32,15 @@
   /* --- 3 : sa phrase du moment ------------------------------------------- */
   var page = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   var PHRASES = {
-    'index.html':   'Bonjour ! Vous cherchez \u00e0 envoyer un colis ?',
-    'results.html': 'Bonjour ! Ici, tous les voyageurs qui partent bient\u00f4t.'
+    'index.html':        'Bonjour ! Vous cherchez \u00e0 envoyer un colis ?',
+    'results.html':      'Bonjour ! Ici, tous les voyageurs qui partent bient\u00f4t.',
+    'post_trip.html':    'Bonjour ! Je peux t\u2019aider \u00e0 publier ton trajet, \u00e9tape par \u00e9tape.',
+    'verification.html': 'Bonjour ! Ici tu g\u00e8res ton num\u00e9ro de t\u00e9l\u00e9phone.',
+    'chat.html':         'Bonjour ! Tu peux me poser tes questions ici.',
+    'dashboard.html':    'Bonjour ! Voici ton espace. Dis-moi si tu cherches quelque chose.',
+    'auth.html':         'Bonjour ! Connecte-toi et je t\u2019accompagne.',
+    'partner.html':      'Bonjour ! Bienvenue dans l\u2019espace partenaire.',
+    'admin.html':        'Bonjour ! Espace administration.'
   };
 
   window.CCMascotte.mount({
