@@ -662,17 +662,19 @@
     document.head.appendChild(s);
   }
 
+  /* La mascotte ne se cache plus definitivement.
+     Avant, la croix de la bulle appelait marquerFerme() : la mascotte
+     disparaissait pour 30 jours, et Yoyo ne la revoyait plus jamais, meme en
+     rechargeant la page. On ne memorise donc PLUS rien.
+     On efface meme la memoire deja posee chez les visiteurs concernes, pour
+     qu'ils la revoient immediatement. */
   function estFerme() {
-    try {
-      var t = localStorage.getItem(CLE_FERME);
-      if (!t) return false;
-      if (Date.now() - parseInt(t, 10) > JOURS * 864e5) return false;
-      return true;
-    } catch (e) { return false; }
+    try { localStorage.removeItem(CLE_FERME); } catch (e) {}
+    return false;
   }
 
   function marquerFerme() {
-    try { localStorage.setItem(CLE_FERME, String(Date.now())); } catch (e) {}
+    /* volontairement vide : on ne cache plus la mascotte */
   }
 
   function oublierFermeture() {
@@ -1274,7 +1276,19 @@
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrirChat(); }
     });
     bulleOuvrir.addEventListener('click', function (e) { e.stopPropagation(); ouvrirChat(); });
-    bulleX.addEventListener('click', function (e) { e.stopPropagation(); ranger(); });
+    /* ---------------------------------------------------------------------
+       LA CROIX DE LA BULLE FERME LA BULLE, PAS LA MASCOTTE.
+       Avant : la croix appelait ranger(), et la fermeture etait memorisee dans
+       le navigateur 30 jours -> Yoyo cliquait la croix, la mascotte disparaissait
+       et ne revenait plus, meme apres un rechargement.
+       Maintenant : la bulle se ferme, la mascotte reste, et rien n'est memorise.
+       --------------------------------------------------------------------- */
+    bulleX.addEventListener('click', function (e) {
+      e.stopPropagation();
+      root.classList.remove('ccm-parle');      // la bulle se referme
+      if (minuteurBulle) { clearTimeout(minuteurBulle); minuteurBulle = null; }
+      /* on ne memorise RIEN : elle revient au prochain chargement */
+    });
 
     /* le clic sur la bulle ne doit pas etre avale par le personnage */
     perso.querySelector('.ccm-bulle').addEventListener('click', function (e) { e.stopPropagation(); });
