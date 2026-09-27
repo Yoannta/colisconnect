@@ -35,13 +35,13 @@
         // Europe (Euro)
         "Allemagne": "EUR", "Andorre": "EUR", "Autriche": "EUR", "Belgique": "EUR", "Chypre": "EUR", "Croatie": "EUR", "Espagne": "EUR", "Estonie": "EUR", "Finlande": "EUR", "France": "EUR", "Grèce": "EUR", "Irlande": "EUR", "Italie": "EUR", "Lettonie": "EUR", "Lituanie": "EUR", "Luxembourg": "EUR", "Malte": "EUR", "Monaco": "EUR", "Monténégro": "EUR", "Pays-Bas": "EUR", "Portugal": "EUR", "Saint-Marin": "EUR", "Slovaquie": "EUR", "Slovénie": "EUR", "Vatican": "EUR",
         // Reste de l'Europe
-        "Albanie": "ALL", "Arménie": "AMD", "Azerbaà¯djan": "AZN", "Biélorussie": "BYN", "Bosnie-Herzégovine": "BAM", "Bulgarie": "BGN", "Danemark": "DKK", "Géorgie": "GEL", "Hongrie": "HUF", "Islande": "ISK", "Kazakhstan": "KZT", "Liechtenstein": "CHF", "Macédoine du Nord": "MKD", "Moldavie": "MDL", "Norvà¨ge": "NOK", "Pologne": "PLN", "Roumanie": "RON", "Royaume-Uni": "GBP", "Russie": "RUB", "Serbie": "RSD", "Suà¨de": "SEK", "Suisse": "CHF", "République tchà¨que": "CZK", "Turquie": "TRY", "Ukraine": "UAH",
+        "Albanie": "ALL", "Arménie": "AMD", "Azerbaïdjan": "AZN", "Biélorussie": "BYN", "Bosnie-Herzégovine": "BAM", "Bulgarie": "BGN", "Danemark": "DKK", "Géorgie": "GEL", "Hongrie": "HUF", "Islande": "ISK", "Kazakhstan": "KZT", "Liechtenstein": "CHF", "Macédoine du Nord": "MKD", "Moldavie": "MDL", "Norvège": "NOK", "Pologne": "PLN", "Roumanie": "RON", "Royaume-Uni": "GBP", "Russie": "RUB", "Serbie": "RSD", "Suède": "SEK", "Suisse": "CHF", "République tchèque": "CZK", "Turquie": "TRY", "Ukraine": "UAH",
         // Moyen-Orient
-        "Arabie Saoudite": "SAR", "Bahreà¯n": "BHD", "à‰mirats Arabes Unis": "AED", "Irak": "IQD", "Iran": "IRR", "Israà«l": "ILS", "Jordanie": "JOD", "Koweà¯t": "KWD", "Liban": "LBP", "Oman": "OMR", "Palestine": "ILS", "Qatar": "QAR", "Syrie": "SYP", "Yémen": "YER",
+        "Arabie Saoudite": "SAR", "Bahreïn": "BHD", "Émirats Arabes Unis": "AED", "Irak": "IQD", "Iran": "IRR", "Israël": "ILS", "Jordanie": "JOD", "Koweït": "KWD", "Liban": "LBP", "Oman": "OMR", "Palestine": "ILS", "Qatar": "QAR", "Syrie": "SYP", "Yémen": "YER",
         // Asie
         "Afghanistan": "AFN", "Bangladesh": "BDT", "Bhoutan": "BTN", "Birmanie": "MMK", "Brunei": "BND", "Cambodge": "KHR", "Chine": "CNY", "Chili": "CLP", "Corée du Nord": "KPW", "Corée du Sud": "KRW", "Hong Kong": "HKD", "Inde": "INR", "Indonésie": "IDR", "Japon": "JPY", "Kirghizistan": "KGS", "Laos": "LAK", "Macao": "MOP", "Malaisie": "MYR", "Maldives": "MVR", "Mongolie": "MNT", "Népal": "NPR", "Ouzbékistan": "UZS", "Pakistan": "PKR", "Philippines": "PHP", "Singapour": "SGD", "Sri Lanka": "LKR", "Tadjikistan": "TJS", "Taïwan": "TWD", "Thaïlande": "THB", "Timor oriental": "USD", "Turkménistan": "TMT", "Vietnam": "VND",
         // Amériques (Nord & Central)
-        "Bahamas": "BSD", "Barbade": "BBD", "Belize": "BZD", "Canada": "CAD", "Costa Rica": "CRC", "Cuba": "CUP", "Dominique": "XCD", "États-Unis": "USD", "Grenade": "XCD", "Guatemala": "GTQ", "Haïti": "HTG", "Honduras": "HNL", "Jamaà¯que": "JMD", "Mexique": "MXN", "Nicaragua": "NIO", "Panama": "USD", "République dominicaine": "DOP", "Saint-Kitts-et-Nevis": "XCD", "Sainte-Lucie": "XCD", "Saint-Vincent-et-les Grenadines": "XCD", "Salvador": "USD", "Trinité-et-Tobago": "TTD",
+        "Bahamas": "BSD", "Barbade": "BBD", "Belize": "BZD", "Canada": "CAD", "Costa Rica": "CRC", "Cuba": "CUP", "Dominique": "XCD", "États-Unis": "USD", "Grenade": "XCD", "Guatemala": "GTQ", "Haïti": "HTG", "Honduras": "HNL", "Jamaïque": "JMD", "Mexique": "MXN", "Nicaragua": "NIO", "Panama": "USD", "République dominicaine": "DOP", "Saint-Kitts-et-Nevis": "XCD", "Sainte-Lucie": "XCD", "Saint-Vincent-et-les Grenadines": "XCD", "Salvador": "USD", "Trinité-et-Tobago": "TTD",
         // Amérique du Sud
         "Argentine": "ARS", "Bolivie": "BOB", "Brésil": "BRL", "Chili": "CLP", "Colombie": "COP", "Équateur": "USD", "Guyana": "GYD", "Paraguay": "PYG", "Pérou": "PEN", "Suriname": "SRD", "Uruguay": "UYU", "Venezuela": "VES",
         // Océanie
@@ -59,13 +59,13 @@
         "Afrique du Sud": "+27", "Angola": "+244", "Botswana": "+267", "Burundi": "+257", "Cap-Vert": "+238", "Comores": "+269", "Djibouti": "+253", "Érythrée": "+291", "Éthiopie": "+251", "Gambie": "+220", "Ghana": "+233", "Guinée": "+224", "Kenya": "+254", "Lesotho": "+266", "Liberia": "+231", "Madagascar": "+261", "Malawi": "+265", "Maurice": "+230", "Mauritanie": "+222", "Mozambique": "+258", "Namibie": "+264", "Nigeria": "+234", "Ouganda": "+256", "Rwanda": "+250", "Sao Tomé-et-Principe": "+239", "Seychelles": "+248", "Sierra Leone": "+232", "Somalie": "+252", "Soudan": "+249", "Soudan du Sud": "+211", "Eswatini": "+268", "Tanzanie": "+255", "Zambie": "+260", "Zimbabwe": "+263", "République démocratique du Congo": "+243",
         // Europe
         "Allemagne": "+49", "Andorre": "+376", "Autriche": "+43", "Belgique": "+32", "Chypre": "+357", "Croatie": "+385", "Espagne": "+34", "Estonie": "+372", "Finlande": "+358", "France": "+33", "Grèce": "+30", "Irlande": "+353", "Italie": "+39", "Lettonie": "+371", "Lituanie": "+370", "Luxembourg": "+352", "Malte": "+356", "Monaco": "+377", "Monténégro": "+382", "Pays-Bas": "+31", "Portugal": "+351", "Saint-Marin": "+378", "Slovaquie": "+421", "Slovénie": "+386", "Vatican": "+379",
-        "Albanie": "+355", "Arménie": "+374", "Azerbaà¯djan": "+994", "Biélorussie": "+375", "Bosnie-Herzégovine": "+387", "Bulgarie": "+359", "Danemark": "+45", "Géorgie": "+995", "Hongrie": "+36", "Islande": "+354", "Kazakhstan": "+7", "Liechtenstein": "+423", "Macédoine du Nord": "+389", "Moldavie": "+373", "Norvà¨ge": "+47", "Pologne": "+48", "Roumanie": "+40", "Royaume-Uni": "+44", "Russie": "+7", "Serbie": "+381", "Suà¨de": "+46", "Suisse": "+41", "République tchà¨que": "+420", "Turquie": "+90", "Ukraine": "+380",
+        "Albanie": "+355", "Arménie": "+374", "Azerbaïdjan": "+994", "Biélorussie": "+375", "Bosnie-Herzégovine": "+387", "Bulgarie": "+359", "Danemark": "+45", "Géorgie": "+995", "Hongrie": "+36", "Islande": "+354", "Kazakhstan": "+7", "Liechtenstein": "+423", "Macédoine du Nord": "+389", "Moldavie": "+373", "Norvège": "+47", "Pologne": "+48", "Roumanie": "+40", "Royaume-Uni": "+44", "Russie": "+7", "Serbie": "+381", "Suède": "+46", "Suisse": "+41", "République tchèque": "+420", "Turquie": "+90", "Ukraine": "+380",
         // Moyen-Orient
-        "Arabie Saoudite": "+966", "Bahreà¯n": "+973", "à‰mirats Arabes Unis": "+971", "Irak": "+964", "Iran": "+98", "Israà«l": "+972", "Jordanie": "+962", "Koweà¯t": "+965", "Liban": "+961", "Oman": "+968", "Palestine": "+970", "Qatar": "+974", "Syrie": "+963", "Yémen": "+967",
+        "Arabie Saoudite": "+966", "Bahreïn": "+973", "Émirats Arabes Unis": "+971", "Irak": "+964", "Iran": "+98", "Israël": "+972", "Jordanie": "+962", "Koweït": "+965", "Liban": "+961", "Oman": "+968", "Palestine": "+970", "Qatar": "+974", "Syrie": "+963", "Yémen": "+967",
         // Asie
         "Afghanistan": "+93", "Bangladesh": "+880", "Bhoutan": "+975", "Birmanie": "+95", "Brunei": "+673", "Cambodge": "+855", "Chine": "+86", "Corée du Nord": "+850", "Corée du Sud": "+82", "Hong Kong": "+852", "Inde": "+91", "Indonésie": "+62", "Japon": "+81", "Kirghizistan": "+996", "Laos": "+856", "Macao": "+853", "Malaisie": "+60", "Maldives": "+960", "Mongolie": "+976", "Népal": "+977", "Ouzbékistan": "+998", "Pakistan": "+92", "Philippines": "+63", "Singapour": "+65", "Sri Lanka": "+94", "Tadjikistan": "+992", "Taïwan": "+886", "Thaïlande": "+66", "Timor oriental": "+670", "Turkménistan": "+993", "Vietnam": "+84",
         // Amériques
-        "Bahamas": "+1-242", "Barbade": "+1-246", "Belize": "+501", "Canada": "+1", "Costa Rica": "+506", "Cuba": "+53", "Dominique": "+1-767", "États-Unis": "+1", "Grenade": "+1-473", "Guatemala": "+502", "Haïti": "+509", "Honduras": "+504", "Jamaà¯que": "+1-876", "Mexique": "+52", "Nicaragua": "+505", "Panama": "+507", "République dominicaine": "+1-809", "Saint-Kitts-et-Nevis": "+1-869", "Sainte-Lucie": "+1-758", "Saint-Vincent-et-les Grenadines": "+1-784", "Salvador": "+503", "Trinité-et-Tobago": "+1-868",
+        "Bahamas": "+1-242", "Barbade": "+1-246", "Belize": "+501", "Canada": "+1", "Costa Rica": "+506", "Cuba": "+53", "Dominique": "+1-767", "États-Unis": "+1", "Grenade": "+1-473", "Guatemala": "+502", "Haïti": "+509", "Honduras": "+504", "Jamaïque": "+1-876", "Mexique": "+52", "Nicaragua": "+505", "Panama": "+507", "République dominicaine": "+1-809", "Saint-Kitts-et-Nevis": "+1-869", "Sainte-Lucie": "+1-758", "Saint-Vincent-et-les Grenadines": "+1-784", "Salvador": "+503", "Trinité-et-Tobago": "+1-868",
         "Argentine": "+54", "Bolivie": "+591", "Brésil": "+55", "Chili": "+56", "Colombie": "+57", "Équateur": "+593", "Guyana": "+592", "Paraguay": "+595", "Pérou": "+51", "Suriname": "+597", "Uruguay": "+598", "Venezuela": "+58",
         // Océanie
         "Australie": "+61", "Fidji": "+679", "Kiribati": "+686", "Nauru": "+674", "Nouvelle-Zélande": "+64", "Palaos": "+680", "Papouasie-Nouvelle-Guinée": "+675", "Salomon": "+677", "Samoa": "+685", "Tonga": "+676", "Tuvalu": "+688", "Vanuatu": "+678"
@@ -93,7 +93,7 @@
             "auth_login": "Login",
             "auth_logout": "Quitter",
             "hero_kicker": "Plateforme de confiance",
-            "hero_title": "Trouvez des expéditeurs sà»rs pour vos colis en moins de 10 secondes.",
+            "hero_title": "Trouvez des expéditeurs sûrs pour vos colis en moins de 10 secondes.",
             "hero_p": "Connectez-vous avec des voyageurs certifiés pour un transport de colis fluide, sécurisé et ultra-rapide entre particuliers.",
             "hero_btn_find": "Trouver un voyageur",
             "hero_btn_post": "Proposer mes kilos",
@@ -102,15 +102,15 @@
             "est_origin": "Pays de départ",
             "est_dest": "Pays d'arrivée",
             "est_kg": "Poids (kg)",
-            "est_submit": "Estimer ðŸš€",
+            "est_submit": "Estimer 🚀",
             "panel_search_h2": "Rechercher un transporteur",
             "panel_search_p": "Trouvez les voyageurs actifs par destination, prix et kilos disponibles.",
-            "panel_search_btn": "Aller à  la recherche",
+            "panel_search_btn": "Aller à la recherche",
             "panel_post_h2": "Proposer votre trajet",
             "panel_post_p": "Publiez votre trajet avec vos kilos libres. Votre offre devient visible en recherche.",
             "panel_post_btn": "Publier une offre",
             "panel_chat_h2": "Discuter et confirmer",
-            "panel_chat_p": "La messagerie se débloque dà¨s qu'une réservation est créée.",
+            "panel_chat_p": "La messagerie se débloque dès qu'une réservation est créée.",
             "panel_chat_btn": "Ouvrir les messages",
             "profile_title": "Profil",
             "lang_toggle_target": "EN"
@@ -134,7 +134,7 @@
             "est_origin": "Departure country",
             "est_dest": "Arrival country",
             "est_kg": "Weight (kg)",
-            "est_submit": "Estimate ðŸš€",
+            "est_submit": "Estimate 🚀",
             "panel_search_h2": "Search for a carrier",
             "panel_search_p": "Find active travelers by destination, price, and available weight.",
             "panel_search_btn": "Go to search",
@@ -939,7 +939,7 @@
                     const { data: offer } = await window.ccSupabase.from('offers').select('user_id').eq('id', offerId).single();
                     if (!offer) throw new Error("Offre introuvable");
 
-                    // Vérifier si un thread existe déjà 
+                    // Vérifier si un thread existe déjà
                     let { data: thread } = await window.ccSupabase.from('chat_threads').select('*').eq('offer_id', offerId).eq('user_id', state.user?.id).maybeSingle();
 
                     if (!thread) {
@@ -1271,7 +1271,7 @@
             if (!response.ok) {
                 let msg = data?.error || data?.message || `HTTP ${response.status}`;
                 if (typeof msg === 'string' && msg.includes('<!DOCTYPE html>')) {
-                    msg = `Erreur Serveur (404/500). Le backend est peut-àªtre hors ligne.`;
+                    msg = `Erreur Serveur (404/500). Le backend est peut-être hors ligne.`;
                 }
                 const error = new Error(msg);
                 error.status = response.status;
@@ -1310,7 +1310,7 @@
         if (!user) return { percent: 0, missingFields: ["email"] };
 
         // Debug pour voir ce que le script voit réellement
-        console.log("ðŸ” Vérification profil pour:", user.email, "Pays actuel:", user.country);
+        console.log("🔍 Vérification profil pour:", user.email, "Pays actuel:", user.country);
 
         const fields = ["email", "fullName", "phoneNumber", "identityDocument", "profilePhoto", "country"];
         const completion = user?.profileCompletion;
@@ -1329,7 +1329,7 @@
         const hasFullName = Boolean(user?.fullName || user?.full_name || user?.user_metadata?.full_name);
         const hasPhone = String(user?.phoneNumber || user?.phone || "").trim().length >= 8;
         const hasIdentityDocument = Boolean(user?.hasIdentityDocument || user?.identity_document);
-        // [FIX] On vérifie aussi le champ metadata au cas oà¹
+        // [FIX] On vérifie aussi le champ metadata au cas où
         const userCountry = user?.country || user?.user_metadata?.country || user?.location;
         const hasCountry = Boolean(userCountry);
         const hasPaymentQrCode = Boolean(user?.hasPaymentQrCode || user?.alipay_qr || user?.wechat_qr);
@@ -1543,7 +1543,7 @@
             return;
         }
         if (completion.percent >= 75) {
-            ui.profileMessage.textContent = "Votre dossier est en attente d'analyse (5-10 min). Vérifiez vos messages pour la validation. Vous pouvez aussi mettre à  jour vos pià¨ces.";
+            ui.profileMessage.textContent = "Votre dossier est en attente d'analyse (5-10 min). Vérifiez vos messages pour la validation. Vous pouvez aussi mettre à jour vos pièces.";
             return;
         }
         ui.profileMessage.textContent = `Profil a ${completion.percent}%. Pour ${actionLabel}, ajoutez: ${missingText}.`;
@@ -1755,7 +1755,7 @@
         <!-- STEP 1: AUTH HUB (PHONE FIRST) -->
         <section id="cc-auth-hub-panel" class="modal-panel">
             <div class="auth-hub-header">
-                <h2 id="cc-auth-title" class="auth-hub-title">Bienvenue à  nouveau</h2>
+                <h2 id="cc-auth-title" class="auth-hub-title">Bienvenue à nouveau</h2>
             </div>
 
             <!-- PRIMARY ENTRY (PHONE BY DEFAULT) -->
@@ -1784,7 +1784,7 @@
             <button id="cc-auth-continue-main" class="btn primary" style="width:100%; padding: 16px; border-radius: 30px; background: black; color: white; margin-top: 2rem; font-size: 1.1rem; font-weight: 700;">Continuer</button>
 
             <div class="auth-footer-links" style="margin-top: 1.5rem;">
-                <p id="cc-auth-switch-text" style="color: #333; font-weight: 500;">Vous nâ€™avez pas encore de compte ?</p>
+                <p id="cc-auth-switch-text" style="color: #333; font-weight: 500;">Vous n’avez pas encore de compte ?</p>
                 <a href="#" id="cc-auth-switch-btn" style="color: #4c82ff; font-weight: 600; font-size: 1rem;">Inscrivez-vous</a>
             </div>
 
@@ -1827,7 +1827,7 @@
                     <label>Nom complet<input type="text" name="fullName" class="auth-input" placeholder="Jean Dupont"></label>
                 </div>
 
-                <label>Mot de passe<input type="password" name="password" class="auth-input" minlength="8" required placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"></label>
+                <label>Mot de passe<input type="password" name="password" class="auth-input" minlength="8" required placeholder="••••••••"></label>
                 
                 <div id="cc-register-only-fields-2" class="hidden">
                     <label>Pays de résidence<input type="text" name="country" list="cc-country-datalist" class="auth-input" placeholder="Ex: France"></label>
@@ -1927,14 +1927,14 @@
             const detailsTitle = document.getElementById("cc-auth-details-title");
 
             if (mode === "login") {
-                title.textContent = "Bienvenue à  nouveau";
-                switchText.textContent = "Vous nâ€™avez pas encore de compte ?";
+                title.textContent = "Bienvenue à nouveau";
+                switchText.textContent = "Vous n’avez pas encore de compte ?";
                 switchBtn.textContent = "Inscrivez-vous";
                 detailsTitle.textContent = "Connectez-vous";
                 document.querySelectorAll("#cc-register-only-fields, #cc-register-only-fields-2").forEach(el => el.classList.add("hidden"));
             } else {
                 title.textContent = "Créer un compte";
-                switchText.textContent = "Vous avez déjà  un compte ?";
+                switchText.textContent = "Vous avez déjà un compte ?";
                 switchBtn.textContent = "Connexion";
                 detailsTitle.textContent = "Finalisez votre inscription";
                 document.querySelectorAll("#cc-register-only-fields, #cc-register-only-fields-2").forEach(el => el.classList.remove("hidden"));
@@ -2299,7 +2299,7 @@
         }
     }
 
-    // â”€â”€ Notification Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Notification Badges ────────────────────────────────────────────
     let _notifPollingTimer = null;
 
     function _applyBadgeToLink(link, chatCount, adminCount) {
@@ -2349,7 +2349,7 @@
             mobileLinks.forEach(link => _applyBadgeToLink(link, chat, admin));
 
         } catch {
-            // Silently ignore â€“ don't disrupt the UI if the call fails
+            // Silently ignore – don't disrupt the UI if the call fails
         }
     }
 
@@ -2505,6 +2505,23 @@
     // Cache pour la correspondance pays → code (requête Supabase légère)
     let _countryCodeMap = null;
 
+    // Cache : ce pays possède-t-il des villes en base ?
+    // Sert à NE PAS effacer la ville saisie quand la base ne contient aucune
+    // ville pour ce pays (ex : Islande, Luxembourg) : on ne peut pas vérifier,
+    // donc on ne refuse pas.
+    const _paysAvecVilles = {};
+
+    async function _paysPossedeVilles(code) {
+        if (!code || !window.ccSupabase) return false;
+        if (_paysAvecVilles[code] !== undefined) return _paysAvecVilles[code];
+        try {
+            const { count } = await window.ccSupabase.from('cities')
+                .select('name', { count: 'exact', head: true }).eq('country_code', code);
+            _paysAvecVilles[code] = (count || 0) > 0;
+        } catch { _paysAvecVilles[code] = false; }
+        return _paysAvecVilles[code];
+    }
+
     async function _getCountryCode(paysName) {
         if (!_countryCodeMap) _countryCodeMap = {};
         if (!paysName) return null;
@@ -2560,26 +2577,100 @@
 
         let _lastQuery = "";
 
+        // --- Recherche de villes TOLERANTE AUX ACCENTS (bug Yoyo 2026-09) ---
+        // Avant : on retirait les accents du texte saisi PUIS on l'envoyait a la base
+        // en ILIKE. Resultat : « Sétif » etait introuvable, que le client tape
+        // « setif » ou « Sétif » (19 % des villes francaises ont un accent).
+        // Maintenant : on construit un motif tolerant ("setif" -> "s[eéèêë]t[iíìîï]f")
+        // et on interroge la base avec imatch (regex insensible a la casse).
+        const CLASSES_ACCENTS = {
+            a: "aàáâäãå", c: "cç", e: "eéèêë", i: "iíìîï",
+            n: "nñ", o: "oóòôöõ", u: "uùúûü", y: "yýÿ"
+        };
+
+        function motifTolerant(texte) {
+            const base = String(texte || "").toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            if (!base) return "";
+            let out = "";
+            for (const ch of base) {
+                if (CLASSES_ACCENTS[ch]) {
+                    out += "[" + CLASSES_ACCENTS[ch] + "]";
+                } else if ("\\^$.|?*+()[]{}".includes(ch)) {
+                    out += "\\" + ch;          // caractere special regex : echappe
+                } else {
+                    out += ch;
+                }
+            }
+            return out;
+        }
+
         async function rechercherVilles(pays, texte) {
             if (!pays || !texte || !window.ccSupabase) return [];
-            const t = texte.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            const t = normaliserVille(texte);
             if (!t) return [];
             const code = await _getCountryCode(pays);
             if (!code) return [];
-            const { data } = await window.ccSupabase
-                .from('cities').select('name').eq('country_code', code)
-                .ilike('name', `%${t}%`).limit(10);
-            return (data || []).map(r => r.name);
+            const motif = motifTolerant(texte) || t;
+            const brut = String(texte).trim().replace(/[%,()]/g, "");
+
+            // Un seul point d'entree pour les requetes : imatch (regex, insensible aux
+            // accents) puis repli automatique sur ilike si la librairie/le serveur
+            // ne connait pas ce filtre.
+            const lancer = async (filtre, debut) => {
+                try {
+                    const r = await window.ccSupabase.from('cities').select('name')
+                        .eq('country_code', code).filter('name', 'imatch', filtre).limit(20);
+                    if (!r.error && r.data) return r.data;
+                } catch (e) { /* filtre imatch indisponible */ }
+                try {
+                    const r2 = await window.ccSupabase.from('cities').select('name')
+                        .eq('country_code', code).ilike('name', debut ? `${brut}%` : `%${brut}%`).limit(20);
+                    return (r2 && r2.data) || [];
+                } catch (e) { return []; }
+            };
+
+            // 1) les villes qui COMMENCENT par la saisie (les plus pertinentes)
+            // 2) celles qui la contiennent simplement (ex : « Mar » -> Aimargues)
+            //    Le « ^ » est indispensable : sans lui, la recherche Postgres trouve le
+            //    motif n'importe ou dans le nom.
+            const resultats = await Promise.all([lancer(`^${motif}`, true), lancer(`.*${motif}.*`, false)]);
+
+            const noms = [];
+            const vus = {};
+            resultats.forEach(liste => {
+                (liste || []).forEach(ligne => {
+                    if (ligne && ligne.name && !vus[ligne.name]) {
+                        vus[ligne.name] = 1;
+                        noms.push(ligne.name);
+                    }
+                });
+            });
+
+            // Tri par pertinence : d'abord les villes qui COMMENCENT par la saisie,
+            // puis les plus courtes, puis l'alphabet.
+            // (Avant : ordre aleatoire de la base -> pour « Mar » la 1re proposition
+            //  etait « Aimargues », pas Marseille.)
+            return noms.sort((a, b) => {
+                const na = normaliserVille(a), nb = normaliserVille(b);
+                const pa = na.startsWith(t) ? 0 : 1, pb = nb.startsWith(t) ? 0 : 1;
+                if (pa !== pb) return pa - pb;
+                if (na.length !== nb.length) return na.length - nb.length;
+                return na.localeCompare(nb, "fr");
+            });
         }
 
         function showVilles(villes) {
             list.innerHTML = "";
             if (!villes.length) { list.style.display = "none"; return; }
-            villes.forEach(v => {
+            villes.slice(0, 12).forEach(v => {
                 const li = document.createElement("li");
                 li.textContent = v;
                 li.addEventListener("click", () => {
                     cityInput.value = v;
+                    cityInput.classList.remove("cc-country-invalid");
+                    cityInput.removeAttribute("title");
+                    _lastQuery = "";
                     list.style.display = "none";
                 });
                 list.appendChild(li);
@@ -2587,14 +2678,22 @@
             list.style.display = "block";
         }
 
-        cityInput.addEventListener("input", async () => {
+        let _minuteurVille = null;
+        cityInput.addEventListener("input", () => {
             const pays = countryInput.value.trim();
             const texte = cityInput.value;
             const key = pays + "|" + texte;
             if (key === _lastQuery) return;
             _lastQuery = key;
-            const villes = await rechercherVilles(pays, texte);
-            showVilles(villes);
+            // Petite attente avant d'interroger la base : evite une requete par touche
+            // et evite qu'une reponse tardive revienne apres une saisie plus recente.
+            if (_minuteurVille) clearTimeout(_minuteurVille);
+            _minuteurVille = setTimeout(async () => {
+                const villes = await rechercherVilles(pays, texte);
+                if (_lastQuery !== key) return;              // une saisie plus recente existe
+                if (cityInput.value !== texte) return;       // le champ a change entre-temps
+                showVilles(villes);
+            }, 250);
         });
 
         // Changement de PAYS -> la ville saisie appartenait a l'ancien pays : on la vide.
@@ -2625,20 +2724,43 @@
             const val = cityInput.value.trim();
             if (!val) {
                 cityInput.classList.remove("cc-country-invalid");
+                cityInput.removeAttribute("title");
                 return;
             }
             const pays = countryInput.value.trim();
             const suggestions = await rechercherVilles(pays, val);
+            // Si le champ a change pendant la requete (clic sur une suggestion entre-temps),
+            // on ne touche a rien : c'est CE cas qui effacait la ville que le client
+            // venait de choisir dans la liste.
+            if (cityInput.value.trim() !== val) return;
             const cible = normaliserVille(val);
             const exact = suggestions.find(v => normaliserVille(v) === cible);
             if (exact) {
                 cityInput.value = exact;                 // on remet l'orthographe officielle
                 cityInput.classList.remove("cc-country-invalid");
-            } else {
-                cityInput.value = "";                    // saisie libre refusee
-                cityInput.classList.add("cc-country-invalid");
+                cityInput.removeAttribute("title");
+                return;
             }
+            // Pays sans aucune ville en base (Islande, Luxembourg...) ou base injoignable :
+            // on ne peut pas verifier -> on ne refuse pas la saisie.
+            const code = await _getCountryCode(pays);
+            const connues = await _paysPossedeVilles(code);
+            if (cityInput.value.trim() !== val) return;
+            if (!connues) {
+                cityInput.classList.remove("cc-country-invalid");
+                cityInput.removeAttribute("title");
+                return;
+            }
+            cityInput.value = "";                    // saisie libre refusee
+            cityInput.classList.add("cc-country-invalid");
+            cityInput.title = "Ville inconnue pour " + (pays || "ce pays") +
+                " : choisissez une ville dans la liste.";
         }
+
+        // Un clic sur une suggestion ne doit pas retirer le focus au champ : sinon le
+        // navigateur declenche le blur, la validation part avec le texte PARTIEL et
+        // efface la ville selectionnee (bug « je clique et ca se supprime »).
+        list.addEventListener("mousedown", (e) => { e.preventDefault(); });
 
         cityInput.addEventListener("blur", () => {
             setTimeout(() => { list.style.display = "none"; }, 200);
@@ -2781,6 +2903,10 @@
         const list = document.createElement("ul");
         list.className = "cc-suggestions-list";
         ctn.appendChild(list);
+
+        // Un clic sur une suggestion ne doit pas retirer le focus au champ : sinon le
+        // blur valide le texte PARTIEL (« Belg ») et signale une erreur pour rien.
+        list.addEventListener("mousedown", (e) => { e.preventDefault(); });
 
         // Insérer le container dans le DOM
         if (sibling) {

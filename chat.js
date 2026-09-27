@@ -255,7 +255,7 @@
 
     function getReceiptTripParts(thread) {
         const rawTitle = String(thread?.offerTitle || thread?.title || "France -> Destination");
-        const parts = rawTitle.split(/\s*(?:→|â†’|->| - | to )\s*/i);
+        const parts = rawTitle.split(/\s*(?:→|->| - | to )\s*/i);
         return {
             from: (parts[0] || "France").trim(),
             to: (parts[1] || "Destination").trim()
