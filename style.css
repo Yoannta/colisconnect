@@ -13974,6 +13974,7 @@ body.chat-page.light .chat-info-banner {
     color: #6d6252;
 }
 body.chat-page.light .chat-info-banner .banner-text strong { color: #a9760a; }
+body.chat-page.light .chat-info-banner .banner-text { color: #000000; }
 body.chat-page.light .chat-info-banner.tutorial-focus {
     background: rgba(184, 134, 11, 0.14) !important;
     border: 1px solid #b8860b;
