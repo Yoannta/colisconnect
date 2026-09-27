@@ -667,6 +667,50 @@
     // les clics arrives trop tard.
     let submitting = false;
 
+    // Verifie les villes de depart et d'arrivee aupres de la base, juste avant l'envoi.
+    // Renvoie false (en prevenant l'utilisateur) si une ville est vide ou inconnue du pays
+    // choisi ; sinon remet l'orthographe officielle dans les champs. Si la base est
+    // injoignable, on ne bloque pas la publication (on ne peut pas verifier).
+    async function verifierVillesAnnonce() {
+        const controles = [
+            { champPays: els.departure, champVille: els.cityDeparture, libelle: "de depart" },
+            { champPays: els.destination, champVille: els.cityDestination, libelle: "d'arrivee" }
+        ];
+        for (const c of controles) {
+            const pays = String(c.champPays?.value || "").trim();
+            const valeur = String(c.champVille?.value || "").trim();
+            const refuser = (message) => {
+                alert(message);
+                if (c.champVille) {
+                    c.champVille.value = "";
+                    c.champVille.classList.add("cc-country-invalid");
+                    c.champVille.title = message;
+                    c.champVille.focus();
+                }
+                return false;
+            };
+            if (!valeur) {
+                return refuser("Indiquez la ville " + c.libelle + " en la choisissant dans la liste.");
+            }
+            // Module commun ancien (encore en cache) : on ne bloque pas la publication.
+            if (!window.CCCommon?.verifierVilleAnnonce) continue;
+            let r = null;
+            try {
+                r = await window.CCCommon.verifierVilleAnnonce(pays, valeur);
+            } catch (e) {
+                console.warn("Verification de ville indisponible:", e);
+                continue;   // base injoignable : on ne bloque pas
+            }
+            if (r && r.ok) {
+                if (r.ville && c.champVille.value !== r.ville) c.champVille.value = r.ville;
+                continue;
+            }
+            return refuser((r && r.message) ||
+                ("Ville inconnue pour " + (pays || "ce pays") + " : choisissez une ville dans la liste."));
+        }
+        return true;
+    }
+
     async function submitTrip(event) {
         event.preventDefault();
 
@@ -712,7 +756,10 @@
             return;
         }
 
-        // Soumettre directement (les champs sont visibles)
+        // Soumettre directement (les champs sont visibles).
+        // Le verrou ville/pays est applique dans proceedSubmitTrip() : c'est le SEUL
+        // point d'envoi (le bouton du formulaire comme la modale de type de profil
+        // passent par la), donc aucun chemin ne peut le contourner.
         await proceedSubmitTrip();
         } finally {
             // Reautorisation apres un court delai : absorbe les clics arrives
@@ -736,6 +783,12 @@
             console.warn("Publication deja en cours — envoi ignore.");
             return;
         }
+        // Verrou ville AVANT tout envoi : le controle du champ se declenche a la sortie
+        // du champ (et fait un aller-retour reseau), donc taper une faute puis appuyer sur
+        // Entree / « Publier » enregistrait la faute — ou une ville videe — avant que le
+        // controle ait eu le temps de finir. Place ici, au point d'envoi unique : le
+        // bouton du formulaire ET la modale de type de profil sont couverts.
+        if (!(await verifierVillesAnnonce())) return;
         publishing = true;
         // Anti-doublon : meme annonce renvoyee coup sur coup (typiquement apres une
         // erreur reseau alors que l'envoi avait en fait abouti) -> confirmation.

@@ -2555,6 +2555,80 @@
         } catch { return null; }
     }
 
+    // ── Verification des VILLES au moment de PUBLIER / MODIFIER une annonce ──────
+    // Le pays etait deja reverifie a l'envoi ; la ville ne l'etait pas. Or le
+    // controle du champ ne suffit pas : il se declenche quand on quitte le champ et
+    // fait un aller-retour reseau. Taper une faute puis appuyer sur Entree (ou sur
+    // « Publier ») enregistrait donc la faute, car l'envoi partait avant la fin du
+    // controle. Cette fonction applique la MEME regle que le formulaire, au moment
+    // de l'envoi : la ville doit exister pour le pays choisi (accents et casse
+    // ignores) et est alors reecrite avec l'orthographe officielle.
+    const _ACCENTS_VILLE = {
+        a: "aàáâäãå", c: "cç", e: "eéèêë", i: "iíìîï",
+        n: "nñ", o: "oóòôöõ", u: "uùúûü", y: "yýÿ"
+    };
+
+    function _ccNormaliserVille(t) {
+        return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    }
+
+    function _ccMotifVille(texte) {
+        const base = _ccNormaliserVille(texte);
+        if (!base) return "";
+        let out = "";
+        for (const ch of base) {
+            if (_ACCENTS_VILLE[ch]) out += "[" + _ACCENTS_VILLE[ch] + "]";
+            else if ("\\^$.|?*+()[]{}".includes(ch)) out += "\\" + ch;
+            else out += ch;
+        }
+        return out;
+    }
+
+    // Villes du pays correspondant a la saisie (recherche tolerante aux accents).
+    // Renvoie null si la base n'a pas pu etre interrogee (reseau) -> on ne bloque pas.
+    async function _ccChercherVilles(code, texte) {
+        const motif = _ccMotifVille(texte) || _ccNormaliserVille(texte);
+        const brut = String(texte).trim().replace(/[%,()]/g, "");
+        try {
+            const r = await window.ccSupabase.from('cities').select('name')
+                .eq('country_code', code).filter('name', 'imatch', `.*${motif}.*`).limit(30);
+            if (!r.error && r.data) return r.data.map(x => x && x.name).filter(Boolean);
+        } catch (e) { /* filtre imatch indisponible */ }
+        try {
+            const r2 = await window.ccSupabase.from('cities').select('name')
+                .eq('country_code', code).ilike('name', `%${brut}%`).limit(30);
+            if (r2 && !r2.error && r2.data) return r2.data.map(x => x && x.name).filter(Boolean);
+        } catch (e) { /* base injoignable */ }
+        return null;
+    }
+
+    /**
+     * Controle d'une ville avant l'envoi d'une annonce.
+     * @returns {Promise<{ok:boolean, ville:string, message?:string}>}
+     */
+    async function verifierVilleAnnonce(pays, ville) {
+        const brut = String(ville || "").trim();
+        if (!brut) {
+            return { ok: false, ville: "", message: "Indiquez la ville en la choisissant dans la liste." };
+        }
+        if (!window.ccSupabase) return { ok: true, ville: brut };
+        const code = await _getCountryCode(pays);
+        if (!code) return { ok: true, ville: brut };    // pays inconnu de la base : rien a verifier
+        const liste = await _ccChercherVilles(code, brut);
+        if (liste === null) return { ok: true, ville: brut };   // base injoignable : on ne bloque pas
+        const cible = _ccNormaliserVille(brut);
+        const exact = liste.find(v => _ccNormaliserVille(v) === cible);
+        if (exact) return { ok: true, ville: exact };   // orthographe officielle retablie
+        const connues = await _paysPossedeVilles(code);
+        if (!connues) return { ok: true, ville: brut }; // pays sans villes en base : saisie acceptee
+        return {
+            ok: false,
+            ville: "",
+            message: "Ville inconnue pour " + (pays || "ce pays") +
+                " : choisissez une ville dans la liste."
+        };
+    }
+
     /**
      * Autocomplete ville lié au pays — requête Supabase légère.
      * Seules les villes du pays sélectionné sont chargées.
@@ -3200,6 +3274,8 @@
         // Location fields generator (pays + ville)
         initLocationFields,
         addCityAfterCountry,
+        // Verification ville AVANT l'envoi d'une annonce (meme regle que le pays)
+        verifierVilleAnnonce,
         // Diagnostic
         _getCountryCode
     };
