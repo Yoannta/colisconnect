@@ -39,6 +39,26 @@ const DEEPSEEK_TIMEOUT_MS = 15_000; // timeout AbortController sur l'appel DeepS
 const RATE_LIMIT_MAX = 20;                     // 20 requêtes…
 const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;   // …par fenêtre glissante de 10 min, par IP
 
+// --- Garde-fou d'origine -----------------------------------------------
+// Seul le site ColisConnect (et l'atelier local) peut appeler cet assistant.
+// Un appel venu d'ailleurs (script, curl, autre site) est refusé en 403 : la
+// clé DeepSeek n'est plus consommable par des inconnus.
+const ALLOWED_ORIGINS = new Set([
+  "https://yoannta.github.io",
+  "https://colisconnects.com",
+  "https://www.colisconnects.com",
+  "https://colisconnect.com",
+  "https://www.colisconnect.com",
+]);
+
+// --- Plafond journalier global -----------------------------------------
+// Borne dure sur la facture : même si des adresses IP défilent, on ne dépasse
+// jamais DAILY_MAX_CALLS appels DeepSeek par jour. Au-delà, la mascotte répond
+// un message de pause (aucun appel facturé).
+const DAILY_MAX_CALLS = 500;
+const QUOTA_PAUSE_MESSAGE =
+  "Je fais une petite pause pour aujourd'hui ! Reviens demain et je répondrai à toutes tes questions.";
+
 const DEEPSEEK_URL = "https://api.deepseek.com/chat/completions";
 const DEEPSEEK_MODEL = "deepseek-chat";
 
@@ -136,6 +156,54 @@ function isRateLimited(ip: string): boolean {
     }
   }
   return false;
+}
+
+/** Origine autorisée ? Navigateur du site, atelier local, page ouverte en
+ *  fichier local (Origin: null). Un appel sans Origin n'est accepté que si le
+ *  Referer vient du site. */
+function isAllowedOrigin(req: Request): boolean {
+  const origin = (req.headers.get("origin") ?? "").trim();
+
+  if (origin === "null") return true;
+  if (ALLOWED_ORIGINS.has(origin)) return true;
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) return true;
+  if (origin) return false;
+
+  const referer = (req.headers.get("referer") ?? "").trim();
+  if (!referer) return false;
+  try {
+    const u = new URL(referer);
+    return ALLOWED_ORIGINS.has(u.origin) || /^(localhost|127\.0\.0\.1)$/i.test(u.hostname);
+  } catch {
+    return false;
+  }
+}
+
+/** Plafond journalier global, compté dans la base (RPC chat_quota_take).
+ *  FAIL-OPEN : si la base ne répond pas, on laisse passer — la mascotte ne doit
+ *  jamais se taire à cause d'un incident d'infrastructure. */
+async function underDailyCap(): Promise<boolean> {
+  const url = Deno.env.get("SUPABASE_URL");
+  const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!url || !key) return true;
+
+  try {
+    const res = await fetch(`${url}/rest/v1/rpc/chat_quota_take`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+      },
+      body: JSON.stringify({ p_max: DAILY_MAX_CALLS }),
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return true;
+    const allowed = await res.json();
+    return allowed !== false;
+  } catch {
+    return true;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -317,6 +385,16 @@ Deno.serve(async (req) => {
       { error: "Trop de requêtes. Merci de patienter quelques minutes avant de réessayer." },
       429,
     );
+  }
+
+  // 2 bis. Garde-fou d'origine : seul le site peut appeler cet assistant.
+  if (!isAllowedOrigin(req)) {
+    return jsonResponse({ error: "Origine non autorisée." }, 403);
+  }
+
+  // 2 ter. Plafond journalier global (anti-abus / anti-facture).
+  if (!(await underDailyCap())) {
+    return jsonResponse({ type: "chat", message: QUOTA_PAUSE_MESSAGE }, 429);
   }
 
   // 3. Lecture + validation du corps de requête.
