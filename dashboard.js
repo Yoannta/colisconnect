@@ -207,7 +207,31 @@
             els.activeOfferBadge.textContent = status === "active" ? "Publiée" : status;
         }
 
-        els.activeOfferCard.innerHTML = `
+        // ---- Carte d'offre : EXACTEMENT celle de la page des offres ----
+        // Module partagé offer-card.js. Le conteneur .cards-list est requis
+        // par les règles CSS « .cards-list .cc3-card ... » de style.css.
+        const cardHtml = (window.CCOfferCard && typeof window.CCOfferCard.html === "function")
+            ? window.CCOfferCard.html(offer, {
+                userCurrency: getUserCurrency(),
+                currentUserId: window.CCCommon?.state?.user?.id,
+                own: true,
+                ownerNameFallback: window.CCCommon?.state?.user?.fullName
+                    || window.CCCommon?.state?.user?.full_name
+                    || "Voyageur",
+                ownerPhotoFallback: window.CCCommon?.state?.user?.avatar || "",
+                ownerVerifiedFallback: Boolean(window.CCCommon?.state?.user?.is_verified),
+                editAttrName: "data-edit-offer",
+                deleteAttrName: "data-delete-offer",
+                editLabel: "Modifier mon trajet",
+                deleteLabel: "Supprimer mon trajet"
+            })
+            : "";
+
+        if (cardHtml) {
+            els.activeOfferCard.innerHTML = `<div class="cards-list">${cardHtml}</div>`;
+        } else {
+            // Repli (si offer-card.js n'est pas chargé) : ancien bloc « trajet ».
+            els.activeOfferCard.innerHTML = `
             <div class="traveler-route-visual">
                 <img class="traveler-route-image" src="assets/card-image-version/traveler-route-gold.webp" width="1600" height="440" alt="Illustration du trajet : point de départ, colis transporté en avion, point d'arrivée" decoding="async">
             </div>
@@ -230,6 +254,7 @@
                     <button class="btn secondary btn-xs btn-danger" data-delete-offer="${window.CCCommon.escapeHtml(offer.id)}">Supprimer</button>
                 </div>
             </div>`;
+        }
 
         if (els.quickSummaryText) {
             if (els.quickSummaryText) els.quickSummaryText.textContent = `${getRouteLabel(offer)} | ${formatDateLong(offer.departureDate || offer.departure_date)} | ${remainingKg} kg restants`;
