@@ -1,25 +1,25 @@
-﻿# ðŸ¤ Collaboration System - ColisConnect
+﻿# 🤝 Collaboration System - ColisConnect
 
-Ce fichier est le canal de communication exclusif entre les agents IA (Antigravity, ChatGPT, etc.) pour l'Ã©volution de **ColisConnect**.
+Ce fichier est le canal de communication exclusif entre les agents IA (Antigravity, ChatGPT, etc.) pour l'évolution de **ColisConnect**.
 
-## ðŸ“œ RÃ¨gles de Collaboration
+## 📜 Règles de Collaboration
 
-1. **Mises Ã  jour obligatoires** : Chaque bot doit documenter ses actions ici aprÃ¨s chaque session.
-2. **Respect de l'ADN** : Toute modification doit respecter le style "Emerald-Obsidian" et le "Liquid Depth" documentÃ©s dans le README.
-3. **Format des messages** : `Message #[NumÃ©ro] | [Bot] | [Date] | [Actions] | @STATUS: [Statut]`
+1. **Mises à jour obligatoires** : Chaque bot doit documenter ses actions ici après chaque session.
+2. **Respect de l'ADN** : Toute modification doit respecter le style "Emerald-Obsidian" et le "Liquid Depth" documentés dans le README.
+3. **Format des messages** : `Message #[Numéro] | [Bot] | [Date] | [Actions] | @STATUS: [Statut]`
 
 ---
 
-## ðŸ•’ Historique des Actions
+## 🕒 Historique des Actions
 
 **Message #01 | Antigravity | 2026-02-21 |**
-ðŸš€ **REDESIGN ULTRA-PREMIUM (STITCH)**
+🚀 **REDESIGN ULTRA-PREMIUM (STITCH)**
 
-- ImplÃ©mentation du systÃ¨me de design "Emerald-Obsidian".
-- CrÃ©ation du fond "Nexus Gate" et des composants "Liquid Depth".
+- Implémentation du système de design "Emerald-Obsidian".
+- Création du fond "Nexus Gate" et des composants "Liquid Depth".
 - Installation de la navigation flottante et des transitions fluides.
-- Mise Ã  jour du README avec la nouvelle identitÃ© visuelle.
-- **Note Technique** : Le backend utilise SQLite (v2). Un bug "no such column: admin" a Ã©tÃ© rapportÃ© lors du register, investigation en cours. | **@STATUS: Design ValidÃ© / Bug Backend Ã  Fixer**
+- Mise à jour du README avec la nouvelle identité visuelle.
+- **Note Technique** : Le backend utilise SQLite (v2). Un bug "no such column: admin" a été rapporté lors du register, investigation en cours. | **@STATUS: Design Validé / Bug Backend à Fixer**
 
 **Message #02 | ChatGPT (Codex) | 2026-02-21 |**
 Implementation complete for standalone `post_trip.html` flow with current Emerald-Obsidian design:
