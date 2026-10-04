@@ -672,6 +672,10 @@
     // choisi ; sinon remet l'orthographe officielle dans les champs. Si la base est
     // injoignable, on ne bloque pas la publication (on ne peut pas verifier).
     async function verifierVillesAnnonce() {
+        // VILLES OPTIONNELLES (Yoyo 2026-10-04) : une ville vide ne bloque plus la publication.
+        // Si une ville saisie n'existe pas dans la liste du pays choisi, elle est simplement
+        // RETIREE du champ (meme regle que le champ pays : la saisie libre n'est pas conservee)
+        // et le champ est signale en rouge — sans aucune alerte, et sans bloquer l'envoi.
         const controles = [
             { champPays: els.departure, champVille: els.cityDeparture, libelle: "de depart" },
             { champPays: els.destination, champVille: els.cityDestination, libelle: "d'arrivee" }
@@ -679,34 +683,27 @@
         for (const c of controles) {
             const pays = String(c.champPays?.value || "").trim();
             const valeur = String(c.champVille?.value || "").trim();
-            const refuser = (message) => {
-                alert(message);
-                if (c.champVille) {
-                    c.champVille.value = "";
-                    c.champVille.classList.add("cc-country-invalid");
-                    c.champVille.title = message;
-                    c.champVille.focus();
-                }
-                return false;
-            };
-            if (!valeur) {
-                return refuser("Indiquez la ville " + c.libelle + " en la choisissant dans la liste.");
-            }
-            // Module commun ancien (encore en cache) : on ne bloque pas la publication.
+            if (!valeur) continue;                 // ville optionnelle : rien a verifier
+            // Module commun ancien (encore en cache) : on ne touche a rien.
             if (!window.CCCommon?.verifierVilleAnnonce) continue;
             let r = null;
             try {
                 r = await window.CCCommon.verifierVilleAnnonce(pays, valeur);
             } catch (e) {
                 console.warn("Verification de ville indisponible:", e);
-                continue;   // base injoignable : on ne bloque pas
+                continue;   // base injoignable : on ne touche pas a la saisie
             }
             if (r && r.ok) {
                 if (r.ville && c.champVille.value !== r.ville) c.champVille.value = r.ville;
                 continue;
             }
-            return refuser((r && r.message) ||
-                ("Ville inconnue pour " + (pays || "ce pays") + " : choisissez une ville dans la liste."));
+            // Ville inconnue : on retire la saisie (le texte disparait), sans bloquer l'envoi.
+            if (c.champVille) {
+                c.champVille.value = "";
+                c.champVille.classList.add("cc-country-invalid");
+                c.champVille.title = (r && r.message) ||
+                    ("Ville inconnue pour " + (pays || "ce pays") + " : choisissez une ville dans la liste.");
+            }
         }
         return true;
     }

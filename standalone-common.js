@@ -2609,7 +2609,8 @@
     async function verifierVilleAnnonce(pays, ville) {
         const brut = String(ville || "").trim();
         if (!brut) {
-            return { ok: false, ville: "", message: "Indiquez la ville en la choisissant dans la liste." };
+            // Ville OPTIONNELLE (Yoyo 2026-10-04) : un champ vide est accepte, on ne bloque pas.
+            return { ok: true, ville: "" };
         }
         if (!window.ccSupabase) return { ok: true, ville: brut };
         const code = await _getCountryCode(pays);
@@ -2700,8 +2701,9 @@
                 try {
                     const r2 = await window.ccSupabase.from('cities').select('name')
                         .eq('country_code', code).ilike('name', debut ? `${brut}%` : `%${brut}%`).limit(20);
+                    if (r2 && r2.error) return null;
                     return (r2 && r2.data) || [];
-                } catch (e) { return []; }
+                } catch (e) { return null; }   // base injoignable : signal distinct (null)
             };
 
             // 1) les villes qui COMMENCENT par la saisie (les plus pertinentes)
@@ -2709,6 +2711,10 @@
             //    Le « ^ » est indispensable : sans lui, la recherche Postgres trouve le
             //    motif n'importe ou dans le nom.
             const resultats = await Promise.all([lancer(`^${motif}`, true), lancer(`.*${motif}.*`, false)]);
+
+            // Base injoignable (les deux requetes ont echoue) : on ne peut RIEN verifier.
+            // On le signale par null pour ne pas effacer une ville valide hors connexion.
+            if (resultats.some(r => r === null)) return null;
 
             const noms = [];
             const vus = {};
@@ -2754,6 +2760,10 @@
 
         let _minuteurVille = null;
         cityInput.addEventListener("input", () => {
+            // Toute frappe relance la saisie : on retire le signalement rouge precedent
+            // (le rouge ne doit apparaitre qu'au moment ou une ville non valide est validee).
+            cityInput.classList.remove("cc-country-invalid");
+            cityInput.removeAttribute("title");
             const pays = countryInput.value.trim();
             const texte = cityInput.value;
             const key = pays + "|" + texte;
@@ -2766,7 +2776,7 @@
                 const villes = await rechercherVilles(pays, texte);
                 if (_lastQuery !== key) return;              // une saisie plus recente existe
                 if (cityInput.value !== texte) return;       // le champ a change entre-temps
-                showVilles(villes);
+                showVilles(villes || []);                    // base injoignable -> aucune suggestion
             }, 250);
         });
 
@@ -2802,33 +2812,45 @@
                 return;
             }
             const pays = countryInput.value.trim();
+            // Sans pays choisi, on ne peut ni proposer ni verifier une ville : on ne
+            // touche pas a la saisie (on ne peut rien affirmer).
+            if (!pays) {
+                cityInput.classList.remove("cc-country-invalid");
+                cityInput.removeAttribute("title");
+                return;
+            }
             const suggestions = await rechercherVilles(pays, val);
             // Si le champ a change pendant la requete (clic sur une suggestion entre-temps),
             // on ne touche a rien : c'est CE cas qui effacait la ville que le client
             // venait de choisir dans la liste.
             if (cityInput.value.trim() !== val) return;
             const cible = normaliserVille(val);
-            const exact = suggestions.find(v => normaliserVille(v) === cible);
+            const exact = (suggestions || []).find(v => normaliserVille(v) === cible);
             if (exact) {
                 cityInput.value = exact;                 // on remet l'orthographe officielle
                 cityInput.classList.remove("cc-country-invalid");
                 cityInput.removeAttribute("title");
                 return;
             }
-            // Pays sans aucune ville en base (Islande, Luxembourg...) ou base injoignable :
-            // on ne peut pas verifier -> on ne refuse pas la saisie.
-            const code = await _getCountryCode(pays);
-            const connues = await _paysPossedeVilles(code);
-            if (cityInput.value.trim() !== val) return;
-            if (!connues) {
+            // Base injoignable pendant la verification : on ne peut pas savoir si la ville
+            // est valide -> on ne detruit pas la saisie (hors connexion on ne touche a rien).
+            if (!suggestions) {
                 cityInput.classList.remove("cc-country-invalid");
                 cityInput.removeAttribute("title");
                 return;
             }
-            cityInput.value = "";                    // saisie libre refusee
+            // --- MEME REGLE QUE LE CHAMP PAYS (Yoyo 2026-10-04) ---
+            // Une ville qui n'est pas EXACTEMENT une des suggestions est RETIREE du champ :
+            // le texte saisi disparait (il n'est plus conserve en rouge). Le champ est
+            // signale en rouge pour expliquer la disparition. La ville etant optionnelle,
+            // un champ vide est accepte : la publication n'est jamais bloquee.
+            cityInput.value = "";
             cityInput.classList.add("cc-country-invalid");
             cityInput.title = "Ville inconnue pour " + (pays || "ce pays") +
-                " : choisissez une ville dans la liste.";
+                " : choisissez une ville dans la liste (le texte saisi est retire).";
+            _lastQuery = "";                             // retaper la meme chose reaffiche les suggestions
+            list.innerHTML = "";
+            list.style.display = "none";
         }
 
         // Un clic sur une suggestion ne doit pas retirer le focus au champ : sinon le
