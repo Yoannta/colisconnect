@@ -14706,3 +14706,37 @@ body.verification-page.light .phone-verify-btn:not(:disabled):hover {
 html.mobile-mode #offers-list {
     padding-bottom: 250px;
 }
+
+
+/* ============================================================
+   ACCUEIL — APERÇU DES OFFRES (remplace l'estimateur « Tester mon trajet »)
+   2026-10 : à la place du formulaire d'estimation, on montre au visiteur
+   l'aperçu réel de la page des offres (image fournie par Yoyo) pour qu'il
+   voie tout de suite à quoi ressemblent les offres. Image cliquable -> results.html.
+   ROLLBACK : décommenter .estimator-card dans index.html + retirer ce bloc.
+   ============================================================ */
+.offers-preview {
+    display: block;
+    width: 100%;
+    max-width: 440px;
+    border-radius: 20px;
+    overflow: hidden;
+    line-height: 0;
+    box-shadow: 0 22px 44px rgba(0, 0, 0, 0.42);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.offers-preview img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.offers-preview:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 26px 52px rgba(0, 0, 0, 0.5);
+}
+body.home-page.light .offers-preview {
+    box-shadow: 0 18px 40px rgba(65, 55, 38, 0.18);
+}
+body.home-page.light .offers-preview:hover {
+    box-shadow: 0 22px 46px rgba(65, 55, 38, 0.24);
+}

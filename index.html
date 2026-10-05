@@ -18,7 +18,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=73" />
+    <link rel="stylesheet" href="style.css?v=74" />
     <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -69,6 +69,22 @@
                     </div>
                 </div>
 
+                <!-- ===== APERÇU DES OFFRES (2026-10) : remplace l'estimateur « Tester mon trajet ».
+                     Le visiteur voit tout de suite à quoi ressemblent les offres.
+                     Image fournie par Yoyo, cliquable -> results.html. -->
+                <a class="offers-preview" href="results.html" id="home-offers-preview"
+                    aria-label="Voir les offres de transport disponibles">
+                    <img src="assets/apercu-offres.jpg" width="749" height="511"
+                        alt="Aperçu des offres : pays de départ et d'arrivée, date de départ, kilos disponibles et prix au kilo.">
+                </a>
+
+
+                <!-- ANCIEN FORMULAIRE D'ESTIMATION — conservé pour pouvoir le remettre tel quel.
+                     Réactivation : enlever les balises de commentaire ci-dessous et supprimer
+                     le bloc .offers-preview au-dessus. La logique JS (bouton Estimer) est
+                     toujours dans la page et se rebranche toute seule (elle teste la présence
+                     des éléments avant de s'activer).
+
                 <div class="estimator-card DeepGlass" id="home-estimator">
                     <div class="ProactiveBadge">Tester mon trajet</div>
                     <h2 class="estimator-title">Faire une estimation rapide</h2>
@@ -97,7 +113,7 @@
                             style="margin-top: 20px; width: 100%; display: none;">Voir les voyageurs</a>
                     </div>
                 </div>
-
+                -->
             </div>
 
 
