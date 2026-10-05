@@ -14744,17 +14744,16 @@ body.home-page.light .offers-preview:hover {
 
 /* ============================================================
    ACCUEIL — COMMENT ÇA MARCHE (2026-10)
-   Remplace les 3 panneaux « Rechercher un transporteur / Proposer votre trajet /
-   Discuter et confirmer » par une section d'étapes numérotées.
-   Les étapes sont des liens (results.html / post_trip.html / chat.html).
-   ROLLBACK : décommenter .home-panels dans index.html + retirer ce bloc.
+   4 étapes numérotées : « 01 — Recherchez » … « 04 — Débloquez ».
+   (Avant : 3 panneaux puis 3 étapes cliquables — historique dans git.)
+   ROLLBACK : tag git ROLLBACK-ACCUEIL-AVANT-ETAPES4.
    ============================================================ */
 .how-it-works {
     margin-top: 40px;
 }
 .how-head {
     text-align: center;
-    margin-bottom: 26px;
+    margin-bottom: 30px;
 }
 .how-title {
     margin: 0;
@@ -14765,25 +14764,19 @@ body.home-page.light .offers-preview:hover {
     text-transform: uppercase;
     color: var(--emerald-bright);
 }
-.how-sub {
-    margin: 10px 0 0;
-    font-size: 0.95rem;
-    color: var(--muted);
-}
 .how-steps {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
     align-items: stretch;
 }
 .how-step {
     display: block;
-    text-decoration: none;
     backdrop-filter: blur(var(--glass-blur));
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 24px;
+    padding: 22px;
     transition: all 0.3s ease;
 }
 .how-step:hover {
@@ -14791,33 +14784,27 @@ body.home-page.light .offers-preview:hover {
     background: rgba(255, 255, 255, 0.05);
     transform: translateY(-4px);
 }
-.how-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 46px;
-    height: 46px;
-    margin-bottom: 16px;
-    border-radius: 14px;
-    border: 1px solid var(--line);
-    background: var(--emerald-glow);
-    color: var(--emerald-bright);
+.how-step-title {
+    margin: 0 0 10px;
     font-family: var(--font-title);
-    font-size: 1.1rem;
+    font-size: 1.12rem;
     font-weight: 800;
+    color: var(--text);
+}
+.how-step-title .how-num {
+    font-size: 1.12rem;
+    font-weight: 800;
+    color: var(--emerald-bright);
     letter-spacing: 0.02em;
 }
-.how-step h3 {
-    margin: 0 0 8px;
-    font-family: var(--font-title);
-    font-size: 1.15rem;
-    font-weight: 700;
+.how-step-title .how-dash {
     color: var(--emerald-bright);
+    opacity: 0.55;
 }
 .how-step p {
     margin: 0;
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: 0.93rem;
+    line-height: 1.55;
     color: var(--muted);
 }
 .how-trust {
@@ -14850,19 +14837,27 @@ body.home-page.light .how-step:hover {
     border-color: rgba(184, 134, 11, 0.35);
 }
 body.home-page.light .how-title,
-body.home-page.light .how-step h3,
+body.home-page.light .how-step-title .how-num,
+body.home-page.light .how-step-title .how-dash,
 body.home-page.light .how-trust {
     color: #b8860b;
 }
-body.home-page.light .how-sub,
+body.home-page.light .how-step-title {
+    color: #1d1b17;
+}
 body.home-page.light .how-step p {
     color: #6b5f4a;
 }
 
-/* --- Mobile --- */
-@media (max-width: 800px) {
+/* --- Responsive : 4 colonnes -> 2 -> 1 --- */
+@media (max-width: 1024px) {
+    .how-steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (max-width: 600px) {
     .how-title {
-        font-size: 1.4rem;
+        font-size: 1.35rem;
     }
     .how-steps {
         grid-template-columns: 1fr;
@@ -14871,12 +14866,8 @@ body.home-page.light .how-step p {
     .how-step {
         padding: 18px;
     }
-    .how-num {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 12px;
-    }
 }
+
 
 /* ============================================================
    ACCUEIL — CARROUSEL D'APERÇU DES OFFRES (2026-10)
