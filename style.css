@@ -15037,3 +15037,58 @@ body.home-page.light .water-lens .cc3-inclusive { color: #b8860b; }
 body.home-page.light .cc3-demand-phrase-txt { color: #131313; }
 body.home-page.light .cc3-demand-phrase-txt .cc3-demand-hl { color: #c89422; }
 body.home-page.light .cc3-demand-desc { color: #7d776e; }
+
+/* ============================================================
+   ACCUEIL — CORRECTIF MOBILE DU CARROUSEL (2026-10-06)
+   Deux causes distinctes du « cassé » sur téléphone :
+
+   1) Mise en page décalée à droite (titre + boutons coupés).
+      Le contenu du carrousel a une largeur MINIMALE de 394 px. Comme
+      `.offers-slider` n'avait pas `min-width: 0`, la colonne de la grille
+      `.hero-grid` ne pouvait pas descendre sous 394 px : sur un écran de
+      390 px la page entière débordait de ~20 px à droite (rogné par le
+      `overflow-x: hidden` du body). Correctif : autoriser les enfants de
+      la grille et la chaîne du carrousel à rétrécir.
+
+   2) Piste empilée verticalement au lieu de glisser horizontalement.
+      La règle générale `.mobile-mode .cards-list { flex-direction: column }`
+      (listes de cartes, ex. results.html) s'appliquait aussi à la piste du
+      carrousel — qui porte la classe `cards-list`. Les 5 cartes s'empilaient,
+      et le `translateX(-100%)` du script décalait la pile hors du cadre.
+      Correctif : forcer la piste en ligne (row).
+
+   Ne concerne QUE l'accueil : ces sélecteurs sont scopés sur
+   `.offers-slider` / le couple `.cards-list.offers-slider-track`.
+   ============================================================ */
+.hero-grid > * { min-width: 0; }
+
+.offers-slider { min-width: 0; }
+.offers-slider .offers-slider-viewport,
+.offers-slider .offer-wrap {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.cards-list.offers-slider-track,
+.offers-slider .offers-slider-track {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    gap: 0;
+}
+.offers-slider .offer-wrap { flex: 0 0 100%; }
+
+/* Sur téléphone, les deux boutons du hero passent l'un sous l'autre :
+   côte à côte (237 px + 171 px + 16 px de gouttière) ils ne tenaient pas
+   dans les 358 px utiles et le second sortait de l'écran. */
+@media (max-width: 800px) {
+    .hero-actions { flex-wrap: wrap; }
+}
+@media (max-width: 600px) {
+    .hero-actions { gap: 12px; }
+    .hero-actions .btn {
+        flex: 1 1 100%;
+        justify-content: center;
+        text-align: center;
+    }
+}
