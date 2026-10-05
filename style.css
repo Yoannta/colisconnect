@@ -15092,3 +15092,20 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
         text-align: center;
     }
 }
+
+/* ============================================================
+   RÉSULTATS (page de recherche d'offres) — EN PC, ON RETIRE LES
+   DEUX SÉLECTEURS QUI N'ONT DE SENS QUE SUR TÉLÉPHONE (2026-10-06)
+   1) le switch « Simple / Cargo » (#mobile-profile-block)
+   2) les onglets « Je cherche un voyageur » / « Je cherche un cargo »
+   Sur téléphone (html.mobile-mode) tout reste en place : ces règles
+   ne s'appliquent qu'en mode PC (html.desktop-mode).
+   Le 3e onglet « Je cherche un client » n'est pas touché.
+   ============================================================ */
+.desktop-mode .results-mobile-profile-block {
+    display: none !important;
+}
+.desktop-mode .results-nav-panel #filter-traveler-btn,
+.desktop-mode .results-nav-panel #filter-cargo-btn {
+    display: none !important;
+}
