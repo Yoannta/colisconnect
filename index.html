@@ -18,7 +18,12 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=75" />
+    <!-- Polices + drapeaux utilisés par les cartes d'offres (cc3-card), identiques à results.html -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
+    <link rel="stylesheet" href="style.css?v=76" />
     <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -69,14 +74,423 @@
                     </div>
                 </div>
 
-                <!-- ===== APERÇU DES OFFRES (2026-10) : remplace l'estimateur « Tester mon trajet ».
+                <!-- ===== APERÇU DES OFFRES — CARROUSEL DE CARTES (2026-10).
+                     Remplace l'image fixe : de vraies cartes d'offres (template cc3-card du site,
+                     identique à results.html) avec destinations fictives, qui défilent seules.
+                     ROLLBACK : voir le tag git ROLLBACK-ACCUEIL-AVANT-SLIDER et l'ancien bloc
+                     .offers-preview conservé en commentaire juste en dessous. -->
+                <div class="offers-slider" id="offers-slider" aria-roledescription="carrousel"
+                    aria-label="Aperçu de cartes d'offres">
+                    <div class="offers-slider-viewport">
+                        <div class="cards-list offers-slider-track">
+                <div class="offer-wrap">
+                    <article class="cc3-card">
+                        <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+                        <section class="cc3-route">
+                            <div class="cc3-flag-shell"><span class="cc3-flag fi fis fi-fr" aria-hidden="true"></span></div>
+                            <div class="cc3-place">
+                                <span class="cc3-label">De</span>
+                                <span class="cc3-country">France</span>
+                                <span class="cc3-city">Paris</span>
+                            </div>
+                            <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+                        <path d="M2 47C50 11 105 8 181 45"></path>
+                        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+                            <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+                        </g>
+                    </svg>
+                            <div class="cc3-place cc3-place-to">
+                                <span class="cc3-label">Vers</span>
+                                <span class="cc3-country">Sénégal</span>
+                                <span class="cc3-city">Dakar</span>
+                            </div>
+                            <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag fi fis fi-sn" aria-hidden="true"></span></div>
+                        </section>
+
+                        <div class="cc3-rule"></div>
+
+                        <section class="cc3-details">
+                            <div class="cc3-detail">
+                                <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg></div>
+                                <div class="cc3-detail-txt">
+                                    <span class="cc3-d-label cc3-d-label--big">Départ</span>
+                                    <span class="cc3-value"><span class="cc3-gold">21 août</span></span>
+                                </div>
+                            </div>
+                    <div class="cc3-detail">
+                        <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg></div>
+                        <div class="cc3-detail-txt">
+                            <span class="cc3-d-label">Disponibilité</span>
+                            <span class="cc3-value">12 <span class="cc3-kg">kg</span></span>
+                        </div>
+                    </div>
+                            <div class="cc3-detail cc3-detail-price">
+                                <div class="cc3-price-source" aria-hidden="true">
+                                    <span class="cc3-d-label">Prix / kg</span>
+                                    <span class="cc3-price">15 €</span>
+                                    <span class="cc3-inclusive">all inclusive</span>
+                                </div>
+                                <div class="water-lens" aria-label="Prix par kilogramme : 15 € all inclusive">
+                                    <div class="water-lens__content">
+                                        <div class="cc3-detail-txt">
+                                            <span class="cc3-d-label">Prix / kg</span>
+                                            <span class="cc3-price">15 €</span>
+                                            <span class="cc3-inclusive">all inclusive</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <footer class="cc3-foot">
+                            <div class="cc3-profile">
+                                <span class="cc3-avatar">AD</span>
+                                <div class="cc3-profile-txt">
+                                    <div class="cc3-name-line">
+                                        <span class="cc3-name">Awa <em>Diallo</em></span>
+                                        <svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>
+                                    </div>
+                                    <span class="cc3-meta">Voyageur</span>
+                                </div>
+                            </div>
+                            <a class="cc3-cta" href="results.html" aria-label="Contacter ce voyageur">
+                                <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
+                                <span>Contacter</span>
+                            </a>
+                        </footer>
+                    </article>
+                </div>
+                <div class="offer-wrap">
+                    <article class="cc3-card">
+                        <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+                        <section class="cc3-route">
+                            <div class="cc3-flag-shell"><span class="cc3-flag fi fis fi-fr" aria-hidden="true"></span></div>
+                            <div class="cc3-place">
+                                <span class="cc3-label">De</span>
+                                <span class="cc3-country">France</span>
+                                <span class="cc3-city">Marseille</span>
+                            </div>
+                            <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+                        <path d="M2 47C50 11 105 8 181 45"></path>
+                        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+                            <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+                        </g>
+                    </svg>
+                            <div class="cc3-place cc3-place-to">
+                                <span class="cc3-label">Vers</span>
+                                <span class="cc3-country">Maroc</span>
+                                <span class="cc3-city">Casablanca</span>
+                            </div>
+                            <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag fi fis fi-ma" aria-hidden="true"></span></div>
+                        </section>
+
+                        <div class="cc3-rule"></div>
+
+                        <section class="cc3-details">
+                            <div class="cc3-detail">
+                                <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg></div>
+                                <div class="cc3-detail-txt">
+                                    <span class="cc3-d-label cc3-d-label--big">Départ</span>
+                                    <span class="cc3-value"><span class="cc3-gold">14 sept.</span></span>
+                                </div>
+                            </div>
+                    <div class="cc3-detail">
+                        <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg></div>
+                        <div class="cc3-detail-txt">
+                            <span class="cc3-d-label">Disponibilité</span>
+                            <span class="cc3-value">8 <span class="cc3-kg">kg</span></span>
+                        </div>
+                    </div>
+                            <div class="cc3-detail cc3-detail-price">
+                                <div class="cc3-price-source" aria-hidden="true">
+                                    <span class="cc3-d-label">Prix / kg</span>
+                                    <span class="cc3-price">11 €</span>
+                                    <span class="cc3-inclusive">all inclusive</span>
+                                </div>
+                                <div class="water-lens" aria-label="Prix par kilogramme : 11 € all inclusive">
+                                    <div class="water-lens__content">
+                                        <div class="cc3-detail-txt">
+                                            <span class="cc3-d-label">Prix / kg</span>
+                                            <span class="cc3-price">11 €</span>
+                                            <span class="cc3-inclusive">all inclusive</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <footer class="cc3-foot">
+                            <div class="cc3-profile">
+                                <span class="cc3-avatar">KB</span>
+                                <div class="cc3-profile-txt">
+                                    <div class="cc3-name-line">
+                                        <span class="cc3-name">Karim <em>Benali</em></span>
+                                        <svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>
+                                    </div>
+                                    <span class="cc3-meta">Voyageur</span>
+                                </div>
+                            </div>
+                            <a class="cc3-cta" href="results.html" aria-label="Contacter ce voyageur">
+                                <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
+                                <span>Contacter</span>
+                            </a>
+                        </footer>
+                    </article>
+                </div>
+                <div class="offer-wrap">
+                    <article class="cc3-card">
+                        <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+                        <section class="cc3-route">
+                            <div class="cc3-flag-shell"><span class="cc3-flag fi fis fi-cn" aria-hidden="true"></span></div>
+                            <div class="cc3-place">
+                                <span class="cc3-label">De</span>
+                                <span class="cc3-country">Chine</span>
+                                <span class="cc3-city">Guangzhou</span>
+                            </div>
+                            <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+                        <path d="M2 47C50 11 105 8 181 45"></path>
+                        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+                            <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+                        </g>
+                    </svg>
+                            <div class="cc3-place cc3-place-to">
+                                <span class="cc3-label">Vers</span>
+                                <span class="cc3-country">Côte d'Ivoire</span>
+                                <span class="cc3-city">Abidjan</span>
+                            </div>
+                            <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag fi fis fi-ci" aria-hidden="true"></span></div>
+                        </section>
+
+                        <div class="cc3-rule"></div>
+
+                        <section class="cc3-details cc3-details--multi">
+                            <div class="cc3-detail">
+                                <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg></div>
+                                <div class="cc3-detail-txt">
+                                    <span class="cc3-d-label cc3-d-label--big">J'ai des voyages le :</span>
+                                    <span class="cc3-value cc3-value-dates"><span class="cc3-gold cc3-date-line">8 sept.</span><span class="cc3-gold cc3-date-line">22 sept.</span></span>
+                                </div>
+                            </div>
+                            <div class="cc3-detail cc3-detail-price">
+                                <div class="cc3-price-source" aria-hidden="true">
+                                    <span class="cc3-d-label">Prix / kg</span>
+                                    <span class="cc3-price">9 €</span>
+                                    <span class="cc3-inclusive">all inclusive</span>
+                                </div>
+                                <div class="water-lens" aria-label="Prix par kilogramme : 9 € all inclusive">
+                                    <div class="water-lens__content">
+                                        <div class="cc3-detail-txt">
+                                            <span class="cc3-d-label">Prix / kg</span>
+                                            <span class="cc3-price">9 €</span>
+                                            <span class="cc3-inclusive">all inclusive</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <footer class="cc3-foot">
+                            <div class="cc3-profile">
+                                <span class="cc3-avatar">LW</span>
+                                <div class="cc3-profile-txt">
+                                    <div class="cc3-name-line">
+                                        <span class="cc3-name">Lin <em>Wei</em></span>
+                                        <svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>
+                                    </div>
+                                    <span class="cc3-meta">Transporteur Pro</span>
+                                </div>
+                            </div>
+                            <a class="cc3-cta" href="results.html" aria-label="Contacter ce transporteur pro">
+                                <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
+                                <span>Contacter</span>
+                            </a>
+                        </footer>
+                    </article>
+                </div>
+                <div class="offer-wrap">
+                    <article class="cc3-card">
+                        <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+                        <section class="cc3-route">
+                            <div class="cc3-flag-shell"><span class="cc3-flag fi fis fi-ca" aria-hidden="true"></span></div>
+                            <div class="cc3-place">
+                                <span class="cc3-label">De</span>
+                                <span class="cc3-country">Canada</span>
+                                <span class="cc3-city">Montréal</span>
+                            </div>
+                            <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+                        <path d="M2 47C50 11 105 8 181 45"></path>
+                        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+                            <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+                        </g>
+                    </svg>
+                            <div class="cc3-place cc3-place-to">
+                                <span class="cc3-label">Vers</span>
+                                <span class="cc3-country">Cameroun</span>
+                                <span class="cc3-city">Douala</span>
+                            </div>
+                            <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag fi fis fi-cm" aria-hidden="true"></span></div>
+                        </section>
+
+                        <div class="cc3-rule"></div>
+
+                        <section class="cc3-details">
+                            <div class="cc3-detail">
+                                <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg></div>
+                                <div class="cc3-detail-txt">
+                                    <span class="cc3-d-label cc3-d-label--big">Départ</span>
+                                    <span class="cc3-value"><span class="cc3-gold">3 oct.</span></span>
+                                </div>
+                            </div>
+                    <div class="cc3-detail">
+                        <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg></div>
+                        <div class="cc3-detail-txt">
+                            <span class="cc3-d-label">Disponibilité</span>
+                            <span class="cc3-value">20 <span class="cc3-kg">kg</span></span>
+                        </div>
+                    </div>
+                            <div class="cc3-detail cc3-detail-price">
+                                <div class="cc3-price-source" aria-hidden="true">
+                                    <span class="cc3-d-label">Prix / kg</span>
+                                    <span class="cc3-price">13 €</span>
+                                    <span class="cc3-inclusive">all inclusive</span>
+                                </div>
+                                <div class="water-lens" aria-label="Prix par kilogramme : 13 € all inclusive">
+                                    <div class="water-lens__content">
+                                        <div class="cc3-detail-txt">
+                                            <span class="cc3-d-label">Prix / kg</span>
+                                            <span class="cc3-price">13 €</span>
+                                            <span class="cc3-inclusive">all inclusive</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <footer class="cc3-foot">
+                            <div class="cc3-profile">
+                                <span class="cc3-avatar">FN</span>
+                                <div class="cc3-profile-txt">
+                                    <div class="cc3-name-line">
+                                        <span class="cc3-name">Fatou <em>Ndiaye</em></span>
+                                        <svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>
+                                    </div>
+                                    <span class="cc3-meta">Voyageur</span>
+                                </div>
+                            </div>
+                            <a class="cc3-cta" href="results.html" aria-label="Contacter ce voyageur">
+                                <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
+                                <span>Contacter</span>
+                            </a>
+                        </footer>
+                    </article>
+                </div>
+                <div class="offer-wrap">
+                    <article class="cc3-card">
+                        <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+                        <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+                        <section class="cc3-route">
+                            <div class="cc3-flag-shell"><span class="cc3-flag fi fis fi-ae" aria-hidden="true"></span></div>
+                            <div class="cc3-place">
+                                <span class="cc3-label">De</span>
+                                <span class="cc3-country">Émirats arabes unis</span>
+                                <span class="cc3-city">Dubaï</span>
+                            </div>
+                            <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+                        <path d="M2 47C50 11 105 8 181 45"></path>
+                        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+                            <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+                        </g>
+                    </svg>
+                            <div class="cc3-place cc3-place-to">
+                                <span class="cc3-label">Vers</span>
+                                <span class="cc3-country">Mali</span>
+                                <span class="cc3-city">Bamako</span>
+                            </div>
+                            <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag fi fis fi-ml" aria-hidden="true"></span></div>
+                        </section>
+
+                        <div class="cc3-rule"></div>
+
+                        <section class="cc3-details cc3-details--multi">
+                            <div class="cc3-detail">
+                                <div class="cc3-icon"><svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg></div>
+                                <div class="cc3-detail-txt">
+                                    <span class="cc3-d-label cc3-d-label--big">J'ai des voyages le :</span>
+                                    <span class="cc3-value cc3-value-dates"><span class="cc3-gold cc3-date-line">12 oct.</span><span class="cc3-gold cc3-date-line">26 oct.</span></span>
+                                </div>
+                            </div>
+                            <div class="cc3-detail cc3-detail-price">
+                                <div class="cc3-price-source" aria-hidden="true">
+                                    <span class="cc3-d-label">Prix / kg</span>
+                                    <span class="cc3-price">7 €</span>
+                                    <span class="cc3-inclusive">all inclusive</span>
+                                </div>
+                                <div class="water-lens" aria-label="Prix par kilogramme : 7 € all inclusive">
+                                    <div class="water-lens__content">
+                                        <div class="cc3-detail-txt">
+                                            <span class="cc3-d-label">Prix / kg</span>
+                                            <span class="cc3-price">7 €</span>
+                                            <span class="cc3-inclusive">all inclusive</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <footer class="cc3-foot">
+                            <div class="cc3-profile">
+                                <span class="cc3-avatar">SH</span>
+                                <div class="cc3-profile-txt">
+                                    <div class="cc3-name-line">
+                                        <span class="cc3-name">Samir <em>Haddad</em></span>
+                                        <svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>
+                                    </div>
+                                    <span class="cc3-meta">Transporteur Pro</span>
+                                </div>
+                            </div>
+                            <a class="cc3-cta" href="results.html" aria-label="Contacter ce transporteur pro">
+                                <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
+                                <span>Contacter</span>
+                            </a>
+                        </footer>
+                    </article>
+                </div>
+                        </div>
+                    </div>
+                    <div class="offers-slider-dots" aria-label="Choisir une offre"></div>
+                </div>
+
+                <!-- ANCIEN APERÇU PAR IMAGE — conservé pour pouvoir le remettre (rollback).
+                     Réactivation : retirer ces balises de commentaire et supprimer le carrousel ci-dessus.
+
+&lt;!-- ===== APERÇU DES OFFRES (2026-10) : remplace l'estimateur « Tester mon trajet ».
                      Le visiteur voit tout de suite à quoi ressemblent les offres.
-                     Image fournie par Yoyo, cliquable -> results.html. -->
+                     Image fournie par Yoyo, cliquable -> results.html. --&gt;
                 <a class="offers-preview" href="results.html" id="home-offers-preview"
                     aria-label="Voir les offres de transport disponibles">
                     <img src="assets/apercu-offres.jpg" width="749" height="511"
                         alt="Aperçu des offres : pays de départ et d'arrivée, date de départ, kilos disponibles et prix au kilo.">
                 </a>
+                -->
 
 
                 <!-- ANCIEN FORMULAIRE D'ESTIMATION — conservé pour pouvoir le remettre tel quel.
@@ -372,6 +786,79 @@
     <script src="guide-session.js?v=1" defer></script>
     <script src="guide-intents.js?v=1" defer></script>
     <script src="mascotte-chat.js?v=1" defer></script>
+
+    <!-- ===== CARROUSEL D'APERÇU DES OFFRES (accueil) =====
+         Autonome, aucune dépendance. Fait défiler les cartes toutes les 4,5 s.
+         Pause au survol et quand l'onglet passe en arrière-plan ; flèches ← → au
+         clavier ; glissement au doigt ; pastilles cliquables.
+         Respecte prefers-reduced-motion (pas de défilement automatique).
+         Pour l'enlever : supprimer ce <script> ET le bloc .offers-slider dans index.html. -->
+    <script>
+        (function () {
+            var slider = document.getElementById('offers-slider');
+            if (!slider) return;
+            var track = slider.querySelector('.offers-slider-track');
+            var dotsBox = slider.querySelector('.offers-slider-dots');
+            if (!track || !dotsBox) return;
+
+            var slides = [];
+            for (var s = 0; s < track.children.length; s++) slides.push(track.children[s]);
+            if (slides.length < 2) return;
+
+            var index = 0, timer = null, DELAY = 4500, buttons = [];
+            var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+            function render() {
+                track.style.transform = 'translateX(' + (-index * 100) + '%)';
+                for (var k = 0; k < buttons.length; k++) {
+                    if (k === index) { buttons[k].classList.add('is-active'); }
+                    else { buttons[k].classList.remove('is-active'); }
+                }
+                for (var m = 0; m < slides.length; m++) {
+                    slides[m].setAttribute('aria-hidden', m === index ? 'false' : 'true');
+                }
+            }
+            function go(n) { index = (n % slides.length + slides.length) % slides.length; render(); }
+            function start() { if (!reduce && !timer) { timer = setInterval(function () { go(index + 1); }, DELAY); } }
+            function stop() { if (timer) { clearInterval(timer); timer = null; } }
+            function pause() { stop(); start(); }
+
+            for (var b = 0; b < slides.length; b++) {
+                (function (n) {
+                    var btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'offers-slider-dot';
+                    btn.setAttribute('aria-label', 'Offre ' + (n + 1) + ' sur ' + slides.length);
+                    btn.addEventListener('click', function () { go(n); pause(); });
+                    dotsBox.appendChild(btn);
+                    buttons.push(btn);
+                })(b);
+            }
+
+            slider.addEventListener('mouseenter', stop);
+            slider.addEventListener('mouseleave', start);
+            document.addEventListener('visibilitychange', function () { if (document.hidden) { stop(); } else { start(); } });
+
+            slider.setAttribute('tabindex', '0');
+            slider.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowRight') { go(index + 1); pause(); }
+                else if (e.key === 'ArrowLeft') { go(index - 1); pause(); }
+            });
+
+            var x0 = null;
+            slider.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; stop(); }, { passive: true });
+            slider.addEventListener('touchend', function (e) {
+                if (x0 === null) return;
+                var dx = e.changedTouches[0].clientX - x0;
+                x0 = null;
+                if (Math.abs(dx) > 40) { go(index + (dx < 0 ? 1 : -1)); }
+                start();
+            });
+
+            render();
+            start();
+        })();
+    </script>
 
 </body>
 

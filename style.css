@@ -14877,3 +14877,172 @@ body.home-page.light .how-step p {
         margin-bottom: 12px;
     }
 }
+
+/* ============================================================
+   ACCUEIL — CARROUSEL D'APERÇU DES OFFRES (2026-10)
+   De VRAIES cartes d'offres (template .cc3-card de results.html) dans la colonne
+   droite du hero, avec destinations fictives ; elles défilent automatiquement
+   (JS inline en bas de index.html). Le conteneur .cards-list garde les styles
+   de carte existants : on écrase seulement son display:grid par un flex glissant.
+   ROLLBACK : tag git ROLLBACK-ACCUEIL-AVANT-SLIDER (ou ancien bloc .offers-preview
+   conservé en commentaire dans index.html).
+   ============================================================ */
+.offers-slider {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+}
+.offers-slider-viewport {
+    overflow: hidden;
+    border-radius: 24px;
+    box-shadow: 0 22px 44px rgba(0, 0, 0, 0.42);
+}
+.offers-slider .offers-slider-track {
+    display: flex;
+    gap: 0;
+    transition: transform 0.65s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+.offers-slider .offer-wrap {
+    flex: 0 0 100%;
+    max-width: 100%;
+    display: flex;
+    min-width: 0;
+}
+.offers-slider .cc3-card {
+    width: 100%;
+    /* l'ombre externe serait rognée par le viewport : on garde le liseré interne */
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.offers-slider .cc3-foot {
+    /* .cards-list .cc3-card * impose margin:0 !important → il faut !important */
+    margin-top: auto !important;
+}
+.offers-slider a.cc3-cta {
+    text-decoration: none;
+}
+.offers-slider .offers-slider-dots {
+    display: flex;
+    justify-content: center;
+    gap: 7px;
+    margin-top: 14px;
+}
+.offers-slider .offers-slider-dot {
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    background: var(--line);
+    transition: all 0.25s ease;
+}
+.offers-slider .offers-slider-dot:hover {
+    background: var(--line-glow);
+}
+.offers-slider .offers-slider-dot.is-active {
+    width: 22px;
+    background: var(--emerald-bright);
+}
+
+/* --- Thème clair --- */
+body.home-page.light .offers-slider-viewport {
+    box-shadow: 0 18px 40px rgba(65, 55, 38, 0.18);
+}
+body.home-page.light .offers-slider .offers-slider-dot {
+    background: rgba(184, 134, 11, 0.28);
+}
+body.home-page.light .offers-slider .offers-slider-dot.is-active {
+    background: #b8860b;
+}
+
+/* --- Accessibilité : pas de glissement si l'utilisateur refuse l'animation --- */
+@media (prefers-reduced-motion: reduce) {
+    .offers-slider .offers-slider-track {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   ACCUEIL — les cartes d'offres (.cc3-card) en thème CLAIR
+   Les règles claires existantes sont écrites pour body.results-page.light ;
+   l'accueil est body.home-page → on duplique les mêmes règles pour ce body
+   (les variantes cc3-dark / cc3-light s'inversent alors comme sur results.html).
+   ============================================================ */
+body.home-page.light .cc3-dark { opacity: 0; }
+body.home-page.light .cc3-light.cc3-planet { opacity: 0.92; }
+body.home-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
+
+/* ===== ACCUEIL : cartes d'offres en thème CLAIR (copie des règles results-page.light) ===== */
+body.home-page.light .cc3-card {
+    border-color: rgba(20, 20, 20, 0.105);
+    background:
+        radial-gradient(circle at 85% 28%, rgba(210, 154, 34, 0.12), transparent 22%),
+        linear-gradient(135deg, #ffffff 0%, #fbfaf7 56%, #f7f3eb 100%);
+    box-shadow: 0 18px 40px rgba(65, 55, 38, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+body.home-page.light .cc3-logo-txt { color: #151515; }
+body.home-page.light .cc3-logo-txt span { color: #d29a22; }
+body.home-page.light .cc3-date {
+    color: #272522;
+    border-color: rgba(20, 20, 20, 0.08);
+    background: rgba(244, 240, 232, 0.92);
+    box-shadow: 0 8px 18px rgba(64, 54, 37, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+body.home-page.light .cc3-date svg { stroke: #d29a22; }
+body.home-page.light .cc3-flag-shell {
+    border-color: rgba(20, 20, 20, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 10px 18px rgba(62, 54, 40, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+body.home-page.light .cc3-label,
+body.home-page.light .cc3-d-label { color: #5f5b55; }
+body.home-page.light .cc3-city { color: #8a857c; }
+body.home-page.light .cc3-country,
+body.home-page.light .cc3-value,
+body.home-page.light .cc3-price,
+body.home-page.light .cc3-name { color: #131313; }
+body.home-page.light .cc3-flight path { stroke: rgba(45, 45, 45, 0.5); }
+body.home-page.light .cc3-flight .cc3-plane { fill: #d29a22; filter: drop-shadow(0 3px 7px rgba(210, 154, 34, 0.25)); }
+body.home-page.light .cc3-rule { background: rgba(23, 23, 23, 0.09); }
+body.home-page.light .cc3-detail + .cc3-detail { border-left-color: rgba(23, 23, 23, 0.11); }
+body.home-page.light .cc3-icon {
+    color: #c89422 !important;
+    border-color: rgba(210, 154, 34, 0.13);
+    background: rgba(210, 154, 34, 0.075);
+    box-shadow: 0 7px 14px rgba(68, 53, 21, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+body.home-page.light .cc3-inclusive { color: #c89422; }
+body.home-page.light .cc3-meta { color: #5e5a53; }
+body.home-page.light .cc3-cta {
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(171, 120, 25, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+body.home-page.light .cc3-cta svg { fill: #fff; }
+body.home-page.light .cc3-shield { color: #d29a22; }
+/* Lentille d'eau en mode clair : reflets brun-doré, texte lisible */
+body.home-page.light .water-lens {
+    border-color: rgba(140, 100, 30, 0.35);
+    background:
+        radial-gradient(circle at 29% 18%, rgba(255, 255, 255, 0.95) 0 3%, rgba(255, 255, 255, 0.4) 7%, transparent 28%),
+        radial-gradient(circle at 71% 82%, rgba(212, 160, 23, 0.18), transparent 33%),
+        linear-gradient(140deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.4) 42%, rgba(255, 240, 210, 0.5));
+    box-shadow:
+        0 14px 34px rgba(120, 95, 45, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.6),
+        inset 8px 10px 14px rgba(255, 255, 255, 0.5),
+        inset -12px -14px 22px rgba(140, 110, 60, 0.18);
+}
+body.home-page.light .water-lens::before {
+    background: linear-gradient(108deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.45) 44%, transparent 72%);
+}
+body.home-page.light .water-lens::after {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+}
+body.home-page.light .water-lens .cc3-d-label { color: rgba(60, 50, 30, 0.75); }
+body.home-page.light .water-lens .cc3-price { color: #1d1b17; }
+body.home-page.light .water-lens .cc3-inclusive { color: #b8860b; }
+body.home-page.light .cc3-demand-phrase-txt { color: #131313; }
+body.home-page.light .cc3-demand-phrase-txt .cc3-demand-hl { color: #c89422; }
+body.home-page.light .cc3-demand-desc { color: #7d776e; }

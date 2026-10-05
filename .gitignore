@@ -47,3 +47,6 @@ A-VOIR-PLUS-TARD.md
 # Sauvegardes locales
 *.bak_*
 _test_*.html
+
+# Copies locales de secours (rollback manuel) — non déployées
+_rollback/
