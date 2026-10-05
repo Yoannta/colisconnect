@@ -14740,3 +14740,140 @@ body.home-page.light .offers-preview {
 body.home-page.light .offers-preview:hover {
     box-shadow: 0 22px 46px rgba(65, 55, 38, 0.24);
 }
+
+
+/* ============================================================
+   ACCUEIL — COMMENT ÇA MARCHE (2026-10)
+   Remplace les 3 panneaux « Rechercher un transporteur / Proposer votre trajet /
+   Discuter et confirmer » par une section d'étapes numérotées.
+   Les étapes sont des liens (results.html / post_trip.html / chat.html).
+   ROLLBACK : décommenter .home-panels dans index.html + retirer ce bloc.
+   ============================================================ */
+.how-it-works {
+    margin-top: 40px;
+}
+.how-head {
+    text-align: center;
+    margin-bottom: 26px;
+}
+.how-title {
+    margin: 0;
+    font-family: var(--font-title);
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--emerald-bright);
+}
+.how-sub {
+    margin: 10px 0 0;
+    font-size: 0.95rem;
+    color: var(--muted);
+}
+.how-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch;
+}
+.how-step {
+    display: block;
+    text-decoration: none;
+    backdrop-filter: blur(var(--glass-blur));
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px;
+    transition: all 0.3s ease;
+}
+.how-step:hover {
+    border-color: var(--line-glow);
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-4px);
+}
+.how-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    margin-bottom: 16px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--emerald-glow);
+    color: var(--emerald-bright);
+    font-family: var(--font-title);
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+.how-step h3 {
+    margin: 0 0 8px;
+    font-family: var(--font-title);
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--emerald-bright);
+}
+.how-step p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--muted);
+}
+.how-trust {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--emerald-bright);
+}
+.how-trust svg {
+    width: 15px;
+    height: 15px;
+    fill: currentColor;
+}
+.how-sep {
+    opacity: 0.5;
+}
+
+/* --- Thème clair --- */
+body.home-page.light .how-step {
+    background: rgba(255, 255, 255, 0.72);
+    border-color: rgba(184, 134, 11, 0.18);
+}
+body.home-page.light .how-step:hover {
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(184, 134, 11, 0.35);
+}
+body.home-page.light .how-title,
+body.home-page.light .how-step h3,
+body.home-page.light .how-trust {
+    color: #b8860b;
+}
+body.home-page.light .how-sub,
+body.home-page.light .how-step p {
+    color: #6b5f4a;
+}
+
+/* --- Mobile --- */
+@media (max-width: 800px) {
+    .how-title {
+        font-size: 1.4rem;
+    }
+    .how-steps {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    .how-step {
+        padding: 18px;
+    }
+    .how-num {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 12px;
+    }
+}

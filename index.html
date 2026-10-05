@@ -18,7 +18,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=74" />
+    <link rel="stylesheet" href="style.css?v=75" />
     <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -117,6 +117,45 @@
             </div>
 
 
+            <!-- ===== COMMENT ÇA MARCHE (2026-10) : remplace les 3 panneaux
+                 « Rechercher un transporteur / Proposer votre trajet / Discuter et confirmer ».
+                 Les 3 étapes sont cliquables (elles gardent les liens vers results / post_trip / chat). -->
+            <section class="how-it-works" aria-labelledby="how-title">
+                <div class="how-head">
+                    <h2 class="how-title" id="how-title">Comment ça marche</h2>
+                    <p class="how-sub">Expédier un colis en 3 étapes.</p>
+                </div>
+                <div class="how-steps">
+                    <a class="how-step" href="results.html">
+                        <span class="how-num" aria-hidden="true">01</span>
+                        <h3>Recherchez un transporteur</h3>
+                        <p>Trouvez les voyageurs actifs par destination, prix et kilos disponibles.</p>
+                    </a>
+                    <a class="how-step" href="post_trip.html">
+                        <span class="how-num" aria-hidden="true">02</span>
+                        <h3>Proposez votre trajet</h3>
+                        <p>Publiez votre trajet avec vos kilos libres. Votre offre devient visible en recherche.</p>
+                    </a>
+                    <a class="how-step" href="chat.html">
+                        <span class="how-num" aria-hidden="true">03</span>
+                        <h3>Discutez et confirmez</h3>
+                        <p>La messagerie se débloque dès qu'une réservation est créée.</p>
+                    </a>
+                </div>
+                <div class="how-trust">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z" />
+                    </svg>
+                    <span>Paiement sécurisé garanti</span>
+                    <span class="how-sep" aria-hidden="true">·</span>
+                    <span>Temps de réponse moyen : 5 min</span>
+                </div>
+            </section>
+
+            <!-- ANCIENS PANNEAUX DE L'ACCUEIL — conservés pour pouvoir les remettre tels quels.
+                 Réactivation : retirer les balises de commentaire ci-dessous et supprimer la
+                 section .how-it-works ci-dessus.
+
             <div class="home-panels">
                 <article class="panel-card DeepGlass">
                     <h2>Rechercher un transporteur</h2>
@@ -155,6 +194,8 @@
                     <a href="chat.html" class="btn secondary" style="margin-top: 16px;">Ouvrir les messages</a>
                 </article>
             </div>
+        </section>
+            -->
         </section>
     </main>
 
