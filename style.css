@@ -15636,3 +15636,20 @@ body.home-page { padding-bottom: 112px; }
     body.home-page .hero-grid { padding-bottom: 40px; }
     body.home-page .how-it-works { margin-top: 24px; }
 }
+
+/* =========================================================================
+   DEBORDEMENT HORIZONTAL SUR MOBILE (trouve par la mesure, pas a l'oeil).
+   Le carrousel de cartes d'offres n'est pas borne : les vignettes hors ecran
+   depassent a droite. Mesure en 390 px, 20 releves sur 5 s apres ouverture du
+   panneau Confort : scrollWidth 402 puis 405 pour 390 px de large -> une barre
+   horizontale apparait toute seule ~2,5 s apres le chargement (12 -> 15 px), et
+   jusqu'a 57 px pendant l'animation du carrousel. C'est ce debordement qui a
+   fait echouer le controle « la pastille ouvre le panneau (mobile) ».
+   Correctif : borner le carrousel HORIZONTALEMENT, en gardant le debordement
+   VERTICAL visible (l'ombre de la carte depasse en bas). `clip` et non `hidden`
+   pour ne pas creer de conteneur de defilement ni casser les elements collants.
+   ========================================================================= */
+body .cards-list,
+body .offer-wrap {
+    overflow-x: clip;
+}
