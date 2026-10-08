@@ -55,6 +55,9 @@
 
     /* 2025 SaaS Paradigms */
     --px-focus: 0 0 0 3px rgba(19, 236, 200, 0.4);
+    /* P3-5 : anneau de focus NET (contour OPAQUE). --px-focus n'est qu'un halo
+       translucide (~2:1) : insuffisant seul pour WCAG 1.4.11 / 2.4.13. */
+    --focus-ring: #ffb347;
     --px-glow: 0 0 30px rgba(19, 236, 200, 0.25);
     --deep-glass: rgba(10, 15, 20, 0.45);
     --deep-glass-border: rgba(19, 236, 200, 0.15);
@@ -378,9 +381,24 @@ body.home-page.light .cc-suggestions-list li.active {
 
 /* Radical Accessibility & Focus-First */
 :focus-visible {
-    outline: none;
-    box-shadow: var(--px-focus);
+    /* P3-5 : anneau de focus OPAQUE et NET (contour). L'ancien reglage
+       (outline:none + halo translucide --px-focus, alpha 0.25-0.4) donnait ~2:1 :
+       anneau present mais quasi invisible au clavier (88/165 controles < 3:1 mesures).
+       On dessine l'anneau avec `outline` (et NON box-shadow) car plusieurs composants
+       posent `box-shadow: ... !important` avec un selecteur d'ID plus specifique que
+       `:focus-visible` (ex. #currency-trigger-btn) et annulaient le contour.
+       Couleur = var(--focus-ring) : or clair sur fond obsidienne (>=11:1),
+       or fonce sur theme clair (>=5:1). !important : gagne sur les `outline:none`
+       eparpilles dans les composants. */
+    outline: 3px solid var(--focus-ring, #ffb347) !important;
+    outline-offset: 2px;
     border-color: var(--emerald-bright) !important;
+}
+
+/* P3-5 — theme CLAIR : anneau or fonce (contraste >= 5:1 sur creme). */
+body.home-page.light, body.results-page.light, body.post-trip-page.light,
+body.chat-page.light, body.dashboard-page.light, body.verification-page.light {
+    --focus-ring: #8a5a00;
 }
 
 * {
@@ -11744,8 +11762,10 @@ body.results-page.light .results-mobile-main-btn:not(.active):hover {
 }
 .results-mobile-sub-btn .sub-check:focus,
 .results-mobile-sub-btn .sub-check:focus-visible {
-    outline: none !important;
-    box-shadow: none !important;
+    /* P3-5 : on remet un anneau visible (l'ancien reglage supprimait TOUT
+       indicateur de focus sur la case -> invisible au clavier). */
+    outline: 3px solid var(--focus-ring, #ffb347) !important;
+    outline-offset: 2px;
 }
 .results-mobile-sub-btn .material-symbols-outlined {
     font-size: 1.15rem !important;
