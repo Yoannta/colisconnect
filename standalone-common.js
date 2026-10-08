@@ -2150,8 +2150,13 @@
     function applyCalmModeState() {
         var active = localStorage.getItem("calm-mode") === "true";
         document.body.classList.toggle("is-calm", active);
-        var t = document.getElementById("calm-mode-toggle");
-        if (t) {
+        // Le bouton peut exister en DEUX exemplaires : celui du header (copie par
+        // updateHeaderUi via innerHTML) et la pastille mobile (.calm-fab).
+        // Avant, on ne mettait a jour que le premier -> la pastille mobile
+        // restait figee sur l'ancienne icone.
+        var toggles = document.querySelectorAll("#calm-mode-toggle, .calm-toggle");
+        for (var i = 0; i < toggles.length; i++) {
+            var t = toggles[i];
             t.setAttribute("aria-pressed", active ? "true" : "false");
             t.setAttribute("title", active ? "Mode Calme : actif (cliquer pour desactiver)" : "Mode Calme (Neurodiversite)");
             t.innerHTML = active ? CALM_ICON_ON : CALM_ICON_OFF;
@@ -2160,17 +2165,39 @@
     }
 
     function bindCalmMode() {
-        if (ui.calmBound) { applyCalmModeState(); return; }
+        if (ui.calmBound) { applyCalmModeState(); ensureCalmFab(); return; }
         ui.calmBound = true;
         document.addEventListener("click", function (e) {
             var target = e.target;
-            var btn = target && target.closest ? target.closest("#calm-mode-toggle") : null;
+            var btn = target && target.closest ? target.closest("#calm-mode-toggle, .calm-toggle") : null;
             if (!btn) return;
             e.preventDefault();
             var active = localStorage.getItem("calm-mode") !== "true";
             localStorage.setItem("calm-mode", String(active));
             applyCalmModeState();
         });
+        applyCalmModeState();
+        ensureCalmFab();
+    }
+
+    /* Le header partage est masque sur petit ecran : le bouton Mode Calme y
+       mesurait 0 x 0 px, donc INEXISTANT pour un visiteur mobile. On pose une
+       pastille flottante (au-dessus du bouton clair/sombre deja en place).
+       Le CSS la masque au-dessus de 900 px, ou le header reprend la main. */
+    function ensureCalmFab() {
+        if (window.innerWidth >= 900) return;
+        var all = document.querySelectorAll("#calm-mode-toggle, .calm-toggle");
+        for (var i = 0; i < all.length; i++) {
+            var r = all[i].getBoundingClientRect();
+            if (r.width > 0 && r.height > 0) return;
+        }
+        if (document.querySelector(".calm-fab")) return;
+        var fab = document.createElement("button");
+        fab.type = "button";
+        fab.className = "calm-toggle calm-fab";
+        fab.setAttribute("aria-label", "Mode Calme (neurodiversite)");
+        fab.innerHTML = CALM_ICON_OFF;
+        document.body.appendChild(fab);
         applyCalmModeState();
     }
 

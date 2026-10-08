@@ -15397,3 +15397,50 @@ body.home-page:not(.light) h1 {
         0 2px 14px rgba(0, 0, 0, 0.62),
         0 1px 3px rgba(0, 0, 0, 0.5);
 }
+
+/* =========================================================================
+   FINITIONS P1 (suite) — 08/10, agent
+   ========================================================================= */
+
+/* 5) LE « FILIGRANE » DE LA CARTE.
+   Ce que l'oeil voit comme une tache grise derriere le nom : c'est l'image
+   `img.cc3-skyline` (silhouette de ville) posee en bas de carte a opacity 0.5,
+   qui passe PILE derriere la ligne « nom + CONTACTER ». Mesure : skyline
+   438 x 96 px a [871,358] pour une carte de [870,225,440,229], opacity 0.5.
+   On la baisse pour qu'elle redevienne un decor, et on detache le texte du
+   pied de carte (text-shadow s'herite, donc une seule regle sur .cc3-foot). */
+.cards-list .cc3-card .cc3-skyline { opacity: 0.26; }
+.cards-list .cc3-card .cc3-foot { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }
+
+/* 6) MODE CALME SUR MOBILE.
+   Le header partage (qui contient le bouton) est masque sous 900 px : le bouton
+   mesurait 0 x 0 px, donc il n'existait PAS pour un visiteur au telephone.
+   `ensureCalmFab()` (standalone-common.js) pose alors cette pastille, au-dessus
+   du bouton clair/sombre deja present, avec la meme charte que le header. */
+.calm-fab {
+    position: fixed;
+    left: 10px;
+    bottom: 132px;
+    z-index: 60;
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(245, 194, 92, 0.5);
+    background: rgba(18, 16, 13, 0.92);
+    color: #f5c25c;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
+    cursor: pointer;
+}
+.calm-fab[aria-pressed="true"] {
+    background: rgba(245, 194, 92, 0.92);
+    color: #1a1409;
+}
+@media (min-width: 900px) {
+    .calm-fab { display: none !important; }
+}
