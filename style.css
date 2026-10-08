@@ -15624,3 +15624,15 @@ body.home-page { padding-bottom: 112px; }
     body.home-page .calm-fab { right: 66px !important; }
     body.home-page .confort-fab { right: 120px !important; }
 }
+
+/* =========================================================================
+   P2-1 : LE VIDE ENTRE LE HERO ET « COMMENT CA MARCHE ? »
+   Mesure de la chaine : boutons du hero bas = 562 px ; hero-grid padding-bottom
+   = 80 px (donc hero finit a 642) ; how-it-works margin-top = 40 px -> titre a
+   682 px. Soit 120 px de vide. On en rend 56 tout en gardant de l'air : le vide
+   passe a 64 px. Scoped au bureau : sur telephone la respiration est deja juste.
+   ========================================================================= */
+@media (min-width: 900px) {
+    body.home-page .hero-grid { padding-bottom: 40px; }
+    body.home-page .how-it-works { margin-top: 24px; }
+}
