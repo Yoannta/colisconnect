@@ -169,16 +169,11 @@
 
     function renderStats(offer, requests) {
         const availableKg = Number(offer?.availableKg || offer?.available_kg || 0);
-        const pricePerKg = Number(offer?.pricePerKg || offer?.price_per_kg || 0);
-        const baseCurrency = offer?.baseCurrency || offer?.base_currency || getUserCurrency();
-        const potential = availableKg * pricePerKg;
 
         if (els.statRemainingKg) els.statRemainingKg.textContent = `${availableKg} kg`;
         if (els.statRemainingLabel) els.statRemainingLabel.textContent = "capacite disponible";
         if (els.statInterested) els.statInterested.textContent = `${requests.length}`;
         if (els.statInterestedLabel) els.statInterestedLabel.textContent = "demandes recues";
-        if (els.statRevenue) els.statRevenue.textContent = formatAmount(potential, baseCurrency);
-        if (els.statRevenueLabel) els.statRevenueLabel.textContent = "revenu potentiel restant";
     }
 
     function renderActiveOffer(offer, requests) {
