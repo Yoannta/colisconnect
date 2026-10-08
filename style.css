@@ -1963,7 +1963,9 @@ html.cc-nav-ready .mobile-bottom-nav {
     grid-template-columns: 1.5fr 1fr;
     gap: 60px;
     align-items: center;
-    padding: 80px 0;
+    /* padding-top 52px (au lieu de 80) : le logo remonte de 28px sans toucher
+       à l'écart logo↔titre (64px) — demande Yoyo 2026-10-08, 3e passe. */
+    padding: 52px 0 80px;
 }
 
 .kicker {
