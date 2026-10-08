@@ -337,29 +337,100 @@
             background-color: #ffffff;
             color: #121316;
         }
+
+        /* Favoris (P3-3) : bascule « Mes favoris » + compteur, a cote du tri. */
+        .results-fav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-height: 44px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background-color: #1A1B1E;
+            color: #e3e2e6;
+            border: 1px solid rgba(255, 179, 71, 0.25);
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .results-fav-btn .material-symbols-outlined {
+            font-size: 18px;
+            color: #ffb347;
+        }
+
+        .results-fav-btn:hover { border-color: rgba(255, 179, 71, 0.6); }
+
+        .results-fav-btn:focus-visible {
+            outline: 2px solid #ffb347;
+            outline-offset: 2px;
+        }
+
+        .results-fav-btn.is-on {
+            border-color: rgba(255, 179, 71, 0.85);
+            background-color: rgba(255, 179, 71, 0.14);
+            color: #ffd48a;
+        }
+
+        .results-fav-btn .fav-count {
+            min-width: 22px;
+            padding: 1px 6px;
+            border-radius: 999px;
+            background-color: rgba(255, 179, 71, 0.16);
+            color: #ffd48a;
+            font-size: 12px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .results-fav-btn .fav-count:empty { display: none; }
+
+        body.results-page.light .results-fav-btn {
+            background-color: #ffffff;
+            color: #121316;
+            border-color: rgba(198, 132, 12, 0.35);
+        }
+
+        body.results-page.light .results-fav-btn.is-on {
+            background-color: rgba(198, 132, 12, 0.12);
+            color: #7a5200;
+        }
+
+        body.results-page.light .results-fav-btn .fav-count {
+            background-color: rgba(198, 132, 12, 0.16);
+            color: #7a5200;
+        }
+
+        /* Petits ecrans : le tri et la bascule s'empilent → aucun debordement. */
+        @media (max-width: 640px) {
+            .results-sort-row { flex-wrap: wrap; }
+            .results-fav-btn { justify-content: center; }
+        }
     </style>
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=20261008j"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=20261008k"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <script src="supabase-init.js?v=20261008j"></script>
+    <script src="supabase-init.js?v=20261008k"></script>
 
-    <script defer src="responsive.js?v=20261008j"></script>
+    <script defer src="responsive.js?v=20261008k"></script>
 
-    <script defer src="password-toggle.js?v=20261008j"></script>
+    <script defer src="password-toggle.js?v=20261008k"></script>
 
     <!-- Header unifié (source unique) -->
-    <script defer src="shared-header.js?v=20261008j"></script>
+    <script defer src="shared-header.js?v=20261008k"></script>
 
-    <script defer src="standalone-common.js?v=20261008j"></script>
-    <script defer src="devise.js?v=20261008j"></script>
+    <script defer src="standalone-common.js?v=20261008k"></script>
+    <script defer src="devise.js?v=20261008k"></script>
 
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
 
-    <script defer src="admin-banner.js?v=20261008j"></script>
+    <script defer src="admin-banner.js?v=20261008k"></script>
 
-    <script defer src="results.js?v=20261008j"></script>
+    <script defer src="results.js?v=20261008k"></script>
 
 </head>
 
@@ -549,6 +620,12 @@
                     <option value="price">Prix au kg le plus bas</option>
                     <option value="weight">Plus de place restante</option>
                 </select>
+                <!-- Favoris (P3-3) : n'afficher que les publications mises en favori -->
+                <button type="button" id="btn-favoris" class="results-fav-btn" aria-pressed="false" aria-label="Afficher seulement mes favoris">
+                    <span class="material-symbols-outlined" aria-hidden="true">star</span>
+                    <span>Mes favoris</span>
+                    <span class="fav-count" aria-hidden="true"></span>
+                </button>
             </div>
 
             <div id="offers-list" class="cards-list offers-stream">
@@ -778,14 +855,14 @@
     <!-- LE PETIT VOYAGEUR (mascotte) — sa mise en place est dans mascotte-site.js.
          Pour l'enlever de cette page : supprimer ces 2 lignes. -->
     <script src="mascotte.js?v=20261008k" defer></script>
-    <script src="mascotte-site.js?v=20261008j" defer></script>
+    <script src="mascotte-site.js?v=20261008k" defer></script>
 
     <!-- L'assistant (chat) + le guide. mascotte-chat.js ouvre le panneau de chat
          au clic sur la mascotte et lance le guide tout seul. -->
-    <script src="guide-controller.js?v=20261008j" defer></script>
-    <script src="guide-session.js?v=20261008j" defer></script>
-    <script src="guide-intents.js?v=20261008j" defer></script>
-    <script src="mascotte-chat.js?v=20261008j" defer></script>
+    <script src="guide-controller.js?v=20261008k" defer></script>
+    <script src="guide-session.js?v=20261008k" defer></script>
+    <script src="guide-intents.js?v=20261008k" defer></script>
+    <script src="mascotte-chat.js?v=20261008k" defer></script>
 
 </body>
 

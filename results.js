@@ -22,7 +22,9 @@
         filterVerified: false,
         filterWeight10: false,
         filterUrgent: false,
-        sortBy: readStoredSort()
+        sortBy: readStoredSort(),
+        // Favori (P3-3) : n'afficher QUE les publications mises en favori.
+        onlyFavoris: false
     };
 
     const convertCurrency = window.CCCommon.convertCurrency;
@@ -231,13 +233,20 @@
         <span>Contacter</span>
       </button>`
             : `<span class="cc3-cta" aria-disabled="true"><span>${eh(opts.inactiveLabel)}</span></span>`);
+        // Favori (P3-3) : etoile enregistree dans le navigateur. Absente de MES
+        // publications (on ne met pas son propre trajet en favori).
+        const favBtn = opts.favoriAttr
+            ? `<button class="cc3-fav${opts.favoriActif ? " is-on" : ""}" type="button" ${opts.favoriAttr} aria-pressed="${opts.favoriActif ? "true" : "false"}" title="${opts.favoriActif ? "Retirer des favoris" : "Ajouter aux favoris"}" aria-label="${opts.favoriActif ? "Retirer des favoris" : "Ajouter aux favoris"}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.4l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.9l6.1-.9z"></path></svg>
+      </button>`
+            : "";
         // Corbeille (mes propres publications uniquement) : icône seule, compacte
         const delBtn = opts.deleteAttr
             ? `<button class="cc3-del" type="button" ${opts.deleteAttr} title="${eh(opts.deleteLabel || "Supprimer")}" aria-label="${eh(opts.deleteLabel || "Supprimer")}">
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9.5 7V4.8h5V7"></path><path d="M6.2 7l1 12.2h9.6L17.8 7"></path><path d="M10 10.8v5.2M14 10.8v5.2"></path></svg>
       </button>`
             : "";
-        const actions = delBtn ? `<div class="cc3-actions">${delBtn}${btn}</div>` : btn;
+        const actions = (delBtn || favBtn) ? `<div class="cc3-actions">${favBtn}${delBtn}${btn}</div>` : btn;
         return `
     <footer class="cc3-foot">
       <div class="cc3-profile">
@@ -254,14 +263,25 @@
     </footer>`;
     }
 
+    // Favori (P3-3) : lecture seule du stockage navigateur (jamais le serveur).
+    function estFavori(cle) {
+        return !!(window.CCCommon && window.CCCommon.favoris && window.CCCommon.favoris.contient(cle));
+    }
+
     function renderDemands() {
         if (!els.offersList) return;
         let items = state.demands || [];
         // [Yoyo] Mes demandes en premier (toujours : aucune recherche ne filtre les demandes).
         items = ownFirst(items);
+        // Favori (P3-3) : filtre « mes favoris » (mes propres demandes ne sont pas
+        // proposées en favori, elles restent visibles ici en mode normal).
+        if (state.onlyFavoris) {
+            items = items.filter((d) => estFavori(`d:${d.id}`));
+        }
         if (!items.length) {
-            els.offersList.innerHTML =
-                '<div class="empty-state">Aucune demande en ce moment.<br>Revenez plus tard !</div>';
+            els.offersList.innerHTML = state.onlyFavoris
+                ? '<div class="empty-state">Aucune demande en favori.<br>Touchez l\u2606 etoile d une demande pour la retrouver ici.</div>'
+                : '<div class="empty-state">Aucune demande en ce moment.<br>Revenez plus tard !</div>';
             return;
         }
         const esc = (s) => window.CCCommon?.escapeHtml ? window.CCCommon.escapeHtml(String(s ?? "")) : String(s ?? "");
@@ -428,7 +448,10 @@
       deleteLabel: "Supprimer ma demande",
       dataAttr: isOwnDemand ? "" : `data-contact-request="${d.id}"`,
       ariaLabel: `Contacter ${(d.owner && d.owner.full_name) || "ce demandeur"}`,
-      inactiveLabel: "Votre demande"
+      inactiveLabel: "Votre demande",
+      // Favori (P3-3) : etoile sur les demandes des AUTRES (pas les miennes).
+      favoriAttr: isOwnDemand ? "" : `data-favori="d:${d.id}"`,
+      favoriActif: !isOwnDemand && !!(window.CCCommon && window.CCCommon.favoris && window.CCCommon.favoris.contient(`d:${d.id}`))
     })}
   </article>
 </div>`);
@@ -470,6 +493,9 @@
 
         // 1. Filtrer les offres selon l'onglet actif et les filtres optionnels
         let filteredOffers = state.offers.filter(offer => {
+            // Favori (P3-3) : quand le filtre est actif, seules les offres en favori
+            // restent affichees.
+            if (state.onlyFavoris && !estFavori(`o:${offer.id}`)) return false;
             const mode = String(offer.mode || "").trim();
             if (state.filterProfileType === 'traveler') {
                 if (mode !== "") return false;
@@ -536,6 +562,14 @@
 
         // 3. Rendu
         if (!filteredOffers.length) {
+            if (state.onlyFavoris) {
+                els.offersList.innerHTML = `
+                <div class="empty-card empty-state">
+                    <p class="empty-title">Aucun favori pour l'instant.</p>
+                    <p class="empty-sub">Touchez l'\u2606 etoile en bas d'une offre pour la retrouver ici, meme apres avoir ferme le site.</p>
+                </div>`;
+                return;
+            }
             els.offersList.innerHTML = `
                 <div class="empty-card empty-state">
                     <p class="empty-title">Aucune offre correspondante.</p>
@@ -811,7 +845,10 @@
       deleteAttr: isOwnOffer ? `data-delete-own-offer="${offer.id}"` : "",
       deleteLabel: "Supprimer mon trajet",
       dataAttr: isOwnOffer ? "" : `data-reserve-offer="${offer.id}"`,
-      ariaLabel: `Contacter ${offer.ownerName || "ce voyageur"}`
+      ariaLabel: `Contacter ${offer.ownerName || "ce voyageur"}`,
+      // Favori (P3-3) : etoile sur les trajets des AUTRES (pas les miens).
+      favoriAttr: isOwnOffer ? "" : `data-favori="o:${offer.id}"`,
+      favoriActif: !isOwnOffer && !!(window.CCCommon && window.CCCommon.favoris && window.CCCommon.favoris.contient(`o:${offer.id}`))
     })}
   </article>
 </div>`;
@@ -1206,7 +1243,42 @@
         });
     }
 
+    // ── Favori (P3-3) : bouton « Mes favoris » + compteur (dans la barre de tri) ──
+    function majCompteurFavoris() {
+        const bouton = document.getElementById("btn-favoris");
+        if (!bouton) return;
+        const n = (window.CCCommon && window.CCCommon.favoris) ? window.CCCommon.favoris.nombre() : 0;
+        const compteur = bouton.querySelector(".fav-count");
+        if (compteur) compteur.textContent = n ? String(n) : "";
+        bouton.classList.toggle("has-items", n > 0);
+    }
+    function rafraichirListeCourante() {
+        if (state.mobilePrimaryMode === "demand") renderDemands(); else renderOffers();
+    }
+    function bindFavorisControl() {
+        const bouton = document.getElementById("btn-favoris");
+        if (!bouton) return;
+        const refleter = () => {
+            bouton.setAttribute("aria-pressed", state.onlyFavoris ? "true" : "false");
+            bouton.classList.toggle("is-on", !!state.onlyFavoris);
+        };
+        refleter();
+        majCompteurFavoris();
+        bouton.addEventListener("click", () => {
+            state.onlyFavoris = !state.onlyFavoris;
+            refleter();
+            rafraichirListeCourante();
+        });
+        // Toute bascule d'etoile met le compteur a jour ; si on regarde les favoris,
+        // la liste suit (marquer puis retirer fait disparaitre la carte).
+        document.addEventListener("cc:favoris-change", () => {
+            majCompteurFavoris();
+            if (state.onlyFavoris) rafraichirListeCourante();
+        });
+    }
+
     bindSortControl();
+    bindFavorisControl();
     bindSwitchesEarly();
 
     async function bootstrap() {

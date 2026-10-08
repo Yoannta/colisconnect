@@ -68,7 +68,14 @@
         <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9.5 7V4.8h5V7"></path><path d="M6.2 7l1 12.2h9.6L17.8 7"></path><path d="M10 10.8v5.2M14 10.8v5.2"></path></svg>
       </button>`
             : "";
-        const actions = delBtn ? `<div class="cc3-actions">${delBtn}${btn}</div>` : btn;
+        // Favori (P3-3) : etoile enregistree dans le navigateur (meme cle que
+        // results.js : « o:<id> »). Absente de MES publications.
+        const favBtn = opts.favoriAttr
+            ? `<button class="cc3-fav${opts.favoriActif ? " is-on" : ""}" type="button" ${opts.favoriAttr} aria-pressed="${opts.favoriActif ? "true" : "false"}" title="${opts.favoriActif ? "Retirer des favoris" : "Ajouter aux favoris"}" aria-label="${opts.favoriActif ? "Retirer des favoris" : "Ajouter aux favoris"}">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.4l2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.9l6.1-.9z"></path></svg>
+      </button>`
+            : "";
+        const actions = (delBtn || favBtn) ? `<div class="cc3-actions">${favBtn}${delBtn}${btn}</div>` : btn;
         return `
     <footer class="cc3-foot">
       <div class="cc3-profile">
@@ -342,7 +349,10 @@
         deleteAttr: isOwnOffer ? `${deleteAttrName}="${String(offer.id ?? "")}"` : "",
         deleteLabel: opts.deleteLabel || "Supprimer mon trajet",
         dataAttr: isOwnOffer ? "" : `data-reserve-offer="${String(offer.id ?? "")}"`,
-        ariaLabel: `Contacter ${ownerName}`
+        ariaLabel: `Contacter ${ownerName}`,
+        // Favori (P3-3) : etoile sur les trajets des AUTRES (jamais les miens).
+        favoriAttr: isOwnOffer ? "" : `data-favori="o:${String(offer.id ?? "")}"`,
+        favoriActif: !isOwnOffer && !!(window.CCCommon && window.CCCommon.favoris && window.CCCommon.favoris.contient(`o:${String(offer.id ?? "")}`))
     })}
   </article>
 </div>`;

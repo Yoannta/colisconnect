@@ -3471,8 +3471,70 @@
         setTimeout(installerGardeFouNumerique, 150);
     });
 
+    /* ═══════════════════════════════════════════════════════════════════════
+       FAVORIS (P3-3) — marquer des offres / demandes, les retrouver plus tard.
+       Tout reste DANS LE NAVIGATEUR (localStorage « cc-favoris ») : rien n'est
+       envoye au serveur, aucune donnee personnelle ne circule.
+       Cle de stockage : « o:<id> » pour une offre, « d:<id> » pour une demande
+       (une offre et une demande peuvent porter le meme identifiant).
+       Le bouton est pose par le pied de carte partage (`data-favori`) et gere
+       ici par un seul ecouteur delegue, present sur les 9 pages.
+       ═══════════════════════════════════════════════════════════════════════ */
+    const CLE_FAVORIS = "cc-favoris";
+    const MAX_FAVORIS = 500;
+
+    function lireFavoris() {
+        try {
+            const brut = JSON.parse(localStorage.getItem(CLE_FAVORIS) || "[]");
+            return Array.isArray(brut) ? brut.filter(x => typeof x === "string") : [];
+        } catch (_) { return []; }
+    }
+    function ecrireFavoris(liste) {
+        try { localStorage.setItem(CLE_FAVORIS, JSON.stringify(liste.slice(0, MAX_FAVORIS))); }
+        catch (_) { /* stockage indisponible (navigation privee) : on n'echoue pas */ }
+    }
+    const favoris = {
+        liste: lireFavoris,
+        nombre: () => lireFavoris().length,
+        contient: (cle) => lireFavoris().indexOf(String(cle)) !== -1,
+        // Bascule et renvoie le NOUVEL etat (true = desormais en favori).
+        basculer: (cle) => {
+            const k = String(cle);
+            const liste = lireFavoris();
+            const i = liste.indexOf(k);
+            if (i === -1) { liste.push(k); } else { liste.splice(i, 1); }
+            ecrireFavoris(liste);
+            return i === -1;
+        },
+        vider: () => { ecrireFavoris([]); }
+    };
+
+    const LIB_FAV_AJOUT = "Ajouter aux favoris";
+    const LIB_FAV_RETRAIT = "Retirer des favoris";
+    function majBoutonFavori(bouton, actif) {
+        bouton.classList.toggle("is-on", !!actif);
+        bouton.setAttribute("aria-pressed", actif ? "true" : "false");
+        bouton.setAttribute("title", actif ? LIB_FAV_RETRAIT : LIB_FAV_AJOUT);
+        bouton.setAttribute("aria-label", actif ? LIB_FAV_RETRAIT : LIB_FAV_AJOUT);
+    }
+    // Un seul ecouteur delegue : tout bouton [data-favori] de la page, present
+    // ou futur (les cartes sont re-rendues), fonctionne sans re-liaison.
+    document.addEventListener("click", (e) => {
+        const bouton = e.target && e.target.closest ? e.target.closest("[data-favori]") : null;
+        if (!bouton) return;
+        e.preventDefault();
+        const cle = bouton.getAttribute("data-favori");
+        if (!cle) return;
+        const actif = favoris.basculer(cle);
+        majBoutonFavori(bouton, actif);
+        document.dispatchEvent(new CustomEvent("cc:favoris-change", {
+            detail: { cle, actif, nombre: favoris.nombre() }
+        }));
+    });
+
     window.CCCommon = {
         installNumericGuards: installerGardeFouNumerique,
+        favoris,
         state,
         api,
         setSession,
