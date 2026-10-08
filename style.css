@@ -12075,7 +12075,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-label {
     display: block;
     color: #908d88;
-    font-size: 0.52rem;
+    font-size: 0.66rem;
     line-height: 1;
     font-weight: 800;
     letter-spacing: 0.2em;
@@ -12096,7 +12096,7 @@ body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-city {
     display: block;
     color: #908d88;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
     line-height: 1.15;
     font-weight: 600;
     margin-top: 3px;
@@ -12425,7 +12425,7 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-d-label {
     display: block;
     color: #a9a49d;
-    font-size: 0.48rem;
+    font-size: 0.66rem;
     line-height: 1;
     font-weight: 800;
     letter-spacing: 0.14em;
@@ -12477,7 +12477,7 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-inclusive {
     display: block;
     color: #e9ad2c;
-    font-size: 0.5rem;
+    font-size: 0.66rem;
     line-height: 1;
     font-weight: 700;
     font-style: italic;
@@ -15171,4 +15171,75 @@ body.is-calm .glow,
 body.is-calm .halo {
     filter: none !important;
     box-shadow: none !important;
+}
+
+/* ============================================================================
+   CORRECTIFS 2026-10-08 — contraste et cibles tactiles (mesures d'audit)
+   ----------------------------------------------------------------------------
+   Mesures AVANT :
+     - onglets de filtre (.filter-tab) : #8d9694 sur fond blanc = 3.03:1
+       (minimum recommande 4.5:1 pour du texte).
+     - cibles tactiles sur mobile : .mob-nav-item 26x37 px ("Profil" n'avait que
+       26 px de large), .sub-check 22x22 px, #currency-trigger-btn 73x33 px
+       (recommandation 44x44 px).
+   Aucun autre cas modifie.
+   ========================================================================= */
+
+/* 1. Contraste des onglets de filtre en theme clair */
+body.light .filter-tab,
+body.results-page.light .filter-tab,
+body.home-page.light .filter-tab {
+    color: #55605c;
+}
+
+body.light .filter-tab .tab-icon,
+body.results-page.light .filter-tab .tab-icon {
+    color: inherit;
+}
+
+/* 2. Barre de navigation mobile : cible tactile minimum partout */
+.mob-nav-item {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 4px 2px;
+}
+
+/* 3. Cases a cocher des sous-filtres mobiles (22x22 -> 28x28) */
+.results-mobile-sub-btn .sub-check {
+    width: 28px !important;
+    height: 28px !important;
+}
+
+.results-mobile-sub-btn {
+    min-height: 44px;
+}
+
+/* 4. Bouton devise : hauteur de frappe suffisante au doigt */
+@media (max-width: 768px) {
+    .currency-trigger-btn,
+    #currency-trigger-btn {
+        min-height: 44px;
+    }
+}
+
+/* ============================================================================
+   MODALE DE CONNEXION PARTAGEE — correctifs valables sur TOUTES les pages
+   ----------------------------------------------------------------------------
+   Ces deux correctifs existaient DEJA mais appliques PAGE PAR PAGE
+   (body.dashboard-page l.14401/14406 et body.verification-page l.14536/14539),
+   alors que la modale est construite par standalone-common.js et s'affiche sur
+   TOUTES les pages. Consequence MESUREE (audit) : sur les 7 autres pages, le
+   texte « Vous n'avez pas encore de compte ? » restait en #333 (couleur en dur
+   dans le markup) sur la carte obsidienne = 1.55:1, donc illisible ; et la
+   pastille gardait son bleu->vert au lieu de l'or de la charte.
+   Regles globales ci-dessous. `var(--muted)` suit le theme (sombre ou clair),
+   les deux regles par page existantes restent sans effet de bord.
+   ========================================================================= */
+
+#cc-auth-switch-text {
+    color: var(--muted) !important;
+}
+
+div[style*="linear-gradient(135deg, #4c82ff"] {
+    background: linear-gradient(135deg, #f0c35a, #b87b10) !important;
 }
