@@ -15243,3 +15243,72 @@ body.results-page.light .filter-tab .tab-icon {
 div[style*="linear-gradient(135deg, #4c82ff"] {
     background: linear-gradient(135deg, #f0c35a, #b87b10) !important;
 }
+
+/* ============================================================================
+   LENTILLE D'EAU (panneau « Prix / kg » des cartes d'offre) — lisibilite
+   ----------------------------------------------------------------------------
+   Constat (captures avant/apres) : le panneau apparaissait comme une pastille
+   grise delavee, le prix etait a peine lisible. Deux causes mesurees dans le CSS
+   ci-dessus : le reflet `.water-lens::before` (blanc 85 %, 34 px de haut, quasi
+   toute la largeur, floute) lavait la carte, et le verre lui-meme etait tres
+   clair (blanc 18 % / 4,5 % / 13 %) pose sur une carte sombre.
+   Correctif : base assombrie + reflets adoucis + ombre portee sur le texte.
+   L'effet verre est conserve, le prix redevient lisible.
+   ========================================================================= */
+
+.cards-list .cc3-card .water-lens {
+    background-color: rgba(12, 10, 8, 0.42);
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow:
+        0 16px 40px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.cards-list .cc3-card .water-lens::before {
+    /* DECISION : le reflet traversait le prix et le rendait illisible
+       (blanc sur blanc). L'effet verre reste assure par le fond + le lisere ;
+       le reflet, lui, est supprime. */
+    display: none;
+}
+
+.cards-list .cc3-card .water-lens::after {
+    opacity: 0.22;
+}
+
+.cards-list .cc3-card .water-lens__content {
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+}
+
+/* Le prix : or de la charte + gras + ombre portee, pour se detacher du verre. */
+.cards-list .cc3-card .water-lens .cc3-price {
+    color: #f5c25c !important;
+    font-weight: 800;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 0, 0, 0.45);
+}
+
+.cards-list .cc3-card .water-lens .cc3-d-label,
+.cards-list .cc3-card .water-lens .cc3-inclusive {
+    color: rgba(255, 250, 242, 0.92) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+}
+
+/* DOUBLE du prix derriere la lentille : c'est LUI qui produisait la « tache grise
+   delavee ». Il est floute (0,7 px) et blanc a 20 %, vu a travers le verre il
+   blanchit la zone et brouille le prix net affiche devant. Le contenu net de la
+   lentille suffit : on retire le double. */
+.cards-list .cc3-card .cc3-price-source {
+    display: none;
+}
+
+/* Le HALO BLANC du panneau : le reflet speculaire d'origine
+   (radial-gradient blanc a 72 % / 17 % couvrant jusqu'a 28 % du panneau) etait
+   la « tache grise » visible sur la carte. On le ramene a un soupcon de lumiere
+   et on assombrit le verre : le verre reste, le prix ressort. */
+.cards-list .cc3-card .water-lens {
+    background:
+        radial-gradient(circle at 29% 18%, rgba(255, 255, 255, 0.26) 0 3%, rgba(255, 255, 255, 0.07) 8%, transparent 22%),
+        radial-gradient(circle at 71% 82%, rgba(255, 214, 130, 0.14), transparent 34%),
+        linear-gradient(140deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03) 45%, rgba(185, 216, 255, 0.06));
+    background-color: rgba(14, 12, 10, 0.5);
+    border-color: rgba(255, 255, 255, 0.2);
+}
