@@ -12436,7 +12436,10 @@ body.results-page.light .cc3-special-toggle-gold {
 /* Yoyo 2026-09 : libelles « Depart » / « J'ai des voyages le : » de la carte d'offres
    agrandis, les autres libelles des cartes gardent leur taille d'origine. */
 .cc3-details .cc3-d-label--big {
-    font-size: 0.62rem;
+    /* 0.62rem = 9.92 px : plus PETIT que le libelle normal (.cc3-d-label, 0.66rem)
+       depuis que celui-ci a ete remonte pour la lisibilite. Une variante nommee
+       « big » doit rester plus grande que la base -> 0.72rem (11.52 px). */
+    font-size: 0.72rem;
     letter-spacing: 0.11em;
     /* Sur mobile la colonne fait ~100 px : le libelle peut passer a la ligne
        plutot que deborder sur la colonne voisine (le nowrap global est leve ici). */
