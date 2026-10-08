@@ -1,4 +1,18 @@
 ﻿(() => {
+    // ── Tri des offres (P3-2) : valeurs supportées + mémoire navigateur ─────────
+    // Tri purement visuel (côté client) : la requête SQL n'est pas touchée. Le choix
+    // de l'utilisateur est gardé dans le navigateur (localStorage), rien n'est envoyé.
+    const SORT_STORAGE_KEY = "cc-results-sort";
+    const SORT_VALUES = ["date", "price", "weight"];
+    function readStoredSort() {
+        try {
+            const v = localStorage.getItem(SORT_STORAGE_KEY);
+            return SORT_VALUES.includes(v) ? v : "date";
+        } catch (_) {
+            return "date";
+        }
+    }
+
     const state = {
         offers: [],
         userCurrency: 'EUR',
@@ -8,7 +22,7 @@
         filterVerified: false,
         filterWeight10: false,
         filterUrgent: false,
-        sortBy: 'date'
+        sortBy: readStoredSort()
     };
 
     const convertCurrency = window.CCCommon.convertCurrency;
@@ -497,18 +511,21 @@
             return true;
         });
 
-        // 2. Trier les offres
+        // 2. Trier les offres (date de départ / prix au kg / place restante)
         const isSort = document.getElementById("sort-select")?.value || state.sortBy;
         filteredOffers.sort((a, b) => {
             if (isSort === 'price') {
                 const priceA = convertCurrency(Number(a.pricePerKg || 0), a.baseCurrency || 'EUR', state.userCurrency);
                 const priceB = convertCurrency(Number(b.pricePerKg || 0), b.baseCurrency || 'EUR', state.userCurrency);
                 return priceA - priceB;
-            } else {
-                const dateA = new Date(a.departureDate || 0);
-                const dateB = new Date(b.departureDate || 0);
-                return dateA - dateB;
             }
+            if (isSort === 'weight') {
+                // Le plus de place restante d'abord (availableKg décroissant).
+                return Number(b.availableKg || 0) - Number(a.availableKg || 0);
+            }
+            const dateA = new Date(a.departureDate || 0);
+            const dateB = new Date(b.departureDate || 0);
+            return dateA - dateB;
         });
 
         // [Yoyo] Mes offres en premier sur l'affichage par défaut (aucune recherche
@@ -1109,11 +1126,8 @@
             loadOffers().catch(err => console.warn(err));
         });
 
-        // Sort Select
-        document.getElementById("sort-select")?.addEventListener("change", (e) => {
-            state.sortBy = e.target.value;
-            renderOffers();
-        });
+        // Sort Select : liaison faite TÔT dans bindSortControl() (avant l'init async,
+        // pour que le choix fonctionne même pendant le chargement) et mémorisée.
 
         // Pill Toggles
         const togglePill = (id, stateKey) => {
@@ -1176,6 +1190,23 @@
         syncMobilePrimaryButtons();
     }
 
+    // ── Tri des offres (P3-2) : liaison + restauration du choix mémorisé ────────
+    // Lié TÔT (avant bootstrap async) : le visiteur peut choisir son tri pendant le
+    // chargement sans perdre le clic. Le choix est gardé dans le navigateur.
+    function bindSortControl() {
+        const select = document.getElementById("sort-select");
+        if (!select) return;
+        // Le contrôle visible reflète le choix mémorisé.
+        if (SORT_VALUES.includes(state.sortBy)) select.value = state.sortBy;
+        select.addEventListener("change", (e) => {
+            const value = SORT_VALUES.includes(e.target.value) ? e.target.value : "date";
+            state.sortBy = value;
+            try { localStorage.setItem(SORT_STORAGE_KEY, value); } catch (_) { /* stockage indisponible */ }
+            renderOffers();
+        });
+    }
+
+    bindSortControl();
     bindSwitchesEarly();
 
     async function bootstrap() {

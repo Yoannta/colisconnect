@@ -279,6 +279,64 @@
             color: var(--emerald-bright, #ffb347) !important;
             font-size: 20px !important;
         }
+
+        /* ── Tri des offres (P3-2) : charte respectée, cible tactile >= 44 px ── */
+        .results-sort-row {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 0 0 16px;
+        }
+
+        .results-sort-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #b9cac4;
+            white-space: nowrap;
+        }
+
+        .results-sort-label .material-symbols-outlined {
+            font-size: 18px;
+        }
+
+        .results-sort-select {
+            min-height: 44px;
+            max-width: 100%;
+            padding: 8px 40px 8px 16px;
+            border-radius: 999px;
+            background-color: #1A1B1E;
+            color: #e3e2e6;
+            border: 1px solid rgba(255, 179, 71, 0.25);
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%23ffb347' d='M6 8 0 0h12z'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 12px 8px;
+        }
+
+        .results-sort-select:hover {
+            border-color: rgba(255, 179, 71, 0.6);
+        }
+
+        .results-sort-select:focus-visible {
+            outline: 2px solid #ffb347;
+            outline-offset: 2px;
+        }
+
+        body.results-page.light .results-sort-select {
+            background-color: #ffffff;
+            color: #121316;
+        }
     </style>
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
@@ -301,7 +359,7 @@
 
     <script defer src="admin-banner.js?v=20261008i"></script>
 
-    <script defer src="results.js?v=20261008i"></script>
+    <script defer src="results.js?v=20261008j"></script>
 
 </head>
 
@@ -478,6 +536,19 @@
                         <span>Je cherche un client</span>
                     </button>
                 </div>
+            </div>
+
+            <!-- Tri des offres (P3-2) : le choix de l'utilisateur est mémorisé dans le navigateur -->
+            <div class="results-sort-row">
+                <label class="results-sort-label" for="sort-select">
+                    <span class="material-symbols-outlined" aria-hidden="true">sort</span>
+                    Trier par
+                </label>
+                <select id="sort-select" class="results-sort-select" aria-label="Trier les offres">
+                    <option value="date">Départ le plus proche</option>
+                    <option value="price">Prix au kg le plus bas</option>
+                    <option value="weight">Plus de place restante</option>
+                </select>
             </div>
 
             <div id="offers-list" class="cards-list offers-stream">
