@@ -309,8 +309,13 @@
 
   /* ---------------------------------------------------------------- style -- */
   var CSS = [
-    /* le rail : toute la largeur, en bas de l'ecran, transparent aux clics */
-    '.ccm-root{position:fixed;left:0;right:0;bottom:0;height:110px;pointer-events:none;z-index:60}',
+    /* le rail : toute la largeur, en bas de l'ecran, transparent aux clics.
+       overflow-x:clip (et non hidden) borne horizontalement la bulle et les
+       autres decors : poses en permanence dans le DOM (ils ne sont caches que
+       par l'opacite), ils depassaient a droite quand la mascotte s'approchait
+       du bord -> barre de defilement horizontale fantome. overflow-y reste
+       visible pour que la bulle (au-dessus du personnage) ne soit pas rognee. */
+    '.ccm-root{position:fixed;left:0;right:0;bottom:0;height:110px;pointer-events:none;z-index:60;overflow-x:clip;overflow-y:visible}',
     '.ccm-perso{position:absolute;bottom:8px;left:0;width:56px;height:79px;pointer-events:auto;cursor:pointer;',
       'opacity:0;transform:translateY(10px);transition:opacity .6s ease,transform .6s ease}',
     '.ccm-root.ccm-pret .ccm-perso{opacity:1;transform:translateY(0)}',
@@ -722,6 +727,7 @@
     ancre = perso.querySelector('.ccm-valise-ancre');
     colere = perso.querySelector('.ccm-colere');
     askEl = perso.querySelector('.ccm-ask');
+    var bulleEl = perso.querySelector('.ccm-bulle');
 
     root.appendChild(perso);
     document.body.appendChild(root);
@@ -771,7 +777,7 @@
       var vw = window.innerWidth;
       return { min: marge, max: Math.max(marge + 40, vw - largeur - marge) };
     }
-    function poser(v) { x = v; perso.style.left = Math.round(v) + 'px'; }
+    function poser(v) { x = v; perso.style.left = Math.round(v) + 'px'; if (decorVisible()) cadrerDecors(); }
 
     /* quand il part rechercher sa valise, elle doit rester posee au sol :
        on compense son deplacement a l'ecran, en tenant compte du miroir. */
@@ -793,6 +799,34 @@
       else if (gauche + w > vw - g) dx = (vw - g) - (gauche + w);
       el.style.marginLeft = dx ? Math.round(dx) + 'px' : '';
       /* colle en haut de l'ecran : la bulle passe sous le personnage */
+      perso.classList.toggle('ccm-bulle-bas', perso.getBoundingClientRect().top < 150);
+    }
+
+    /* bulle, colere et question vivent en permanence dans le DOM (seule
+       l'opacite les cache). Si la mascotte marche pendant qu'une de ces bulles
+       est ouverte, elle doit rester recadree : sinon elle se fait rogner par le
+       bord de l'ecran. On ne le fait que lorsqu'une bulle est visible, pour ne
+       rien calculer pendant la marche normale. */
+    function decorVisible() {
+      return root.classList.contains('ccm-parle') || root.classList.contains('ccm-crie') ||
+             root.classList.contains('ccm-demande');
+    }
+    function cadrerDecors() {
+      var vw = window.innerWidth, pw = perso.offsetWidth || 110, g = 8;
+      var els = [bulleEl, colere, askEl], infos = [];
+      for (var i = 0; i < els.length; i++) {           // lectures groupees (1 seul recalcul de mise en page)
+        var el = els[i]; if (!el) continue;
+        var w = el.offsetWidth; if (!w) continue;
+        var gauche = x + pw / 2 - w / 2, dx = 0;
+        if (gauche < g) dx = g - gauche;
+        else if (gauche + w > vw - g) dx = (vw - g) - (gauche + w);
+        infos.push([el, dx]);
+      }
+      for (var j = 0; j < infos.length; j++) {
+        var e2 = infos[j][0], d = infos[j][1];
+        var val = d ? Math.round(d) + 'px' : '';
+        if (e2.style.marginLeft !== val) e2.style.marginLeft = val;
+      }
       perso.classList.toggle('ccm-bulle-bas', perso.getBoundingClientRect().top < 150);
     }
 
@@ -1289,6 +1323,35 @@
       if (minuteurBulle) { clearTimeout(minuteurBulle); minuteurBulle = null; }
       /* on ne memorise RIEN : elle revient au prochain chargement */
     });
+
+    /* ---------------------------------------------------------------------
+       ROTATION / REDIMENSIONNEMENT DE LA FENETRE.
+       Sans cet ecouteur, la mascotte gardait sa position en pixels : des que la
+       fenetre retrecissait (telephone tourne), elle sortait de l'ecran. MESURE
+       du 08/10 : mascotte a x=861..907 px pour un ecran de 360 px, bulle a
+       650 px hors ecran. On la ramene dans ses bornes, on borne aussi sa cible
+       si elle marchait, et on recadre ses bulles. Anti-rebond : 120 ms.
+       --------------------------------------------------------------------- */
+    var minuteurRedim = null;
+    window.addEventListener('resize', function () {
+      if (minuteurRedim) clearTimeout(minuteurRedim);
+      minuteurRedim = setTimeout(function () {
+        minuteurRedim = null;
+        if (arret) return;
+        var l = perso.offsetWidth || 110, h = perso.offsetHeight || 155;
+        var vw = window.innerWidth, vh = window.innerHeight;
+        if (modeLibre) {
+          var nx = dansLaFenetre(x, seuils.marge, Math.max(seuils.marge, vw - l - seuils.marge));
+          var ny = dansLaFenetre(y, seuils.marge, Math.max(seuils.marge, vh - h - seuils.marge));
+          if (nx !== x || ny !== y) poserLibre(nx, ny);
+        } else {
+          var b = bornes();
+          if (enMarche && typeof cible === 'number') cible = dansLaFenetre(cible, b.min, b.max);
+          poser(dansLaFenetre(x, b.min, b.max));
+        }
+        if (decorVisible()) cadrerDecors();
+      }, 120);
+    }, { passive: true });
 
     /* le clic sur la bulle ne doit pas etre avale par le personnage */
     perso.querySelector('.ccm-bulle').addEventListener('click', function (e) { e.stopPropagation(); });
