@@ -1992,10 +1992,10 @@ html.cc-nav-ready .mobile-bottom-nav {
     height: 48px;
     width: auto;
     max-width: 100%;
-    /* 40px : le logo doit rester nettement DÉTACHÉ du titre (demande Yoyo
-       2026-10-08 : « met un peu plus haut pour ne pas confondre avec les
-       textes ») — il remonte par rapport au titre, qui descend d'autant. */
-    margin: 0 0 40px;
+    /* 64px : le logo doit rester nettement DÉTACHÉ du titre (demande Yoyo
+       2026-10-08, 2e passe : « remonte un peu le logo pour qu'il ne soit pas
+       confondu avec le texte »). Ne pas descendre sous 40px. */
+    margin: 0 0 64px;
 }
 
 .hero-logo--light { display: none; }
@@ -15107,7 +15107,7 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
     .hero-actions { flex-wrap: wrap; }
 }
 @media (max-width: 600px) {
-    .hero-logo { height: 36px; margin-bottom: 30px; }
+    .hero-logo { height: 36px; margin-bottom: 44px; }
     .hero-actions { gap: 12px; }
     .hero-actions .btn {
         flex: 1 1 100%;
