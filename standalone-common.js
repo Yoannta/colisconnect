@@ -2175,6 +2175,12 @@
     }
 
     function updateHeaderUi() {
+        // Mode Calme : ne PAS dependre du header partage. admin.html n'a pas
+        // d'element .header-auth : l'ancien appel (plus bas, APRES le return
+        // anticipe ci-dessous) n'etait jamais atteint -> le bouton Mode Calme
+        // y restait mort (present mais sans effet). On lie/rafraichit ici,
+        // avant toute sortie anticipee.
+        bindCalmMode();
         const headerAuth = document.querySelector(".header-auth");
         if (!headerAuth) return;
 
@@ -2247,8 +2253,6 @@
                 menu?.classList.remove("is-active");
             }, { once: false });
         }
-
-        bindCalmMode();
 
         const file = currentFile();
         document.querySelectorAll(".main-nav .nav-link").forEach(link => {
