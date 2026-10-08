@@ -2134,6 +2134,46 @@
         ui.initialized = true;
     }
 
+    /* ── Mode Calme (neurodiversite) : SOURCE UNIQUE ─────────────────────────
+       Avant : logique dupliquee 3 fois (index.html, results.html, ici) -> sur
+       les pages ou deux copies vivaient en meme temps, le clic basculait la
+       classe DEUX fois (double handler) et le bouton paraissait mort. Pire :
+       la restauration du mode n'existait que sur 2 pages, et le CSS ne ciblait
+       pas la bonne classe (corrige dans style.css). Maintenant : une seule
+       fonction, delegation sur document (resiste au clonage du header par
+       updateHeaderUi via innerHTML), appelable plusieurs fois sans double
+       binding, et restauration sur TOUTES les pages.
+       ──────────────────────────────────────────────────────────────────────── */
+    var CALM_ICON_ON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-11.314l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>';
+    var CALM_ICON_OFF = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-11.314l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>';
+
+    function applyCalmModeState() {
+        var active = localStorage.getItem("calm-mode") === "true";
+        document.body.classList.toggle("is-calm", active);
+        var t = document.getElementById("calm-mode-toggle");
+        if (t) {
+            t.setAttribute("aria-pressed", active ? "true" : "false");
+            t.setAttribute("title", active ? "Mode Calme : actif (cliquer pour desactiver)" : "Mode Calme (Neurodiversite)");
+            t.innerHTML = active ? CALM_ICON_ON : CALM_ICON_OFF;
+        }
+        return active;
+    }
+
+    function bindCalmMode() {
+        if (ui.calmBound) { applyCalmModeState(); return; }
+        ui.calmBound = true;
+        document.addEventListener("click", function (e) {
+            var target = e.target;
+            var btn = target && target.closest ? target.closest("#calm-mode-toggle") : null;
+            if (!btn) return;
+            e.preventDefault();
+            var active = localStorage.getItem("calm-mode") !== "true";
+            localStorage.setItem("calm-mode", String(active));
+            applyCalmModeState();
+        });
+        applyCalmModeState();
+    }
+
     function updateHeaderUi() {
         const headerAuth = document.querySelector(".header-auth");
         if (!headerAuth) return;
@@ -2208,14 +2248,7 @@
             }, { once: false });
         }
 
-        const newCalmToggle = document.getElementById("calm-mode-toggle");
-        if (newCalmToggle) {
-            newCalmToggle.addEventListener("click", () => {
-                document.body.classList.toggle("is-calm");
-                const isCalm = document.body.classList.contains("is-calm");
-                localStorage.setItem("calm-mode", isCalm);
-            });
-        }
+        bindCalmMode();
 
         const file = currentFile();
         document.querySelectorAll(".main-nav .nav-link").forEach(link => {

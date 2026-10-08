@@ -15132,3 +15132,43 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
 .desktop-mode .results-mobile-profile-block {
     display: none !important;
 }
+
+/* ============================================================================
+   MODE CALME (neurodiversite) — ajoute 2026-10-08
+   ----------------------------------------------------------------------------
+   Le bouton #calm-mode-toggle (header, present sur toutes les pages) pose la
+   classe .is-calm sur <body>. Des regles existaient deja dans ce fichier mais
+   ciblaient `.is-calm body` : la classe etant portee PAR <body>, le selecteur
+   ne matchait jamais -> le mode calme n'avait AUCUN effet visible depuis sa
+   creation (seule la mascotte le respectait, cf. mascotte.js).
+   Reecrit en body.is-calm + les couches decoratives reellement utilisees par
+   le site (.noise-layer, .ambient, .ambient-a/b, .gold-dust).
+   Objectif : supprimer le bruit visuel et figer les animations.
+   Aucun impact lorsque le mode calme est desactive.
+   ========================================================================= */
+
+/* 1. Bruit de fond et halos lumineux animés */
+body.is-calm .noise-layer,
+body.is-calm .ambient,
+body.is-calm .ambient-a,
+body.is-calm .ambient-b,
+body.is-calm .gold-dust {
+    display: none !important;
+}
+
+/* 2. Animations figées (stimulation réduite : boucles infinies stoppées) */
+body.is-calm *,
+body.is-calm *::before,
+body.is-calm *::after {
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+}
+
+/* 3. Effets de lueur / flou coûteux désactivés (perf + lisibilité) */
+body.is-calm .glow,
+body.is-calm .halo {
+    filter: none !important;
+    box-shadow: none !important;
+}
