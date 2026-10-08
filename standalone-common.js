@@ -2286,14 +2286,22 @@
         if (!document.querySelector('.confort-panneau')) {
             document.body.appendChild(construirePanneauConfort());
         }
-        var auth = document.querySelector('.header-auth');
-        if (auth && !auth.querySelector('[data-confort-panneau]')) {
+        // Ancrage du bouton : l'en-tete partage s'il existe, sinon le parent du
+        // bouton Mode Calme quand la page n'en a pas (admin.html : .topbar-right).
+        var calmPartout = document.querySelector('#calm-mode-toggle');
+        var ancre = document.querySelector('.header-auth');
+        if (!ancre && calmPartout && calmPartout.getBoundingClientRect().width > 0) { ancre = calmPartout.parentNode; }
+        if (ancre && !ancre.querySelector('[data-confort-panneau]')) {
             var bt = creerControleConfort('btn ghost btn-sm confort-btn');
-            var calm = auth.querySelector('#calm-mode-toggle');
-            if (calm && calm.parentNode === auth) { auth.insertBefore(bt, calm.nextSibling); }
-            else { auth.appendChild(bt); }
+            var calm = ancre.querySelector('#calm-mode-toggle') || calmPartout;
+            if (calm && calm.parentNode === ancre) { ancre.insertBefore(bt, calm.nextSibling); }
+            else { ancre.appendChild(bt); }
         }
-        if (window.innerWidth < 900 && !document.querySelector('.confort-fab')) {
+        // Pastille mobile UNIQUEMENT si aucun bouton visible ne porte deja le
+        // reglage (sinon on se retrouve avec deux controles affiches).
+        var boutonHeader = ancre ? ancre.querySelector('[data-confort-panneau]') : null;
+        var headerVisible = !!(boutonHeader && boutonHeader.getBoundingClientRect().width > 0);
+        if (!headerVisible && window.innerWidth < 900 && !document.querySelector('.confort-fab')) {
             document.body.appendChild(creerControleConfort('confort-fab'));
         }
         applyConfort();
@@ -2329,6 +2337,13 @@
         });
         ensureConfortUi();
         window.addEventListener('load', function () { setTimeout(ensureConfortUi, 500); });
+        // Redimensionnement : l'en-tete disparait sous 900 px et les pastilles
+        // n'existaient qu'au chargement. On repose les controles apres coup.
+        var _minuteurConfort = null;
+        window.addEventListener('resize', function () {
+            clearTimeout(_minuteurConfort);
+            _minuteurConfort = setTimeout(function () { ensureConfortUi(); ensureCalmFab(); }, 250);
+        });
     }
 
     function updateHeaderUi() {
