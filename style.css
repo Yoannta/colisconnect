@@ -15315,3 +15315,85 @@ div[style*="linear-gradient(135deg, #4c82ff"] {
     background-color: rgba(14, 12, 10, 0.5);
     border-color: rgba(255, 255, 255, 0.2);
 }
+
+/* =========================================================================
+   FINITIONS P1 (08/10) — mesures relevees avant/apres, pas d'impression.
+   ========================================================================= */
+
+/* 1) LE « VOILE GRIS » DU PANNEAU DE PRIX.
+   Mesure : la pastille ressortait gris clair sur une carte noire. Deux causes
+   cumulees : le halo blanc a 26 % + le liseré blanc a 9 % poses juste au-dessus,
+   ET le flou de fond amplifie (blur 6px / saturate 1.65 / contrast 1.1) qui
+   blanchit tout ce qui passe derriere. On garde le verre et le liseré dore,
+   on supprime le blanc et on calme le flou. */
+.cards-list .cc3-card .water-lens {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+    background-color: rgba(10, 9, 7, 0.72);
+    border: 1px solid rgba(245, 194, 92, 0.24);
+    -webkit-backdrop-filter: blur(4px) saturate(1.05);
+    backdrop-filter: blur(4px) saturate(1.05);
+    box-shadow:
+        0 10px 26px rgba(0, 0, 0, 0.55),
+        inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* 2) « PRIX / KG » ET « tout inclus » : 0.4rem = 6.4 px.
+   Mon correctif de lisibilite sur .cc3-d-label etait ecrase par une regle plus
+   specifique (celle-ci). 0.66rem = 10.56 px, meme taille que le reste des cartes. */
+.cards-list .cc3-card .water-lens .cc3-d-label,
+.cards-list .cc3-card .water-lens .cc3-inclusive {
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+}
+
+/* 3) LE BOUTON « MODE CALME » ETAIT INVISIBLE.
+   Mesure : fond transparent, aucune bordure, icone gris clair sur header gris
+   fonce (36 x 28 px, entre le selecteur de langue et « Login »). Il devient un
+   vrai bouton de la charte, avec son libelle ecrit sur grand ecran. */
+#calm-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 34px;
+    padding: 0 10px;
+    border: 1px solid rgba(245, 194, 92, 0.45);
+    background: rgba(245, 194, 92, 0.1);
+    color: #f5c25c;
+}
+#calm-mode-toggle:hover {
+    background: rgba(245, 194, 92, 0.2);
+    border-color: rgba(245, 194, 92, 0.7);
+}
+#calm-mode-toggle[aria-pressed="true"] {
+    background: rgba(245, 194, 92, 0.28);
+    border-color: #f5c25c;
+}
+/* Le JS ne pose qu'une icone dans le bouton : ::after ajoute le mot sans le modifier. */
+@media (min-width: 900px) {
+    #calm-mode-toggle::after {
+        content: "Mode Calme";
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+}
+/* Sur mobile : cible tactile confortable, sans deborder du header. */
+@media (max-width: 899px) {
+    #calm-mode-toggle {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0 6px;
+    }
+}
+
+/* 4) LE TITRE DU HERO BAIGNE DANS UNE LUEUR.
+   Mesure : text-shadow « none » alors que les deux halos `.ambient-a` /
+   `.ambient-b` passent juste derriere le texte. On ne touche PAS aux halos (ils
+   sont la direction artistique) : on redonne du contraste au titre par une ombre
+   sombre douce. Reserve aux pages sombres, sinon texte fonce sur fond clair. */
+body.home-page:not(.light) h1 {
+    text-shadow:
+        0 2px 14px rgba(0, 0, 0, 0.62),
+        0 1px 3px rgba(0, 0, 0, 0.5);
+}
