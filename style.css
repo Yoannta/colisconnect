@@ -5469,6 +5469,11 @@ input[data-country-select="true"]::placeholder {
     text-transform: lowercase;
 }
 
+/* Voyageur : libelles en casse normale (Disponibles / Demandes reçues) */
+.dashboard-page .traveler-stat-card span {
+    text-transform: none;
+}
+
 .dashboard-page .traveler-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

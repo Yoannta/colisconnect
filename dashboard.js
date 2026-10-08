@@ -171,9 +171,9 @@
         const availableKg = Number(offer?.availableKg || offer?.available_kg || 0);
 
         if (els.statRemainingKg) els.statRemainingKg.textContent = `${availableKg} kg`;
-        if (els.statRemainingLabel) els.statRemainingLabel.textContent = "capacite disponible";
+        if (els.statRemainingLabel) els.statRemainingLabel.textContent = "Disponibles";
         if (els.statInterested) els.statInterested.textContent = `${requests.length}`;
-        if (els.statInterestedLabel) els.statInterestedLabel.textContent = "demandes recues";
+        if (els.statInterestedLabel) els.statInterestedLabel.textContent = "Demandes reçues";
     }
 
     function renderActiveOffer(offer, requests) {
