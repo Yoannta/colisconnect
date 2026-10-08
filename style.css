@@ -6497,6 +6497,8 @@ input[data-country-select="true"]::placeholder {
     color: var(--d-text-soft);
     font-size: 0.86rem;
     font-weight: 600;
+    /* cargo : libelles en casse normale (Demandes reçues) */
+    text-transform: none;
 }
 
 .dashboard-page .cargo-middle {
