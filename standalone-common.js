@@ -2201,6 +2201,136 @@
         applyCalmModeState();
     }
 
+    /* ── CONFORT DE LECTURE (nouvelle fonctionnalite) ───────────────────────
+       Un seul bouton « Confort » (bureau : dans l'en-tete ; mobile : une
+       pastille) ouvre un petit panneau a deux reglages, dans le meme esprit que
+       le Mode Calme :
+         - Texte plus grand : 3 crans, appliques a la taille de la RACINE (le
+           site est en rem, donc tout le texte suit) ;
+         - Contraste renforce : releve les jetons de la charte et retire les
+           calques decoratifs.
+       Tout est garde dans localStorage, aucune donnee envoyee nulle part.
+       Pourquoi un panneau : avec deux boutons libelles, la navigation du
+       bureau se chevauchait des 1440 px (mesure : « RecherchePublier »). */
+    var CONFORT_ETAT_TEXTE = ['Normal', 'Grand', 'Tres grand'];
+
+    function confortTexteCran() {
+        var n = parseInt(localStorage.getItem('confort-texte'), 10);
+        return (isNaN(n) || n < 0 || n > 2) ? 0 : n;
+    }
+
+    function applyConfort() {
+        var n = confortTexteCran();
+        if (n === 0) { document.documentElement.removeAttribute('data-texte'); }
+        else { document.documentElement.setAttribute('data-texte', String(n)); }
+        var fort = localStorage.getItem('confort-contraste') === 'true';
+        document.body.classList.toggle('contraste-fort', fort);
+
+        var lignes = document.querySelectorAll('.confort-ligne');
+        for (var i = 0; i < lignes.length; i++) {
+            var quoi = lignes[i].getAttribute('data-confort');
+            lignes[i].setAttribute('aria-pressed', (quoi === 'texte' ? n > 0 : fort) ? 'true' : 'false');
+        }
+        var et = document.querySelector('[data-etat-texte]');
+        if (et) { et.textContent = CONFORT_ETAT_TEXTE[n]; }
+        var ec = document.querySelector('[data-etat-contraste]');
+        if (ec) { ec.textContent = fort ? 'Actif' : 'Normal'; }
+
+        var ctl = document.querySelectorAll('[data-confort-panneau]');
+        for (var k = 0; k < ctl.length; k++) {
+            ctl[k].setAttribute('data-actif', (n > 0 || fort) ? 'true' : 'false');
+            ctl[k].setAttribute('title', 'Confort de lecture' + ((n > 0 || fort) ? ' (actif)' : '') + ' : taille du texte et contraste');
+        }
+        return { texte: n, contraste: fort };
+    }
+
+    function basculerPanneauConfort(force) {
+        var pan = document.querySelector('.confort-panneau');
+        if (!pan) return;
+        var ouvert = (typeof force === 'boolean') ? force : pan.hasAttribute('hidden');
+        if (ouvert) { pan.removeAttribute('hidden'); } else { pan.setAttribute('hidden', ''); }
+        var ctl = document.querySelectorAll('[data-confort-panneau]');
+        for (var i = 0; i < ctl.length; i++) { ctl[i].setAttribute('aria-expanded', ouvert ? 'true' : 'false'); }
+    }
+
+    function construirePanneauConfort() {
+        var d = document.createElement('div');
+        d.className = 'confort-panneau';
+        d.setAttribute('hidden', '');
+        d.setAttribute('role', 'dialog');
+        d.setAttribute('aria-label', 'Confort de lecture');
+        d.innerHTML =
+            '<p class="confort-panneau-titre">Confort de lecture</p>' +
+            '<button type="button" class="confort-ligne" data-confort="texte" aria-pressed="false">' +
+            '<span class="confort-ligne-nom">Texte plus grand</span>' +
+            '<span class="confort-ligne-etat" data-etat-texte>Normal</span></button>' +
+            '<button type="button" class="confort-ligne" data-confort="contraste" aria-pressed="false">' +
+            '<span class="confort-ligne-nom">Contraste renforce</span>' +
+            '<span class="confort-ligne-etat" data-etat-contraste>Normal</span></button>';
+        return d;
+    }
+
+    function creerControleConfort(classe) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = classe;
+        b.setAttribute('data-confort-panneau', '');
+        b.setAttribute('aria-expanded', 'false');
+        b.setAttribute('aria-haspopup', 'dialog');
+        b.setAttribute('aria-label', 'Confort de lecture');
+        b.innerHTML = '<span class="confort-glyphe" aria-hidden="true">Aa</span>';
+        return b;
+    }
+
+    function ensureConfortUi() {
+        if (!document.querySelector('.confort-panneau')) {
+            document.body.appendChild(construirePanneauConfort());
+        }
+        var auth = document.querySelector('.header-auth');
+        if (auth && !auth.querySelector('[data-confort-panneau]')) {
+            var bt = creerControleConfort('btn ghost btn-sm confort-btn');
+            var calm = auth.querySelector('#calm-mode-toggle');
+            if (calm && calm.parentNode === auth) { auth.insertBefore(bt, calm.nextSibling); }
+            else { auth.appendChild(bt); }
+        }
+        if (window.innerWidth < 900 && !document.querySelector('.confort-fab')) {
+            document.body.appendChild(creerControleConfort('confort-fab'));
+        }
+        applyConfort();
+    }
+
+    function bindConfort() {
+        if (ui.confortBound) { ensureConfortUi(); return; }
+        ui.confortBound = true;
+        document.addEventListener('click', function (e) {
+            var t = e.target;
+            if (!t || !t.closest) return;
+            if (t.closest('[data-confort-panneau]')) {
+                e.preventDefault();
+                basculerPanneauConfort();
+                return;
+            }
+            var b = t.closest('[data-confort]');
+            if (b) {
+                e.preventDefault();
+                var quoi = b.getAttribute('data-confort');
+                if (quoi === 'texte') {
+                    localStorage.setItem('confort-texte', String((confortTexteCran() + 1) % 3));
+                } else if (quoi === 'contraste') {
+                    localStorage.setItem('confort-contraste', localStorage.getItem('confort-contraste') === 'true' ? 'false' : 'true');
+                }
+                applyConfort();
+                return;
+            }
+            if (!t.closest('.confort-panneau')) { basculerPanneauConfort(false); }
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') { basculerPanneauConfort(false); }
+        });
+        ensureConfortUi();
+        window.addEventListener('load', function () { setTimeout(ensureConfortUi, 500); });
+    }
+
     function updateHeaderUi() {
         // Mode Calme : ne PAS dependre du header partage. admin.html n'a pas
         // d'element .header-auth : l'ancien appel (plus bas, APRES le return
@@ -2208,6 +2338,7 @@
         // y restait mort (present mais sans effet). On lie/rafraichit ici,
         // avant toute sortie anticipee.
         bindCalmMode();
+        bindConfort();
         const headerAuth = document.querySelector(".header-auth");
         if (!headerAuth) return;
 
@@ -2218,6 +2349,9 @@
         const calmToggle = document.getElementById("calm-mode-toggle");
 
         headerAuth.innerHTML = calmToggle ? calmToggle.outerHTML : "";
+        // Le header vient d'etre reconstruit : les boutons Confort qui y etaient
+        // viennent d'etre effaces avec le reste. On les repose tout de suite.
+        ensureConfortUi();
 
         injectLanguageToggle();
 
