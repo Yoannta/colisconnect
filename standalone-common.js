@@ -2244,11 +2244,25 @@
         return { texte: n, contraste: fort };
     }
 
-    function basculerPanneauConfort(force) {
+    var _confortOuvreur = null;
+    function basculerPanneauConfort(force, rendreFocus) {
         var pan = document.querySelector('.confort-panneau');
         if (!pan) return;
         var ouvert = (typeof force === 'boolean') ? force : pan.hasAttribute('hidden');
-        if (ouvert) { pan.removeAttribute('hidden'); } else { pan.setAttribute('hidden', ''); }
+        if (ouvert) {
+            pan.removeAttribute('hidden');
+            var actif = document.querySelector('[data-confort-panneau]');
+            if (actif) { _confortOuvreur = actif; }
+            // Au clavier : on entre directement dans le panneau.
+            var premier = pan.querySelector('.confort-ligne');
+            if (premier) { try { premier.focus(); } catch (e) { } }
+        } else {
+            pan.setAttribute('hidden', '');
+            // Escape : on rend le focus au bouton qui a ouvert le panneau.
+            if (rendreFocus && _confortOuvreur && _confortOuvreur.getBoundingClientRect().width > 0) {
+                try { _confortOuvreur.focus(); } catch (e) { }
+            }
+        }
         var ctl = document.querySelectorAll('[data-confort-panneau]');
         for (var i = 0; i < ctl.length; i++) { ctl[i].setAttribute('aria-expanded', ouvert ? 'true' : 'false'); }
     }
@@ -2333,7 +2347,7 @@
             if (!t.closest('.confort-panneau')) { basculerPanneauConfort(false); }
         });
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') { basculerPanneauConfort(false); }
+            if (e.key === 'Escape') { basculerPanneauConfort(false, true); }
         });
         ensureConfortUi();
         window.addEventListener('load', function () { setTimeout(ensureConfortUi, 500); });
