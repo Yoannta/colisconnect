@@ -1980,6 +1980,25 @@ html.cc-nav-ready .mobile-bottom-nav {
     text-transform: uppercase;
 }
 
+/* ---- Logo ColisConnect au-dessus du titre du hero (2026-10-08) ----
+   Deux PNG transparents tirés de l'image de marque fournie par Yoyo :
+   la version brun + or (fond crème / mode clair) et une version
+   « Colis » crème + « Connect » or pour le fond noir, où le brun serait
+   illisible. Fichiers : assets/logo-colisconnect.png (clair) et
+   assets/logo-colisconnect-dark.png (sombre).
+   ROLLBACK : supprimer ce bloc + les 2 <img class="hero-logo"> de index.html. */
+.hero-logo {
+    display: block;
+    height: 48px;
+    width: auto;
+    max-width: 100%;
+    margin: 0 0 20px;
+}
+
+.hero-logo--light { display: none; }
+body.home-page.light .hero-logo--dark { display: none; }
+body.home-page.light .hero-logo--light { display: block; }
+
 .hero-copy h1 {
     margin: 0;
     font-family: var(--font-title);
@@ -15085,6 +15104,7 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
     .hero-actions { flex-wrap: wrap; }
 }
 @media (max-width: 600px) {
+    .hero-logo { height: 36px; margin-bottom: 16px; }
     .hero-actions { gap: 12px; }
     .hero-actions .btn {
         flex: 1 1 100%;
