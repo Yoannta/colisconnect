@@ -15699,3 +15699,124 @@ body .cards-list,
 body .offer-wrap {
     overflow-x: clip;
 }
+
+/* =========================================================================
+   AIDE AU POIDS (P3-4) — formulaire de publication « Espace & prix ».
+   Un voyageur pense en volume (« une valise de 60 L ») et publie en kilos.
+   Le bloc est cree par aide-poids.js : rien n'est envoye, aucun prix calcule.
+   ========================================================================= */
+.aide-poids { margin-top: 12px; }
+
+.aide-poids-bascule {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    border: 1px dashed rgba(255, 179, 71, 0.45);
+    background: rgba(255, 179, 71, 0.06);
+    color: #ffc46b;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.aide-poids-bascule:hover { background: rgba(255, 179, 71, 0.14); border-color: rgba(255, 179, 71, 0.75); }
+.aide-poids-bascule:focus-visible { outline: 2px solid #ffb347; outline-offset: 2px; }
+.aide-poids-ico { font-size: 1rem; line-height: 1; }
+.aide-poids.est-ouvert .aide-poids-bascule { border-style: solid; background: rgba(255, 179, 71, 0.14); }
+
+.aide-poids-panneau {
+    margin-top: 10px;
+    padding: 16px;
+    border: 1px solid rgba(255, 179, 71, 0.22);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.03);
+}
+.aide-poids-intro {
+    margin: 0 0 12px;
+    color: #cfcac2;
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+.aide-poids-intro em { color: #ffc46b; font-style: normal; font-weight: 700; }
+
+.aide-poids-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+}
+.aide-poids-champ { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.aide-poids-champ label {
+    color: #a8a49d;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.aide-poids-champ input,
+.aide-poids-champ select {
+    min-height: 44px;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(0, 0, 0, 0.28);
+    color: #f4f1ec;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.aide-poids-champ input:focus-visible,
+.aide-poids-champ select:focus-visible { outline: 2px solid #ffb347; outline-offset: 1px; }
+.aide-poids-champ input[readonly] { background: rgba(255, 179, 71, 0.07); color: #ffc46b; }
+.aide-poids-densite-libre { border-color: rgba(255, 179, 71, 0.5); }
+.aide-poids-saisie { display: flex; align-items: center; gap: 8px; }
+.aide-poids-saisie span { color: #a8a49d; font-size: 0.8rem; font-weight: 700; }
+
+.aide-poids-resultat {
+    margin: 14px 0 0;
+    min-height: 20px;
+    color: #ffc46b;
+    font-size: 0.86rem;
+    font-weight: 800;
+}
+
+.aide-poids-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.aide-poids-utiliser,
+.aide-poids-effacer {
+    min-height: 44px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+.aide-poids-utiliser { border: 1px solid rgba(255, 179, 71, 0.7); background: #ffb347; color: #1a1206; }
+.aide-poids-utiliser:hover { background: #ffc768; }
+.aide-poids-effacer { border: 1px solid rgba(255, 255, 255, 0.18); background: transparent; color: #cfcac2; }
+.aide-poids-effacer:hover { border-color: rgba(255, 255, 255, 0.4); }
+.aide-poids-utiliser:focus-visible,
+.aide-poids-effacer:focus-visible { outline: 2px solid #ffb347; outline-offset: 2px; }
+
+.aide-poids-note { margin: 12px 0 0; color: #8d887f; font-size: 0.72rem; line-height: 1.5; }
+
+/* Mode clair : l'or doit rester lisible sur fond blanc. */
+body.light .aide-poids-panneau,
+body.results-page.light .aide-poids-panneau { background: rgba(0, 0, 0, 0.03); border-color: rgba(198, 132, 12, 0.3); }
+body.light .aide-poids-bascule,
+body.results-page.light .aide-poids-bascule { color: #8a5d06; border-color: rgba(198, 132, 12, 0.5); background: rgba(198, 132, 12, 0.06); }
+body.light .aide-poids-champ input,
+body.light .aide-poids-champ select,
+body.results-page.light .aide-poids-champ input,
+body.results-page.light .aide-poids-champ select { background: #ffffff; color: #121316; border-color: rgba(0, 0, 0, 0.16); }
+body.light .aide-poids-champ input[readonly],
+body.results-page.light .aide-poids-champ input[readonly] { background: rgba(198, 132, 12, 0.08); color: #8a5d06; }
+body.light .aide-poids-intro, body.light .aide-poids-effacer,
+body.results-page.light .aide-poids-intro, body.results-page.light .aide-poids-effacer { color: #4a4741; }
+body.light .aide-poids-resultat, body.results-page.light .aide-poids-resultat { color: #8a5d06; }
+body.light .aide-poids-note, body.results-page.light .aide-poids-note { color: #6c6862; }
