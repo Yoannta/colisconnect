@@ -15409,7 +15409,7 @@ body.home-page:not(.light) h1 {
    438 x 96 px a [871,358] pour une carte de [870,225,440,229], opacity 0.5.
    On la baisse pour qu'elle redevienne un decor, et on detache le texte du
    pied de carte (text-shadow s'herite, donc une seule regle sur .cc3-foot). */
-.cards-list .cc3-card .cc3-skyline { opacity: 0.14; }
+.cards-list .cc3-card .cc3-skyline { opacity: 0.08; }
 .cards-list .cc3-card .cc3-foot { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }
 
 /* 6) MODE CALME SUR MOBILE.
