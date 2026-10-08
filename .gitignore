@@ -50,3 +50,10 @@ _test_*.html
 
 # Copies locales de secours (rollback manuel) — non déployées
 _rollback/
+
+# Fixtures/captures de test et données internes — ne JAMAIS publier sur le site
+# (GitHub Pages sert tout le contenu suivi de la branche main)
+fake_*.png
+datalist_test.png
+ca.txt
+avancement_*.json
