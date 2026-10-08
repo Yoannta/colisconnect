@@ -15409,7 +15409,7 @@ body.home-page:not(.light) h1 {
    438 x 96 px a [871,358] pour une carte de [870,225,440,229], opacity 0.5.
    On la baisse pour qu'elle redevienne un decor, et on detache le texte du
    pied de carte (text-shadow s'herite, donc une seule regle sur .cc3-foot). */
-.cards-list .cc3-card .cc3-skyline { opacity: 0.26; }
+.cards-list .cc3-card .cc3-skyline { opacity: 0.14; }
 .cards-list .cc3-card .cc3-foot { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6); }
 
 /* 6) MODE CALME SUR MOBILE.
@@ -15444,3 +15444,53 @@ body.home-page:not(.light) h1 {
 @media (min-width: 900px) {
     .calm-fab { display: none !important; }
 }
+
+/* =========================================================================
+   FINITIONS P2 (suite) — 08/10, agent
+   ========================================================================= */
+
+/* 7) LA MASCOTTE NE DOIT PLUS RECOUVRIR LE CONTENU.
+   `.ccm-root` est en position:fixed, pleine largeur, 110 px de haut, z-index 48
+   (mascotte.js / mascotte-site.js). Mesure : le personnage se tenait a
+   [1148,813] en 1440 px — c'est-a-dire SUR la 4e carte « Comment ca marche » —
+   et au CENTRE de l'ecran en 390 px, donc SUR la ligne « Awa Diallo / VOYAGER »
+   et le bouton CONTACTER de la carte d'offre.
+   On la remet dans le flux, en fin de document : elle garde ses animations
+   (elle marche sur place) mais ne passe plus jamais devant du texte. */
+/* mascotte-site.js / mascotte.js INJECTENT leur propre <style> avec !important a
+   l'execution : ce style arrive APRES style.css dans le document, donc a
+   specificite egale c'est lui qui gagnait et la mascotte restait en fixed.
+   On monte la specificite (html body + .ccm-root repete) pour reprendre la main. */
+html body .ccm-root.ccm-root {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    bottom: auto !important;
+    z-index: 1 !important;
+    pointer-events: none !important;
+}
+
+/* 9) LES DEUX PASTILLES RONDES (Mode Calme + clair/sombre) SUR MOBILE.
+   En `position:fixed` en bas a gauche, elles tombaient pile sur la carte
+   d'offre (mesure : carte [16,544,358,237] ; pastille calme [10,666] ; bouton
+   clair/sombre [10,720] -> les deux recouvraient les icones « Depart » et le
+   nom du voyageur). On les deplace en haut a droite, hors du contenu, et
+   uniquement sur la page d'accueil (ailleurs l'entete mobile peut differer). */
+@media (max-width: 899px) {
+    body.home-page .theme-toggle,
+    body.home-page .calm-fab {
+        top: 14px !important;
+        bottom: auto !important;
+        left: auto !important;
+        right: 12px !important;
+    }
+    body.home-page .calm-fab { top: 68px !important; }
+}
+
+/* 8) RESPIRATION VERTICALE : la bande de la mascotte est reservee en bas de
+   page, donc le dernier bloc de contenu n'est plus colle au bord ni recouvert.
+   (En 1440 px la page faisait 960 px de haut : les 4 etapes etaient tassees
+   contre le bas de l'ecran.) */
+body.home-page { padding-bottom: 112px; }
+@media (min-width: 900px) { body.home-page { padding-bottom: 122px; } }
