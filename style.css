@@ -15494,3 +15494,18 @@ html body .ccm-root.ccm-root {
    contre le bas de l'ecran.) */
 body.home-page { padding-bottom: 112px; }
 @media (min-width: 900px) { body.home-page { padding-bottom: 122px; } }
+
+/* 10) GRILLE DU HEADER : aligner les gouttieres du header sur le conteneur de
+   contenu `.app-shell` (max-width 1240 + 24 px de padding). Avant, le header
+   etait pleine largeur : le logo commencait a x=16 px alors que le contenu du
+   hero demarrait a x=124 px, et le bloc de connexion finissait colle au bord
+   droit de l'ecran (R=0). On rejoue donc la MEME formule que `.app-shell`
+   (gouttiere = max(24px, (largeur - 1240px)/2 + 24px)) en padding du header.
+   Scoping >= 861 px : au-dessous, les regles mobiles du header (padding 0 ou
+   12 px) restent maitresses. `border-bottom` et le fond restent pleine largeur. */
+@media (min-width: 861px) {
+    .site-header {
+        padding-left: max(24px, calc((100% - 1240px) / 2 + 24px));
+        padding-right: max(24px, calc((100% - 1240px) / 2 + 24px));
+    }
+}
