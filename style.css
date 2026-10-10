@@ -15156,3 +15156,16 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
 .desktop-mode .results-mobile-profile-block {
     display: none !important;
 }
+
+/* ============================================================
+   PC : LES DEUX ONGLETS DU SWITCH PRINCIPAL SONT RETIRES
+   (« Chercher un voyageur » / « Voir les demandes ») — demande
+   Yoyo 2026-10-10. Sur telephone (mobile-mode) RIEN ne change.
+   Selecteur a 2 classes + !important : il passe au-dessus de la
+   regle de base `.results-mobile-main-switch { display: grid
+   !important }` ecrite plus haut (l. ~11560), qui l'affiche partout.
+   L'element reste dans le DOM (results.js le lit et garde son mode).
+   ============================================================ */
+.desktop-mode .results-mobile-main-switch {
+    display: none !important;
+}
