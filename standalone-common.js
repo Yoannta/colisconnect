@@ -1029,6 +1029,16 @@
                             await logContactModeration({ threadId, text, result: moderation, action: "warned" });
                         }
                     }
+                    // Couche 2 (verificateur IA) : dernier verrou avant l'ecriture reelle.
+                    // Le moderateur classique decide seul s'il faut appeler le modele.
+                    if (window.CCFraudeIA?.verifierEnvoi) {
+                        const verdict = await window.CCFraudeIA.verifierEnvoi(threadId, text);
+                        if (verdict && verdict.fraude) {
+                            const err = new Error("Message bloqué : divulgation de contacts confirmée par la vérification anti-fraude.");
+                            err.payload = { code: "CONTACT_INFO_BLOCKED", code_ia: "ia_fraude_confirmee", raisons: ["ia_fraude_confirmee"] };
+                            throw err;
+                        }
+                    }
                     const senderType = state.user?.id ? "user" : "system";
                     const { data, error } = await window.ccSupabase.from('chat_messages').insert({
                         thread_id: threadId,

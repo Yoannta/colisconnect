@@ -582,7 +582,7 @@
         const busy = state.isSendingMessage === true;
         btn.classList.toggle("is-sending", busy);
         btn.setAttribute("aria-busy", busy ? "true" : "false");
-        btn.disabled = busy || state.leakWarningVisible === true;
+        btn.disabled = busy || state.leakWarningVisible === true || window.CCFraudeIA?.bloque() === true;
     }
 
     function setSendingMessage(busy) {
@@ -618,6 +618,21 @@
         if (!state.isTutorialAccepted) { triggerTutorialFocus(); return; }
         if (detectLeakClient(text)) { showLeakWarning(true); return; }
         const threadId = state.activeThreadId;
+        // Couche 2 : verificateur IA. Le moderateur classique ne declenche que sur les
+        // schemas a chiffres successifs : le reste du chat ne provoque aucun appel.
+        const ia = window.CCFraudeIA;
+        if (ia) {
+            if (ia.bloque()) {
+                if (ia.etat.fraude) ia.fenetreFraude(true, ia.etat.raison);
+                else ia.fenetreAttente(true);
+                if (els.messageInput && !els.messageInput.value) els.messageInput.value = text;
+                return;
+            }
+            try {
+                const verdict = await ia.verifierEnvoi(threadId, text);
+                if (verdict && verdict.fraude) { showLeakWarning(false); return; }
+            } catch (e) { /* panne ou quota : on n'empeche jamais un message normal */ }
+        }
         setSendingMessage(true);
         if (els.messageInput) els.messageInput.value = "";
         try {
@@ -631,7 +646,16 @@
             openThread(threadId).catch(() => { });
         } catch (error) {
             if (els.messageInput && !els.messageInput.value) els.messageInput.value = text;
-            if (error?.payload?.code === "CONTACT_INFO_BLOCKED") showLeakWarning(true);
+            if (error?.payload?.code === "CONTACT_INFO_BLOCKED") {
+                if (/ia_fraude/i.test(String(error.message || ""))) {
+                    if (window.CCFraudeIA) {
+                        window.CCFraudeIA.etat.fraude = true;
+                        window.CCFraudeIA.etat.raison = "filtre serveur";
+                        window.CCFraudeIA.etat.filVerdict = threadId;
+                        window.CCFraudeIA.fenetreFraude(true, "filtre serveur");
+                    }
+                } else showLeakWarning(true);
+            }
             else alert(error.message || "Envoi impossible.");
         } finally {
             setSendingMessage(false);
@@ -794,6 +818,13 @@
 
         els.messageForm?.addEventListener("submit", (event) => {
             submitMessage(event).catch((error) => alert(error.message || "Envoi impossible."));
+        });
+
+        // Surveillance de la frappe (couche 2) : le moderateur classique peut faire
+        // analyser le message en cours de redaction avant meme l'envoi. Une seule
+        // analyse par conversation, apres une courte pause de frappe.
+        els.messageInput?.addEventListener("input", () => {
+            window.CCFraudeIA?.surveiller(state.activeThreadId, els.messageInput.value || "");
         });
 
         els.messageInput?.addEventListener("input", () => {
