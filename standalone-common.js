@@ -94,7 +94,6 @@
             "auth_logout": "Quitter",
             "hero_kicker": "Plateforme de confiance",
             "hero_title": "Trouvez des voyageurs & cargos vérifiés pour expédier vos colis en quelques clics.",
-            "hero_p": "Voyageurs et cargos réunis au même endroit pour faciliter vos envois.",
             "hero_btn_find": "Trouver un voyageur / Cargo",
             "hero_btn_post": "Proposer mes kilos",
             "est_badge": "Tester mon trajet",
@@ -126,7 +125,6 @@
             "auth_logout": "Log Out",
             "hero_kicker": "Trusted Platform",
             "hero_title": "Find verified travelers & cargo carriers to ship your parcels in a few clicks.",
-            "hero_p": "Travelers and cargo carriers in one place to make your shipments easier.",
             "hero_btn_find": "Find a traveler / Cargo",
             "hero_btn_post": "Propose my kilos",
             "est_badge": "Test my route",
@@ -204,8 +202,7 @@
         const h1 = document.querySelector(".hero-copy h1");
         if (h1) h1.textContent = t.hero_title;
 
-        const heroP = document.querySelector(".hero-copy p");
-        if (heroP) heroP.textContent = t.hero_p;
+        /* Ligne d'accueil "hero_p" retiree le 2026-10-12 (demande Yoyo). */
 
         /* ------------------------------------------------------------------
            majTexte(el, txt) : remplace UNIQUEMENT le texte d'un element,
