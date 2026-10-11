@@ -100,11 +100,16 @@
   }
 
   // Chemin "frappe" : on analyse en silence pour gagner du temps, sans rien afficher.
+  // On ne rouvre jamais la fenetre d'avertissement d'ici : c'est examiner() qui
+  // decide, afin qu'un message corrige (sans chiffre) fasse disparaitre l'alerte.
   function surveiller(fil, texte) {
     if (S.minuteur) { clearTimeout(S.minuteur); S.minuteur = null; }
     changerFil(fil);
-    if (!texte || !texte.replace(/\s/g, "")) return;
-    if (S.fraude && S.filVerdict === fil) { fenetreFraude(true, S.raison); return; }
+    if (!texte || !texte.replace(/\s/g, "")) {
+      // Champ vide : plus rien de suspect dans ce brouillon.
+      if (!S.enCours && S.fraude && S.filVerdict === fil) oublier(fil);
+      return;
+    }
     S.minuteur = setTimeout(function () {
       examiner(fil, texte, { fenetre: false }).catch(function () { });
     }, Pause);
@@ -136,12 +141,18 @@
     var avecFenetre = !(opts && opts.fenetre === false);
     changerFil(fil);
     if (!fil || !texte || !texte.trim()) return { fraude: S.fraude, raison: S.raison };
-    if (S.fraude && S.filVerdict === fil) return { fraude: true, raison: S.raison };
+    // 1) Le brouillon en cours est-il seulement concerne ? Sans aucun signe de contact,
+    //    ni la memoire de fraude ni l'IA ne retiennent l'utilisateur : on rearme.
+    var raisons = await signal(fil, texte);
+    if (!raisons.length) {
+      if (S.fraude && S.filVerdict === fil) oublier(fil);
+      if (avecFenetre) fenetreAttente(false);
+      return { fraude: false };
+    }
+    if (S.fraude && S.filVerdict === fil) { if (avecFenetre) fenetreFraude(true, S.raison); return { fraude: true, raison: S.raison }; }
     if (S.promesse) return await S.promesse;
     if (!avecFenetre && Date.now() - S.dernierAppel < MiniAppel) return { fraude: false };
     if (!avecFenetre && S.texteOk === texte && Date.now() - S.quandOk < Validite) return { fraude: false };
-    var raisons = await signal(fil, texte);
-    if (!raisons.length) { if (avecFenetre) fenetreAttente(false); return { fraude: false }; }
     if (avecFenetre) fenetreAttente(true);
     var v = await lancer(fil, texte);
     if (avecFenetre) fenetreAttente(false);
@@ -153,7 +164,13 @@
   async function verifierEnvoi(fil, texte) {
     if (!sb()) return { fraude: false };
     changerFil(fil);
-    if (S.fraude && S.filVerdict === fil) return { fraude: true, raison: S.raison };
+    // Un message qui ne porte plus aucun signe de contact (l'utilisateur a supprime
+    // ses chiffres et reecrit normalement) leve l'avertissement pour ce brouillon.
+    if (S.fraude && S.filVerdict === fil) {
+      var r0 = await signal(fil, texte);
+      if (!r0.length) { oublier(fil); return { fraude: false }; }
+      return { fraude: true, raison: S.raison };
+    }
     if (S.promesse) {
       fenetreAttente(true);
       var v0 = await S.promesse;
