@@ -90,6 +90,67 @@
         els.chatPanel?.classList.remove('mobile-active');
         document.body.classList.remove('chat-conv-open');
     }
+
+    // ---- Clavier mobile : la coque du chat suit la zone VISIBLE -------------
+    // Sur téléphone le clavier virtuel ne change PAS le viewport de mise en
+    // page (iOS Safari, Chrome Android) : un panneau en `inset:0` gardait donc
+    // la barre de saisie sous le clavier. On publie la zone réellement visible
+    // dans 2 variables CSS lues par style.css (media query ≤ 800px) :
+    //   --cc-vv-h   hauteur visible   → hauteur du panneau du chat
+    //   --cc-vv-top décalage du haut  → décale le panneau (défilement iOS)
+    // Résultat : le panneau, la zone des messages et la barre de saisie
+    // remontent ensemble au-dessus du clavier.
+    function initMobileKeyboardViewport() {
+        const vv = window.visualViewport;
+        const root = document.documentElement;
+        let frame = 0;
+
+        function appliquer() {
+            frame = 0;
+            if (!isMobileView()) {
+                root.style.removeProperty('--cc-vv-h');
+                root.style.removeProperty('--cc-vv-top');
+                return;
+            }
+            const hauteur = vv ? vv.height : window.innerHeight;
+            const haut = vv ? vv.offsetTop : 0;
+            root.style.setProperty('--cc-vv-h', `${Math.round(hauteur)}px`);
+            root.style.setProperty('--cc-vv-top', `${Math.round(haut)}px`);
+        }
+        function planifier() {
+            if (frame) cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(appliquer);
+        }
+
+        appliquer();
+        if (vv) {
+            vv.addEventListener('resize', planifier);
+            vv.addEventListener('scroll', planifier);
+        }
+        window.addEventListener('resize', planifier);
+        window.addEventListener('orientationchange', planifier);
+
+        // Le clavier qui monte redimensionne la zone visible : on garde le
+        // dernier message en vue (sinon l'écran reste sur du vide).
+        els.messageInput?.addEventListener('focus', () => {
+            planifier();
+            garderDernierMessageEnVue();
+            setTimeout(garderDernierMessageEnVue, 260);
+            setTimeout(garderDernierMessageEnVue, 620);
+        });
+        els.messageInput?.addEventListener('blur', planifier);
+    }
+
+    function garderDernierMessageEnVue() {
+        if (!els.messagesList) return;
+        if (!document.body.classList.contains('thread-open')) return;
+        const liste = els.messagesList;
+        // On recolle en bas seulement si l'utilisateur y etait deja (marge 120px) :
+        // s'il lisait d'anciens messages, le clavier ne le fait pas sauter.
+        const procheDuBas = liste.scrollHeight - liste.clientHeight - liste.scrollTop < 120;
+        if (!procheDuBas) return;
+        liste.scrollTop = liste.scrollHeight;
+    }
     function showNotification(message, type = "info") {
         const toast = document.createElement("div");
         toast.className = `cc-toast ${type}`;
@@ -1005,6 +1066,7 @@
 
         if (!window.CCCommon.requireAuth("chat.html")) return;
         state.userId = window.CCCommon.state.user?.id;
+        initMobileKeyboardViewport();
 
         const params = new URLSearchParams(window.location.search || "");
         const offerId = params.get("offerId");

@@ -9116,10 +9116,29 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 .banner-action-btn:hover { background: rgba(16, 185, 129, 0.25); }
 @media (max-width: 800px) {
-    .chat-app-wrapper { grid-template-columns: 1fr; height: calc(100vh - 65px); }
+    /* Clavier du téléphone : le viewport de MISE EN PAGE ne bouge pas quand le
+       clavier monte (iOS Safari, Chrome Android) → un panneau en `inset:0`
+       laissait la barre de saisie CACHÉE sous le clavier. On colle donc la
+       coque du chat à la zone RÉELLEMENT visible : --cc-vv-h (hauteur visible)
+       et --cc-vv-top (décalage) sont posées par initMobileKeyboardViewport()
+       dans chat.js depuis window.visualViewport. Sans JS : repli sur 100dvh. */
+    body.chat-page { height: var(--cc-vv-h, 100dvh); }
+    .chat-app-wrapper {
+        grid-template-columns: 1fr;
+        height: calc(var(--cc-vv-h, 100dvh) - 65px);
+    }
     .chat-sidebar { display: flex; width: 100%; }
     .chat-panel {
-        position: fixed; inset: 0; top: 0; z-index: 100;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: var(--cc-vv-top, 0px);
+        height: var(--cc-vv-h, 100dvh);
+        /* neutralise le min-height: 480px de l'ancienne carte de chat (ligne 2507) :
+           sinon le panneau reste plus haut que la zone visible et la barre de
+           saisie repasse sous le clavier. */
+        min-height: 0;
+        z-index: 100;
         background: #0a1218;
         transform: translateX(100%);
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
