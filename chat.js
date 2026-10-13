@@ -553,7 +553,8 @@
 
     async function openThread(threadId) {
         if (!threadId) return;
-        const selected = state.conversations.find((item) => item.id === threadId);
+        // Comparaison en chaine : l'identifiant peut venir de l'URL (?id=) : String() au lieu de ===
+        const selected = state.conversations.find((item) => String(item.id) === String(threadId));
         state.activeThreadId = threadId;
         state.activeThreadData = selected || null;
         renderConversations();
@@ -619,6 +620,21 @@
         const thread = await window.CCCommon.api("/api/conversations/by-request", { method: "POST", body: { requestId: numericId } });
         await loadConversations();
         if (thread?.id) { state.activeThreadId = thread.id; await openThread(thread.id); }
+    }
+
+    // Lien profond du dashboard : chat.html?id=<fil>. C'est la cible des boutons
+    // « Repondre » / « Voir » des sections Voyageur, Chercheur, Cargo et Messages.
+    // On charge la liste PUIS on ouvre CE fil : sans ce traitement, ?id= etait
+    // ignore par l'amorcage et on retombait sur la liste des messages (bug
+    // signale par Yoyo le 2026-10-13).
+    async function openThreadFromUrl(threadId) {
+        if (!threadId) return;
+        await loadConversations();
+        const wanted = String(threadId);
+        const found = state.conversations.find((item) => String(item.id) === wanted);
+        if (!found) return; // fil inconnu (supprime, autre compte) : on reste sur la liste
+        state.activeThreadId = found.id;
+        await openThread(found.id);
     }
 
     // ---- Anti-Leak ----
@@ -1071,9 +1087,16 @@
         const params = new URLSearchParams(window.location.search || "");
         const offerId = params.get("offerId");
         const requestId = params.get("requestId");
+        // ?id= : fil PRECIS (boutons « Repondre » / « Voir » du dashboard :
+        // Voyageur, Chercheur, Cargo, Messages). Exception : dans un retour de
+        // paiement (?payment=success&id=<reservation>) `id` designe la RESERVATION
+        // et non un fil -> on ne l'interprete pas comme fil dans ce cas.
+        const isPaymentReturn = params.get("payment") === "success" || params.get("status") === "success";
+        const threadId = isPaymentReturn ? null : (params.get("id") || params.get("threadId"));
 
         if (offerId) await ensureConversationForOffer(offerId);
         else if (requestId) await ensureConversationForRequest(requestId);
+        else if (threadId) await openThreadFromUrl(threadId);
         else await loadConversations();
 
         setTimeout(() => { window.CCCommon?.syncNotificationBadges?.(); }, 1500);
