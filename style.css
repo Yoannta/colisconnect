@@ -2812,6 +2812,10 @@ label {
     font-size: 0.9rem;
     font-weight: 700;
     cursor: pointer;
+    /* 2026-10-13 : les boutons-libellés sont des <a> — sans cette ligne le navigateur
+       souligne le texte (« le trait » sous les boutons du hero). Aucun bouton ne doit
+       être souligné : le text-decoration de .btn est donc explicitement désactivé. */
+    text-decoration: none;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
