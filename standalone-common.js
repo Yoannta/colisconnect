@@ -94,6 +94,7 @@
             "auth_logout": "Quitter",
             "hero_kicker": "Plateforme de confiance",
             "hero_title": "Trouvez des voyageurs & cargos vérifiés pour expédier vos colis en quelques clics.",
+            "hero_p": "Voyageurs et cargos réunis au même endroit pour faciliter vos envois.",
             "hero_btn_find": "Trouver un voyageur / Cargo",
             "hero_btn_post": "Proposer mes kilos",
             "est_badge": "Tester mon trajet",
@@ -125,6 +126,7 @@
             "auth_logout": "Log Out",
             "hero_kicker": "Trusted Platform",
             "hero_title": "Find verified travelers & cargo carriers to ship your parcels in a few clicks.",
+            "hero_p": "Travelers and cargo carriers in one place to make your shipments easier.",
             "hero_btn_find": "Find a traveler / Cargo",
             "hero_btn_post": "Propose my kilos",
             "est_badge": "Test my route",
@@ -202,9 +204,10 @@
         const h1 = document.querySelector(".hero-copy h1");
         if (h1) h1.textContent = t.hero_title;
 
-        /* Ligne sous le titre de l'accueil RETIREE le 2026-10-13 (demande Yoyo) :
-           le <p> de .hero-copy n'existe plus dans index.html et la cle i18n hero_p
-           a ete supprimee (FR + EN). Ne pas reintroduire ce lookup. */
+        /* Ligne remise le 2026-10-13 au soir (capture de reference) : le <p> sous le
+           titre est de nouveau rendu, en FR comme en EN. */
+        const heroP = document.querySelector(".hero-copy p");
+        if (heroP) heroP.textContent = t.hero_p;
 
         /* ------------------------------------------------------------------
            majTexte(el, txt) : remplace UNIQUEMENT le texte d'un element,

@@ -280,6 +280,10 @@ body.home-page.light .hero-copy h1 {
     color: #3a2f1e;
 }
 
+body.home-page.light .hero-copy p {
+    color: #6b5f4a;
+}
+
 body.home-page.light .kicker {
     background: rgba(184, 134, 11, 0.12);
     border-color: rgba(184, 134, 11, 0.28);
@@ -2012,17 +2016,18 @@ body.home-page.light .hero-logo--light { display: block; }
     /* Permet au texte de s'étaler un peu plus */
 }
 
-/* .hero-copy p : REGLE SUPPRIMEE le 2026-10-13 — le paragraphe sous le titre de
-   l'accueil a ete retire (index.html + cle i18n hero_p). L'ecart titre -> boutons
-   est desormais porte par .hero-actions (margin-top). */
+.hero-copy p {
+    margin: 24px 0 40px;
+    font-size: 1.15rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 500px;
+}
 
 .hero-actions {
     display: flex;
     gap: 16px;
     /* Espace ajouté ici */
-    /* 2026-10-13 : le paragraphe sous le titre (.hero-copy p) a ete retire ;
-       on garde de l'air entre le titre et les boutons. */
-    margin-top: 40px;
 }
 
 .estimator-card {
