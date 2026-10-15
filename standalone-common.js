@@ -2523,6 +2523,42 @@
     // donc on ne refuse pas.
     const _paysAvecVilles = {};
 
+    // ── LANGUE DES VILLES (Yoyo 2026-10-15) ──────────────────────────────────
+    // La table `cities` porte desormais DEUX noms par ville :
+    //   `name`    = nom international (anglais) — la liste historique ;
+    //   `name_fr` = nom francais quand il existe, sinon le nom international.
+    // Le site etant en francais, c'est la colonne francaise qui est cherchee ET
+    // affichee. Pour le futur site multilingue, passer CC_VILLES_LANGUE a "auto" :
+    // la liste suivra alors la langue du site (FR -> name_fr, EN -> name).
+    const CC_VILLES_LANGUE = "fr";
+
+    // Chercher AUSSI dans l'ancienne liste anglaise : taper « London » propose
+    // quand meme « Londres ». Mettre false pour ne chercher que dans la liste
+    // francaise (une ville anglaise connue de l'ancienne liste ne serait alors
+    // plus reconnue, et les anciennes annonces enregistrees en anglais non plus).
+    const CC_VILLES_CHERCHE_ANGLAIS = true;
+
+    function langueVilles() {
+        if (CC_VILLES_LANGUE === "auto") return state.lang === "en" ? "en" : "fr";
+        return CC_VILLES_LANGUE;
+    }
+
+    // Colonne principale (cherchee et affichee) puis eventuellement la colonne
+    // internationale, cherchée en secours.
+    function colonnesVilles() {
+        const principal = langueVilles() === "en" ? "name" : "name_fr";
+        const secondaire = principal === "name" ? "name_fr" : "name";
+        return CC_VILLES_CHERCHE_ANGLAIS ? [principal, secondaire] : [principal];
+    }
+
+    // Nom affiche pour une ligne de `cities` : le francais d'abord.
+    function nomVille(ligne) {
+        if (!ligne) return "";
+        const nom = langueVilles() === "en" ? (ligne.name || ligne.name_fr)
+                                            : (ligne.name_fr || ligne.name);
+        return nom || "";
+    }
+
     async function _paysPossedeVilles(code) {
         if (!code || !window.ccSupabase) return false;
         if (_paysAvecVilles[code] !== undefined) return _paysAvecVilles[code];
@@ -2601,17 +2637,33 @@
     async function _ccChercherVilles(code, texte) {
         const motif = _ccMotifVille(texte) || _ccNormaliserVille(texte);
         const brut = String(texte).trim().replace(/[%,()]/g, "");
-        try {
-            const r = await window.ccSupabase.from('cities').select('name')
-                .eq('country_code', code).filter('name', 'imatch', `.*${motif}.*`).limit(30);
-            if (!r.error && r.data) return r.data.map(x => x && x.name).filter(Boolean);
-        } catch (e) { /* filtre imatch indisponible */ }
-        try {
-            const r2 = await window.ccSupabase.from('cities').select('name')
-                .eq('country_code', code).ilike('name', `%${brut}%`).limit(30);
-            if (r2 && !r2.error && r2.data) return r2.data.map(x => x && x.name).filter(Boolean);
-        } catch (e) { /* base injoignable */ }
-        return null;
+
+        // Cherche dans les DEUX colonnes de noms (francais puis international) et
+        // renvoie les noms AFFICHES (le francais). Renvoie null seulement si AUCUNE
+        // colonne n'a pu etre interrogee -> l'appelant ne bloque pas la saisie.
+        const tenter = async (colonne) => {
+            try {
+                const r = await window.ccSupabase.from('cities').select('name,name_fr')
+                    .eq('country_code', code).filter(colonne, 'imatch', `.*${motif}.*`).limit(30);
+                if (!r.error && r.data) return r.data.map(nomVille).filter(Boolean);
+            } catch (e) { /* filtre imatch indisponible */ }
+            try {
+                const r2 = await window.ccSupabase.from('cities').select('name,name_fr')
+                    .eq('country_code', code).ilike(colonne, `%${brut}%`).limit(30);
+                if (r2 && !r2.error && r2.data) return r2.data.map(nomVille).filter(Boolean);
+            } catch (e) { /* base injoignable */ }
+            return null;
+        };
+
+        const resultats = await Promise.all(colonnesVilles().map(tenter));
+        if (resultats.every(r => r === null)) return null;   // base injoignable
+
+        const noms = [];
+        const vus = {};
+        resultats.forEach(liste => (liste || []).forEach(n => {
+            if (n && !vus[n]) { vus[n] = 1; noms.push(n); }
+        }));
+        return noms;
     }
 
     /**
@@ -2703,16 +2755,17 @@
 
             // Un seul point d'entree pour les requetes : imatch (regex, insensible aux
             // accents) puis repli automatique sur ilike si la librairie/le serveur
-            // ne connait pas ce filtre.
-            const lancer = async (filtre, debut) => {
+            // ne connait pas ce filtre. On interroge la colonne francaise ET la colonne
+            // internationale, mais on n'AFFICHE jamais que le nom francais.
+            const lancer = async (colonne, filtre, debut) => {
                 try {
-                    const r = await window.ccSupabase.from('cities').select('name')
-                        .eq('country_code', code).filter('name', 'imatch', filtre).limit(20);
+                    const r = await window.ccSupabase.from('cities').select('name,name_fr')
+                        .eq('country_code', code).filter(colonne, 'imatch', filtre).limit(20);
                     if (!r.error && r.data) return r.data;
                 } catch (e) { /* filtre imatch indisponible */ }
                 try {
-                    const r2 = await window.ccSupabase.from('cities').select('name')
-                        .eq('country_code', code).ilike('name', debut ? `${brut}%` : `%${brut}%`).limit(20);
+                    const r2 = await window.ccSupabase.from('cities').select('name,name_fr')
+                        .eq('country_code', code).ilike(colonne, debut ? `${brut}%` : `%${brut}%`).limit(20);
                     if (r2 && r2.error) return null;
                     return (r2 && r2.data) || [];
                 } catch (e) { return null; }   // base injoignable : signal distinct (null)
@@ -2722,9 +2775,15 @@
             // 2) celles qui la contiennent simplement (ex : « Mar » -> Aimargues)
             //    Le « ^ » est indispensable : sans lui, la recherche Postgres trouve le
             //    motif n'importe ou dans le nom.
-            const resultats = await Promise.all([lancer(`^${motif}`, true), lancer(`.*${motif}.*`, false)]);
+            const colonnes = colonnesVilles();
+            const resultats = await Promise.all([
+                lancer(colonnes[0], `^${motif}`, true),
+                lancer(colonnes[0], `.*${motif}.*`, false),
+                lancer(colonnes[1], `^${motif}`, true),
+                lancer(colonnes[1], `.*${motif}.*`, false)
+            ]);
 
-            // Base injoignable (les deux requetes ont echoue) : on ne peut RIEN verifier.
+            // Base injoignable (les requetes ont echoue) : on ne peut RIEN verifier.
             // On le signale par null pour ne pas effacer une ville valide hors connexion.
             if (resultats.some(r => r === null)) return null;
 
@@ -2732,9 +2791,10 @@
             const vus = {};
             resultats.forEach(liste => {
                 (liste || []).forEach(ligne => {
-                    if (ligne && ligne.name && !vus[ligne.name]) {
-                        vus[ligne.name] = 1;
-                        noms.push(ligne.name);
+                    const nom = nomVille(ligne);
+                    if (nom && !vus[nom]) {
+                        vus[nom] = 1;
+                        noms.push(nom);
                     }
                 });
             });
