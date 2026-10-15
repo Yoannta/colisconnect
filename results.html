@@ -283,7 +283,7 @@
 
     <!-- [FLAGS] Drapeaux pays : flag-icons en local (assets/flag-icons), zéro dépendance externe -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=20261013c"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=20261016a"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
 
@@ -302,7 +302,7 @@
 
     <script defer src="admin-banner.js"></script>
 
-    <script defer src="results.js?v=50"></script>
+    <script defer src="results.js?v=51"></script>
 
 </head>
 
@@ -420,6 +420,15 @@
                                 class="bg-primary text-on-primary font-body-md text-body-md font-semibold py-3 px-6 rounded-lg hover:bg-primary-fixed hover:-translate-y-0.5 active:scale-95 active:translate-y-0 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer w-full md:w-auto">
                                 <span class="material-symbols-outlined">search</span>
                                 Rechercher
+                            </button>
+
+                            <!-- Effacer : vide la recherche et réaffiche toute la liste
+                                 (Yoyo 2026-10-16 : sans lui, obligation d'effacer à la main
+                                 ou d'actualiser la page). -->
+                            <button id="clear-search-btn" data-guide="search-clear" type="button"
+                                title="Effacer la recherche et réafficher toute la liste">
+                                <span class="material-symbols-outlined">close</span>
+                                Effacer
                             </button>
                         </div>
 

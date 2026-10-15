@@ -1812,14 +1812,44 @@ div.demande-field:has(> input[id^="city-edit-parcel"]) {
 }
 
 .results-nav-panel .filter-tab {
-    background: rgba(255, 255, 255, 0.03);
+    background: #6f7780;
+    color: #ffffff;
+    border-color: rgba(0, 0, 0, 0.12);
+}
+
+.results-nav-panel .filter-tab:hover {
+    background: #7d858e;
+    color: #ffffff;
 }
 
 .results-nav-panel .filter-tab.active {
-    color: #c5cdca;
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 -2px 0 rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+    background: #4a5158;
+    box-shadow: inset 0 -2px 0 rgba(255, 179, 71, 0.9);
 }
+
+/* Bouton « Effacer » de la recherche (Yoyo 2026-10-16) : sans lui, il fallait
+   effacer les champs à la main ou actualiser la page pour revenir à la liste. */
+#clear-search-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    padding: 12px 20px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    background: #6f7780;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+#clear-search-btn:hover:not(:disabled) { background: #7d858e; }
+#clear-search-btn:active:not(:disabled) { transform: scale(0.97); }
+#clear-search-btn:disabled { opacity: 0.45; cursor: default; }
+#clear-search-btn .material-symbols-outlined { font-size: 18px; }
 
 .results-nav-panel .filter-tab.filter-tab-disabled,
 .results-nav-panel .filter-tab:disabled {
@@ -3970,11 +4000,15 @@ input[data-country-select="true"]::placeholder {
         justify-content: center;
         padding: 10px 12px;
         border-radius: 0;
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: #6f7780;
+        color: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.12);
         box-shadow: none;
         gap: 8px;
     }
+
+    /* Le premier onglet est celui qui est ACTIF : il porte le doré (règle
+       « or ambré » en !important plus bas), on ne touche donc pas à sa couleur. */
 
     .results-nav-panel #filter-traveler-btn {
         grid-column: 1 / -1;
@@ -3985,7 +4019,8 @@ input[data-country-select="true"]::placeholder {
 
     .results-nav-panel #filter-cargo-btn,
     .results-nav-panel #filter-client-btn {
-        background: rgba(255, 255, 255, 0.03);
+        background: #6f7780;
+        color: #ffffff;
     }
 
     .results-nav-panel .filter-tab .tab-icon {
@@ -10130,10 +10165,12 @@ body.dashboard-page.light .cc-suggestions-list::-webkit-scrollbar-thumb
     gap: 10px;
     min-height: 52px;
     padding: 12px 16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.12);
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.03);
-    color: #8d9694;
+    /* Gris plein + texte blanc (Yoyo 2026-10-16) : avec un fond blanc à 3 %, les
+       onglets de filtre étaient invisibles sur un fond clair (seul le texte restait). */
+    background: #6f7780;
+    color: #ffffff;
     font-size: 0.84rem;
     font-weight: 700;
     cursor: pointer;
@@ -10145,19 +10182,19 @@ body.dashboard-page.light .cc-suggestions-list::-webkit-scrollbar-thumb
     line-height: 1;
 }
 .filter-tab:hover {
-    background: rgba(255, 179, 71, 0.08);
-    border-color: rgba(255, 179, 71, 0.35);
-    color: #aab4b1;
+    background: #7d858e;
+    border-color: rgba(255, 179, 71, 0.45);
+    color: #ffffff;
     transform: translateY(-1px);
 }
 .filter-tab:active {
     transform: translateY(0) scale(0.96);
 }
 .filter-tab.active {
-    background: linear-gradient(180deg, rgba(255, 179, 71, 0.22), rgba(255, 179, 71, 0.12));
-    border-color: rgba(255, 179, 71, 0.7);
-    color: #c5cdca;
-    box-shadow: 0 10px 24px rgba(255, 179, 71, 0.15);
+    background: #4a5158;
+    border-color: rgba(255, 179, 71, 0.75);
+    color: #ffffff;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25), inset 0 -2px 0 rgba(255, 179, 71, 0.9);
 }
 .filter-tab.filter-tab-disabled,
 .filter-tab:disabled {

@@ -240,14 +240,81 @@
     </footer>`;
     }
 
+    // Relance la liste de la SECTION ACTIVE : offres (voyageur/cargo) ou demandes.
+    // Un seul point d'entrée pour « Rechercher » et « Effacer » : avant, la
+    // recherche n'agissait que sur les offres, donc sur l'onglet « Demande » elle
+    // ne faisait rien du tout (correctif Yoyo 2026-10-16).
+    function relancerRecherche() {
+        if (state.mobilePrimaryMode === "demand") {
+            renderDemands();
+            return Promise.resolve();
+        }
+        return loadOffers().catch((err) => console.warn(err));
+    }
+
+    // Vide les champs de recherche, remet les pastilles à zéro et réaffiche la
+    // liste complète de la section active (bouton « Effacer »).
+    function effacerRecherche() {
+        ["res-origin", "res-dest", "res-date", "res-weight"].forEach((id) => {
+            const champ = document.getElementById(id);
+            if (champ) champ.value = "";
+        });
+        state.filterVerified = false;
+        state.filterWeight10 = false;
+        state.filterUrgent = false;
+        const PILL_OFF = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer";
+        ["pill-verified", "pill-weight", "pill-urgent"].forEach((id) => {
+            const pastille = document.getElementById(id);
+            if (pastille) pastille.className = PILL_OFF;
+        });
+        return relancerRecherche();
+    }
+
+    // ── Filtres appliqués aux DEMANDES (correctif Yoyo 2026-10-16) ─────────────
+    // Avant : la liste des demandes était affichée telle quelle — taper un pays
+    // puis « Rechercher » ne changeait rien. On applique donc les mêmes critères
+    // que pour les offres : pays de départ, pays d'arrivée, date limite et poids.
+    const normFiltre = (v) => String(v || "").toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+    function demandesFiltrees(items) {
+        const origine = normFiltre(document.getElementById("res-origin")?.value);
+        const arrivee = normFiltre(document.getElementById("res-dest")?.value);
+        const dateLimite = (document.getElementById("res-date")?.value || "").trim();
+        const poidsTexte = (document.getElementById("res-weight")?.value || "").trim();
+        if (!origine && !arrivee && !dateLimite && !poidsTexte) return items;
+        const maxKg = poidsTexte ? parseInt(poidsTexte, 10) : null;
+        return items.filter((d) => {
+            if (origine) {
+                const champs = normFiltre(d.origin) + " " + normFiltre(d.origin_city);
+                if (champs.indexOf(origine) === -1) return false;
+            }
+            if (arrivee) {
+                const champs = normFiltre(d.destination) + " " + normFiltre(d.destination_city);
+                if (champs.indexOf(arrivee) === -1) return false;
+            }
+            if (dateLimite) {
+                // La demande n'est retenue que si elle peut être livrée avant la date choisie.
+                const butoir = String(d.needed_by_date || "").slice(0, 10);
+                if (butoir && butoir > dateLimite) return false;
+            }
+            if (maxKg !== null && Number.isFinite(maxKg)) {
+                const kg = Number(d.weight_kg);
+                if (Number.isFinite(kg) && kg > maxKg) return false;
+            }
+            return true;
+        });
+    }
+
     function renderDemands() {
         if (!els.offersList) return;
-        let items = state.demands || [];
-        // [Yoyo] Mes demandes en premier (toujours : aucune recherche ne filtre les demandes).
-        items = ownFirst(items);
+        const toutes = state.demands || [];
+        // [Yoyo] Mes demandes en premier, PUIS les critères de recherche.
+        let items = ownFirst(demandesFiltrees(toutes));
         if (!items.length) {
-            els.offersList.innerHTML =
-                '<div class="empty-state">Aucune demande en ce moment.<br>Revenez plus tard !</div>';
+            els.offersList.innerHTML = toutes.length
+                ? '<div class="empty-state">Aucune demande ne correspond à votre recherche.<br>Cliquez sur « Effacer » pour réafficher toutes les demandes.</div>'
+                : '<div class="empty-state">Aucune demande en ce moment.<br>Revenez plus tard !</div>';
             return;
         }
         const esc = (s) => window.CCCommon?.escapeHtml ? window.CCCommon.escapeHtml(String(s ?? "")) : String(s ?? "");
@@ -1104,10 +1171,9 @@
         // chargement du script, avant l'init async) pour ne perdre aucun clic.
         // Idem pour les onglets [data-mobile-mode] ci-dessous.
 
-        // Bouton Rechercher de la nouvelle barre
-        document.getElementById("new-search-btn")?.addEventListener("click", () => {
-            loadOffers().catch(err => console.warn(err));
-        });
+        // Les boutons « Rechercher » et « Effacer » sont attachés TÔT, dans
+        // bindSwitchesEarly() : ici (fin de bootstrap) un clic fait pendant le
+        // chargement était perdu, et la recherche ne visait que les offres.
 
         // Sort Select
         document.getElementById("sort-select")?.addEventListener("change", (e) => {
@@ -1172,6 +1238,16 @@
                 }
             });
         });
+        // Rechercher / Effacer : attachés TÔT, comme les onglets, pour qu'un clic
+        // pendant le chargement de la page ne soit jamais perdu (et pour que
+        // « Rechercher » agisse aussi sur la section Demande).
+        document.getElementById("new-search-btn")?.addEventListener("click", () => {
+            relancerRecherche();
+        });
+        document.getElementById("clear-search-btn")?.addEventListener("click", () => {
+            effacerRecherche();
+        });
+
         syncProfileTypeButtons();
         syncMobilePrimaryButtons();
     }
