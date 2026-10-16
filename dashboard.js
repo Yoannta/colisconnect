@@ -263,8 +263,8 @@
         if (!requests.length) {
             els.requestsList.innerHTML = `
                 <div class="traveler-empty-requests">
-                    <p>Aucune demande entrante pour le moment.</p>
-                    <span>Les demandes apparaitront ici apres publication d'un trajet.</span>
+                    <p>Aucune personne intéressée pour le moment.</p>
+                    <span>Les personnes intéressées apparaîtront ici après publication d'un trajet.</span>
                 </div>`;
             return;
         }

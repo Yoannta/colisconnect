@@ -19,7 +19,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261016a">
+    <link rel="stylesheet" href="style.css?v=20261016e">
     <!-- Drapeaux de la carte d'offre (comme sur la page des offres) -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -35,7 +35,7 @@
     <script defer src="admin-banner.js"></script>
     <!-- Carte d'offre partagée (identique à la page des offres) -->
     <script defer src="offer-card.js?v=1"></script>
-    <script defer src="dashboard.js?v=22"></script>
+    <script defer src="dashboard.js?v=23"></script>
 </head>
 
 <body class="dashboard-page">
@@ -94,7 +94,7 @@
                     </article>
                     <article class="traveler-stat-card">
                         <strong id="stat-interested">4</strong>
-                        <span id="stat-interested-label">Demandes reçues</span>
+                        <span id="stat-interested-label">Personnes intéressées</span>
                     </article>
                 </div>
             </div>
@@ -111,12 +111,17 @@
                 </article>
 
                 <section class="dashboard-panel traveler-requests-panel">
-                    <div class="panel-head">
-                        <h3>Demandes reçues</h3>
+                    <!-- Section repliable, même mécanique que les panneaux du chercheur
+                         (bouton [data-accordion-toggle] + corps hidden) — demande Yoyo 2026-10-17. -->
+                    <button class="client-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="traveler-requests-body">
+                        <span class="client-acc-title">Personnes intéressées</span>
                         <span class="count-badge" id="dash-conversations-count">0</span>
-                    </div>
-                    <div id="dash-conversations" class="traveler-request-list">
-                        <div class="loading-state">Chargement...</div>
+                        <svg class="client-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="client-acc-body" id="traveler-requests-body" hidden>
+                        <div id="dash-conversations" class="traveler-request-list">
+                            <div class="loading-state">Chargement...</div>
+                        </div>
                     </div>
                 </section>
 

@@ -5520,6 +5520,29 @@ input[data-country-select="true"]::placeholder {
     margin-top: 16px;
 }
 
+/* Sans min-width:0, un élément de grille garde la largeur MINIMALE de son contenu :
+   la carte d'offre (template cc3-card) imposait ~350 px, le panneau sortait de
+   l'écran et était coupé sur petit écran (constat + correctif 2026-10-17). */
+.dashboard-page .traveler-grid > *,
+.dashboard-page .client-grid > *,
+.dashboard-page .cargo-middle > *,
+.dashboard-page .cargo-bottom > * {
+    min-width: 0;
+}
+
+.dashboard-page .offer-preview-shell,
+.dashboard-page .cards-list,
+.dashboard-page .cards-list .offer-wrap,
+.dashboard-page .cards-list .cc3-card {
+    min-width: 0;
+    max-width: 100%;
+}
+
+/* Le compteur d'un panneau repliable se colle à droite, contre le chevron. */
+.dashboard-page .client-acc-toggle .count-badge {
+    margin-left: auto;
+}
+
 .dashboard-page .dashboard-panel {
     min-height: 280px;
     padding: 20px;
