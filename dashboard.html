@@ -505,6 +505,31 @@
     <script src="guide-session.js?v=1" defer></script>
     <script src="guide-intents.js?v=1" defer></script>
     <script src="mascotte-chat.js?v=1" defer></script>
+    <!-- Photo de profil : mini-fenetre quand une photo est deja installee -->
+    <div id="avatar-menu-modal" class="modal hidden" role="dialog" aria-modal="true"
+         aria-labelledby="avatar-menu-title">
+        <div class="modal-card avatar-menu-card">
+            <button class="close-modal" id="close-avatar-menu" aria-label="Fermer">x</button>
+            <p class="kicker">Photo de profil</p>
+            <h3 id="avatar-menu-title">Que veux-tu faire ?</h3>
+            <div class="avatar-menu-preview">
+                <div class="avatar-menu-thumb" id="avatar-menu-thumb"></div>
+            </div>
+            <div class="avatar-menu-actions">
+                <button type="button" class="btn secondary" id="avatar-action-view">Voir la photo</button>
+                <button type="button" class="btn primary" id="avatar-action-change">Changer la photo de profil</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Photo de profil en grand -->
+    <div id="avatar-lightbox" class="modal hidden" role="dialog" aria-modal="true"
+         aria-label="Photo de profil en grand">
+        <div class="avatar-lightbox-inner">
+            <button class="close-modal" id="close-avatar-lightbox" aria-label="Fermer">x</button>
+            <img id="avatar-lightbox-img" alt="Photo de profil">
+        </div>
+    </div>
 
 </body>
 
