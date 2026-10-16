@@ -659,7 +659,9 @@
         const busy = state.isSendingMessage === true;
         btn.classList.toggle("is-sending", busy);
         btn.setAttribute("aria-busy", busy ? "true" : "false");
-        btn.disabled = busy || state.leakWarningVisible === true || window.CCFraudeIA?.bloque() === true;
+        // Le bouton reste actif meme apres un avertissement : c'est l'envoi qui repasse par
+        // la verification (le moderateur tranche sur le message reel, pas sur le passe du fil).
+        btn.disabled = busy || state.leakWarningVisible === true;
     }
 
     function setSendingMessage(busy) {
@@ -699,15 +701,17 @@
         // schemas a chiffres successifs : le reste du chat ne provoque aucun appel.
         const ia = window.CCFraudeIA;
         if (ia) {
-            if (ia.bloque()) {
-                if (ia.etat.fraude) ia.fenetreFraude(true, ia.etat.raison);
-                else ia.fenetreAttente(true);
-                if (els.messageInput && !els.messageInput.value) els.messageInput.value = text;
-                return;
-            }
+            // Un avertissement deja affiche ne bloque plus l'envoi a lui seul : on demande
+            // le verdict sur CE message. Le blocage ne revient que si le moderateur confirme
+            // la fraude pour ce message precis (sinon un message corrige restait bloque).
             try {
                 const verdict = await ia.verifierEnvoi(threadId, text);
-                if (verdict && verdict.fraude) { showLeakWarning(false); return; }
+                if (verdict && verdict.fraude) {
+                    if (ia.etat.fraude) ia.fenetreFraude(true, ia.etat.raison);
+                    else ia.fenetreAttente(true);
+                    if (els.messageInput && !els.messageInput.value) els.messageInput.value = text;
+                    return;
+                }
             } catch (e) { /* panne ou quota : on n'empeche jamais un message normal */ }
         }
         setSendingMessage(true);
