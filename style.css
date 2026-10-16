@@ -15297,3 +15297,84 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
 .desktop-mode .results-mobile-main-switch {
     display: none !important;
 }
+
+/* ============================================================
+   PHOTO DE PROFIL — mini-fenetre (voir / changer) + photo en grand  (2026-10-17)
+   Ouvre une petite fenetre a deux choix quand on clique sur une photo
+   deja installee ; sans photo, le clic ouvre directement le selecteur.
+   ============================================================ */
+.dashboard-page .avatar-upload-label {
+    cursor: pointer;
+}
+
+.avatar-menu-card {
+    width: min(420px, calc(100vw - 24px));
+}
+
+.avatar-menu-preview {
+    display: flex;
+    justify-content: center;
+    margin: 12px 0 16px;
+}
+
+.avatar-menu-thumb {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: rgba(19, 236, 200, 0.12);
+    background-size: cover;
+    background-position: center;
+    border: 3px solid rgba(19, 236, 200, 0.45);
+}
+
+.avatar-menu-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.avatar-menu-actions .btn {
+    width: 100%;
+    text-align: center;
+}
+
+#avatar-lightbox {
+    align-items: center;
+}
+
+.avatar-lightbox-inner {
+    position: relative;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 92vw;
+}
+
+#avatar-lightbox-img {
+    display: block;
+    max-width: 92vw;
+    max-height: 80dvh;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    box-shadow: var(--nexus-shadow);
+    background: #0d1828;
+}
+
+#avatar-lightbox .close-modal {
+    top: -8px;
+    right: -8px;
+    z-index: 2;
+}
+
+@media (max-width: 640px) {
+    .avatar-menu-thumb {
+        width: 96px;
+        height: 96px;
+    }
+
+    #avatar-lightbox-img {
+        max-height: 74dvh;
+        border-radius: 14px;
+    }
+}
