@@ -1258,6 +1258,83 @@
                 reader.readAsDataURL(file);
             });
         });
+
+        // --- Photo de profil : au clic, si une photo est deja installee -> mini-fenetre
+        //     « Voir la photo » (agrandissement) / « Changer la photo de profil ».
+        //     S'il n'y a pas encore de photo, le clic ouvre directement le selecteur.
+        const avatarMenu = document.getElementById("avatar-menu-modal");
+        const avatarThumb = document.getElementById("avatar-menu-thumb");
+        const avatarLightbox = document.getElementById("avatar-lightbox");
+        const avatarLightboxImg = document.getElementById("avatar-lightbox-img");
+        let avatarPendingInput = null;
+
+        const readAvatarUrl = (circle) => {
+            if (!circle) return "";
+            // 1. photo posee dans une balise <img> a l'interieur du cercle
+            const image = circle.querySelector("img[src]");
+            if (image && image.getAttribute("src")) return image.getAttribute("src");
+            // 2. photo posee en style direct, sinon style calcule (couvre les autres facons de poser la photo)
+            const direct = circle.style.backgroundImage || "";
+            const calcule = (direct && direct !== "none") ? direct : (window.getComputedStyle(circle).backgroundImage || "");
+            const m = String(calcule).match(/url\(["']?(.*?)["']?\)/);
+            return m ? m[1] : "";
+        };
+        const closeAvatarMenu = () => avatarMenu?.classList.add("hidden");
+        const closeAvatarLightbox = () => avatarLightbox?.classList.add("hidden");
+
+        const openAvatarMenu = (photo, input) => {
+            if (!avatarMenu) return;
+            avatarPendingInput = input || null;
+            if (avatarThumb) avatarThumb.style.backgroundImage = `url(${photo})`;
+            avatarMenu.classList.remove("hidden");
+            document.getElementById("avatar-action-view")?.focus();
+        };
+
+        document.querySelectorAll(".avatar-upload-label").forEach((label) => {
+            const input = label.querySelector(".avatar-file-input");
+            const circle = label.querySelector(".avatar-circle");
+            const handler = (ev) => {
+                // un clic venant du champ fichier lui-meme ou de la fenetre ne doit pas rouvrir le menu
+                if (ev.target && ev.target.closest && ev.target.closest(".modal")) return;
+                if (ev.target && ev.target.classList && ev.target.classList.contains("avatar-file-input")) return;
+                const photo = readAvatarUrl(circle);
+                if (!photo) return; // pas de photo : on laisse le selecteur s'ouvrir normalement
+                ev.preventDefault();
+                openAvatarMenu(photo, input);
+            };
+            label.addEventListener("click", handler);
+            label.addEventListener("keydown", (ev) => {
+                if (ev.key === "Enter" || ev.key === " ") {
+                    const photo = readAvatarUrl(circle);
+                    ev.preventDefault();
+                    if (photo) openAvatarMenu(photo, input);
+                    else input?.click();
+                }
+            });
+            if (!label.hasAttribute("tabindex")) label.setAttribute("tabindex", "0");
+            if (!label.hasAttribute("role")) label.setAttribute("role", "button");
+        });
+
+        document.getElementById("avatar-action-view")?.addEventListener("click", () => {
+            const photo = readAvatarUrl(avatarThumb) || "";
+            if (photo && avatarLightboxImg) avatarLightboxImg.src = photo;
+            closeAvatarMenu();
+            avatarLightbox?.classList.remove("hidden");
+        });
+
+        document.getElementById("avatar-action-change")?.addEventListener("click", () => {
+            closeAvatarMenu();
+            avatarPendingInput?.click();
+        });
+
+        document.getElementById("close-avatar-menu")?.addEventListener("click", closeAvatarMenu);
+        document.getElementById("close-avatar-lightbox")?.addEventListener("click", closeAvatarLightbox);
+        avatarLightbox?.addEventListener("click", (ev) => {
+            if (ev.target === avatarLightbox) closeAvatarLightbox();
+        });
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key === "Escape") { closeAvatarMenu(); closeAvatarLightbox(); }
+        });
     }
 
     // ── Édition directe depuis l'URL ────────────────────────────────────────────
