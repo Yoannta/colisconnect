@@ -15048,13 +15048,14 @@ body.home-page.light .how-step p {
 /* --- Flèches gauche / droite (demande Yoyo 2026-10-16) ---
    Placées HORS de la carte : le carrousel est une grille
    [flèche] [carte] [flèche], pastilles sur la 2e ligne. Aucun recouvrement.
-   Le défilement automatique continue ; un clic relance le décompte de 4,5 s. */
+   Dessin : chevrons simples, sans cercle, en doré (couleur du bouton principal),
+   plus fins que la première version. Un clic relance le décompte automatique. */
 .offers-slider {
     display: grid;
-    grid-template-columns: 44px minmax(0, 1fr) 44px;
-    column-gap: 4px;
+    grid-template-columns: 32px minmax(0, 1fr) 32px;
+    column-gap: 6px;
     align-items: center;
-    max-width: 536px;              /* 44 + 440 (carte) + 44 + 2 × 4 d'écart */
+    max-width: 516px;              /* 32 + 440 (carte) + 32 + 2 × 6 d'écart */
 }
 .offers-slider .offers-slider-viewport { grid-column: 2; grid-row: 1; }
 .offers-slider .offers-slider-arrow--prev { grid-column: 1; grid-row: 1; justify-self: start; }
@@ -15064,41 +15065,28 @@ body.home-page.light .how-step p {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    width: 32px;
+    height: 32px;
     padding: 0;
-    border-radius: 999px;
+    border: 0;
+    background: none;
+    color: var(--emerald-bright);     /* l'or du bouton « Trouver un voyageur / Cargo » */
     cursor: pointer;
-    color: var(--emerald-bright);
-    background: rgba(6, 22, 24, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
-    transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
+    opacity: 0.9;
+    transition: opacity 0.2s ease, transform 0.15s ease;
 }
-.offers-slider .offers-slider-arrow svg { display: block; width: 20px; height: 20px; }
-.offers-slider .offers-slider-arrow:hover {
-    background: var(--emerald-bright);
-    color: #04191b;
-}
+.offers-slider .offers-slider-arrow svg { display: block; width: 22px; height: 22px; }
+.offers-slider .offers-slider-arrow:hover { opacity: 1; transform: scale(1.1); }
 .offers-slider .offers-slider-arrow:focus-visible {
-    background: var(--emerald-bright);
-    color: #04191b;
+    opacity: 1;
     outline: 2px solid var(--emerald-bright);
     outline-offset: 3px;
+    border-radius: 6px;
 }
-.offers-slider .offers-slider-arrow:active { transform: scale(0.92); }
+.offers-slider .offers-slider-arrow:active { transform: scale(0.9); }
 
-body.home-page.light .offers-slider .offers-slider-arrow {
-    color: #b8860b;
-    background: rgba(255, 253, 246, 0.88);
-    border-color: rgba(184, 134, 11, 0.35);
-}
-body.home-page.light .offers-slider .offers-slider-arrow:hover,
-body.home-page.light .offers-slider .offers-slider-arrow:focus-visible {
-    background: #b8860b;
-    color: #fffdf6;
-}
+body.home-page.light .offers-slider .offers-slider-arrow { color: #b8860b; }
+body.home-page.light .offers-slider .offers-slider-arrow:hover { color: #a3750a; }
 
 /* Écran étroit / mobile : pas de place sur les côtés -> les flèches passent
    SOUS la carte, de part et d'autre des pastilles (toujours pas sur la carte). */
