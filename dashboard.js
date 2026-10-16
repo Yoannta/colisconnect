@@ -173,7 +173,7 @@
         if (els.statRemainingKg) els.statRemainingKg.textContent = `${availableKg} kg`;
         if (els.statRemainingLabel) els.statRemainingLabel.textContent = "Disponibles";
         if (els.statInterested) els.statInterested.textContent = `${requests.length}`;
-        if (els.statInterestedLabel) els.statInterestedLabel.textContent = "Demandes reçues";
+        if (els.statInterestedLabel) els.statInterestedLabel.textContent = "Personnes intéressées";
     }
 
     function renderActiveOffer(offer, requests) {
@@ -263,8 +263,8 @@
         if (!requests.length) {
             els.requestsList.innerHTML = `
                 <div class="traveler-empty-requests">
-                    <p>Aucune personne intéressée pour le moment.</p>
-                    <span>Les personnes intéressées apparaîtront ici après publication d'un trajet.</span>
+                    <p>Aucune demande entrante pour le moment.</p>
+                    <span>Les demandes apparaitront ici apres publication d'un trajet.</span>
                 </div>`;
             return;
         }
@@ -1625,6 +1625,14 @@
 
         // Édition demandée depuis results.html (« Modifier mon trajet / ma demande »)
         await openEditFromUrl();
+    }
+
+    // Les panneaux repliables (client et voyageur) sont branches des le chargement de la page :
+    // le depliage ne doit pas dependre de la session, sinon un panneau reste fige.
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupClientAccordions);
+    } else {
+        setupClientAccordions();
     }
 
     bootstrap().catch((error) => {
