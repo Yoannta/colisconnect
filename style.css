@@ -15046,14 +15046,21 @@ body.home-page.light .how-step p {
 }
 
 /* --- Flèches gauche / droite (demande Yoyo 2026-10-16) ---
-   Permettent de passer d'une offre à l'autre à la main ; le défilement
-   automatique continue (un clic relance le décompte de 4,5 s). */
-.offers-slider .offers-slider-viewport { position: relative; }
+   Placées HORS de la carte : le carrousel est une grille
+   [flèche] [carte] [flèche], pastilles sur la 2e ligne. Aucun recouvrement.
+   Le défilement automatique continue ; un clic relance le décompte de 4,5 s. */
+.offers-slider {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    column-gap: 4px;
+    align-items: center;
+    max-width: 536px;              /* 44 + 440 (carte) + 44 + 2 × 4 d'écart */
+}
+.offers-slider .offers-slider-viewport { grid-column: 2; grid-row: 1; }
+.offers-slider .offers-slider-arrow--prev { grid-column: 1; grid-row: 1; justify-self: start; }
+.offers-slider .offers-slider-arrow--next { grid-column: 3; grid-row: 1; justify-self: end; }
+.offers-slider .offers-slider-dots { grid-column: 1 / -1; grid-row: 2; }
 .offers-slider .offers-slider-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 4;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -15070,8 +15077,6 @@ body.home-page.light .how-step p {
     transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
 }
 .offers-slider .offers-slider-arrow svg { display: block; width: 20px; height: 20px; }
-.offers-slider .offers-slider-arrow--prev { left: 10px; }
-.offers-slider .offers-slider-arrow--next { right: 10px; }
 .offers-slider .offers-slider-arrow:hover {
     background: var(--emerald-bright);
     color: #04191b;
@@ -15082,7 +15087,7 @@ body.home-page.light .how-step p {
     outline: 2px solid var(--emerald-bright);
     outline-offset: 3px;
 }
-.offers-slider .offers-slider-arrow:active { transform: translateY(-50%) scale(0.92); }
+.offers-slider .offers-slider-arrow:active { transform: scale(0.92); }
 
 body.home-page.light .offers-slider .offers-slider-arrow {
     color: #b8860b;
@@ -15095,11 +15100,17 @@ body.home-page.light .offers-slider .offers-slider-arrow:focus-visible {
     color: #fffdf6;
 }
 
-/* Mobile : un peu plus petites, collées au bord pour ne pas manger la carte */
-@media (max-width: 520px) {
-    .offers-slider .offers-slider-arrow { width: 36px; height: 36px; }
-    .offers-slider .offers-slider-arrow--prev { left: 6px; }
-    .offers-slider .offers-slider-arrow--next { right: 6px; }
+/* Écran étroit / mobile : pas de place sur les côtés -> les flèches passent
+   SOUS la carte, de part et d'autre des pastilles (toujours pas sur la carte). */
+@media (max-width: 760px) {
+    .offers-slider { max-width: 100%; }
+    .offers-slider .offers-slider-viewport { grid-column: 1 / -1; grid-row: 1; }
+    .offers-slider .offers-slider-arrow { grid-row: 2; align-self: center; }
+    .offers-slider .offers-slider-arrow--prev { grid-column: 1; }
+    .offers-slider .offers-slider-arrow--next { grid-column: 3; }
+    .offers-slider .offers-slider-dots {
+        grid-column: 2; grid-row: 2; margin-top: 0; align-self: center;
+    }
 }
 
 /* --- Thème clair --- */
