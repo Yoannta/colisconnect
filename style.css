@@ -5520,29 +5520,6 @@ input[data-country-select="true"]::placeholder {
     margin-top: 16px;
 }
 
-/* Sans min-width:0, un élément de grille garde la largeur MINIMALE de son contenu :
-   la carte d'offre (template cc3-card) imposait ~350 px, le panneau sortait de
-   l'écran et était coupé sur petit écran (constat + correctif 2026-10-17). */
-.dashboard-page .traveler-grid > *,
-.dashboard-page .client-grid > *,
-.dashboard-page .cargo-middle > *,
-.dashboard-page .cargo-bottom > * {
-    min-width: 0;
-}
-
-.dashboard-page .offer-preview-shell,
-.dashboard-page .cards-list,
-.dashboard-page .cards-list .offer-wrap,
-.dashboard-page .cards-list .cc3-card {
-    min-width: 0;
-    max-width: 100%;
-}
-
-/* Le compteur d'un panneau repliable se colle à droite, contre le chevron. */
-.dashboard-page .client-acc-toggle .count-badge {
-    margin-left: auto;
-}
-
 .dashboard-page .dashboard-panel {
     min-height: 280px;
     padding: 20px;
@@ -6128,6 +6105,104 @@ input[data-country-select="true"]::placeholder {
 @media (prefers-reduced-motion: reduce) {
     .dashboard-page .client-acc-body:not([hidden]) { animation: none; }
     .dashboard-page .client-acc-chevron { transition: none; }
+}
+
+/* ============================================================
+   VUE VOYAGEUR — « Personnes interessees » repliable (2026-10-17)
+   Meme comportement et meme aspect que les sections client.
+   ============================================================ */
+.dashboard-page .traveler-acc-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--d-surface-1);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    color: var(--emerald-bright);
+    font: inherit;
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.1s;
+}
+
+.dashboard-page .traveler-acc-toggle:hover {
+    background: var(--d-surface-2);
+    border-color: rgba(255, 179, 71, 0.35);
+}
+
+.dashboard-page .traveler-acc-toggle:active {
+    transform: translateY(1px);
+}
+
+.dashboard-page .traveler-acc-toggle:focus-visible {
+    outline: 2px solid var(--emerald-bright);
+    outline-offset: 2px;
+}
+
+.dashboard-page .traveler-acc-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
+}
+
+.dashboard-page .traveler-acc-toggle .count-badge {
+    flex-shrink: 0;
+}
+
+.dashboard-page .traveler-acc-chevron {
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.dashboard-page .dashboard-panel.is-open .traveler-acc-chevron {
+    transform: rotate(180deg);
+}
+
+.dashboard-page .traveler-acc-body {
+    margin-top: 14px;
+}
+
+.dashboard-page .traveler-acc-body[hidden] {
+    display: none;
+}
+
+.dashboard-page .traveler-acc-body:not([hidden]) {
+    animation: cc-acc-open 0.25s ease;
+}
+
+/* Panneau replie : il se reduit a son bouton (pas de boite vide de 280px) */
+.dashboard-page .traveler-grid {
+    align-items: start;
+}
+
+.dashboard-page .traveler-requests-panel:not(.is-open) {
+    min-height: 0;
+}
+
+/* Sur petit ecran, un panneau de la grille doit pouvoir se reduire : sans min-width:0 la carte
+   d'offre impose sa largeur minimale et deborde de l'ecran (constate a 390 px le 17/10/2026). */
+.dashboard-page .traveler-grid > .dashboard-panel,
+.dashboard-page .client-grid > .dashboard-panel {
+    min-width: 0;
+}
+
+.dashboard-page .traveler-offer-panel,
+.dashboard-page .traveler-offer-panel .offer-preview-shell,
+.dashboard-page .traveler-offer-panel .cards-list {
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard-page .traveler-acc-body:not([hidden]) { animation: none; }
+    .dashboard-page .traveler-acc-chevron { transition: none; }
 }
 .dashboard-page .client-plus-btn {
     width: 28px;
@@ -15071,14 +15146,13 @@ body.home-page.light .how-step p {
 /* --- Flèches gauche / droite (demande Yoyo 2026-10-16) ---
    Placées HORS de la carte : le carrousel est une grille
    [flèche] [carte] [flèche], pastilles sur la 2e ligne. Aucun recouvrement.
-   Dessin : chevrons simples, sans cercle, en doré (couleur du bouton principal),
-   plus fins que la première version. Un clic relance le décompte automatique. */
+   Le défilement automatique continue ; un clic relance le décompte de 4,5 s. */
 .offers-slider {
     display: grid;
-    grid-template-columns: 32px minmax(0, 1fr) 32px;
-    column-gap: 6px;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+    column-gap: 4px;
     align-items: center;
-    max-width: 516px;              /* 32 + 440 (carte) + 32 + 2 × 6 d'écart */
+    max-width: 536px;              /* 44 + 440 (carte) + 44 + 2 × 4 d'écart */
 }
 .offers-slider .offers-slider-viewport { grid-column: 2; grid-row: 1; }
 .offers-slider .offers-slider-arrow--prev { grid-column: 1; grid-row: 1; justify-self: start; }
@@ -15088,28 +15162,41 @@ body.home-page.light .how-step p {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 40px;
     padding: 0;
-    border: 0;
-    background: none;
-    color: var(--emerald-bright);     /* l'or du bouton « Trouver un voyageur / Cargo » */
+    border-radius: 999px;
     cursor: pointer;
-    opacity: 0.9;
-    transition: opacity 0.2s ease, transform 0.15s ease;
+    color: var(--emerald-bright);
+    background: rgba(6, 22, 24, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
 }
-.offers-slider .offers-slider-arrow svg { display: block; width: 22px; height: 22px; }
-.offers-slider .offers-slider-arrow:hover { opacity: 1; transform: scale(1.1); }
+.offers-slider .offers-slider-arrow svg { display: block; width: 20px; height: 20px; }
+.offers-slider .offers-slider-arrow:hover {
+    background: var(--emerald-bright);
+    color: #04191b;
+}
 .offers-slider .offers-slider-arrow:focus-visible {
-    opacity: 1;
+    background: var(--emerald-bright);
+    color: #04191b;
     outline: 2px solid var(--emerald-bright);
     outline-offset: 3px;
-    border-radius: 6px;
 }
-.offers-slider .offers-slider-arrow:active { transform: scale(0.9); }
+.offers-slider .offers-slider-arrow:active { transform: scale(0.92); }
 
-body.home-page.light .offers-slider .offers-slider-arrow { color: #b8860b; }
-body.home-page.light .offers-slider .offers-slider-arrow:hover { color: #a3750a; }
+body.home-page.light .offers-slider .offers-slider-arrow {
+    color: #b8860b;
+    background: rgba(255, 253, 246, 0.88);
+    border-color: rgba(184, 134, 11, 0.35);
+}
+body.home-page.light .offers-slider .offers-slider-arrow:hover,
+body.home-page.light .offers-slider .offers-slider-arrow:focus-visible {
+    background: #b8860b;
+    color: #fffdf6;
+}
 
 /* Écran étroit / mobile : pas de place sur les côtés -> les flèches passent
    SOUS la carte, de part et d'autre des pastilles (toujours pas sur la carte). */
