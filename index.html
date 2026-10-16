@@ -23,7 +23,7 @@
         href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=20261016a" />
+    <link rel="stylesheet" href="style.css?v=20261016b" />
     <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -485,6 +485,16 @@
                 </div>
                         </div>
                     </div>
+                    <!-- Flèches : passage manuel d'une offre à l'autre (demande Yoyo 2026-10-16).
+                         Le défilement automatique continue ; un clic le relance. -->
+                    <button type="button" class="offers-slider-arrow offers-slider-arrow--prev"
+                        aria-label="Offre précédente" aria-controls="offers-slider">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 4.5 7.5 12 15 19.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
+                    <button type="button" class="offers-slider-arrow offers-slider-arrow--next"
+                        aria-label="Offre suivante" aria-controls="offers-slider">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 4.5 16.5 12 9 19.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                    </button>
                     <div class="offers-slider-dots" aria-label="Choisir une offre"></div>
                 </div>
 
@@ -841,6 +851,13 @@
                     buttons.push(btn);
                 })(b);
             }
+
+            // Flèches gauche / droite (demande Yoyo 2026-10-16) : passage manuel.
+            // pause() relance le décompte automatique après le clic.
+            var prevBtn = slider.querySelector('.offers-slider-arrow--prev');
+            var nextBtn = slider.querySelector('.offers-slider-arrow--next');
+            if (prevBtn) { prevBtn.addEventListener('click', function () { go(index - 1); pause(); }); }
+            if (nextBtn) { nextBtn.addEventListener('click', function () { go(index + 1); pause(); }); }
 
             slider.addEventListener('mouseenter', stop);
             slider.addEventListener('mouseleave', start);

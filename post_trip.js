@@ -4,6 +4,11 @@
     // [MULTI-CURRENCY] Acronyme local affiche a l'utilisateur ("FCFA" et non "XOF")
     const ccSym = (code) => (window.CCCommon && window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(code) : code);
 
+    // Limite maximale de kilos par offre de voyageur (demande Yoyo 2026-10-16) :
+    // 69 kg. Le champ #kilos porte max="69" côté HTML ; ici on refuse la saisie
+    // au-delà, avec un message clair, à l'étape « Espace & prix » et à l'envoi.
+    const KILOS_MAX = 69;
+
 
     const els = {
         form: document.getElementById("trip-form"),
@@ -742,7 +747,10 @@
         // En MODIFICATION, le contact est deja enregistre : on ne le redemande pas
         // (sinon l'enregistrement serait bloque a chaque modification).
         if (!editingOfferId && (!paymentState.selectedMethod || !paymentState.accountNumber)) {
-            alert("Veuillez choisir un moyen de paiement et fournir votre numéro de compte.");
+            // Demande Yoyo 2026-10-16 : plus d'alerte navigateur ici. On ouvre
+            // DIRECTEMENT la fenêtre du numéro de contact (vérification SMS
+            // comprise) ; le champ du numéro prend le focus tout seul
+            // (voir selectPaymentProvider -> setTimeout(focus, 100)).
             openModal();
             return;
         }
@@ -852,6 +860,10 @@
 
         if (!isCargoMode && availableKg < 1) {
             alert("Veuillez saisir les kilos disponibles.");
+            return;
+        }
+        if (!isCargoMode && availableKg > KILOS_MAX) {
+            alert("Maximum " + KILOS_MAX + " kg par offre.");
             return;
         }
         if (pricePerKg < 1) {
@@ -1504,6 +1516,7 @@
                 const kilosVisible = kilosGroup && !kilosGroup.classList.contains("hidden");
                 const transportVisible = transportSection && transportSection.style.display !== "none";
                 const kilosManque = kilosVisible && (isNaN(k) || k <= 0);
+                const kilosTrop = kilosVisible && !isNaN(k) && k > KILOS_MAX;
                 const priceManque = isNaN(p) || p <= 0;
                 const deviseManque = !c;
                 const transportManque = transportVisible && !document.querySelector(".transport-mode-btn.selected");
@@ -1513,6 +1526,7 @@
                 let group = null;
                 let msg = "";
                 if (kilosManque) { target = kilos; msg = "Indiquez le nombre de kilos disponibles"; }
+                else if (kilosTrop) { target = kilos; msg = "Maximum " + KILOS_MAX + " kg par offre"; }
                 else if (priceManque) { target = price; msg = "Indiquez le prix par kilo"; }
                 else if (deviseManque) { target = currencyBtn; msg = "Choisissez votre monnaie"; }
                 else if (transportManque) { target = document.querySelector(".transport-mode-btn"); group = document.querySelector(".transport-mode-grid"); msg = "Choisissez le moyen de transport"; }

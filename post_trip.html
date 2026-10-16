@@ -16,7 +16,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261016a"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=20261016b"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
@@ -29,7 +29,7 @@
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=36"></script>
+    <script defer src="post_trip.js?v=37"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -1050,7 +1050,7 @@
                                 <div class="form-group" id="kilos-group">
                                     <label for="kilos">Kilos disponibles</label>
                                     <div class="input-with-suffix">
-                                        <input type="number" id="kilos" class="form-input" placeholder="0" min="1">
+                                        <input type="number" id="kilos" class="form-input" placeholder="0" min="1" max="69">
                                         <span>kg</span>
                                     </div>
                                 </div>

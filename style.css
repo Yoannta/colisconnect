@@ -15045,6 +15045,63 @@ body.home-page.light .how-step p {
     background: var(--emerald-bright);
 }
 
+/* --- Flèches gauche / droite (demande Yoyo 2026-10-16) ---
+   Permettent de passer d'une offre à l'autre à la main ; le défilement
+   automatique continue (un clic relance le décompte de 4,5 s). */
+.offers-slider .offers-slider-viewport { position: relative; }
+.offers-slider .offers-slider-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--emerald-bright);
+    background: rgba(6, 22, 24, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: background 0.25s ease, color 0.25s ease, transform 0.15s ease;
+}
+.offers-slider .offers-slider-arrow svg { display: block; width: 20px; height: 20px; }
+.offers-slider .offers-slider-arrow--prev { left: 10px; }
+.offers-slider .offers-slider-arrow--next { right: 10px; }
+.offers-slider .offers-slider-arrow:hover {
+    background: var(--emerald-bright);
+    color: #04191b;
+}
+.offers-slider .offers-slider-arrow:focus-visible {
+    background: var(--emerald-bright);
+    color: #04191b;
+    outline: 2px solid var(--emerald-bright);
+    outline-offset: 3px;
+}
+.offers-slider .offers-slider-arrow:active { transform: translateY(-50%) scale(0.92); }
+
+body.home-page.light .offers-slider .offers-slider-arrow {
+    color: #b8860b;
+    background: rgba(255, 253, 246, 0.88);
+    border-color: rgba(184, 134, 11, 0.35);
+}
+body.home-page.light .offers-slider .offers-slider-arrow:hover,
+body.home-page.light .offers-slider .offers-slider-arrow:focus-visible {
+    background: #b8860b;
+    color: #fffdf6;
+}
+
+/* Mobile : un peu plus petites, collées au bord pour ne pas manger la carte */
+@media (max-width: 520px) {
+    .offers-slider .offers-slider-arrow { width: 36px; height: 36px; }
+    .offers-slider .offers-slider-arrow--prev { left: 6px; }
+    .offers-slider .offers-slider-arrow--next { right: 6px; }
+}
+
 /* --- Thème clair --- */
 body.home-page.light .offers-slider-viewport {
     box-shadow: 0 18px 40px rgba(65, 55, 38, 0.18);
