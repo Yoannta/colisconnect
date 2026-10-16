@@ -125,7 +125,16 @@
       S.promesse = null;
       var p = { fraude: v.fraude === true, raison: v.raison || "", confiance: v.confiance, erreur: v.erreur || null };
       if (p.fraude) { S.fraude = true; S.raison = p.raison; S.filVerdict = fil; }
-      else { S.texteOk = texte; S.quandOk = Date.now(); S.quand = Date.now(); }
+      else {
+        // Verdict frais « pas de fraude » : on efface la memoire de fraude du fil.
+        // Sans cela, un message corrige restait bloque indefiniment.
+        S.fraude = false;
+        S.raison = "";
+        S.filVerdict = null;
+        S.texteOk = texte;
+        S.quandOk = Date.now();
+        S.quand = Date.now();
+      }
       return p;
     }).catch(function () {
       S.enCours = false;
@@ -149,8 +158,8 @@
       if (avecFenetre) fenetreAttente(false);
       return { fraude: false };
     }
-    if (S.fraude && S.filVerdict === fil) { if (avecFenetre) fenetreFraude(true, S.raison); return { fraude: true, raison: S.raison }; }
-    if (S.promesse) return await S.promesse;
+    // 2) Le brouillon est surveille : on ne rejoue pas la memoire de fraude du fil,
+    //    sinon un message corrige resterait bloque. Le modele tranche sur CE message.
     if (!avecFenetre && Date.now() - S.dernierAppel < MiniAppel) return { fraude: false };
     if (!avecFenetre && S.texteOk === texte && Date.now() - S.quandOk < Validite) return { fraude: false };
     if (avecFenetre) fenetreAttente(true);
@@ -164,13 +173,15 @@
   async function verifierEnvoi(fil, texte) {
     if (!sb()) return { fraude: false };
     changerFil(fil);
-    // Un message qui ne porte plus aucun signe de contact (l'utilisateur a supprime
-    // ses chiffres et reecrit normalement) leve l'avertissement pour ce brouillon.
-    if (S.fraude && S.filVerdict === fil) {
-      var r0 = await signal(fil, texte);
-      if (!r0.length) { oublier(fil); return { fraude: false }; }
-      return { fraude: true, raison: S.raison };
+    // 1) Un message qui ne porte plus aucun signe de contact (l'utilisateur a supprime
+    //    ses chiffres et reecrit normalement) leve l'avertissement pour ce brouillon.
+    var r0 = await signal(fil, texte);
+    if (!r0.length) {
+      if (S.fraude && S.filVerdict === fil) oublier(fil);
+      return { fraude: false };
     }
+    // 2) Verdict deja connu et toujours valable pour ce texte exact : rien a refaire.
+    if (S.texteOk === texte && Date.now() - S.quandOk < Validite) return { fraude: false };
     if (S.promesse) {
       fenetreAttente(true);
       var v0 = await S.promesse;
@@ -178,9 +189,7 @@
       if (v0 && v0.fraude) { fenetreFraude(true, v0.raison); return v0; }
       return v0 || { fraude: false };
     }
-    if (S.texteOk === texte && Date.now() - S.quandOk < Validite) return { fraude: false };
-    var raisons = await signal(fil, texte);
-    if (!raisons.length) return { fraude: false };
+    // 3) Sinon, verdict FRAIS du modele sur CE message (et non la memoire du fil).
     return await examiner(fil, texte, { fenetre: true });
   }
 
@@ -223,6 +232,12 @@
       document.body.appendChild(el);
       document.getElementById("cc-ia-fermer").addEventListener("click", function () {
         el.classList.remove("visible");
+        // L'utilisateur a lu l'avertissement : on reexamine le brouillon en cours.
+        // S'il a corrige son message, l'avertissement tombe et il peut envoyer normalement.
+        var champ = document.getElementById("message-input");
+        var brouillon = champ ? String(champ.value || "") : "";
+        if (S.fil && brouillon) examiner(S.fil, brouillon, { fenetre: false }).catch(function () { });
+        else if (!brouillon && S.fraude) oublier(S.fil);
       });
     }
     return el;
@@ -269,11 +284,14 @@
     if (!champ || champ.dataset.ccIa === "1") return;
     champ.dataset.ccIa = "1";
     // La surveillance de la frappe est branchee par chat.js (il connait le fil actif).
+    // Entree pendant une analyse : on previent et on n'envoie pas. En revanche, un
+    // avertissement deja affiche ne doit pas condamner la suite de la conversation :
+    // l'envoi repasse par verifierEnvoi(), qui tranche sur le message reel.
     champ.addEventListener("keydown", function (ev) {
-      if (ev.key !== "Enter" || !bloque()) return;
+      if (ev.key !== "Enter" || !attenteVerdict()) return;
       ev.preventDefault();
       ev.stopPropagation();
-      if (S.fraude) fenetreFraude(true, S.raison); else fenetreAttente(true);
+      fenetreAttente(true);
     }, true);
   }
 
