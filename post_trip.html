@@ -932,6 +932,31 @@
             max-height: 80vh;
             overflow-y: auto;
         }
+        /* ============================================================
+           Prix speciaux : une ligne = [nom + croix] puis [les 2 modes],
+           puis le champ de prix (demande Yoyo, 17/10/2026).
+           Le nom et la croix restent sur la meme ligne a toutes les
+           largeurs, les modes passent dessous (avant, tout se chevauchait).
+           ============================================================ */
+        #colis-detail-rows .colis-name-btn {
+            order: 1;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        #colis-detail-rows .colis-row-del {
+            order: 2;
+            margin-left: auto;
+        }
+
+        #colis-detail-rows .colis-price-modes {
+            order: 3;
+            flex: 1 1 100%;
+        }
+
+        #colis-detail-rows .special-price-line {
+            order: 4;
+        }
     </style>
 </head>
 
