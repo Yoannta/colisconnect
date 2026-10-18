@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil voyageur — ColisConnect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
+  <link rel="stylesheet" href="style.css?v=20261016d">
+  <link rel="stylesheet" href="profil.css?v=1">
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="supabase-init.js?v=2"></script>
+  <script defer src="shared-header.js?v=59"></script>
+  <script defer src="standalone-common.js?v=20261015a"></script>
+  <script defer src="devise.js?v=2"></script>
+  <script defer src="offer-card.js?v=2"></script>
+  <script defer src="profil-voyageur.js?v=1"></script>
+</head>
+<body class="home-page">
+  <div id="site-header-root"></div>
+
+  <main class="app-shell">
+    <div class="profil-page" id="profil-page">
+      <a class="profil-retour" href="results.html">← Retour aux trajets</a>
+
+      <div id="profil-contenu" aria-live="polite">
+        <div class="profil-chargement">Chargement du profil…</div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
