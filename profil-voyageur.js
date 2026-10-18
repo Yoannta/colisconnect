@@ -54,6 +54,7 @@
     profil: { id: "demo", full_name: "Yoann Tato", profile_photo: "", is_verified: true,
               kyc_status: "approved", country: "Côte d'Ivoire", profile_type: "voyageur" },
     voyage: { id: 999999, user_id: "demo", origin: "Chine", destination: "Côte d'Ivoire",
+              origin_country_code: "CN", destination_country_code: "CI",
               city_origin: "Guangzhou", city_destination: "Abidjan", departure_date: "2026-10-25",
               available_kg: 25, price_per_kg: 12, base_currency: "EUR", status: "active",
               rating: 4.6, reviews: 12 },
@@ -107,8 +108,7 @@
     } else
     try {
       const { data } = await sb.from("offers")
-        .select("id, user_id, origin, destination, city_origin, city_destination, departure_date, " +
-                "available_kg, price_per_kg, base_currency, rating, reviews, status, description")
+        .select("*")
         .eq("user_id", id).order("departure_date", { ascending: true });
       offres = (data || []).filter((o) => !["deleted", "cancelled", "annule", "supprime"].includes(
         String(o.status || "").toLowerCase()));
