@@ -15476,3 +15476,8 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
         border-radius: 14px;
     }
 }
+
+/* Lien vers le profil depuis le pied de carte (nom + photo cliquables) */
+.cc3-profile-link { display: flex; align-items: center; gap: 12px; min-width: 0;
+  text-decoration: none; color: inherit; border-radius: 12px; }
+.cc3-profile-link:hover .cc3-name { text-decoration: underline; }
