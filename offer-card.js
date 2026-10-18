@@ -72,6 +72,7 @@
         return `
     <footer class="cc3-foot">
       <div class="cc3-profile">
+        ${opts.ownerId ? `<a class="cc3-profile-link" href="profil.html?id=${encodeURIComponent(String(opts.ownerId))}" title="Voir le profil">` : ""}
         ${opts.photo ? `<img class="cc3-avatar cc3-avatar-img" src="${eh(opts.photo)}" alt="">` : `<span class="cc3-avatar">${eh(initials)}</span>`}
         <div class="cc3-profile-txt">
           <div class="cc3-name-line">
@@ -80,6 +81,7 @@
           </div>
           <span class="cc3-meta">${eh(opts.label)}</span>
         </div>
+        ${opts.ownerId ? "</a>" : ""}
       </div>
       ${actions}
     </footer>`;
@@ -331,6 +333,7 @@
 
     ${cc3CardFooter({
         photo: ownerPhoto,
+        ownerId: offer.user_id || offer.userId || opts.ownerId || "",
         name: ownerName,
         isVerified: isVerified,
         label: profileLabel,
