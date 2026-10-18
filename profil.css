@@ -1,0 +1,190 @@
+/* ============================================================
+   profil.css — page profil voyageur (ColisConnect)
+   Réutilise les variables et le cadre du site ; n'ajoute que la
+   mise en page propre au profil.
+   ============================================================ */
+
+.profil-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 16px 60px;
+}
+
+.profil-retour {
+  display: inline-block;
+  margin-bottom: 14px;
+  font-size: 14px;
+  text-decoration: none;
+  color: inherit;
+  opacity: .8;
+}
+.profil-retour:hover { opacity: 1; }
+
+.profil-chargement {
+  padding: 40px 0;
+  text-align: center;
+  opacity: .7;
+}
+
+/* --- en-tête du profil --- */
+.profil-entete {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--cc-surface, rgba(255,255,255,.06));
+  border: 1px solid var(--cc-border, rgba(255,255,255,.12));
+}
+
+.profil-avatar {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, #2f8f7a, #1f5f8b);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: .5px;
+}
+
+.profil-identite { min-width: 0; }
+.profil-nom {
+  margin: 0 0 6px;
+  font-size: 22px;
+  line-height: 1.2;
+  font-weight: 800;
+  word-break: break-word;
+}
+.profil-type {
+  font-size: 13px;
+  opacity: .7;
+  margin-bottom: 8px;
+}
+
+.profil-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+.profil-badge.verifie {
+  color: #0b3d2e;
+  background: #57d3a5;
+}
+.profil-badge.non-verifie {
+  color: #4a3b12;
+  background: #f0c674;
+}
+.profil-badge svg { width: 14px; height: 14px; }
+
+/* --- note moyenne --- */
+.profil-note {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--cc-surface, rgba(255,255,255,.06));
+  border: 1px solid var(--cc-border, rgba(255,255,255,.12));
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.profil-note-chiffre {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+}
+.profil-note-sur { font-size: 14px; opacity: .65; }
+.profil-etoiles {
+  font-size: 20px;
+  letter-spacing: 2px;
+  color: #f5b942;
+  line-height: 1;
+}
+.profil-etoiles .vide { color: rgba(255,255,255,.25); }
+.profil-note-detail { font-size: 13px; opacity: .7; }
+
+/* --- sections --- */
+.profil-section { margin-top: 22px; }
+.profil-section h2 {
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.profil-vide {
+  font-size: 14px;
+  opacity: .65;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px dashed var(--cc-border, rgba(255,255,255,.14));
+}
+
+/* --- liste des avis --- */
+.profil-avis {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.profil-avis-item {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--cc-surface, rgba(255,255,255,.05));
+  border: 1px solid var(--cc-border, rgba(255,255,255,.1));
+}
+.profil-avis-tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.profil-avis-auteur { font-size: 14px; font-weight: 700; }
+.profil-avis-date { font-size: 12px; opacity: .6; }
+.profil-avis-etoiles { font-size: 13px; color: #f5b942; letter-spacing: 1px; }
+.profil-avis-texte { font-size: 14px; line-height: 1.45; opacity: .9; }
+
+/* --- carte du voyage disponible : la carte du site, telle quelle --- */
+.profil-section .cards-list { margin: 0; }
+
+/* --- bouton du bas --- */
+.profil-contacter-bas {
+  margin-top: 26px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  border: 0;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  color: #06251d;
+  background: linear-gradient(135deg, #57d3a5, #35b6c9);
+}
+.profil-contacter-bas:disabled {
+  cursor: default;
+  opacity: .5;
+  background: rgba(255,255,255,.12);
+  color: inherit;
+}
+.profil-contacter-bas svg { width: 20px; height: 20px; }
+
+@media (max-width: 480px) {
+  .profil-avatar { width: 68px; height: 68px; font-size: 23px; }
+  .profil-nom { font-size: 19px; }
+  .profil-note-chiffre { font-size: 26px; }
+}
