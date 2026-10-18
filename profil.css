@@ -183,8 +183,78 @@
 }
 .profil-contacter-bas svg { width: 20px; height: 20px; }
 
-@media (max-width: 480px) {
-  .profil-avatar { width: 68px; height: 68px; font-size: 23px; }
-  .profil-nom { font-size: 19px; }
+/* ============================================================
+   MODE TELEPHONE (responsive.js pose .mobile-mode sous 800 px)
+   ============================================================ */
+@media (max-width: 800px) {
+  .profil-page { padding: 10px 10px 96px; }
+  .profil-retour { margin-bottom: 10px; font-size: 13px; }
+
+  .profil-entete {
+    gap: 12px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+  .profil-avatar { width: 60px; height: 60px; font-size: 20px; }
+  .profil-nom { font-size: 19px; margin-bottom: 4px; }
+  .profil-type { font-size: 12px; margin-bottom: 6px; }
+  .profil-badge { font-size: 12px; padding: 4px 9px; }
+
+  .profil-note {
+    margin-top: 12px;
+    padding: 12px 14px;
+    gap: 10px;
+    border-radius: 16px;
+  }
   .profil-note-chiffre { font-size: 26px; }
+  .profil-etoiles { font-size: 17px; }
+  .profil-note-detail { font-size: 12px; }
+
+  .profil-section { margin-top: 18px; }
+  .profil-section h2 { font-size: 15px; }
+
+  /* la carte du voyage : pleine largeur sur telephone */
+  .profil-section .cards-list { margin: 0; }
+  .profil-page .cc3-card { width: 100%; }
+
+  /* le bouton du bas reste accessible au pouce */
+  .profil-contacter-bas {
+    position: sticky;
+    bottom: 10px;
+    margin-top: 18px;
+    padding: 15px;
+    font-size: 15px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    z-index: 5;
+  }
+}
+
+/* Meme regle via la classe de mode (le site bascule des 800 px, UA mobile inclus) */
+.mobile-mode .profil-page { padding: 10px 10px 96px; }
+.mobile-mode .profil-contacter-bas { position: sticky; bottom: 10px; z-index: 5; }
+
+@media (max-width: 380px) {
+  .profil-avatar { width: 52px; height: 52px; font-size: 18px; }
+  .profil-nom { font-size: 17px; }
+  .profil-note-chiffre { font-size: 23px; }
+  .profil-badge { font-size: 11px; }
+}
+
+/* --- La carte du site doit tenir dans un telephone (390 px) :
+       on autorise le retour a la ligne au lieu de laisser le bouton
+       et le prix se faire couper par le bord de la carte. --- */
+@media (max-width: 800px) {
+  .profil-page .cc3-foot {
+    flex-wrap: wrap !important;
+    gap: 10px !important;
+    align-items: center !important;
+  }
+  .profil-page .cc3-foot .cc3-actions { margin-left: auto !important; }
+  .profil-page .cc3-cta { flex: 0 0 auto !important; }
+  .profil-page .cc3-profile-link { min-width: 0 !important; }
+  .profil-page .cc3-name { font-size: 13px !important; }
+  .profil-page .cc3-card { padding: 12px !important; }
+  .profil-page .cc3-route { min-width: 0 !important; }
+  .profil-page .cc3-price { font-size: 15px !important; }
+  .profil-page .cc3-price-source { order: 3 !important; }
 }
