@@ -30,16 +30,17 @@
 .profil-entete {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px;
-  border-radius: 18px;
+  gap: 20px;
+  min-height: 250px;      /* hauteur doublee : la bande photo respire */
+  padding: 26px 24px;
+  border-radius: 26px;
   background: var(--cc-surface, rgba(255,255,255,.06));
   border: 1px solid var(--cc-border, rgba(255,255,255,.12));
 }
 
 .profil-avatar {
-  width: 84px;
-  height: 84px;
+  width: 138px;
+  height: 138px;
   border-radius: 50%;
   object-fit: cover;
   flex: 0 0 auto;
@@ -48,7 +49,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 44px;
   font-weight: 700;
   letter-spacing: .5px;
 }
@@ -191,11 +192,12 @@
   .profil-retour { margin-bottom: 10px; font-size: 13px; }
 
   .profil-entete {
-    gap: 12px;
-    padding: 14px;
-    border-radius: 16px;
+    gap: 14px;
+    padding: 18px 16px;
+    min-height: 168px;
+    border-radius: 20px;
   }
-  .profil-avatar { width: 60px; height: 60px; font-size: 20px; }
+  .profil-avatar { width: 92px; height: 92px; font-size: 30px; }
   .profil-nom { font-size: 19px; margin-bottom: 4px; }
   .profil-type { font-size: 12px; margin-bottom: 6px; }
   .profil-badge { font-size: 12px; padding: 4px 9px; }
@@ -234,7 +236,7 @@
 .mobile-mode .profil-contacter-bas { position: sticky; bottom: 10px; z-index: 5; }
 
 @media (max-width: 380px) {
-  .profil-avatar { width: 52px; height: 52px; font-size: 18px; }
+  .profil-avatar { width: 78px; height: 78px; font-size: 25px; }
   .profil-nom { font-size: 17px; }
   .profil-note-chiffre { font-size: 23px; }
   .profil-badge { font-size: 11px; }
