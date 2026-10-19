@@ -109,7 +109,7 @@
     try {
       const { data } = await sb.from("offers")
         .select("*")
-        .eq("user_id", id).order("departure_date", { ascending: true });
+        .eq("user_id", id).eq("status", "active").order("departure_date", { ascending: true });
       // Seules les offres EN LIGNE appartiennent au profil public. Les annonces archivees
       // (supprimees par leur auteur) et expirees ne doivent jamais reapparaitre ici.
       offres = (data || []).filter((o) => String(o.status || "").toLowerCase() === "active");
