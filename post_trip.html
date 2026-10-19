@@ -960,9 +960,17 @@
     </style>
 <style>
   /* [CARGO] fleche retour du choix kilo / CBM */
-  #price-unit-back { width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18);
-    background: rgba(255,255,255,.06); color: inherit; font-size: 16px; cursor: pointer; line-height: 1; }
-  #price-unit-back:hover { background: rgba(255,255,255,.14); }
+  /* Fleche retour du choix kilo / CBM — dorée comme les boutons du site,
+     visible aussi bien en thème clair qu'en thème sombre. */
+  #price-unit-back {
+    width: 34px; height: 34px; border-radius: 10px; border: 0;
+    background:
+      radial-gradient(circle at 27% 0%, rgba(255,255,255,.30), transparent 34%),
+      linear-gradient(135deg, #c18017, #e4aa2e 45%, #f0bd42 100%);
+    color: #101010; font-size: 16px; font-weight: 800; cursor: pointer; line-height: 1;
+    box-shadow: 0 4px 10px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.32);
+  }
+  #price-unit-back:hover { filter: brightness(1.06); }
 </style>
 </head>
 
