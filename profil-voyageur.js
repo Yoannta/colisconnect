@@ -142,6 +142,9 @@
       avis = data || [];
     } catch (e) { avis = []; }
 
+    // --- nature du profil : les cargos publient plusieurs offres ---
+    const estCargo = /cargo/i.test(String(profil.profile_type || profil.role || ""));
+
     // --- en-tête ---
     const nom = profil.full_name || "Voyageur";
     const photo = profil.profile_photo ? echap(profil.profile_photo) : "";
@@ -153,7 +156,7 @@
     let html = '<section class="profil-entete">' + avatar +
       '<div class="profil-identite">' +
       '<h1 class="profil-nom">' + echap(nom) + "</h1>" +
-      '<div class="profil-type">' + (type === "cargo" ? "Cargo" : "Voyageur") +
+      '<div class="profil-type">' + (estCargo ? "Cargo" : "Voyageur") +
       (profil.country ? " · " + echap(profil.country) : "") + "</div>" +
       badgeVerifie(profil) +
       "</div></section>";
@@ -189,28 +192,34 @@
     }
     html += "</section>";
 
-    // --- voyage disponible : la carte du site, à l'identique ---
-    html += '<section class="profil-section"><h2>Voyage disponible</h2>';
-    if (voyage) {
-      const offreCarte = Object.assign({}, voyage, {
-        ownerName: nom,
-        ownerProfilePhoto: profil.profile_photo || "",
-        ownerIsVerified: profil.is_verified === true,
-        user_id: id
-      });
-      const rendu = window.CCOfferCard && window.CCOfferCard.html
-        ? window.CCOfferCard.html(offreCarte, {
-            currentUserId: (window.CCCommon && window.CCCommon.state && window.CCCommon.state.user && window.CCCommon.state.user.id) || null,
-            ownerNameFallback: nom,
-            ownerPhotoFallback: profil.profile_photo || "",
-            ownerVerifiedFallback: profil.is_verified === true,
-            dataAttr: 'data-contacter-offre="' + echap(voyage.id) + '"',
-            ariaLabel: "Contacter ce voyageur"
-          })
-        : '<div class="profil-vide">La carte n\'a pas pu être affichée.</div>';
-      html += '<div class="cards-list">' + rendu + "</div>";
+    // --- offres : UNE carte pour un voyageur, TOUTES pour un cargo ---
+    const listeCartes = estCargo ? offres : (voyage ? [voyage] : []);
+    html += '<section class="profil-section"><h2>' +
+      (estCargo ? "Ses offres" : "Voyage disponible") + "</h2>";
+    if (listeCartes.length) {
+      const cartes = listeCartes.map((o) => {
+        const offreCarte = Object.assign({}, o, {
+          ownerName: nom,
+          ownerProfilePhoto: profil.profile_photo || "",
+          ownerIsVerified: profil.is_verified === true,
+          user_id: id
+        });
+        return window.CCOfferCard && window.CCOfferCard.html
+          ? window.CCOfferCard.html(offreCarte, {
+              currentUserId: (window.CCCommon && window.CCCommon.state && window.CCCommon.state.user && window.CCCommon.state.user.id) || null,
+              ownerNameFallback: nom,
+              ownerPhotoFallback: profil.profile_photo || "",
+              ownerVerifiedFallback: profil.is_verified === true,
+              dataAttr: 'data-contacter-offre="' + echap(o.id) + '"',
+              ariaLabel: estCargo ? "Contacter ce cargo" : "Contacter ce voyageur"
+            })
+          : "";
+      }).join("");
+      html += '<div class="cards-list">' + cartes + "</div>";
     } else {
-      html += '<div class="profil-vide">Ce voyageur n\'a pas de voyage disponible pour le moment.</div>';
+      html += '<div class="profil-vide">' +
+        (estCargo ? "Ce cargo n\'a aucune offre en ligne pour le moment."
+                  : "Ce voyageur n\'a pas de voyage disponible pour le moment.") + "</div>";
     }
     html += "</section>";
 
@@ -219,7 +228,7 @@
     html += '<button class="profil-contacter-bas" id="profil-contacter"' +
       (voyage ? ' data-offre="' + idOffre + '"' : " disabled") + ">" +
       '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>' +
-      (voyage ? "Contacter le voyageur" : "Aucun voyage disponible") + "</button>";
+      (voyage ? (estCargo ? "Contacter le cargo" : "Contacter le voyageur") : (estCargo ? "Aucune offre disponible" : "Aucun voyage disponible")) + "</button>";
 
     conteneur.innerHTML = html;
 
