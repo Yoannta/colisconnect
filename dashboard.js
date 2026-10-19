@@ -1202,11 +1202,23 @@
                 const offer = state.offers.find(o => String(o.id) === offerId);
                 if (!offer) return;
                 try {
+                    // [FIX 2026-10-19] Ce bouton ARCHIVAIT (status = 'archived') au lieu de
+                    // supprimer : les annonces "supprimees" restaient en base et ressortaient
+                    // sur les profils. On passe par la meme fonction securisee que la carte
+                    // d'offre : DELETE reel, et archivage seulement si la ligne est protegee
+                    // (reservations/discussions liees).
                     if (window.ccSupabase) {
-                        await window.ccSupabase.from("offers").update({
-                            status: "archived",
-                            updated_at: new Date().toISOString()
-                        }).eq("id", offerId).eq("user_id", window.CCCommon.state.user?.id);
+                        const { data: nDel, error: eDel } = await window.ccSupabase.rpc("cc_delete_own_offer", { p_offer_id: Number(offerId) });
+                        if (eDel) throw eDel;
+                        let fait = nDel || 0;
+                        if (!fait) {
+                            const { data: nArch, error: eArch } = await window.ccSupabase.rpc("cc_archive_own_offer", { p_offer_id: Number(offerId) });
+                            if (eArch) throw eArch;
+                            fait = nArch || 0;
+                        }
+                        if (!fait) {
+                            throw new Error("Suppression refusee par la base : cette offre n'a pas ete trouvee ou ne vous appartient pas.");
+                        }
                     } else {
                         await window.CCCommon.api(`/api/offers/${offerId}`, { method: "DELETE" });
                     }
