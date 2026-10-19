@@ -226,6 +226,18 @@
         document.getElementById("btn-cargo-choice")?.classList.toggle("selected", cargo);
         document.getElementById("trip-extra-fields")?.classList.remove("hidden");
         document.getElementById("kilos-group")?.classList.toggle("hidden", cargo);
+        // Le champ kilos n'a de sens que pour un voyageur : en cargo on le desactive
+        // pour qu'il ne puisse jamais invalider le formulaire (max = 69 kg).
+        const champKilos = document.getElementById("kilos");
+        if (champKilos) {
+            champKilos.disabled = cargo;
+            if (cargo) {
+                champKilos.value = "";
+                champKilos.removeAttribute("max");
+            } else {
+                champKilos.setAttribute("max", "69");
+            }
+        }
         const section = document.getElementById("transport-mode-section");
         if (section) section.style.display = cargo ? "block" : "none";
         // [CARGO] dates multiples : visibles pour le cargo, masquees pour le voyageur simple
@@ -1185,7 +1197,11 @@
             set("destination", offer.destination);
             set("city-destination", offer.city_destination || "");
             set("date-depart", String(offer.departure_date || "").slice(0, 10));
-            set("kilos", offer.available_kg ?? "");
+            // [FIX 2026-10-19] Une offre cargo stocke available_kg = 99999 : l'ecrire dans
+            // #kilos (qui porte max="69") rendait le formulaire HTML INVALIDE, et le
+            // navigateur bloquait silencieusement « Enregistrer les modifications ».
+            // Le champ kilos ne concerne que le voyageur simple.
+            set("kilos", offer.mode ? "" : (offer.available_kg ?? ""));
             set("price", offer.price_per_kg ?? "");
             set("price-currency", offer.base_currency || "");
             if (els.notes) els.notes.value = offer.description || "";
