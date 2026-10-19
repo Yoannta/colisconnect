@@ -464,7 +464,20 @@
         if (els.offerCityOrigin) els.offerCityOrigin.value = offer.city_origin || offer.cityOrigin || "";
         if (els.offerCityDestination) els.offerCityDestination.value = offer.city_destination || offer.cityDestination || "";
         if (els.offerDepartureDate) els.offerDepartureDate.value = String(offer.departureDate || offer.departure_date || "");
-        if (els.offerAvailableKg) els.offerAvailableKg.value = String(offer.availableKg ?? offer.available_kg ?? "");
+        // [CARGO 2026-10-19] Un cargo ne se mesure pas en kilos : on masque le champ
+        // (et on ne l'enregistre pas) au lieu de le laisser avec 99999.
+        const kgOffre = Number(offer.availableKg ?? offer.available_kg ?? 0);
+        state.offerIsCargo = Boolean(offer.mode) || kgOffre > 69;
+        const champKilo = document.getElementById("offer-kg-field");
+        if (champKilo) champKilo.classList.toggle("hidden", state.offerIsCargo);
+        if (els.offerAvailableKg) {
+            els.offerAvailableKg.value = state.offerIsCargo ? "" : String(offer.availableKg ?? offer.available_kg ?? "");
+        }
+        if (els.offerModalSummary) {
+            els.offerModalSummary.textContent = state.offerIsCargo
+                ? `Modifie les details du trajet ${getRouteLabel(offer)}.`
+                : `Modifie les details du trajet ${getRouteLabel(offer)} et garde tes kilos à jour.`;
+        }
         if (els.offerPricePerKg) els.offerPricePerKg.value = String(offer.pricePerKg ?? offer.price_per_kg ?? "");
 
         // === [DEVISE] Modèle unique du site (devise.js) : mêmes devises et même
@@ -498,17 +511,19 @@
             return;
         }
 
+        const cargo = state.offerIsCargo === true;
         const payload = {
             origin: String(els.offerOrigin?.value || "").trim(),
             destination: String(els.offerDestination?.value || "").trim(),
             city_origin: String(els.offerCityOrigin?.value || "").trim(),
             city_destination: String(els.offerCityDestination?.value || "").trim(),
             departure_date: String(els.offerDepartureDate?.value || "").trim(),
-            available_kg: Number(els.offerAvailableKg?.value || 0),
             price_per_kg: Number(els.offerPricePerKg?.value || 0),
             base_currency: String(els.offerBaseCurrency?.value || getUserCurrency()).trim().toUpperCase(),
             title: `Trajet ${String(els.offerOrigin?.value || "").trim()} -> ${String(els.offerDestination?.value || "").trim()}`
         };
+
+        if (!cargo) payload.available_kg = Number(els.offerAvailableKg?.value || 0);
 
         // CODES PAYS : le drapeau affiche sur les cartes est construit a partir du code
         // ISO enregistre dans l'offre (origin_country_code / destination_country_code).
@@ -545,7 +560,12 @@
             return;
         }
 
-        if (payload.available_kg <= 0 || payload.price_per_kg < 0) {
+        if (cargo) {
+            if (!(payload.price_per_kg > 0)) {
+                setFeedback("Indique ton prix.", true);
+                return;
+            }
+        } else if (payload.available_kg <= 0 || payload.price_per_kg < 0) {
             setFeedback("Les kilos et le prix doivent etre valides.", true);
             return;
         }
