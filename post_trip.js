@@ -75,6 +75,7 @@
 
     let selectedProfileTypeChoice = null;
     let selectedTransportMode = null;
+    let selectedPriceUnit = "kg";  // "kg" ou "cbm" (cargo)
     // Bouton qui a ouvert la modale paiement ("Mon numero de contact" ou "Autre numero")
     let paymentTrigger = null;
 
@@ -193,6 +194,30 @@
     // Affichage du type d'annonce (voyageur simple / cargo) : bouton surligne + champs
     // coherents. Source unique : utilisee par le clic utilisateur ET par la modification
     // d'une annonce existante (avant, le type n'etait pas re-selectionne a l'arrivee).
+    // [CARGO 2026-10-19] Le cargo choisit d'abord son unite de prix : kilo ou CBM.
+    // Le champ de prix et la devise n'apparaissent qu'apres ce choix, avec une fleche
+    // de retour a gauche pour revenir aux deux boutons.
+    function afficherChoixUnitePrix() {
+        document.getElementById("cargo-unit-choice")?.classList.remove("hidden");
+        document.getElementById("price-group")?.classList.add("hidden");
+        document.getElementById("price-unit-back")?.classList.add("hidden");
+        document.querySelectorAll(".cargo-unit-btn").forEach((b) => b.classList.remove("selected"));
+    }
+
+    function choisirUnitePrix(unit) {
+        selectedPriceUnit = unit === "cbm" ? "cbm" : "kg";
+        document.getElementById("cargo-unit-choice")?.classList.add("hidden");
+        document.getElementById("price-group")?.classList.remove("hidden");
+        const label = document.getElementById("price-label");
+        if (label) label.textContent = selectedPriceUnit === "cbm" ? "Prix par CBM" : "Prix par kilo";
+        const back = document.getElementById("price-unit-back");
+        if (back) back.classList.toggle("hidden", selectedProfileTypeChoice !== "cargo");
+        document.querySelectorAll(".cargo-unit-btn").forEach((b) => {
+            b.classList.toggle("selected", b.dataset.unit === selectedPriceUnit);
+        });
+        document.getElementById("price")?.focus();
+    }
+
     function applyProfileTypeUI(choice) {
         const cargo = choice === "cargo";
         selectedProfileTypeChoice = cargo ? "cargo" : "traveler";
@@ -205,6 +230,17 @@
         if (section) section.style.display = cargo ? "block" : "none";
         // [CARGO] dates multiples : visibles pour le cargo, masquees pour le voyageur simple
         setExtraTripDatesVisible(cargo);
+        // [CARGO] prix : d'abord le choix kilo / CBM, puis le champ
+        if (cargo) {
+            afficherChoixUnitePrix();
+        } else {
+            selectedPriceUnit = "kg";
+            document.getElementById("cargo-unit-choice")?.classList.add("hidden");
+            document.getElementById("price-group")?.classList.remove("hidden");
+            document.getElementById("price-unit-back")?.classList.add("hidden");
+            const lbl = document.getElementById("price-label");
+            if (lbl) lbl.textContent = "Prix par kilo";
+        }
         if (!cargo) {
             selectedTransportMode = null;
             document.querySelectorAll(".transport-mode-btn").forEach((b) => b.classList.remove("selected"));
@@ -232,6 +268,27 @@
         updateExtraDatesAddBtn();
         input.focus();
     }
+
+    // [FIX 2026-10-19] Restauration des dates supplementaires en modification.
+    // La modification appelait window.ccSetExtraTripDates(...) qui n'a JAMAIS existe :
+    // les 2 dates supplementaires n'etaient donc pas remises dans le formulaire, et
+    // l'enregistrement envoyait extra_dates = [] -> elles disparaissaient en base.
+    window.ccSetExtraTripDates = function (dates) {
+        const liste = (Array.isArray(dates) ? dates : [])
+            .map((d) => String(d || "").trim())
+            .filter(Boolean)
+            .slice(0, MAX_EXTRA_DATES);
+        clearExtraTripDates();
+        liste.forEach((valeur) => {
+            addExtraTripDateRow();
+            const champs = els.tripExtraDates
+                ? els.tripExtraDates.querySelectorAll(".trip-extra-date-row .trip-extra-date")
+                : [];
+            const dernier = champs[champs.length - 1];
+            if (dernier) dernier.value = valeur;
+        });
+        updateExtraDatesAddBtn();
+    };
 
     // Date principale + dates supplémentaires (cargo) → UNE offre portant toutes les dates
     function collectTripDates() {
@@ -866,7 +923,15 @@
             alert("Maximum " + KILOS_MAX + " kg par offre.");
             return;
         }
-        if (pricePerKg < 1) {
+        // [FIX 2026-10-19] Le cargo ne se vend pas forcement au kilo (CBM) : on n'exige
+        // le prix au kilo que hors cargo. En cargo, on exige un prix tout court.
+        const prixSaisi = parseFloat(String(els.price?.value || "").replace(",", "."));
+        if (isCargoMode) {
+            if (!(prixSaisi >= 1)) {
+                alert("Veuillez saisir votre prix.");
+                return;
+            }
+        } else if (pricePerKg < 1) {
             alert("Veuillez saisir un prix par kilo valide.");
             return;
         }
@@ -905,6 +970,7 @@
             // departureDate (principale) + extraDates (supplémentaires) ajoutés avant l'insertion
             availableKg: availableKg,
             pricePerKg: pricePerKg,
+            priceUnit: isCargoMode ? (selectedPriceUnit || "kg") : "kg",
             baseCurrency: els.priceCurrencyInput?.value || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR"),  // [MULTI-CURRENCY]
             paymentMethod: paymentState.selectedMethod,
             paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
@@ -961,7 +1027,7 @@
             if (editingOfferId) {
                 // Le payload est en camelCase (API) : on le traduit vers les colonnes reelles
                 const MAP = {
-                    availableKg: "available_kg", pricePerKg: "price_per_kg",
+                    availableKg: "available_kg", pricePerKg: "price_per_kg", priceUnit: "price_unit",
                     departureDate: "departure_date", extraDates: "extra_dates",
                     baseCurrency: "base_currency", paymentMethod: "payment_method",
                     paymentQr: "payment_qr", paymentMethod2: "payment_method_2",
@@ -1157,6 +1223,10 @@
         // Type d'annonce (voyageur / cargo) deduit du mode enregistre : meme logique que le
         // clic utilisateur (bouton surligne + champs coherents), sinon le type repartait vide.
         applyProfileTypeUI(offer.mode ? "cargo" : "traveler");
+        // unite de prix enregistree (kg ou CBM) : on remet le client sur son choix
+        if (offer.mode) {
+            choisirUnitePrix(String(offer.price_unit || "kg").toLowerCase() === "cbm" ? "cbm" : "kg");
+        }
         if (offer.mode) {
             selectedTransportMode = offer.mode;
             document.querySelectorAll(".modal-transport-btn, .transport-mode-btn, .mode-btn").forEach((btn) => {
@@ -1174,6 +1244,13 @@
         document.getElementById("edit-notice")?.classList.remove("hidden");
         console.log("[modif] annonce", editingOfferId, "chargee dans le formulaire");
     }
+
+    // Clics du choix d'unite de prix (cargo) — delegation unique
+    document.addEventListener("click", (ev) => {
+        const btnUnite = ev.target.closest(".cargo-unit-btn");
+        if (btnUnite) { ev.preventDefault(); choisirUnitePrix(btnUnite.dataset.unit); return; }
+        if (ev.target.closest("#price-unit-back")) { ev.preventDefault(); afficherChoixUnitePrix(); }
+    });
 
     function bindEvents() {
         // ===== POPUP TYPES DE COLIS =====
