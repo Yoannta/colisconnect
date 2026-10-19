@@ -1227,6 +1227,12 @@
         if (offer.mode) {
             choisirUnitePrix(String(offer.price_unit || "kg").toLowerCase() === "cbm" ? "cbm" : "kg");
         }
+        // prix speciaux enregistres : on reconstruit les lignes (sinon la section
+        // disparaissait a l'enregistrement, car le formulaire renvoyait une liste vide)
+        const prixSpeciaux = Array.isArray(offer.special_prices) ? offer.special_prices : [];
+        if (prixSpeciaux.length && typeof window.ccSetSpecialPrices === "function") {
+            try { window.ccSetSpecialPrices(prixSpeciaux); } catch (e) { console.warn("prix speciaux non restaures:", e); }
+        }
         if (offer.mode) {
             selectedTransportMode = offer.mode;
             document.querySelectorAll(".modal-transport-btn, .transport-mode-btn, .mode-btn").forEach((btn) => {
