@@ -29,7 +29,7 @@
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=38"></script>
+    <script defer src="post_trip.js?v=39"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -1511,6 +1511,41 @@
             // s'ouvrait vide apres une suppression et les champs ne revenaient pas.
             window.ccEnsureSpecialRow = function () {
                 if (!rowsBox.querySelector('.colis-detail-row')) makeRow();
+            };
+
+            // [FIX 2026-10-19] Restauration des prix speciaux en modification.
+            // Rien ne rechargeait offer.special_prices : les lignes revenaient vides et
+            // l'enregistrement ecrasait la colonne avec [] -> la section disparaissait.
+            window.ccSetSpecialPrices = function (liste) {
+                var items = Array.isArray(liste) ? liste.filter(function (x) { return x && x.type; }) : [];
+                rowsBox.innerHTML = '';
+                items.forEach(function (item) {
+                    makeRow();
+                    var toutes = rowsBox.querySelectorAll('.colis-detail-row');
+                    var rowEl = toutes[toutes.length - 1];
+                    if (!rowEl) return;
+                    var labelEl = rowEl.querySelector('.colis-name-label');
+                    if (labelEl) labelEl.textContent = String(item.type);
+                    var mode = String(item.mode || 'kilo') === 'qty' ? 'qty' : 'kilo';
+                    rowEl.setAttribute('data-mode', mode);
+                    rowEl.querySelectorAll('.price-mode-btn').forEach(function (b) {
+                        b.classList.toggle('active', b.getAttribute('data-mode') === mode);
+                    });
+                    var line = rowEl.querySelector('.special-price-line');
+                    if (line) line.classList.remove('hidden');
+                    var field = rowEl.querySelector('.price-field');
+                    if (field) field.value = (item.price === 0 || item.price) ? String(item.price) : '';
+                    if (window.ccRefreshUniteLabel) window.ccRefreshUniteLabel(rowEl);
+                });
+                if (items.length) {
+                    var oui = document.getElementById('special-yes');
+                    var non = document.getElementById('special-no');
+                    var panneau = document.getElementById('special-prices-panel');
+                    if (oui) oui.classList.add('selected');
+                    if (non) non.classList.remove('selected');
+                    if (panneau) panneau.classList.remove('hidden');
+                }
+                return items.length;
             };
 
             function commitName(input) {
