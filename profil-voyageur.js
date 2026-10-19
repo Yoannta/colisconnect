@@ -110,8 +110,9 @@
       const { data } = await sb.from("offers")
         .select("*")
         .eq("user_id", id).order("departure_date", { ascending: true });
-      offres = (data || []).filter((o) => !["deleted", "cancelled", "annule", "supprime"].includes(
-        String(o.status || "").toLowerCase()));
+      // Seules les offres EN LIGNE appartiennent au profil public. Les annonces archivees
+      // (supprimees par leur auteur) et expirees ne doivent jamais reapparaitre ici.
+      offres = (data || []).filter((o) => String(o.status || "").toLowerCase() === "active");
     } catch (e) { offres = []; }
 
     const aujourdhui = new Date(); aujourdhui.setHours(0, 0, 0, 0);
