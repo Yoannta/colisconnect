@@ -197,6 +197,14 @@
     // [CARGO 2026-10-19] Le cargo choisit d'abord son unite de prix : kilo ou CBM.
     // Le champ de prix et la devise n'apparaissent qu'apres ce choix, avec une fleche
     // de retour a gauche pour revenir aux deux boutons.
+    // Valeur a mettre dans #kilos : vide si ce n'est pas un volume saisissable (cargo),
+    // bornee au maximum autorise sinon. Empeche tout formulaire invalide.
+    function numeroKilosSaisissable(valeur) {
+        const n = Number(valeur || 0);
+        if (!isFinite(n) || n <= 0 || n > KILOS_MAX) return "";
+        return n;
+    }
+
     function afficherChoixUnitePrix() {
         document.getElementById("cargo-unit-choice")?.classList.remove("hidden");
         document.getElementById("price-group")?.classList.add("hidden");
@@ -1201,7 +1209,10 @@
             // #kilos (qui porte max="69") rendait le formulaire HTML INVALIDE, et le
             // navigateur bloquait silencieusement « Enregistrer les modifications ».
             // Le champ kilos ne concerne que le voyageur simple.
-            set("kilos", offer.mode ? "" : (offer.available_kg ?? ""));
+            // Champ kilos : reserve au voyageur simple. En cargo il est vide, et on
+            // borne a 69 kg pour qu'aucune valeur ne puisse invalider le formulaire.
+            const kiloOffre = Number(offer.available_kg || 0);
+            set("kilos", numeroKilosSaisissable(kiloOffre));
             set("price", offer.price_per_kg ?? "");
             set("price-currency", offer.base_currency || "");
             if (els.notes) els.notes.value = offer.description || "";
@@ -1238,9 +1249,13 @@
 
         // Type d'annonce (voyageur / cargo) deduit du mode enregistre : meme logique que le
         // clic utilisateur (bouton surligne + champs coherents), sinon le type repartait vide.
-        applyProfileTypeUI(offer.mode ? "cargo" : "traveler");
+        // Une annonce est cargo si elle a un mode de transport, OU un volume symbolique
+        // (> 69 kg), OU si le compte est un compte cargo : sinon le champ kilos reapparaissait
+        // rempli de 99999 et bloquait l'enregistrement.
+        const estCargoOffre = Boolean(offer.mode) || Number(offer.available_kg || 0) > KILOS_MAX;
+        applyProfileTypeUI(estCargoOffre ? "cargo" : "traveler");
         // unite de prix enregistree (kg ou CBM) : on remet le client sur son choix
-        if (offer.mode) {
+        if (estCargoOffre) {
             choisirUnitePrix(String(offer.price_unit || "kg").toLowerCase() === "cbm" ? "cbm" : "kg");
         }
         // prix speciaux enregistres : on reconstruit les lignes (sinon la section
