@@ -29,7 +29,7 @@
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=37"></script>
+    <script defer src="post_trip.js?v=38"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <style>
@@ -958,6 +958,12 @@
             order: 4;
         }
     </style>
+<style>
+  /* [CARGO] fleche retour du choix kilo / CBM */
+  #price-unit-back { width: 34px; height: 34px; border-radius: 10px; border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.06); color: inherit; font-size: 16px; cursor: pointer; line-height: 1; }
+  #price-unit-back:hover { background: rgba(255,255,255,.14); }
+</style>
 </head>
 
 <body class="post-trip-page">
@@ -1079,9 +1085,17 @@
                                         <span>kg</span>
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="price">Prix par kilo</label>
+                                <div class="form-group hidden" id="cargo-unit-choice">
+                                    <label>Comment fixez-vous votre prix ?</label>
+                                    <div class="transport-mode-grid">
+                                        <button type="button" class="transport-mode-btn cargo-unit-btn" data-unit="kg">⚖️ Prix par kilo</button>
+                                        <button type="button" class="transport-mode-btn cargo-unit-btn" data-unit="cbm">📦 Prix par CBM</button>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="price-group">
+                                    <label for="price" id="price-label">Prix par kilo</label>
                                     <div style="display: flex; align-items: center; gap: 10px;">
+                                        <button type="button" class="hidden" id="price-unit-back" title="Revenir au choix kilo / CBM" aria-label="Revenir au choix kilo ou CBM">←</button>
                                         <input type="number" id="price" class="form-input" placeholder="0" min="0" style="width: 120px;">
                                         <div id="currency-selector-wrap"></div>
                                         <input type="hidden" id="price-currency" value="">
