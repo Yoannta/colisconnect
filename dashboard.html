@@ -19,7 +19,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261019g">
+    <link rel="stylesheet" href="style.css?v=20261019h">
     <!-- Drapeaux de la carte d'offre (comme sur la page des offres) -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -35,7 +35,7 @@
     <script defer src="admin-banner.js"></script>
     <!-- Carte d'offre partagée (identique à la page des offres) -->
     <script defer src="offer-card.js?v=1"></script>
-    <script defer src="dashboard.js?v=31"></script>
+    <script defer src="dashboard.js?v=32"></script>
 </head>
 
 <body class="dashboard-page">
@@ -264,13 +264,19 @@
                 </div>
 
                 <!-- Demandes -->
-                <div class="card">
-                    <div class="section-header">
-                        <h3 class="section-title">Personnes intéressées</h3>
-                        <button type="button" class="cargo-see-all-btn" id="cargo-see-all-requests">Voir tous</button>
-                    </div>
-                    <div id="cargo-file-list" class="cargo-file-list">
-                        <div class="loading-state">Chargement...</div>
+                <div class="card cargo-interested-card">
+                    <button class="traveler-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="cargo-interested-body">
+                        <span class="traveler-acc-title">Personnes intéressées</span>
+                        <span class="count-badge" id="cargo-interested-count">0</span>
+                        <svg class="traveler-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="traveler-acc-body" id="cargo-interested-body" hidden>
+                        <div id="cargo-file-list" class="cargo-file-list">
+                            <div class="loading-state">Chargement...</div>
+                        </div>
+                        <div class="cargo-interested-footer">
+                            <button type="button" class="cargo-see-all-btn" id="cargo-see-all-requests">Voir tous</button>
+                        </div>
                     </div>
                 </div>
             </div>

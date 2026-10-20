@@ -6775,6 +6775,26 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     text-align: center;
     justify-content: center;
 }
+
+/* Section « Personnes interessees » du cargo : meme bandeau pliant que le voyageur
+   (titre + compteur + chevron). */
+.dashboard-page .cargo-interested-card > .traveler-acc-toggle {
+    margin-bottom: 0;
+}
+
+.dashboard-page .cargo-interested-card.is-open > .traveler-acc-toggle {
+    margin-bottom: 4px;
+}
+
+.dashboard-page .cargo-interested-card.is-open .traveler-acc-chevron {
+    transform: rotate(180deg);
+}
+
+.dashboard-page .cargo-interested-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
 .dashboard-page .cargo-ops-header>div {
     color: var(--muted);
     font-size: 11px;

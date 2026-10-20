@@ -348,7 +348,8 @@
                 const willOpen = btn.getAttribute("aria-expanded") !== "true";
                 btn.setAttribute("aria-expanded", willOpen ? "true" : "false");
                 body.hidden = !willOpen;
-                btn.closest(".dashboard-panel")?.classList.toggle("is-open", willOpen);
+                const panel = btn.closest(".dashboard-panel") || btn.parentElement;
+                panel?.classList.toggle("is-open", willOpen);
             });
         });
     }
@@ -614,6 +615,8 @@
         // Stats
         if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
         if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${incoming.length}`;
+        const cargoInterestedCount = document.getElementById("cargo-interested-count");
+        if (cargoInterestedCount) cargoInterestedCount.textContent = `${incoming.length}`;
 
         // Table operations (4 colonnes: LIGNE | MODE | STATUT | [action])
         if (els.cargoOpsTable) {
