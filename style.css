@@ -6758,6 +6758,23 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     grid-column: 1 / -1;
 }
 
+/* Etat vide du tableau cargo : « Aucune offre » + « Nouvelle offre » centres. */
+.dashboard-page .cargo-ops-empty {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.dashboard-page .cargo-ops-empty p {
+    text-align: center;
+    width: 100%;
+}
+
+.dashboard-page .cargo-ops-empty .btn {
+    margin: 0 auto;
+    text-align: center;
+    justify-content: center;
+}
 .dashboard-page .cargo-ops-header>div {
     color: var(--muted);
     font-size: 11px;

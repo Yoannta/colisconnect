@@ -618,7 +618,7 @@
         // Table operations (4 colonnes: LIGNE | MODE | STATUT | [action])
         if (els.cargoOpsTable) {
             if (!activeOffers.length) {
-                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests"><p>Aucune ligne active.</p><span>Creez votre premiere offre cargo.</span><a href="post_trip.html" class="btn primary btn-sm">Nouvelle offre</a></div>`;
+                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests cargo-ops-empty"><p>Aucune offre.</p><a href="post_trip.html" class="btn primary btn-sm">Nouvelle offre</a></div>`;
             } else {
                 els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>` + activeOffers.map(o => {
                     const kg = Number(o.availableKg || o.available_kg || 0);
