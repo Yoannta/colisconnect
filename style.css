@@ -6108,10 +6108,11 @@ input[data-country-select="true"]::placeholder {
 }
 
 /* ============================================================
-   VUE VOYAGEUR — « Personnes interessees » repliable (2026-10-17)
-   Meme comportement et meme aspect que les sections client.
+   VUE VOYAGEUR — « Personnes interessees » (2026-10-14)
+   Plus d'effet accordeon : l'en-tete reste affiche et la liste
+   defile dans une hauteur plafonnee quand elle est longue.
    ============================================================ */
-.dashboard-page .traveler-acc-toggle {
+.dashboard-page .traveler-acc-head {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -6121,27 +6122,9 @@ input[data-country-select="true"]::placeholder {
     background: var(--d-surface-1);
     border: 1px solid var(--line);
     border-radius: 10px;
-    color: var(--emerald-bright);
-    font: inherit;
     font-weight: 700;
     font-size: 1rem;
     text-align: left;
-    cursor: pointer;
-    transition: background 0.2s, border-color 0.2s, transform 0.1s;
-}
-
-.dashboard-page .traveler-acc-toggle:hover {
-    background: var(--d-surface-2);
-    border-color: rgba(255, 179, 71, 0.35);
-}
-
-.dashboard-page .traveler-acc-toggle:active {
-    transform: translateY(1px);
-}
-
-.dashboard-page .traveler-acc-toggle:focus-visible {
-    outline: 2px solid var(--emerald-bright);
-    outline-offset: 2px;
 }
 
 .dashboard-page .traveler-acc-title {
@@ -6150,31 +6133,38 @@ input[data-country-select="true"]::placeholder {
     text-overflow: ellipsis;
     white-space: nowrap;
     flex: 1 1 auto;
+    color: #111111;
 }
 
-.dashboard-page .traveler-acc-toggle .count-badge {
+body.dashboard-page:not(.light) .traveler-acc-title {
+    color: #f4ead8;
+}
+
+.dashboard-page .traveler-acc-head .count-badge {
     flex-shrink: 0;
-}
-
-.dashboard-page .traveler-acc-chevron {
-    flex-shrink: 0;
-    transition: transform 0.25s ease;
-}
-
-.dashboard-page .dashboard-panel.is-open .traveler-acc-chevron {
-    transform: rotate(180deg);
 }
 
 .dashboard-page .traveler-acc-body {
     margin-top: 14px;
+    max-height: 380px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.28) transparent;
 }
 
-.dashboard-page .traveler-acc-body[hidden] {
-    display: none;
+.dashboard-page .traveler-acc-body::-webkit-scrollbar {
+    width: 6px;
 }
 
-.dashboard-page .traveler-acc-body:not([hidden]) {
-    animation: cc-acc-open 0.25s ease;
+.dashboard-page .traveler-acc-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.dashboard-page .traveler-acc-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 3px;
 }
 
 /* Panneau replie : il se reduit a son bouton (pas de boite vide de 280px) */
@@ -6200,10 +6190,6 @@ input[data-country-select="true"]::placeholder {
     max-width: 100%;
 }
 
-@media (prefers-reduced-motion: reduce) {
-    .dashboard-page .traveler-acc-body:not([hidden]) { animation: none; }
-    .dashboard-page .traveler-acc-chevron { transition: none; }
-}
 .dashboard-page .client-plus-btn {
     width: 28px;
     height: 28px;
