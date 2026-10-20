@@ -15,7 +15,6 @@
         editOfferBtn: document.getElementById("edit-offer-btn"),
         openMessagesBtn: document.getElementById("open-messages-btn"),
         activeOfferCard: document.getElementById("active-offer-card"),
-        activeOfferBadge: document.getElementById("active-offer-badge"),
         requestsList: document.getElementById("dash-conversations"),
         requestsCount: document.getElementById("dash-conversations-count"),
         statRemainingKg: document.getElementById("stat-remaining-kg"),
@@ -187,7 +186,6 @@
                     <p>Aucune offre active pour le moment.</p>
                     <a href="post_trip.html" class="btn primary btn-sm">Publier un trajet</a>
                 </div>`;
-            if (els.activeOfferBadge) els.activeOfferBadge.textContent = "En attente";
             return;
         }
 
@@ -196,11 +194,6 @@
         const remainingKg = Number(offer.availableKg || offer.available_kg || 0);
         const pricePerKg = Number(offer.pricePerKg || offer.price_per_kg || 0);
         const routeLine = getRouteLabel(offer);
-
-        if (els.activeOfferBadge) {
-            const status = String(offer.status || "active").toLowerCase();
-            els.activeOfferBadge.textContent = status === "active" ? "Publiée" : status;
-        }
 
         // ---- Carte d'offre : EXACTEMENT celle de la page des offres ----
         // Module partagé offer-card.js. Le conteneur .cards-list est requis
