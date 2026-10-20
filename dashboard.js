@@ -180,9 +180,6 @@
         if (!offer) {
             els.activeOfferCard.innerHTML = `
                 <div class="traveler-empty-state">
-                    <div class="traveler-route-empty">
-                        <span></span><span></span><span></span>
-                    </div>
                     <p>Aucune offre.</p>
                     <a href="post_trip.html" class="btn primary btn-sm">Publier un trajet</a>
                 </div>`;

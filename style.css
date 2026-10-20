@@ -5797,6 +5797,23 @@ input[data-country-select="true"]::placeholder {
     color: var(--text);
 }
 
+/* Etat vide de la carte d'offre : texte et bouton bien centres (2026-10-14). */
+.dashboard-page .traveler-empty-state {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.dashboard-page .traveler-empty-state p {
+    text-align: center;
+    width: 100%;
+}
+
+.dashboard-page .traveler-empty-state .btn {
+    margin: 0 auto;
+    text-align: center;
+    justify-content: center;
+}
 .dashboard-page .traveler-empty-requests span {
     font-size: 0.88rem;
 }
@@ -6150,6 +6167,12 @@ input[data-country-select="true"]::placeholder {
     text-overflow: ellipsis;
     white-space: nowrap;
     flex: 1 1 auto;
+    color: #111111;
+}
+
+/* Le titre reste lisible si le dashboard passe en thème sombre. */
+body.dashboard-page:not(.light) .traveler-acc-title {
+    color: #f4ead8;
 }
 
 .dashboard-page .traveler-acc-toggle .count-badge {
