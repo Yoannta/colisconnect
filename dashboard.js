@@ -183,7 +183,7 @@
                     <div class="traveler-route-empty">
                         <span></span><span></span><span></span>
                     </div>
-                    <p>Aucune offre active pour le moment.</p>
+                    <p>Aucune offre.</p>
                     <a href="post_trip.html" class="btn primary btn-sm">Publier un trajet</a>
                 </div>`;
             return;
@@ -715,7 +715,7 @@
             if (els.quickSummaryText && state.activeOffer) {
                 if (els.quickSummaryText) els.quickSummaryText.textContent = `${getRouteLabel(state.activeOffer)} | ${formatAmount(Number(state.activeOffer.pricePerKg || state.activeOffer.price_per_kg || 0), state.activeOffer.baseCurrency || state.activeOffer.base_currency || currency)}/kg`;
             } else if (els.quickSummaryText) {
-                if (els.quickSummaryText) els.quickSummaryText.textContent = "Aucune offre active pour le moment.";
+                if (els.quickSummaryText) els.quickSummaryText.textContent = "Aucune offre.";
             }
         } else if (viewType === "cargo") {
             await loadCargoDashboard();
