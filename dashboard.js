@@ -1048,6 +1048,29 @@
             });
         });
 
+        // Voyageur « Voir tous » : mes offres voyageur (meme modale que le cargo)
+        document.getElementById("traveler-voir-tous-offres")?.addEventListener("click", () => {
+            const items = (state.offers || []).filter((o) =>
+                String(o.status || "").toLowerCase() !== "archived" &&
+                !String(o.mode || "").trim()
+            );
+            openVoirTousModal("Mes offres", "Offres", items, (item, i) => {
+                const statut = String(item.status || "active").toLowerCase();
+                const label = statut === "active" ? "Active" : statut.charAt(0).toUpperCase() + statut.slice(1);
+                const pill = statut === "active" ? "pill-green" : "pill-yellow";
+                return `<div class="cargo-file-item" data-offer-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="cargo-file-index">${i + 1}</div>
+                    <div class="file-content">
+                        <div class="file-title">${window.CCCommon.escapeHtml(getRouteLabel(item))}</div>
+                        <div class="file-desc">${window.CCCommon.escapeHtml(formatDateShort(item.departureDate || item.departure_date))} | <span class="${pill} pill-status-xs">${label}</span></div>
+                    </div>
+                    <div class="dash-row-inline">
+                        <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(item.id)}" data-action="modify-offer">Modifier</button>
+                    </div>
+                </div>`;
+            });
+        });
+
         // Fermer la modale "Voir tous"
         document.getElementById("close-voir-tous-modal")?.addEventListener("click", () => {
             els.voirTousModal?.classList.add("hidden");
