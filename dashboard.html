@@ -19,7 +19,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261019c">
+    <link rel="stylesheet" href="style.css?v=20261019d">
     <!-- Drapeaux de la carte d'offre (comme sur la page des offres) -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -117,11 +117,12 @@
                 </article>
 
                 <section class="dashboard-panel traveler-requests-panel">
-                    <div class="traveler-acc-head">
+                    <button class="traveler-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="traveler-requests-body">
                         <span class="traveler-acc-title">Personnes intéressées</span>
                         <span class="count-badge" id="dash-conversations-count">0</span>
-                    </div>
-                    <div class="traveler-acc-body" id="traveler-requests-body">
+                        <svg class="traveler-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="traveler-acc-body" id="traveler-requests-body" hidden>
                         <div id="dash-conversations" class="traveler-request-list">
                             <div class="loading-state">Chargement...</div>
                         </div>
