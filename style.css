@@ -5552,34 +5552,6 @@ input[data-country-select="true"]::placeholder {
     font-weight: 800;
 }
 
-/* En-tete « Mon offre » (voyageur) : pastilles « Voir tous » / « Nouvelle offre »
-   meme aspect que l'en-tete « Mes offres » du cargo (2026-10-14). */
-.dashboard-page .traveler-offer-panel .cargo-see-all-btn {
-    padding: 7px 16px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    border-radius: 999px;
-}
-
-.dashboard-page .traveler-offer-panel .action-plus-btn {
-    height: 36px;
-    padding: 0 16px;
-    font-size: 0.85rem;
-}
-
-@media (max-width: 700px) {
-    .dashboard-page .traveler-offer-panel .panel-head {
-        flex-wrap: wrap;
-        row-gap: 10px;
-    }
-
-    .dashboard-page .traveler-offer-panel .panel-head-right {
-        flex-wrap: wrap;
-        justify-content: flex-end;
-        gap: 6px;
-    }
-}
-
 .dashboard-page .offer-preview-shell {
     display: flex;
     flex-direction: column;
