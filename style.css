@@ -6790,11 +6790,6 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     transform: rotate(180deg);
 }
 
-.dashboard-page .cargo-interested-footer {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 12px;
-}
 .dashboard-page .cargo-ops-header>div {
     color: var(--muted);
     font-size: 11px;
