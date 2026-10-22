@@ -6074,6 +6074,12 @@ input[data-country-select="true"]::placeholder {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: #111111;
+}
+
+/* Titres des sections expediteur : noirs en theme clair, creme en theme sombre. */
+body.dashboard-page:not(.light) .client-acc-title {
+    color: #f4ead8;
 }
 
 .dashboard-page .client-acc-chevron {
