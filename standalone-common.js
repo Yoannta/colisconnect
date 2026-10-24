@@ -871,6 +871,7 @@
                     const mapping = {
                         availableKg: 'available_kg',
                         pricePerKg: 'price_per_kg',
+                        priceUnit: 'price_unit',
                         departureDate: 'departure_date',
                         extraDates: 'extra_dates',
                         baseCurrency: 'base_currency',
