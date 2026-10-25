@@ -124,11 +124,6 @@
         const baseCur = offer.baseCurrency || offer.base_currency || "EUR";
         const convertedPrice = window.CCCommon.convertCurrency(pricePerKgRaw, baseCur, userCur);
         const availableKg = offer.availableKg || offer.available_kg || 0;
-        // [2026-10-25] Unite de prix choisie a la publication : le cargo peut vendre
-        // au CBM. La carte annoncait toujours « Prix / kg » -> elle affiche l'unite
-        // reellement enregistree (price_unit).
-        const priceUnitCode = String(offer.price_unit || offer.priceUnit || "kg").toLowerCase() === "cbm" ? "CBM" : "kg";
-        const priceUnitAria = priceUnitCode === "CBM" ? "Prix par CBM" : "Prix par kilogramme";
 
         const priceDisplay = window.CCCommon.formatAmount(convertedPrice, userCur);
         const offerMode = String(offer.mode || "").trim();
@@ -285,19 +280,19 @@
         </div>
         <div class="cc3-detail-txt">
           <span class="cc3-d-label">Disponibilité</span>
-          <span class="cc3-value">${availableKg} <span class="cc3-kg">${priceUnitCode}</span></span>
+          <span class="cc3-value">${availableKg} <span class="cc3-kg">kg</span></span>
         </div>
       </div>` : ""}
       <div class="cc3-detail cc3-detail-price">
         <div class="cc3-price-source" aria-hidden="true">
-          <span class="cc3-d-label">Prix / ${priceUnitCode}</span>
+          <span class="cc3-d-label">Prix / kg</span>
           <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
           <span class="cc3-inclusive">all inclusive</span>
         </div>
-        <div class="water-lens" aria-label="${priceUnitAria}: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
+        <div class="water-lens" aria-label="Prix par kilogramme: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
           <div class="water-lens__content">
             <div class="cc3-detail-txt">
-              <span class="cc3-d-label">Prix / ${priceUnitCode}</span>
+              <span class="cc3-d-label">Prix / kg</span>
               <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
               <span class="cc3-inclusive">all inclusive</span>
             </div>
@@ -354,25 +349,6 @@
     })}
   </article>
 </div>`;
-    }
-
-
-    // [2026-10-25] Accordéon des prix spéciaux : câblage DANS le module partagé.
-    // Avant, seul results.js attachait le clic -> sur le dashboard, le bouton
-    // « Prix spéciaux et articles refusés » ne dépliait rien.
-    if (!window.__ccOfferCardAccordion) {
-        window.__ccOfferCardAccordion = true;
-        document.addEventListener("click", function (event) {
-            const toggle = event.target && event.target.closest
-                ? event.target.closest("[data-cc-expand]")
-                : null;
-            if (!toggle) return;
-            const grid = toggle.closest(".cc3-special-grid");
-            if (!grid) return;
-            const expanded = grid.classList.toggle("expanded");
-            toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-            toggle.classList.toggle("is-expanded", expanded);
-        });
     }
 
     window.CCOfferCard = { html: html, footer: cc3CardFooter, getInitials: getInitials };

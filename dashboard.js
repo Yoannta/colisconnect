@@ -46,11 +46,6 @@
         saveOfferBtn: document.getElementById("save-offer-btn"),
         openChatFromModalBtn: document.getElementById("open-chat-from-modal-btn"),
         offerSaveFeedback: document.getElementById("offer-save-feedback"),
-        // Prix speciaux / articles refuses (modale « Modifier mon offre »)
-        specialList: document.getElementById("offer-special-list"),
-        specialAddBtn: document.getElementById("offer-special-add"),
-        refusedList: document.getElementById("offer-refused-list"),
-        refusedAddBtn: document.getElementById("offer-refused-add"),
         // Client dashboard elements
         travelerView: document.getElementById("traveler-dashboard-view"),
         clientView: document.getElementById("client-dashboard-view"),
@@ -335,7 +330,7 @@
                         <div class="item-name">${name}${isVerified}</div>
                         <div class="item-desc">${desc || "Demande en cours"}</div>
                     </div>
-                    <button class="client-item-btn client-item-btn-outline" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Répondre</button>
+                    <button class="client-item-btn client-item-btn-outline" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
                 </div>
             `;
         }).join("");
@@ -436,100 +431,6 @@
         window.location.href = "chat.html";
     }
 
-    // ===== PRIX SPECIAUX ET ARTICLES REFUSES (modale « Modifier mon offre ») =====
-    // [2026-10-25] Ces deux blocs existaient sur la carte d'offre mais PAS dans la
-    // modale : impossible de les voir ni de les modifier depuis le dashboard.
-    function parseSpecialPrices(offer) {
-        let list = offer?.special_prices || offer?.specialPrices || [];
-        if (typeof list === "string") {
-            try { list = JSON.parse(list || "[]"); } catch (e) { list = []; }
-        }
-        return (Array.isArray(list) ? list : [])
-            .filter((p) => p && String(p.type || "").trim())
-            .map((p) => ({
-                type: String(p.type).trim(),
-                price: Number(p.price) > 0 ? Number(p.price) : "",
-                mode: String(p.mode || "").toLowerCase() === "qty" ? "qty" : "kilo"
-            }));
-    }
-
-    function parseRefusedItems(offer) {
-        return String(offer?.refused_colis_types || offer?.refusedColisTypes || "")
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean);
-    }
-
-    function addSpecialRow(item) {
-        const list = document.getElementById("offer-special-list");
-        if (!list) return;
-        const row = document.createElement("div");
-        row.className = "offer-special-row";
-        row.innerHTML = `
-            <input class="offer-special-type" type="text" placeholder="Type de colis" value="${window.CCCommon.escapeHtml(item.type || "")}">
-            <input class="offer-special-price" type="number" min="0" step="any" placeholder="Prix" value="${item.price === 0 || item.price ? item.price : ""}">
-            <select class="offer-special-mode">
-                <option value="kilo">par kilo</option>
-                <option value="qty">par unite</option>
-            </select>
-            <button type="button" class="offer-special-del" aria-label="Retirer ce prix special">&times;</button>`;
-        const select = row.querySelector(".offer-special-mode");
-        if (select) select.value = item.mode === "qty" ? "qty" : "kilo";
-        list.appendChild(row);
-        document.getElementById("offer-special-empty")?.classList.add("hidden");
-    }
-
-    function addRefusedChip(name) {
-        const label = String(name || "").trim();
-        if (!label) return;
-        const list = document.getElementById("offer-refused-list");
-        if (!list) return;
-        const chip = document.createElement("span");
-        chip.className = "offer-refused-chip";
-        chip.innerHTML = `<span>${window.CCCommon.escapeHtml(label)}</span>
-            <button type="button" class="offer-refused-del" aria-label="Retirer ${window.CCCommon.escapeHtml(label)}">&times;</button>`;
-        list.appendChild(chip);
-        document.getElementById("offer-refused-empty")?.classList.add("hidden");
-    }
-
-    function renderOfferExtras(offer) {
-        const specialList = document.getElementById("offer-special-list");
-        const refusedList = document.getElementById("offer-refused-list");
-        if (specialList) specialList.innerHTML = "";
-        if (refusedList) refusedList.innerHTML = "";
-        const refusedInput = document.getElementById("offer-refused-input");
-        if (refusedInput) { refusedInput.value = ""; refusedInput.classList.add("hidden"); }
-
-        parseSpecialPrices(offer || {}).forEach(addSpecialRow);
-        parseRefusedItems(offer || {}).forEach(addRefusedChip);
-
-        document.getElementById("offer-special-empty")?.classList
-            .toggle("hidden", Boolean(specialList && specialList.children.length));
-        document.getElementById("offer-refused-empty")?.classList
-            .toggle("hidden", Boolean(refusedList && refusedList.children.length));
-
-        // Le libelle du prix suit l'unite de l'annonce (kg ou CBM).
-        const priceLabel = document.getElementById("offer-price-label");
-        const isCbm = String(offer?.price_unit || offer?.priceUnit || "kg").toLowerCase() === "cbm";
-        if (priceLabel) priceLabel.textContent = isCbm ? "Prix par CBM" : "Prix par kilo";
-    }
-
-    function collectSpecialPrices() {
-        return Array.from(document.querySelectorAll("#offer-special-list .offer-special-row"))
-            .map((row) => ({
-                type: String(row.querySelector(".offer-special-type")?.value || "").trim(),
-                price: Number(row.querySelector(".offer-special-price")?.value || 0),
-                mode: row.querySelector(".offer-special-mode")?.value === "qty" ? "qty" : "kilo"
-            }))
-            .filter((item) => item.type && item.price > 0);
-    }
-
-    function collectRefusedItems() {
-        return Array.from(document.querySelectorAll("#offer-refused-list .offer-refused-chip > span"))
-            .map((el) => String(el.textContent || "").trim())
-            .filter(Boolean);
-    }
-
     function openOfferModal() {
         const offer = state.activeOffer;
         if (!offer) {
@@ -575,19 +476,13 @@
         mountOfferCurrencyPicker();
         if (offerCurrencyPicker) {
             const existing = String(offer.baseCurrency || offer.base_currency || "").toUpperCase();
-            const opts = window.CCDevise.optionsForCountries(
-                els.offerOrigin?.value || offer.origin || "",
-                els.offerDestination?.value || offer.destination || "",
-                { fallback: getUserCurrency() }
-            );
+            const opts = window.CCDevise.optionsForCountries(offer.origin || "", offer.destination || "", { fallback: getUserCurrency() });
             if (existing && !opts.some((o) => o.value === existing)) {
                 opts.unshift({ value: existing, label: "Devise de l'annonce" });
             }
             offerCurrencyPicker.setOptions(opts);
             offerCurrencyPicker.set(existing || opts[0]?.value || getUserCurrency());
         }
-        // Prix speciaux / articles refuses : sections de la modale
-        renderOfferExtras(offer);
 
         setFeedback("");
         modal.classList.remove("hidden");
@@ -620,10 +515,6 @@
         };
 
         if (!cargo) payload.available_kg = Number(els.offerAvailableKg?.value || 0);
-
-        // Prix speciaux / articles refuses saisis dans la modale
-        payload.special_prices = collectSpecialPrices();
-        payload.refused_colis_types = collectRefusedItems().join(", ");
 
         // CODES PAYS : le drapeau affiche sur les cartes est construit a partir du code
         // ISO enregistre dans l'offre (origin_country_code / destination_country_code).
@@ -877,7 +768,6 @@
         });
 
         els.offerEditForm?.addEventListener("submit", saveOfferEdits);
-
 
         els.openChatFromModalBtn?.addEventListener("click", () => {
             if (!state.activeOffer) return;
@@ -1762,49 +1652,6 @@
         await openEditFromUrl();
     }
 
-    // Prix speciaux / articles refuses : ajout et suppression dans la modale.
-    // Branche des le chargement (comme setupClientAccordions) : le depliage ne
-    // doit pas dependre de la session.
-    function setupOfferExtras() {
-        // Changement de pays -> devises proposees recalculees (depend du picker monte
-        // a l'ouverture de la modale : branche ici, sans dependre de la session).
-        const refreshCurrencyFromCountries = () => {
-            if (!offerCurrencyPicker || !window.CCDevise) return;
-            const opts = window.CCDevise.optionsForCountries(
-                els.offerOrigin?.value || "",
-                els.offerDestination?.value || "",
-                { fallback: getUserCurrency() }
-            );
-            offerCurrencyPicker.setOptions(opts);
-        };
-        els.offerOrigin?.addEventListener("input", refreshCurrencyFromCountries);
-        els.offerOrigin?.addEventListener("change", refreshCurrencyFromCountries);
-        els.offerDestination?.addEventListener("input", refreshCurrencyFromCountries);
-        els.offerDestination?.addEventListener("change", refreshCurrencyFromCountries);
-
-        els.specialAddBtn?.addEventListener("click", () => {
-            addSpecialRow({ type: "", price: "", mode: "kilo" });
-        });
-        els.specialList?.addEventListener("click", (event) => {
-            const del = event.target.closest(".offer-special-del");
-            if (del) del.closest(".offer-special-row")?.remove();
-        });
-        els.refusedAddBtn?.addEventListener("click", () => {
-            const input = document.getElementById("offer-refused-input");
-            if (input) { input.classList.remove("hidden"); input.focus(); }
-        });
-        document.getElementById("offer-refused-input")?.addEventListener("keydown", (event) => {
-            if (event.key !== "Enter") return;
-            event.preventDefault();
-            addRefusedChip(event.target.value);
-            event.target.value = "";
-        });
-        els.refusedList?.addEventListener("click", (event) => {
-            const del = event.target.closest(".offer-refused-del");
-            if (del) del.closest(".offer-refused-chip")?.remove();
-        });
-    }
-
     // Les panneaux repliables (client et voyageur) sont branches des le chargement de la page :
     // le depliage ne doit pas dependre de la session, sinon un panneau reste fige.
     if (document.readyState === "loading") {
@@ -1812,26 +1659,8 @@
     } else {
         setupClientAccordions();
     }
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", setupOfferExtras);
-    } else {
-        setupOfferExtras();
-    }
 
     bootstrap().catch((error) => {
         alert(error.message || "Initialisation impossible.");
     });
-
-    // Point d'entree d'affichage pour les tests visuels (aucun effet sans appel) :
-    // rend la carte + la modale d'edition avec une offre donnee.
-    window.CCOfferEdit = {
-        montrer: (offer) => {
-            if (!offer) return;
-            state.offers = [offer];
-            state.activeOffer = offer;
-            renderActiveOffer(offer, []);
-            openOfferModal();
-        },
-        rendreExtras: renderOfferExtras
-    };
 })();

@@ -636,10 +636,6 @@
                 const availableKg = offer.availableKg || 0;
 
                 const priceDisplay = formatAmount(convertedPrice, userCur);
-                // [2026-10-25] Unite reelle de l'offre (le cargo peut vendre au CBM) :
-                // la carte annoncait toujours « Prix / kg ».
-                const priceUnitCode = String(offer.price_unit || offer.priceUnit || "kg").toLowerCase() === "cbm" ? "CBM" : "kg";
-                const priceUnitAria = priceUnitCode === "CBM" ? "Prix par CBM" : "Prix par kilogramme";
                 const offerMode = String(offer.mode || "").trim();
 
                 // [CARGO] Dates supplémentaires (jsonb) : triées puis formatées en chips courtes
@@ -804,19 +800,19 @@
         </div>
         <div class="cc3-detail-txt">
           <span class="cc3-d-label">Disponibilité</span>
-          <span class="cc3-value">${availableKg} <span class="cc3-kg">${priceUnitCode}</span></span>
+          <span class="cc3-value">${availableKg} <span class="cc3-kg">kg</span></span>
         </div>
       </div>` : ""}
       <div class="cc3-detail cc3-detail-price">
         <div class="cc3-price-source" aria-hidden="true">
-          <span class="cc3-d-label">Prix / ${priceUnitCode}</span>
+          <span class="cc3-d-label">Prix / kg</span>
           <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
           <span class="cc3-inclusive">all inclusive</span>
         </div>
-        <div class="water-lens" aria-label="${priceUnitAria}: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
+        <div class="water-lens" aria-label="Prix par kilogramme: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
           <div class="water-lens__content">
             <div class="cc3-detail-txt">
-              <span class="cc3-d-label">Prix / ${priceUnitCode}</span>
+              <span class="cc3-d-label">Prix / kg</span>
               <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
               <span class="cc3-inclusive">all inclusive</span>
             </div>

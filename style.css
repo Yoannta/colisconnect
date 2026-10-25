@@ -12171,12 +12171,8 @@ body.dashboard-page.light #currency-trigger-btn:hover .currency-arrow
 }
 
 /* ============================================================
-   /* [2026-10-25] Les variantes CLAIRES de la carte d'offre suivent
-   desormais N'IMPORTE QUEL body.light (results, accueil, dashboard) :
-   avant, seul body.results-page.light les activait -> sur le dashboard
-   en theme clair, la carte restait noire. */
-OFFER CARD CC3 — design de l'agent (assets images)
-   Dark par défaut + Light sous body.light
+   OFFER CARD CC3 — design de l'agent (assets images)
+   Dark par défaut + Light sous body.results-page.light
    ============================================================ */
 /* Neutraliser le padding/margin générique .cards-list div (12px partout)
    qui gonflait chaque section et débordait la colonne de grille */
@@ -13029,7 +13025,7 @@ body.results-page.light .cc3-special-toggle-gold {
 .cc3-del:focus-visible { outline: 2px solid #ff6b6b; outline-offset: 2px; }
 /* Mode clair (Gold Light) : rouge plus soutenu pour rester lisible */
 body.results-page.light .cc3-del,
-body.results-page.light .cc3-del {
+body.light .cc3-del {
     border-color: rgba(200, 40, 40, 0.35);
     background: rgba(200, 40, 40, 0.07);
     color: #c62828;
@@ -15546,141 +15542,3 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
 .cc3-profile-link { display: flex; align-items: center; gap: 12px; min-width: 0;
   text-decoration: none; color: inherit; border-radius: 12px; }
 .cc3-profile-link:hover .cc3-name { text-decoration: underline; }
-
-/* ============================================================
-   [2026-10-25] MODALE « Modifier mon offre » — dashboard
-   1. Contraste des champs garanti DANS LES DEUX THEMES : le texte
-      restait blanc sur un fond clair en theme clair.
-   2. Blocs « Prix speciaux » et « Articles refuses » (ils
-      n'existaient que sur la carte, pas dans la modale).
-   ============================================================ */
-.dashboard-page #offer-edit-form .estimator-input {
-    background: rgba(0, 0, 0, 0.45) !important;
-    color: #ffffff !important;
-    color-scheme: dark;
-}
-.dashboard-page #offer-edit-form .estimator-input::placeholder {
-    color: rgba(255, 255, 255, 0.55) !important;
-}
-body.dashboard-page.light #offer-edit-form .estimator-input {
-    background: #fffdf8 !important;
-    color: #2a2110 !important;
-    border-color: rgba(184, 134, 11, 0.32) !important;
-    color-scheme: light;
-}
-body.dashboard-page.light #offer-edit-form .estimator-input::placeholder {
-    color: #8a7c62 !important;
-}
-
-.dashboard-page .offer-extra-sections {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-}
-.dashboard-page .offer-extra-block {
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 12px;
-    background: var(--d-surface-1);
-}
-.dashboard-page .offer-extra-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.dashboard-page .offer-extra-title {
-    font-family: var(--font-title);
-    font-weight: 800;
-    font-size: 0.92rem;
-    color: var(--text);
-}
-.dashboard-page .offer-extra-add {
-    border: 1px solid var(--line-glow);
-    background: var(--emerald-glow);
-    color: var(--emerald-bright);
-    border-radius: 999px;
-    padding: 5px 12px;
-    font-size: 0.78rem;
-    font-weight: 800;
-    cursor: pointer;
-    font-family: inherit;
-}
-.dashboard-page .offer-extra-add:hover {
-    background: rgba(255, 179, 71, 0.25);
-}
-.dashboard-page .offer-special-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-.dashboard-page .offer-special-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 0.9fr) auto;
-    gap: 8px;
-    align-items: center;
-}
-.dashboard-page .offer-special-row input,
-.dashboard-page .offer-special-row select,
-.dashboard-page .offer-refused-input {
-    width: 100%;
-    min-width: 0;
-    padding: 8px 10px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: rgba(0, 0, 0, 0.45);
-    color: #ffffff;
-    font-size: 0.84rem;
-    font-family: inherit;
-    color-scheme: dark;
-}
-body.dashboard-page.light .offer-special-row input,
-body.dashboard-page.light .offer-special-row select,
-body.dashboard-page.light .offer-refused-input {
-    background: #fffdf8;
-    color: #2a2110;
-    color-scheme: light;
-}
-.dashboard-page .offer-special-del,
-.dashboard-page .offer-refused-del {
-    border: 1px solid var(--line);
-    background: transparent;
-    color: var(--d-danger);
-    border-radius: 10px;
-    width: 34px;
-    height: 34px;
-    font-size: 1.05rem;
-    line-height: 1;
-    cursor: pointer;
-}
-.dashboard-page .offer-refused-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-.dashboard-page .offer-refused-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 8px 5px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--line);
-    background: var(--emerald-glow);
-    color: var(--text);
-    font-size: 0.82rem;
-    font-weight: 600;
-}
-.dashboard-page .offer-extra-empty {
-    margin: 4px 0 0;
-    font-size: 0.8rem;
-    color: var(--muted);
-}
-@media (max-width: 760px) {
-    .dashboard-page .offer-special-row {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-    .dashboard-page .offer-special-row .offer-special-mode {
-        grid-column: 1 / 2;
-    }
-}
