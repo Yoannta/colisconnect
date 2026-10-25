@@ -19,7 +19,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261019j">
+    <link rel="stylesheet" href="style.css?v=20261025a">
     <!-- Drapeaux de la carte d'offre (comme sur la page des offres) -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -34,8 +34,8 @@
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <!-- Carte d'offre partagée (identique à la page des offres) -->
-    <script defer src="offer-card.js?v=1"></script>
-    <script defer src="dashboard.js?v=32"></script>
+    <script defer src="offer-card.js?v=2"></script>
+    <script defer src="dashboard.js?v=33"></script>
 </head>
 
 <body class="dashboard-page">
@@ -319,7 +319,7 @@
                             <input id="offer-departure-date" type="date" class="estimator-input" />
                         </label>
                         <label class="form-field">
-                            <span>Prix par kilo</span>
+                            <span id="offer-price-label">Prix par kilo</span>
                             <input id="offer-price-per-kg" type="number" min="0" class="estimator-input" />
                         </label>
                         <label class="form-field" id="offer-kg-field">
@@ -331,6 +331,30 @@
                             <div id="offer-currency-picker"></div>
                             <input id="offer-base-currency" type="hidden" value="" />
                         </label>
+                    </div>
+
+                    <!-- [2026-10-25] Prix speciaux + articles refuses : ces deux blocs
+                         existaient sur la carte mais pas ici -> rien ne s'affichait
+                         en modification. -->
+                    <div class="offer-extra-sections">
+                        <section class="offer-extra-block">
+                            <div class="offer-extra-head">
+                                <span class="offer-extra-title">Prix spéciaux</span>
+                                <button type="button" class="offer-extra-add" id="offer-special-add">+ Ajouter</button>
+                            </div>
+                            <div id="offer-special-list" class="offer-special-list"></div>
+                            <p id="offer-special-empty" class="offer-extra-empty">Aucun prix spécial sur cette offre.</p>
+                        </section>
+                        <section class="offer-extra-block">
+                            <div class="offer-extra-head">
+                                <span class="offer-extra-title">Articles refusés</span>
+                                <button type="button" class="offer-extra-add" id="offer-refused-add">+ Ajouter</button>
+                            </div>
+                            <div id="offer-refused-list" class="offer-refused-list"></div>
+                            <input id="offer-refused-input" class="offer-refused-input hidden" type="text"
+                                   placeholder="Nom de l'article refusé puis Entrée" autocomplete="off">
+                            <p id="offer-refused-empty" class="offer-extra-empty">Aucun article refusé sur cette offre.</p>
+                        </section>
                     </div>
 
                     <div class="modal-actions traveler-modal-actions">
