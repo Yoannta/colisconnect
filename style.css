@@ -12232,9 +12232,9 @@ OFFER CARD CC3 — design de l'agent (assets images)
     transition: opacity 0.28s ease;
 }
 .cc3-light { opacity: 0; }
-body.light .cc3-dark { opacity: 0; }
-body.light .cc3-light.cc3-planet { opacity: 0.92; }
-body.light .cc3-light.cc3-skyline { opacity: 0.45; }
+body.results-page.light .cc3-dark { opacity: 0; }
+body.results-page.light .cc3-light.cc3-planet { opacity: 0.92; }
+body.results-page.light .cc3-light.cc3-skyline { opacity: 0.45; }
 
 /* Contenu au-dessus des images */
 .cc3-head, .cc3-route, .cc3-rule, .cc3-details, .cc3-special-grid, .cc3-foot {
@@ -12553,39 +12553,39 @@ body.light .cc3-light.cc3-skyline { opacity: 0.45; }
 .cc3-special-toggle:hover {
     background: rgba(255, 255, 255, 0.06);
 }
-body.light .cc3-special-grid {
+body.results-page.light .cc3-special-grid {
     border-top-color: rgba(23, 23, 23, 0.09);
     border-bottom-color: rgba(23, 23, 23, 0.08);
 }
-body.light .cc3-refused-label {
+body.results-page.light .cc3-refused-label {
     color: #5f5b55;
 }
-body.light .cc3-section-icon-special {
+body.results-page.light .cc3-section-icon-special {
     color: #d29713;
     background: rgba(210, 154, 34, 0.1);
     border-color: rgba(210, 154, 34, 0.36);
 }
-body.light .cc3-section-icon-refused {
+body.results-page.light .cc3-section-icon-refused {
     color: #d95858;
     background: rgba(217, 88, 88, 0.1);
     border-color: rgba(217, 88, 88, 0.3);
 }
-body.light .cc3-special-item,
-body.light .cc3-refused-item {
+body.results-page.light .cc3-special-item,
+body.results-page.light .cc3-refused-item {
     border-color: rgba(23, 23, 23, 0.1);
     background: rgba(255, 255, 255, 0.44);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
-body.light .cc3-special-type,
-body.light .cc3-refused-name {
+body.results-page.light .cc3-special-type,
+body.results-page.light .cc3-refused-name {
     color: #131313;
 }
-body.light .cc3-special-price {
+body.results-page.light .cc3-special-price {
     color: #c89422;
 }
-body.light .cc3-special-unit,
-body.light .cc3-refused-note,
-body.light .cc3-special-toggle-gold {
+body.results-page.light .cc3-special-unit,
+body.results-page.light .cc3-refused-note,
+body.results-page.light .cc3-special-toggle-gold {
     color: #b07f17;
 }
 
@@ -13028,8 +13028,8 @@ body.light .cc3-special-toggle-gold {
 .cc3-del:active { transform: scale(0.94); }
 .cc3-del:focus-visible { outline: 2px solid #ff6b6b; outline-offset: 2px; }
 /* Mode clair (Gold Light) : rouge plus soutenu pour rester lisible */
-body.light .cc3-del,
-body.light .cc3-del {
+body.results-page.light .cc3-del,
+body.results-page.light .cc3-del {
     border-color: rgba(200, 40, 40, 0.35);
     background: rgba(200, 40, 40, 0.07);
     color: #c62828;
@@ -13105,54 +13105,54 @@ body.light .cc3-del {
 }
 
 /* ── MODE CLAIR ── */
-body.light .cc3-card {
+body.results-page.light .cc3-card {
     border-color: rgba(20, 20, 20, 0.105);
     background:
         radial-gradient(circle at 85% 28%, rgba(210, 154, 34, 0.12), transparent 22%),
         linear-gradient(135deg, #ffffff 0%, #fbfaf7 56%, #f7f3eb 100%);
     box-shadow: 0 18px 40px rgba(65, 55, 38, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.82);
 }
-body.light .cc3-logo-txt { color: #151515; }
-body.light .cc3-logo-txt span { color: #d29a22; }
-body.light .cc3-date {
+body.results-page.light .cc3-logo-txt { color: #151515; }
+body.results-page.light .cc3-logo-txt span { color: #d29a22; }
+body.results-page.light .cc3-date {
     color: #272522;
     border-color: rgba(20, 20, 20, 0.08);
     background: rgba(244, 240, 232, 0.92);
     box-shadow: 0 8px 18px rgba(64, 54, 37, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
-body.light .cc3-date svg { stroke: #d29a22; }
-body.light .cc3-flag-shell {
+body.results-page.light .cc3-date svg { stroke: #d29a22; }
+body.results-page.light .cc3-flag-shell {
     border-color: rgba(20, 20, 20, 0.08);
     background: rgba(255, 255, 255, 0.72);
     box-shadow: 0 10px 18px rgba(62, 54, 40, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
-body.light .cc3-label,
-body.light .cc3-d-label { color: #5f5b55; }
-body.light .cc3-city { color: #8a857c; }
-body.light .cc3-country,
-body.light .cc3-value,
-body.light .cc3-price,
-body.light .cc3-name { color: #131313; }
-body.light .cc3-flight path { stroke: rgba(45, 45, 45, 0.5); }
-body.light .cc3-flight .cc3-plane { fill: #d29a22; filter: drop-shadow(0 3px 7px rgba(210, 154, 34, 0.25)); }
-body.light .cc3-rule { background: rgba(23, 23, 23, 0.09); }
-body.light .cc3-detail + .cc3-detail { border-left-color: rgba(23, 23, 23, 0.11); }
-body.light .cc3-icon {
+body.results-page.light .cc3-label,
+body.results-page.light .cc3-d-label { color: #5f5b55; }
+body.results-page.light .cc3-city { color: #8a857c; }
+body.results-page.light .cc3-country,
+body.results-page.light .cc3-value,
+body.results-page.light .cc3-price,
+body.results-page.light .cc3-name { color: #131313; }
+body.results-page.light .cc3-flight path { stroke: rgba(45, 45, 45, 0.5); }
+body.results-page.light .cc3-flight .cc3-plane { fill: #d29a22; filter: drop-shadow(0 3px 7px rgba(210, 154, 34, 0.25)); }
+body.results-page.light .cc3-rule { background: rgba(23, 23, 23, 0.09); }
+body.results-page.light .cc3-detail + .cc3-detail { border-left-color: rgba(23, 23, 23, 0.11); }
+body.results-page.light .cc3-icon {
     color: #c89422 !important;
     border-color: rgba(210, 154, 34, 0.13);
     background: rgba(210, 154, 34, 0.075);
     box-shadow: 0 7px 14px rgba(68, 53, 21, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.78);
 }
-body.light .cc3-inclusive { color: #c89422; }
-body.light .cc3-meta { color: #5e5a53; }
-body.light .cc3-cta {
+body.results-page.light .cc3-inclusive { color: #c89422; }
+body.results-page.light .cc3-meta { color: #5e5a53; }
+body.results-page.light .cc3-cta {
     color: #fff;
     box-shadow: 0 12px 24px rgba(171, 120, 25, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.34);
 }
-body.light .cc3-cta svg { fill: #fff; }
-body.light .cc3-shield { color: #d29a22; }
+body.results-page.light .cc3-cta svg { fill: #fff; }
+body.results-page.light .cc3-shield { color: #d29a22; }
 /* Lentille d'eau en mode clair : reflets brun-doré, texte lisible */
-body.light .water-lens {
+body.results-page.light .water-lens {
     border-color: rgba(140, 100, 30, 0.35);
     background:
         radial-gradient(circle at 29% 18%, rgba(255, 255, 255, 0.95) 0 3%, rgba(255, 255, 255, 0.4) 7%, transparent 28%),
@@ -13164,18 +13164,18 @@ body.light .water-lens {
         inset 8px 10px 14px rgba(255, 255, 255, 0.5),
         inset -12px -14px 22px rgba(140, 110, 60, 0.18);
 }
-body.light .water-lens::before {
+body.results-page.light .water-lens::before {
     background: linear-gradient(108deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.45) 44%, transparent 72%);
 }
-body.light .water-lens::after {
+body.results-page.light .water-lens::after {
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), transparent);
 }
-body.light .water-lens .cc3-d-label { color: rgba(60, 50, 30, 0.75); }
-body.light .water-lens .cc3-price { color: #1d1b17; }
-body.light .water-lens .cc3-inclusive { color: #b8860b; }
-body.light .cc3-demand-phrase-txt { color: #131313; }
-body.light .cc3-demand-phrase-txt .cc3-demand-hl { color: #c89422; }
-body.light .cc3-demand-desc { color: #7d776e; }
+body.results-page.light .water-lens .cc3-d-label { color: rgba(60, 50, 30, 0.75); }
+body.results-page.light .water-lens .cc3-price { color: #1d1b17; }
+body.results-page.light .water-lens .cc3-inclusive { color: #b8860b; }
+body.results-page.light .cc3-demand-phrase-txt { color: #131313; }
+body.results-page.light .cc3-demand-phrase-txt .cc3-demand-hl { color: #c89422; }
+body.results-page.light .cc3-demand-desc { color: #7d776e; }
 
 /* ── Responsive ── */
 @media (max-width: 760px) {
