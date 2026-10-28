@@ -6,6 +6,8 @@
         currentView: null,
         conversations: [],
         loading: false,
+        cargoOffersExpanded: false,
+        cargoActiveOffers: [],
     };
 
     const els = {
@@ -84,9 +86,59 @@
         return offerCurrencyPicker;
     }
 
+    // Met a jour les devises proposees quand l'itineraire change dans la modale.
+    // Avant, les options etaient figees a l'ouverture et l'ancienne devise etait
+    // enregistree meme apres un changement de pays.
+    function refreshOfferCurrencyOptions() {
+        if (!offerCurrencyPicker || !window.CCDevise) return;
+        const current = String(els.offerBaseCurrency?.value || getUserCurrency()).toUpperCase();
+        const origin = String(els.offerOrigin?.value || "").trim();
+        const destination = String(els.offerDestination?.value || "").trim();
+        const opts = window.CCDevise.optionsForCountries(origin, destination, { fallback: getUserCurrency() });
+        if (current && !opts.some((o) => o.value === current)) {
+            opts.unshift({ value: current, label: "Devise actuelle" });
+        }
+        offerCurrencyPicker.setOptions(opts);
+        offerCurrencyPicker.set(current || opts[0]?.value || getUserCurrency());
+    }
+
 
     function getUserCurrency() {
         return window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR";
+    }
+
+    // Redimensionne/compresse une image (data URL) sans jamais la tronquer.
+    function compressImageDataUrl(dataUrl, maxLength = 500 * 1024) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                let scale = Math.min(1, 640 / Math.max(img.width || 1, img.height || 1));
+                let quality = 0.86;
+                for (let i = 0; i < 7; i++) {
+                    const canvas = document.createElement("canvas");
+                    canvas.width = Math.max(1, Math.round((img.width || 1) * scale));
+                    canvas.height = Math.max(1, Math.round((img.height || 1) * scale));
+                    const ctx = canvas.getContext("2d");
+                    if (!ctx) { reject(new Error("Compression d'image indisponible.")); return; }
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    const out = canvas.toDataURL("image/jpeg", quality);
+                    if (out.length <= maxLength) { resolve(out); return; }
+                    quality = Math.max(0.42, quality - 0.08);
+                    scale *= 0.85;
+                }
+                reject(new Error("Photo trop lourde meme apres compression. Choisissez une image plus petite."));
+            };
+            img.onerror = () => reject(new Error("Image illisible. Choisissez un fichier image valide."));
+            img.src = dataUrl;
+        });
+    }
+
+    // Classification UNIQUE (identique au bridge) : les anciennes offres pouvaient
+    // stocker "traveler"/"voyageur"/"simple" dans mode ; elles ne sont PAS cargo.
+    function isCargoOffer(offer) {
+        const mode = String(offer?.mode || "").trim().toLowerCase();
+        if (mode && !["traveler", "voyageur", "simple"].includes(mode)) return true;
+        return Number(offer?.available_kg ?? offer?.availableKg ?? 0) > 69;
     }
 
     function getCurrencyCode(user, offer) {
@@ -203,8 +255,13 @@
                 ownerNameFallback: window.CCCommon?.state?.user?.fullName
                     || window.CCCommon?.state?.user?.full_name
                     || "Voyageur",
-                ownerPhotoFallback: window.CCCommon?.state?.user?.avatar || "",
-                ownerVerifiedFallback: Boolean(window.CCCommon?.state?.user?.is_verified),
+                ownerPhotoFallback: window.CCCommon?.state?.user?.profilePhoto
+                    || window.CCCommon?.state?.user?.profile_photo
+                    || window.CCCommon?.state?.user?.avatar || "",
+                ownerVerifiedFallback: Boolean(
+                    window.CCCommon?.state?.user?.isVerified
+                    ?? window.CCCommon?.state?.user?.is_verified
+                ),
                 editAttrName: "data-edit-offer",
                 deleteAttrName: "data-delete-offer",
                 editLabel: "Modifier mon trajet",
@@ -296,7 +353,7 @@
                 <div class="client-item-index">${i + 1}</div>
                 <div class="item-content">
                     <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                    <div class="item-desc">${[item.city_origin, item.city_destination].filter(Boolean).map(c => window.CCCommon.escapeHtml(c)).join(" &rarr; ")}${item.city_origin || item.city_destination ? " &middot; " : ""}${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
+                    <div class="item-desc">${[item.origin_city, item.destination_city].filter(Boolean).map(c => window.CCCommon.escapeHtml(c)).join(" &rarr; ")}${item.origin_city || item.destination_city ? " &middot; " : ""}${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
                 </div>
                 <div class="dash-row-inline">
                     <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
@@ -321,13 +378,14 @@
         els.clientDiscussionsList.innerHTML = conversations.map((item, i) => {
             const name = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Voyageur");
             const desc = window.CCCommon.escapeHtml(item.preview || (item.origin && item.destination ? `${item.origin} -> ${item.destination}` : ""));
-            const isVerified = item.isVerified ? " verified" : "";
+            // [FIX] L'ancien code concaténait le mot « verified » au nom.
+            const isVerified = Boolean(item.travelerVerified ?? item.isVerified);
             const hasNewMsg = item.hasNewMessage;
             return `
                 <div class="client-discussion-item ${hasNewMsg ? "is-new" : ""}" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
                     <div class="client-item-index">${i + 1}</div>
                     <div class="item-content">
-                        <div class="item-name">${name}${isVerified}</div>
+                        <div class="item-name">${name}${isVerified ? ' <span class="status-pill verified">Vérifié</span>' : ""}</div>
                         <div class="item-desc">${desc || "Demande en cours"}</div>
                     </div>
                     <button class="client-item-btn client-item-btn-outline" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
@@ -352,6 +410,17 @@
                 panel?.classList.toggle("is-open", willOpen);
             });
         });
+
+        // Cargo « Voir tous » (en-tete « Mes offres ») : deplie / replie le tableau
+        // des offres. Cable ici, avant le garde d'auth, comme les accordeons.
+        const cargoSeeAll = document.getElementById("cargo-voir-tous-trajets");
+        if (cargoSeeAll && cargoSeeAll.dataset.expandReady !== "1") {
+            cargoSeeAll.dataset.expandReady = "1";
+            cargoSeeAll.addEventListener("click", () => {
+                state.cargoOffersExpanded = state.cargoOffersExpanded !== true;
+                renderCargoOffersTable(state.cargoActiveOffers || []);
+            });
+        }
     }
     function switchDashboardView(profileType) {
         const isTraveler = profileType === "traveler";
@@ -394,24 +463,22 @@
         const user = window.CCCommon.state.user;
         if (!user) return;
 
-        const [offersResp, conversationsResp, parcelResp, reservationsResp] = await Promise.all([
-            window.CCCommon.api("/api/offers?scope=all&pageSize=10"),
+        // [FIX] Deux requetes inutilisees (offers scope=all + reservations) faisaient
+        // echouer TOUT l'ecran client quand l'une tombait, pour des donnees jamais lues.
+        // Et le filtre !isOfferOwner cachait au client les discussions issues de SES
+        // demandes (dans ce cas offer_owner_id = client, donc isOfferOwner = true).
+        const [conversationsResp, parcelResp] = await Promise.all([
             window.CCCommon.api("/api/conversations"),
             window.ccSupabase ? window.ccSupabase.from("parcel_requests")
                 .select("*")
                 .eq("user_id", user.id)
-                .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
-            window.ccSupabase ? window.ccSupabase.from("reservations")
-                .select("*, offers(origin, destination, base_currency)")
-                .eq("user_id", user.id)
-                .in("status", ["paid", "en_cours", "livre"])
-                .order("updated_at", { ascending: false }) : Promise.resolve({ data: [] })
+                .order("created_at", { ascending: false }) : Promise.resolve({ data: [] })
         ]);
 
-        const compatibleOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
-        const conversations = Array.isArray(conversationsResp) ? conversationsResp.filter(c => !c.isOfferOwner) : [];
+        const conversations = Array.isArray(conversationsResp)
+            ? conversationsResp.filter(c => !c.isOfferOwner || c.kind === "request")
+            : [];
         const parcelRequests = parcelResp?.data || [];
-        const paidReservations = reservationsResp?.data || [];
         state.parcelRequests = parcelRequests;
         state.clientConversations = conversations;
 
@@ -458,7 +525,7 @@
         // [CARGO 2026-10-19] Un cargo ne se mesure pas en kilos : on masque le champ
         // (et on ne l'enregistre pas) au lieu de le laisser avec 99999.
         const kgOffre = Number(offer.availableKg ?? offer.available_kg ?? 0);
-        state.offerIsCargo = Boolean(offer.mode) || kgOffre > 69;
+        state.offerIsCargo = isCargoOffer(offer);
         const champKilo = document.getElementById("offer-kg-field");
         if (champKilo) champKilo.classList.toggle("hidden", state.offerIsCargo);
         if (els.offerAvailableKg) {
@@ -556,8 +623,10 @@
                 setFeedback("Indique ton prix.", true);
                 return;
             }
-        } else if (payload.available_kg <= 0 || payload.price_per_kg < 0) {
-            setFeedback("Les kilos et le prix doivent etre valides.", true);
+        } else if (payload.available_kg < 1 || payload.available_kg > 69 || payload.price_per_kg < 1) {
+            // Memes regles qu'a la publication : avant, l'edition acceptait > 69 kg
+            // et un prix a 0, creant une offre impossible a republier.
+            setFeedback("Les kilos doivent etre entre 1 et 69, et le prix au kilo superieur a 0.", true);
             return;
         }
 
@@ -567,12 +636,18 @@
         }
 
         try {
-            const { error } = await window.ccSupabase
+            // .select("id") : sans lui, une session expiree / RLS renvoie 0 ligne
+            // SANS erreur et l'UI annoncait quand meme « Offre mise a jour ».
+            const { data: updated, error } = await window.ccSupabase
                 .from("offers")
                 .update(payload)
                 .eq("id", offer.id)
-                .eq("user_id", window.CCCommon.state.user?.id);
+                .eq("user_id", window.CCCommon.state.user?.id)
+                .select("id");
             if (error) throw error;
+            if (!updated || !updated.length) {
+                throw new Error("Modification non enregistree (session expiree ou offre introuvable). Reconnectez-vous.");
+            }
             setFeedback("Offre mise a jour avec succes.");
             await loadDashboard();
             closeOfferModal();
@@ -586,6 +661,63 @@
         }
     }
 
+    // Tableau des offres cargo : une seule offre visible par defaut,
+    // « Voir tous » (en-tete « Mes offres ») deplie les autres.
+    function renderCargoOffersTable(activeOffers) {
+        state.cargoActiveOffers = Array.isArray(activeOffers) ? activeOffers : [];
+        if (!els.cargoOpsTable) return;
+        const list = state.cargoActiveOffers;
+        if (!list.length) {
+            els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests cargo-ops-empty"><p>Aucune offre.</p><a href="post_trip.html" class="btn primary btn-sm">Nouvelle offre</a></div>`;
+            refreshCargoSeeAllLabel();
+            return;
+        }
+        const expanded = state.cargoOffersExpanded === true;
+        const visible = expanded ? list : list.slice(0, 1);
+        const rest = list.length - visible.length;
+        const rows = visible.map((o) => {
+            const kg = Number(o.availableKg || o.available_kg || 0);
+            const mode = o.mode || "Avion";
+            const realStatus = String(o.status || "active").toLowerCase();
+            const isArchived = realStatus === "archived";
+            const isFull = kg < 5;
+            let statusPill = "pill-green";
+            let statusLabel = "Active";
+            if (realStatus !== "active") {
+                statusPill = isArchived ? "pill-pink" : "pill-yellow";
+                statusLabel = realStatus.charAt(0).toUpperCase() + realStatus.slice(1);
+            } else if (isFull) {
+                statusPill = "pill-pink";
+                statusLabel = "Presque plein";
+            }
+            return `<div class="cargo-ops-row">
+                <div class="col-ligne">${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
+                <div class="col-mode">${window.CCCommon.escapeHtml(mode)}</div>
+                <div class="col-statut"></div>
+                <div class="col-actions">
+                    <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-edit-offer="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
+                    <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
+                </div>
+            </div>`;
+        }).join("");
+        const more = rest > 0
+            ? `<div class="cargo-ops-more">+ ${rest} autre${rest > 1 ? "s" : ""} offre${rest > 1 ? "s" : ""} — utilisez « Voir tous »</div>`
+            : "";
+        els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>${rows}${more}`;
+        refreshCargoSeeAllLabel();
+    }
+
+    // Libelle du bouton « Voir tous / Voir moins » de l'en-tete « Mes offres »
+    function refreshCargoSeeAllLabel() {
+        const btn = document.getElementById("cargo-voir-tous-trajets");
+        if (!btn) return;
+        const total = (state.cargoActiveOffers || []).length;
+        const expanded = state.cargoOffersExpanded === true;
+        btn.textContent = expanded ? "Voir moins" : "Voir tous";
+        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        btn.hidden = total <= 1;
+    }
+
     async function loadCargoDashboard() {
         const user = window.CCCommon.state.user;
         if (!user) return;
@@ -597,9 +729,11 @@
         ]);
         const myOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
         state.offers = myOffers;
-        // Cargo dashboard : uniquement les offres avec un mode non vide (cargo)
-        const cargoOffers = myOffers.filter(o => String(o.mode || "").trim() !== "");
+        // Cargo dashboard : classification unique (isCargoOffer), pas "mode non vide"
+        // qui comptait a tort les anciennes offres mode="traveler" comme cargo.
+        const cargoOffers = myOffers.filter(isCargoOffer);
         const activeOffers = cargoOffers.filter(o => String(o.status || "").toLowerCase() === "active");
+        // Les offres en pause / non actives restent accessibles (modif/suppression).
         const allOffers = myOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
         const activeCount = activeOffers.length;
 
@@ -619,36 +753,18 @@
         if (cargoInterestedCount) cargoInterestedCount.textContent = `${incoming.length}`;
 
         // Table operations (4 colonnes: LIGNE | MODE | STATUT | [action])
-        if (els.cargoOpsTable) {
-            if (!activeOffers.length) {
-                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests cargo-ops-empty"><p>Aucune offre.</p><a href="post_trip.html" class="btn primary btn-sm">Nouvelle offre</a></div>`;
-            } else {
-                els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>` + activeOffers.map(o => {
-                    const kg = Number(o.availableKg || o.available_kg || 0);
-                    const status = String(o.status || "active").toLowerCase();
-                    const mode = o.mode || "Avion";
-                    const isFull = kg < 5;
-                    const statusPill = isFull ? 'pill-pink' : 'pill-green';
-                    const statusLabel = isFull ? 'Presque plein' : 'Active';
-                    return `<div class="cargo-ops-row">
-                        <div class="col-ligne">${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
-                        <div class="col-mode">${mode}</div>
-                        <div class="col-statut"><span class="${statusPill}">${statusLabel}</span></div>
-                        <div class="col-actions">
-                            <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
-                            <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
-                        </div>
-                    </div>`;
-                }).join("");
-            }
-        }
+        // Repliee par defaut : une offre visible, « Voir tous » deplie le reste.
+        // On passe TOUTES les offres non archivees pour ne pas perdre les pauses.
+        renderCargoOffersTable(allOffers);
 
         // Demandes (conversations where user is not owner)
         if (els.cargoFileList) {
             if (!incoming.length) {
                 els.cargoFileList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
             } else {
-                els.cargoFileList.innerHTML = incoming.slice(0, 5).map((item, i) => {
+                // Toutes les demandes (le bouton « Voir tous » avait ete retire du HTML :
+                // les demandes au-dela de la 5e etaient invisibles et inaccessibles).
+                els.cargoFileList.innerHTML = incoming.map((item, i) => {
                     var _userName_ = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
                     var _tripInfo_ = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "Trajet non precise");
                     return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
@@ -672,11 +788,28 @@
         }
     }
 
+    // Etat d'erreur explicite : avant, une requete en echec laissait les panneaux
+    // sur « Chargement... » ou sur des donnees perimees, sans aucun message.
+    function renderDashboardError(error) {
+        const message = window.CCCommon.escapeHtml(error?.message || "Erreur reseau");
+        const html = `<div class="traveler-empty-requests" role="alert">
+            <p>Impossible de charger les donnees.</p>
+            <span style="opacity:.7;font-size:.85rem;">${message}</span>
+            <button type="button" class="btn secondary btn-sm" id="dashboard-retry-btn" style="margin-top:10px;">Reessayer</button>
+        </div>`;
+        [els.requestsList, els.clientRequestsList, els.clientDiscussionsList, els.cargoFileList, els.cargoOpsTable]
+            .forEach((target) => { if (target) target.innerHTML = html; });
+        document.getElementById("dashboard-retry-btn")?.addEventListener("click", () => {
+            loadDashboard().catch(renderDashboardError);
+        });
+    }
+
     async function loadDashboard() {
         if (!window.CCCommon.state.user) return;
         const user = window.CCCommon.state.user;
         const viewType = state.currentView || String(user?.profile_type || "").toLowerCase();
 
+        try {
         if (viewType === "traveler") {
             const [offersResp, requestsResp] = await Promise.all([
                 window.CCCommon.api("/api/offers?scope=mine&pageSize=100"),
@@ -684,7 +817,7 @@
             ]);
 
             state.offers = (Array.isArray(offersResp?.items) ? offersResp.items : [])
-                .filter(o => String(o.mode || "").trim() === ""); // mode vide = offre voyageur
+                .filter(o => !isCargoOffer(o)); // meme classification que le bridge
             state.activeOffer = getActiveOffer();
             state.requests = (Array.isArray(requestsResp) ? requestsResp : []).filter((item) => item.isOfferOwner);
 
@@ -722,17 +855,32 @@
         } else {
             await loadClientDashboard();
         }
+        } catch (error) {
+            console.error("Chargement dashboard impossible:", error);
+            renderDashboardError(error);
+        }
     }
 
     function bindEvents() {
+        // Devises de la modale d'offre : recalcul a chaque changement de pays.
+        if (els.offerOrigin && !els.offerOrigin.dataset.ccCurrencyBound) {
+            els.offerOrigin.dataset.ccCurrencyBound = "true";
+            els.offerOrigin.addEventListener("change", refreshOfferCurrencyOptions);
+            els.offerOrigin.addEventListener("input", refreshOfferCurrencyOptions);
+        }
+        if (els.offerDestination && !els.offerDestination.dataset.ccCurrencyBound) {
+            els.offerDestination.dataset.ccCurrencyBound = "true";
+            els.offerDestination.addEventListener("change", refreshOfferCurrencyOptions);
+            els.offerDestination.addEventListener("input", refreshOfferCurrencyOptions);
+        }
+
         // Dashboard toggles (Voyageur/Cargo)
         document.querySelectorAll(".dash-toggle").forEach(btn => {
-            btn.addEventListener("click", () => {
+            btn.addEventListener("click", async () => {
                 const target = btn.getAttribute("data-switch");
                 if (target) switchDashboardView(target);
-                // Mettre à jour l'etat actif sur tous les toggles
-                // Recharger le contenu du dashboard
-                loadDashboard();
+                // Recharger le contenu du dashboard (erreur affichee, pas de rejet muet)
+                await loadDashboard();
             });
         });
 
@@ -873,6 +1021,10 @@
             if (!parcel) return;
             document.getElementById("edit-parcel-origin").value = parcel.origin || "";
             document.getElementById("edit-parcel-destination").value = parcel.destination || "";
+            const editCityOrigin = document.getElementById("city-edit-parcel-origin");
+            const editCityDest = document.getElementById("city-edit-parcel-destination");
+            if (editCityOrigin) editCityOrigin.value = parcel.origin_city || parcel.city_origin || "";
+            if (editCityDest) editCityDest.value = parcel.destination_city || parcel.city_destination || "";
             document.getElementById("edit-parcel-date").value = parcel.needed_by_date || "";
             document.getElementById("edit-parcel-kg").value = parcel.weight_kg || "";
             document.getElementById("edit-parcel-description").value = parcel.description || "";
@@ -885,9 +1037,10 @@
 
         async function deleteParcelRequest(parcelId) {
             if (!window.ccSupabase) { alert("Connexion indisponible."); return; }
-            if (!confirm("Supprimer cette demande de trajet ? Les réservations et discussions liées seront également supprimées.")) return;
+            if (!confirm("Supprimer cette demande de trajet ? Les réservations et discussions liées seront également supprimées lorsqu'elles existent.")) return;
             try {
                 const supabase = window.ccSupabase;
+                const uid = window.CCCommon.state?.user?.id;
                 // 1. Trouver les réservations liées à cette demande
                 const { data: reservations } = await supabase.from("reservations").select("id").eq("parcel_request_id", parcelId);
                 if (reservations && reservations.length > 0) {
@@ -904,11 +1057,18 @@
                     // 5. Supprimer les réservations
                     await supabase.from("reservations").delete().in("id", resIds);
                 }
-                // 6. Supprimer la demande
-                await supabase.from("parcel_requests").delete().eq("id", parcelId);
+                // 6. Supprimer la demande — on verifie reellement la ligne supprimee.
+                // PostgREST renvoie 0 ligne SANS erreur si la session/RLS refuse.
+                const { data: deleted, error: delErr } = await supabase.from("parcel_requests")
+                    .delete().eq("id", parcelId).eq("user_id", uid).select("id");
+                if (delErr) throw delErr;
+                if (!deleted || !deleted.length) {
+                    throw new Error("Suppression non effectuee (session expiree ou demande introuvable).");
+                }
                 // 7. Recharger le dashboard
                 const viewType = state.currentView || "";
-                if (viewType === "client") loadClientDashboard();
+                if (viewType === "client") await loadClientDashboard();
+                else await loadDashboard();
             } catch (e) {
                 alert("Erreur lors de la suppression: " + (e.message || ""));
             }
@@ -1014,33 +1174,6 @@
             `);
         });
 
-        // Cargo "Voir tous" trajets (uniquement les non-archivés)
-        document.getElementById("cargo-voir-tous-trajets")?.addEventListener("click", () => {
-            const allItems = state.offers || [];
-            const items = allItems.filter(o =>
-                String(o.status || "").toLowerCase() !== "archived" &&
-                String(o.mode || "").trim() !== "" // uniquement les offres cargo
-            );
-            openVoirTousModal("Tous mes trajets", "Trajets", items, (item, i) => {
-                const mode = item.mode === "avion" ? "Avion" : item.mode === "bateau" ? "Bateau" : item.mode === "les_deux" ? "Les deux" : "-";
-                const vraiStatut = String(item.status || "").toLowerCase();
-                const isFull = vraiStatut !== "active" || (item.available_kg !== null && item.available_kg !== undefined && item.available_kg <= 0);
-                const statusPill = vraiStatut !== "active" ? 'pill-yellow' : (isFull ? 'pill-pink' : 'pill-green');
-                const statusLabel = vraiStatut !== "active" ? vraiStatut.charAt(0).toUpperCase() + vraiStatut.slice(1) : (isFull ? 'Presque plein' : 'Active');
-                return `<div class="cargo-file-item" data-offer-id="${window.CCCommon.escapeHtml(item.id)}">
-                    <div class="cargo-file-index">${i + 1}</div>
-                    <div class="file-content">
-                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                        <div class="file-desc">Mode: ${mode} | <span class="${statusPill} pill-status-xs">${statusLabel}</span></div>
-                    </div>
-                    <div class="dash-row-inline">
-                        <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(item.id)}" data-action="modify-offer">Modifier</button>
-                        <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(item.id)}" data-action="delete">Supprimer</button>
-                    </div>
-                </div>`;
-            });
-        });
-
         // Fermer la modale "Voir tous"
         document.getElementById("close-voir-tous-modal")?.addEventListener("click", () => {
             els.voirTousModal?.classList.add("hidden");
@@ -1057,11 +1190,13 @@
                 if (!reservationId || !confirm("Marquer ce colis comme livre ?")) return;
                 try {
                     if (window.ccSupabase) {
-                        await window.ccSupabase.from("reservations").update({
+                        const { data: updated, error } = await window.ccSupabase.from("reservations").update({
                             status: "livre", updated_at: new Date().toISOString()
-                        }).eq("id", reservationId);
+                        }).eq("id", reservationId).select("id");
+                        if (error) throw error;
+                        if (!updated || !updated.length) throw new Error("Statut non enregistre (session expiree ?).");
                     }
-                    loadClientDashboard();
+                    await loadClientDashboard();
                     els.voirTousModal?.classList.add("hidden");
                 } catch (e) { alert("Erreur: " + (e.message || "")); }
                 return;
@@ -1134,6 +1269,16 @@
         document.querySelector(".client-plus-btn")?.addEventListener("click", () => {
             const modal = document.getElementById("dashboard-demande-modal");
             if (modal) modal.classList.remove("hidden");
+            // Reinitialisation : apres un premier envoi, le bouton etait masque et
+            // le message de succes restait affiche a la deuxieme ouverture.
+            const fb = document.getElementById("dash-demande-feedback");
+            if (fb) fb.classList.add("hidden");
+            const submit = document.getElementById("dash-demande-submit-btn");
+            if (submit) {
+                submit.classList.remove("hidden");
+                submit.disabled = false;
+                submit.textContent = "Faire la demande";
+            }
             // Set the currency badge based on user's country of residence
             const currencyBadge = document.getElementById("dash-demande-currency-badge");
             if (currencyBadge) {
@@ -1211,34 +1356,10 @@
             const action = button.getAttribute("data-action");
 
             if (action === "delete") {
-                if (!confirm("Supprimer cette offre ? Cette action est irreversible.")) return;
-                const offer = state.offers.find(o => String(o.id) === offerId);
-                if (!offer) return;
-                try {
-                    // [FIX 2026-10-19] Ce bouton ARCHIVAIT (status = 'archived') au lieu de
-                    // supprimer : les annonces "supprimees" restaient en base et ressortaient
-                    // sur les profils. On passe par la meme fonction securisee que la carte
-                    // d'offre : DELETE reel, et archivage seulement si la ligne est protegee
-                    // (reservations/discussions liees).
-                    if (window.ccSupabase) {
-                        const { data: nDel, error: eDel } = await window.ccSupabase.rpc("cc_delete_own_offer", { p_offer_id: Number(offerId) });
-                        if (eDel) throw eDel;
-                        let fait = nDel || 0;
-                        if (!fait) {
-                            const { data: nArch, error: eArch } = await window.ccSupabase.rpc("cc_archive_own_offer", { p_offer_id: Number(offerId) });
-                            if (eArch) throw eArch;
-                            fait = nArch || 0;
-                        }
-                        if (!fait) {
-                            throw new Error("Suppression refusee par la base : cette offre n'a pas ete trouvee ou ne vous appartient pas.");
-                        }
-                    } else {
-                        await window.CCCommon.api(`/api/offers/${offerId}`, { method: "DELETE" });
-                    }
-                    await loadDashboard();
-                } catch (err) {
-                    alert(err.message || "Impossible de supprimer l'offre.");
-                }
+                // Une seule implementation de suppression (deleteOffer) : elle verifie
+                // la session et nettoie reservations/messages/fils. La copie locale du
+                // tableau cargo, elle, laissait des donnees liees orphelines.
+                await deleteOffer(offerId);
                 return;
             }
 
@@ -1259,7 +1380,7 @@
                 reader.onload = async function(e) {
                     const dataUrl = e.target?.result;
                     if (!dataUrl) return;
-                    // Appliquer a tous les cercles avatar
+                    // Appliquer a tous les cercles avatar (aperçu local)
                     document.querySelectorAll(".avatar-circle").forEach(el => {
                         el.style.backgroundImage = `url(${dataUrl})`;
                         el.classList.add("has-image");
@@ -1268,15 +1389,26 @@
                     const userId = window.CCCommon.state?.user?.id;
                     if (userId && window.ccSupabase) {
                         try {
-                            const maxSize = 500 * 1024; // 500KB max
-                            const trimmed = dataUrl.length > maxSize ? dataUrl.substring(0, maxSize) : dataUrl;
-                            await window.ccSupabase.from("profiles").update({
-                                profile_photo: trimmed,
+                            // [FIX] L'ancien code TRONQUAIT la data URL a 500 Ko :
+                            // l'image etait corrompue apres rechargement. On redimensionne
+                            // et compresse, et on refuse proprement si c'est impossible.
+                            const stored = await compressImageDataUrl(dataUrl, 500 * 1024);
+                            const { data: updated, error } = await window.ccSupabase.from("profiles").update({
+                                profile_photo: stored,
                                 updated_at: new Date().toISOString()
-                            }).eq("id", userId);
+                            }).eq("id", userId).select("id");
+                            if (error) throw error;
+                            if (!updated || !updated.length) {
+                                throw new Error("Session expiree : la photo n'a pas ete enregistree.");
+                            }
+                            if (window.CCCommon.state.user) {
+                                window.CCCommon.state.user.profilePhoto = stored;
+                                window.CCCommon.state.user.profile_photo = stored;
+                            }
                             console.log("Photo de profil sauvegardee");
-                        } catch(e) {
-                            console.warn("Impossible de sauvegarder la photo:", e);
+                        } catch (err) {
+                            console.warn("Impossible de sauvegarder la photo:", err);
+                            alert(err.message || "Impossible d'enregistrer la photo de profil.");
                         }
                     }
                 };
@@ -1541,6 +1673,8 @@
         document.getElementById("dash-demande-submit-btn")?.addEventListener("click", async () => {
             const origin = document.getElementById("dash-demande-origin")?.value?.trim();
             const destination = document.getElementById("dash-demande-destination")?.value?.trim();
+            const originCity = document.getElementById("city-dash-demande-origin")?.value?.trim() || "";
+            const destinationCity = document.getElementById("city-dash-demande-destination")?.value?.trim() || "";
             const kg = parseInt(document.getElementById("dash-demande-kg")?.value, 10);
             const budget = parseFloat(document.getElementById("dash-demande-budget")?.value) || 0;
             const description = document.getElementById("dash-demande-description")?.value?.trim();
@@ -1568,6 +1702,8 @@
                         title: `Demande ${origin} -> ${destination}`,
                         origin,
                         destination,
+                        origin_city: originCity || null,
+                        destination_city: destinationCity || null,
                         weight_kg: kg,
                         max_price_per_kg: budget > 0 ? budget : null,
                         currency: currency,
@@ -1579,10 +1715,10 @@
                 }
                 if (feedback) feedback.classList.remove("hidden");
                 if (submitBtn) submitBtn.classList.add("hidden");
-                setTimeout(() => {
+                setTimeout(async () => {
                     document.getElementById("dashboard-demande-modal")?.classList.add("hidden");
                     // Recharger le dashboard pour afficher la nouvelle demande
-                    loadClientDashboard();
+                    await loadClientDashboard();
                 }, 1500);
             } catch (err) {
                 console.error("Erreur:", err);
@@ -1612,6 +1748,8 @@
             if (!_editParcelId) return;
             const origin = document.getElementById("edit-parcel-origin")?.value?.trim();
             const destination = document.getElementById("edit-parcel-destination")?.value?.trim();
+            const originCity = document.getElementById("city-edit-parcel-origin")?.value?.trim() || "";
+            const destinationCity = document.getElementById("city-edit-parcel-destination")?.value?.trim() || "";
             const kg = parseInt(document.getElementById("edit-parcel-kg")?.value, 10);
             const description = document.getElementById("edit-parcel-description")?.value?.trim();
             const dateLimite = document.getElementById("edit-parcel-date")?.value || null;
@@ -1623,22 +1761,28 @@
             const saveBtn = document.getElementById("edit-parcel-save-btn");
             try {
                 if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Enregistrement..."; }
-                if (window.ccSupabase) {
-                    const { error } = await window.ccSupabase.from("parcel_requests").update({
-                        origin,
-                        destination,
-                        weight_kg: kg,
-                        description,
-                        needed_by_date: dateLimite || null,
-                        updated_at: new Date().toISOString()
-                    }).eq("id", _editParcelId);
-                    if (error) throw error;
+                if (!window.ccSupabase) throw new Error("Connexion Supabase indisponible.");
+                const { data: updated, error } = await window.ccSupabase.from("parcel_requests").update({
+                    origin,
+                    destination,
+                    origin_city: originCity || null,
+                    destination_city: destinationCity || null,
+                    weight_kg: kg,
+                    description,
+                    needed_by_date: dateLimite || null,
+                    updated_at: new Date().toISOString()
+                }).eq("id", _editParcelId)
+                    .eq("user_id", window.CCCommon.state?.user?.id)
+                    .select("id");
+                if (error) throw error;
+                if (!updated || !updated.length) {
+                    throw new Error("Modification non enregistree (session expiree ou demande introuvable).");
                 }
                 if (feedback) feedback.classList.remove("hidden");
                 if (saveBtn) saveBtn.classList.add("hidden");
-                setTimeout(() => {
+                setTimeout(async () => {
                     document.getElementById("edit-parcel-modal")?.classList.add("hidden");
-                    loadClientDashboard();
+                    await loadClientDashboard();
                 }, 1200);
             } catch (err) {
                 alert("Erreur: " + (err.message || "Impossible de modifier."));

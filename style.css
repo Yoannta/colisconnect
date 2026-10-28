@@ -6764,6 +6764,16 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     grid-column: 1 / -1;
 }
 
+/* Ligne d'indication quand le tableau des offres est replie (cargo). */
+.dashboard-page .cargo-ops-more {
+    grid-column: 1 / -1;
+    margin-top: 2px;
+    color: var(--d-text-soft);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+}
+
 /* Etat vide du tableau cargo : « Aucune offre » + « Nouvelle offre » centres. */
 .dashboard-page .cargo-ops-empty {
     align-items: center;
@@ -14910,6 +14920,55 @@ body.verification-page.light .phone-edit-btn {
 }
 body.verification-page.light .phone-edit-btn:hover {
     background: rgba(184, 134, 11, 0.18);
+}
+
+/* ============================================================
+   [2026-10] Second numero : en-tete + bouton "Supprimer"
+   Permet de retirer un numero ajoute par erreur (et de persister
+   la suppression en base au prochain enregistrement).
+   ============================================================ */
+body.verification-page .phone2-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+body.verification-page .phone2-head .phone-label {
+    margin: 0;
+}
+body.verification-page .phone-remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 107, 107, 0.45);
+    background: rgba(255, 107, 107, 0.08);
+    color: #ff8f8f;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+body.verification-page .phone-remove-btn:hover,
+body.verification-page .phone-remove-btn:focus-visible {
+    background: rgba(255, 107, 107, 0.18);
+    border-color: rgba(255, 107, 107, 0.8);
+    color: #ffb3b3;
+    outline: none;
+}
+body.verification-page.light .phone-remove-btn {
+    border-color: rgba(185, 28, 28, 0.4);
+    background: rgba(185, 28, 28, 0.07);
+    color: #b91c1c;
+}
+body.verification-page.light .phone-remove-btn:hover,
+body.verification-page.light .phone-remove-btn:focus-visible {
+    background: rgba(185, 28, 28, 0.14);
+    border-color: rgba(185, 28, 28, 0.7);
 }
 
 /* ============================================================
