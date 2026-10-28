@@ -701,7 +701,7 @@
             </div>`;
         }).join("");
         const more = rest > 0
-            ? `<div class="cargo-ops-more">+ ${rest} autre${rest > 1 ? "s" : ""} offre${rest > 1 ? "s" : ""} — utilisez « Voir tous »</div>`
+            ? `<div class="cargo-ops-more">+ ${rest} autre${rest > 1 ? "s" : ""} offre${rest > 1 ? "s" : ""}</div>`
             : "";
         els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>${rows}${more}`;
         refreshCargoSeeAllLabel();
@@ -713,8 +713,12 @@
         if (!btn) return;
         const total = (state.cargoActiveOffers || []).length;
         const expanded = state.cargoOffersExpanded === true;
-        btn.textContent = expanded ? "Voir moins" : "Voir tous";
+        const texte = expanded ? "Voir moins" : "Voir tous";
+        const label = document.getElementById("cargo-voir-tous-label");
+        if (label) label.textContent = texte;
+        else btn.textContent = texte;
         btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        btn.classList.toggle("is-expanded", expanded);
         btn.hidden = total <= 1;
     }
 
