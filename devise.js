@@ -147,7 +147,7 @@
         const place = () => {
             pop.classList.remove("cc-cur-pop-up");
             const hostRect = host.getBoundingClientRect();
-            const card = host.closest(".modal-card");
+            const card = host.closest(".modal-card, .cc-modal-card");
             const limit = card ? card.getBoundingClientRect().bottom : window.innerHeight;
             const hauteur = Math.min(pop.scrollHeight || 0, 260);
             const placeSous = limit - hostRect.bottom;

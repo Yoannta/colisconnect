@@ -1,1071 +1,1215 @@
-﻿(() => {
+﻿/* ============================================================
+   results.js — place de marché ColisConnect (refonte 2026-11-02)
+   -----------------------------------------------------------------
+   Un seul état appliqué (state.filters) alimente :
+     - la barre de recherche desktop
+     - la feuille de filtres mobile (brouillon + Appliquer)
+     - les pastilles, les chips et le tri
+   Un seul point de rendu par section : renderOffers() / renderDemands().
+   Les cartes viennent de results-card.js (aucun template inline).
+   ============================================================ */
+(() => {
+    "use strict";
+
+    const CC = window.CCCommon;
+    const $ = (id) => document.getElementById(id);
+    const esc = (value) => (CC && CC.escapeHtml
+        ? CC.escapeHtml(String(value === undefined || value === null ? "" : value))
+        : String(value === undefined || value === null ? "" : value)
+            .replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])));
+    const mq = window.matchMedia("(max-width: 768px)");
+    const isMobile = () => mq.matches;
+
     const state = {
+        section: "traveler",              // traveler | cargo | demand
+        subSection: "traveler",           // dernier choix Simple / Cargo de la famille Offres
+        currency: "EUR",
+        filters: {
+            origin: "",
+            destination: "",
+            date: "",
+            minKg: null,
+            verified: false,
+            urgent: false,
+            sort: "date",
+            demandCapacity: null
+        },
         offers: [],
-        userCurrency: 'EUR',
-        filterProfileType: 'traveler',
-        mobilePrimaryMode: 'traveler',
         demands: [],
-        filterVerified: false,
-        filterWeight10: false,
-        filterUrgent: false,
-        sortBy: 'date'
+        offersLoaded: false,
+        demandsLoaded: false,
+        visibleOffers: 20,
+        offersPageSize: 20,
+        loading: { offers: false, demands: false },
+        error: { offers: "", demands: "" },
+        seq: { offers: 0, demands: 0 },
+        lastFocus: null,
+        sheetDraft: null,
+        sheetDirty: false,
+        demandDirty: false,
+        demandTrigger: null,
+        editingDemandId: null,
+        demandStep: 1,
+        confirmResolve: null,
+        toastTimer: null
     };
 
-    const convertCurrency = window.CCCommon.convertCurrency;
-    const formatAmount = window.CCCommon.formatAmount;
-    const COUNTRY_CURRENCIES = window.CCCommon.COUNTRY_CURRENCIES;
-    // Acronyme local pour les libelles ("FCFA" et non "XOF") : jamais de code ISO a l'ecran
-    const displayCur = (code) => window.CCCommon?.currencySymbol?.(code) || code || "";
+    if (!CC) {
+        console.error("results.js : CCCommon absent (standalone-common.js non chargé).");
+        return;
+    }
 
     const els = {
-        offersList: document.getElementById("offers-list")
+        shell: $("results-shell"),
+        headline: $("results-headline"),
+        subtitle: $("results-subtitle"),
+        counter: $("results-counter"),
+        demandCreate: $("demand-create-btn"),
+        demandCreateMobile: $("demand-create-mobile-btn"),
+        currencyTrigger: $("currency-trigger-btn"),
+        currencyValue: $("current-currency-val"),
+        currencyMenu: $("currency-menu"),
+        currencySearch: $("currency-search-input"),
+        currencyList: $("currency-options-list"),
+        desktopTabs: [$("tab-traveler"), $("tab-cargo"), $("tab-demand")],
+        mobileTabs: [$("mobile-tab-traveler"), $("mobile-tab-demand")],
+        subSwitch: $("sub-switch"),
+        searchPanel: $("search-panel"),
+        searchForm: $("search-form"),
+        searchOrigin: $("search-origin"),
+        searchDest: $("search-dest"),
+        searchDate: $("search-date"),
+        searchWeight: $("search-weight"),
+        searchCapacity: $("search-capacity"),
+        searchWeightError: $("search-weight-error"),
+        searchCapacityError: $("search-capacity-error"),
+        searchWeightField: $("search-weight-field"),
+        searchCapacityField: $("search-capacity-field"),
+        searchOptions: $("search-options"),
+        searchSubmit: $("search-submit"),
+        searchClear: $("search-clear"),
+        sortSelect: $("sort-select"),
+        pillVerified: $("pill-verified"),
+        pillWeight: $("pill-weight"),
+        pillUrgent: $("pill-urgent"),
+        activeFilters: $("active-filters"),
+        activeChips: $("active-chips"),
+        clearAllFilters: $("clear-all-filters"),
+        offlineBanner: $("offline-banner"),
+        offlineRetry: $("offline-retry"),
+        resultsPanel: $("results-panel"),
+        progress: $("results-progress"),
+        list: $("offers-list"),
+        loadMore: $("load-more-btn"),
+        loadMoreStatus: $("load-more-status"),
+        floating: $("mobile-filter-trigger"),
+        sheet: $("mobile-filter-sheet"),
+        sheetOverlay: $("mobile-filter-overlay"),
+        sheetClose: $("mf-close"),
+        sheetBody: $("mf-body"),
+        sheetDraftNote: $("mf-draft-note"),
+        mfOrigin: $("mf-origin"),
+        mfDest: $("mf-dest"),
+        mfDate: $("mf-date"),
+        mfWeight: $("mf-weight"),
+        mfWeightError: $("mf-weight-error"),
+        mfWeightRange: $("mf-weight-range"),
+        mfWeightRangeWrap: $("mf-weight-range-wrap"),
+        mfWeightField: $("mf-weight-field"),
+        mfCapacity: $("mf-capacity"),
+        mfCapacityError: $("mf-capacity-error"),
+        mfCapacityField: $("mf-capacity-field"),
+        mfVerified: $("mf-verified"),
+        mfUrgent: $("mf-urgent"),
+        mfConfidence: $("mf-confidence"),
+        mfUrgentSection: $("mf-urgent-section"),
+        mfSortSection: $("mf-sort-section"),
+        mfTags: $("mf-tags"),
+        mfApply: $("mf-apply"),
+        mfClearAll: $("mf-clear-all"),
+        demandModal: $("demand-modal"),
+        demandForm: $("demand-form"),
+        demandTitle: $("demand-modal-title"),
+        demandClose: $("demand-close"),
+        demandOrigin: $("demand-origin"),
+        demandCityOrigin: $("demand-city-origin"),
+        demandDestination: $("demand-destination"),
+        demandCityDestination: $("demand-city-destination"),
+        demandDate: $("demand-date"),
+        demandColisRows: $("demand-colis-rows"),
+        demandAddColis: $("demand-add-colis"),
+        demandError: $("demand-error"),
+        demandPrev: $("demand-prev"),
+        demandNext: $("demand-next"),
+        demandSubmit: $("demand-submit"),
+        demandFeedback: $("demand-feedback"),
+        confirm: $("cc-confirm"),
+        confirmTitle: $("cc-confirm-title"),
+        confirmText: $("cc-confirm-text"),
+        confirmCancel: $("cc-confirm-cancel"),
+        confirmOk: $("cc-confirm-ok"),
+        toast: $("cc-toast"),
+        themeToggle: $("theme-toggle"),
+        themeIcon: $("theme-toggle-icon")
     };
 
-    function getInitials(name) {
-        if (!name) return "CC";
-        const parts = name.split(" ");
-        if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-        return name.substring(0, 2).toUpperCase();
+    // ─────────────────────────────────────────────────────────────
+    // Utilitaires
+    // ─────────────────────────────────────────────────────────────
+    const normalize = (value) => String(value || "").toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+
+    function todayISO() {
+        const now = new Date();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        return `${now.getFullYear()}-${month}-${day}`;
     }
 
-    function queryOfferFilters() {
-        const origin = document.getElementById("res-origin")?.value?.trim() || "";
-        const destination = document.getElementById("res-dest")?.value?.trim() || "";
-        const minKg = parseInt(document.getElementById("res-weight")?.value || "1", 10);
-        return { destination, origin, minKg };
+    function dateOnly(value) {
+        return String(value || "").slice(0, 10);
     }
 
-    // ── [Yoyo] Mes offres / mes demandes en premier ─────────────────────────────
-    // L'utilisateur connecté voit TOUJOURS ses propres publications en tête de
-    // liste (pour pouvoir les modifier/supprimer sans scroller). Les autres
-    // suivent, dans leur ordre actuel. Tri d'AFFICHAGE uniquement (côté client) :
-    // on ne touche ni à la requête SQL ni à la base. Aucun marqueur visuel ajouté.
-    function ownFirst(items) {
-        const currentUserId = window.CCCommon?.state?.user?.id;
-        if (!currentUserId || !Array.isArray(items) || !items.length) return items;
-        const own = [];
-        const others = [];
-        items.forEach((item) => {
-            const ownerId = item.user_id || item.userId || "";
-            if (String(ownerId).trim() !== "" && String(ownerId) === String(currentUserId)) {
-                own.push(item);
-            } else {
-                others.push(item);
+    function validDate(value) {
+        if (!value) return null;
+        const date = new Date(value);
+        return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function shortFr(value) {
+        const date = validDate(value);
+        if (!date) return "";
+        return date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+    }
+
+    function currentUserId() {
+        return CC.state?.user?.id || "";
+    }
+
+    function userCurrency() {
+        return state.currency || CC.getUserCurrency?.() || "EUR";
+    }
+
+    // C-28 : un seul controle de poids, une seule validation. Vide = « Tous ».
+    function validateKgField(input, errorEl) {
+        if (!input) return true;
+        const raw = String(input.value || "").trim();
+        let message = "";
+        if (raw !== "") {
+            const value = Number(raw);
+            if (!Number.isFinite(value)) message = "Nombre attendu";
+            else if (value < 1) message = "Indiquez au moins 1 kg";
+        }
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.hidden = !message;
+        }
+        input.classList.toggle("is-invalid", Boolean(message));
+        if (message && errorEl) input.setAttribute("aria-describedby", errorEl.id);
+        else input.removeAttribute("aria-describedby");
+        return !message;
+    }
+
+    function clearKgErrors() {
+        [
+            [els.searchWeight, els.searchWeightError],
+            [els.searchCapacity, els.searchCapacityError],
+            [els.mfWeight, els.mfWeightError],
+            [els.mfCapacity, els.mfCapacityError]
+        ].forEach(([input, errorEl]) => {
+            if (errorEl) {
+                errorEl.textContent = "";
+                errorEl.hidden = true;
             }
+            input?.classList.remove("is-invalid");
+            input?.removeAttribute("aria-describedby");
         });
-        return own.concat(others);
     }
 
-    // Vrai si l'utilisateur n'a lancé NI recherche NI filtre (affichage par défaut).
-    // Yoyo : « mes offres d'abord » ne s'applique QUE sur la page normale ; dès qu'il
-    // y a une recherche (pays départ/arrivée/date/kilos) ou un filtre, ordre normal.
-    function isDefaultListingView() {
-        const val = (id) => (document.getElementById(id)?.value || "").trim();
-        if (val("res-origin") || val("res-dest") || val("res-date") || val("res-weight")) return false;
-        if (state.filterVerified || state.filterWeight10 || state.filterUrgent) return false;
-        return true;
+    function validateActiveSearchNumber() {
+        return state.section === "demand"
+            ? validateKgField(els.searchCapacity, els.searchCapacityError)
+            : validateKgField(els.searchWeight, els.searchWeightError);
     }
 
-    // Jeton de séquence : deux recherches rapprochées ne peuvent plus s'écraser
-    // (la réponse la plus lente gagnait et affichait des résultats perimes).
-    let offersLoadSeq = 0;
+    function validateActiveSheetNumber() {
+        return state.section === "demand"
+            ? validateKgField(els.mfCapacity, els.mfCapacityError)
+            : validateKgField(els.mfWeight, els.mfWeightError);
+    }
+
+    // Acronyme affiché dans le sélecteur (pas le symbole du montant) :
+    // EUR, USD, FCFA, DZD — jamais « EUR - Euro » en petit (CA-55).
+    function currencyAcronym(code) {
+        const key = String(code || "").toUpperCase();
+        return key === "XOF" || key === "XAF" ? "FCFA" : key;
+    }
+
+    function showToast(message, type = "success") {
+        if (!els.toast) return;
+        const node = document.createElement("div");
+        node.className = `cc-toast ${type === "error" ? "cc-toast--error" : "cc-toast--success"}`;
+        node.setAttribute("role", type === "error" ? "alert" : "status");
+        node.innerHTML = `<span>${esc(message)}</span><button type="button" aria-label="Fermer">&times;</button>`;
+        node.querySelector("button")?.addEventListener("click", () => node.remove());
+        els.toast.appendChild(node);
+        // C-37 : le succes disparait seul (4 s) ; l'erreur reste jusqu'a action.
+        if (type !== "error") window.setTimeout(() => node.remove(), 4000);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Libellés et compteurs
+    // ─────────────────────────────────────────────────────────────
+    const SECTION_META = {
+        traveler: {
+            title: "Voyageurs disponibles",
+            subtitle: "Comparez les voyageurs qui partent vers votre destination.",
+            loading: "Chargement des voyageurs…",
+            refresh: "Actualisation des offres…",
+            empty: "voyageur"
+        },
+        cargo: {
+            title: "Cargo disponibles",
+            subtitle: "Comparez les transporteurs cargo et leurs unités de prix.",
+            loading: "Chargement du cargo…",
+            refresh: "Actualisation des offres…",
+            empty: "cargo"
+        },
+        demand: {
+            title: "Demandes de transport",
+            subtitle: "Trouvez un expéditeur qui a besoin de vous.",
+            loading: "Chargement des demandes…",
+            refresh: "Actualisation des demandes…",
+            empty: "demande"
+        }
+    };
+
+    function counterLabel(count) {
+        if (state.section === "demand") return `${count} demande${count > 1 ? "s" : ""}`;
+        if (state.section === "cargo") return `${count} cargo${count > 1 ? "s" : ""} disponible${count > 1 ? "s" : ""}`;
+        return `${count} voyageur${count > 1 ? "s" : ""} disponible${count > 1 ? "s" : ""}`;
+    }
+
+    function setCounter(html) {
+        if (!els.counter) return;
+        const offline = navigator.onLine === false
+            ? ' <span class="cc-offline-badge">hors ligne</span>'
+            : "";
+        els.counter.innerHTML = html + offline;
+    }
+
+    function setCounterCount(count) {
+        setCounter(count === 0 ? "Aucun résultat" : esc(counterLabel(count)));
+    }
+
+    // Le titre et le sous-titre suivent la section dès le premier instant,
+    // y compris pendant le squelette et l'erreur (CA-03, C-03).
+    function syncHeadline() {
+        const meta = SECTION_META[state.section] || SECTION_META.traveler;
+        if (els.headline) els.headline.textContent = meta.title;
+        if (els.subtitle) {
+            els.subtitle.textContent = meta.subtitle;
+            els.subtitle.hidden = isMobile() && state.section === "demand";
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Chips de filtres (état appliqué ou brouillon de feuille)
+    // ─────────────────────────────────────────────────────────────
+    function chipsFor(filters, section) {
+        const chips = [];
+        if (filters.origin) chips.push({ key: "origin", label: `Départ : ${filters.origin}` });
+        if (filters.destination) chips.push({ key: "destination", label: `Arrivée : ${filters.destination}` });
+        if (filters.date) chips.push({ key: "date", label: `Date : ${shortFr(filters.date) || filters.date}` });
+        if (section !== "demand" && filters.minKg !== null && filters.minKg !== undefined) {
+            chips.push({ key: "minKg", label: `${filters.minKg} kg et +` });
+        }
+        if (section !== "demand" && filters.verified) chips.push({ key: "verified", label: "Voyageurs vérifiés" });
+        if (section !== "demand" && filters.urgent) chips.push({ key: "urgent", label: "Départ proche" });
+        if (section === "demand" && filters.demandCapacity !== null && filters.demandCapacity !== undefined) {
+            chips.push({ key: "demandCapacity", label: `Capacité : ${filters.demandCapacity} kg` });
+        }
+        if (section !== "demand" && filters.sort && filters.sort !== "date") {
+            chips.push({ key: "sort", label: "Tri : Prix croissant" });
+        }
+        return chips;
+    }
+
+    function chipsHtml(chips, attrName) {
+        return chips.map((chip) => `
+          <span class="cc-chip">
+            <span>${esc(chip.label)}</span>
+            <button type="button" class="cc-chip-remove" ${attrName}="${esc(chip.key)}" aria-label="Retirer le filtre ${esc(chip.label)}">&times;</button>
+          </span>`).join("");
+    }
+
+    function renderActiveChips() {
+        if (!els.activeFilters || !els.activeChips) return;
+        const chips = chipsFor(state.filters, state.section);
+        els.activeFilters.hidden = chips.length === 0;
+        els.activeChips.innerHTML = chipsHtml(chips, "data-remove-filter");
+    }
+
+    function renderSheetChips() {
+        if (!els.mfTags || !state.sheetDraft) return;
+        const chips = chipsFor(state.sheetDraft, state.section);
+        els.mfTags.innerHTML = chips.length
+            ? chipsHtml(chips, "data-remove-draft")
+            : '<span class="cc-muted cc-small">Aucun filtre actif</span>';
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Recherche : état ↔ champs
+    // ─────────────────────────────────────────────────────────────
+    function readSearchFields() {
+        const filters = state.filters;
+        filters.origin = els.searchOrigin?.value.trim() || "";
+        filters.destination = els.searchDest?.value.trim() || "";
+        filters.date = els.searchDate?.value || "";
+        if (state.section === "demand") {
+            const capacity = Number(els.searchCapacity?.value);
+            filters.demandCapacity = els.searchCapacity?.value && Number.isFinite(capacity) && capacity > 0
+                ? capacity : null;
+        } else {
+            const kg = Number(els.searchWeight?.value);
+            filters.minKg = els.searchWeight?.value && Number.isFinite(kg) && kg > 0 ? kg : null;
+        }
+    }
+
+    function syncSearchFields() {
+        if (els.searchOrigin) els.searchOrigin.value = state.filters.origin;
+        if (els.searchDest) els.searchDest.value = state.filters.destination;
+        if (els.searchDate) els.searchDate.value = state.filters.date;
+        if (els.searchWeight) els.searchWeight.value = state.filters.minKg ?? "";
+        if (els.searchCapacity) els.searchCapacity.value = state.filters.demandCapacity ?? "";
+        if (els.sortSelect) els.sortSelect.value = state.filters.sort || "date";
+        clearKgErrors();
+        syncPills();
+    }
+
+    function syncPills() {
+        const weightOn = state.filters.minKg !== null && state.filters.minKg !== undefined && state.filters.minKg >= 10;
+        if (els.pillVerified) els.pillVerified.setAttribute("aria-pressed", state.filters.verified ? "true" : "false");
+        if (els.pillWeight) els.pillWeight.setAttribute("aria-pressed", weightOn ? "true" : "false");
+        if (els.pillUrgent) els.pillUrgent.setAttribute("aria-pressed", state.filters.urgent ? "true" : "false");
+    }
+
+    function setBusy(busy) {
+        if (els.list) els.list.setAttribute("aria-busy", busy ? "true" : "false");
+        if (els.progress) els.progress.hidden = !busy;
+        if (els.searchSubmit) {
+            els.searchSubmit.classList.toggle("is-loading", Boolean(busy));
+            els.searchSubmit.setAttribute("aria-busy", busy ? "true" : "false");
+        }
+        if (els.loadMore) els.loadMore.disabled = Boolean(busy);
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Chargement des données
+    // ─────────────────────────────────────────────────────────────
+    function skeletonHtml(count = 3) {
+        return Array.from({ length: count }, () => `
+          <div class="cc-skeleton-card" aria-hidden="true">
+            <div class="cc-skeleton cc-skeleton-route"></div>
+            <div class="cc-skeleton cc-skeleton-meta"></div>
+            <div class="cc-skeleton cc-skeleton-foot"></div>
+          </div>`).join("");
+    }
+
+    function renderSkeleton(section) {
+        if (!els.list) return;
+        const key = SECTION_META[section] ? section : state.section;
+        const meta = SECTION_META[key] || SECTION_META.traveler;
+        syncHeadline();
+        // Le nombre visible de squelettes est réglé par les media queries du
+        // breakpoint 768 (3 / 2 / 1) : aucun second seuil en JS.
+        els.list.innerHTML = `<p class="cc-sr-only" role="status">${esc(meta.loading)}</p>${skeletonHtml(3)}`;
+        setCounter("Chargement…");
+    }
 
     async function loadOffers() {
-        if (!els.offersList) return;
-        // ANTI-RACE : si l'utilisateur a basculé sur l'onglet « Voir les demandes »
-        // pendant le chargement, on n'écrase ni le placeholder ni la liste des demandes.
-        if (state.mobilePrimaryMode !== "traveler") return;
-        const seq = ++offersLoadSeq;
-        els.offersList.innerHTML = '<div class="loading-state">Actualisation des offres...</div>';
+        if (!els.list) return;
+        const seq = ++state.seq.offers;
+        state.loading.offers = true;
+        state.error.offers = "";
+        const hasData = state.offers.length > 0;
+        if (!hasData) renderSkeleton(state.section);
+        else {
+            setBusy(true);
+            setCounter(SECTION_META[state.section === "cargo" ? "cargo" : "traveler"].refresh);
+        }
 
-        const filters = queryOfferFilters();
-        const params = new URLSearchParams({
-            pageSize: "100",
-            minKg: String(filters.minKg)
-        });
-        if (filters.destination) params.set("destination", filters.destination);
-        if (filters.origin) params.set("origin", filters.origin);
+        readSearchFields();
+        // S-17 : aucun pageSize factice. La source renvoie la liste complète ;
+        // « Afficher plus » pagine localement, sans troncature silencieuse.
+        const params = new URLSearchParams();
+        if (state.filters.origin) params.set("origin", state.filters.origin);
+        if (state.filters.destination) params.set("destination", state.filters.destination);
+        if (state.filters.minKg !== null) params.set("minKg", String(state.filters.minKg));
 
         try {
-            const payload = await window.CCCommon.api(`/api/offers?${params.toString()}`, { auth: false });
-            if (seq !== offersLoadSeq) return; // une recherche plus recente a pris le relais
-            state.offers = Array.isArray(payload?.items) ? payload.items : [];
-            // ANTI-RACE : une réponse réseau tardive ne doit JAMAIS écraser l'onglet
-            // actif (sinon : contenu « offres » sous un bouton « demandes », ou inverse).
-            if (state.mobilePrimaryMode !== "traveler") return;
-            renderOffers();
+            const payload = await CC.api(`/api/offers?${params.toString()}`, { auth: false });
+            if (seq !== state.seq.offers) return;
+            const items = Array.isArray(payload?.items) ? payload.items
+                : Array.isArray(payload) ? payload : [];
+            state.offers = items;
+            state.offersLoaded = true;
+            state.visibleOffers = state.offersPageSize;
+            if (state.section !== "demand") renderOffers();
         } catch (error) {
-            if (seq !== offersLoadSeq || state.mobilePrimaryMode !== "traveler") return;
-            console.error("Chargement des offres impossible:", error);
-            els.offersList.innerHTML = `<div class="empty-state" role="alert">
-                Impossible de charger les offres.<br><small>${window.CCCommon.escapeHtml(error.message || "Erreur reseau")}</small><br>
-                <button type="button" class="btn secondary btn-sm" id="offers-retry-btn" style="margin-top:12px;">Reessayer</button>
-            </div>`;
-            document.getElementById("offers-retry-btn")?.addEventListener("click", () => {
-                loadOffers().catch((err) => console.warn(err));
-            });
-        }
-    }
-
-    function syncProfileTypeButtons() {
-        // En mode « demandes », c'est l'onglet « Je cherche un client » qui est
-        // actif ; sinon c'est le sous-choix voyageur/cargo.
-        const activeType = state.mobilePrimaryMode === "demand" ? "client" : state.filterProfileType;
-        document.querySelectorAll("[data-profile-type]").forEach((btn) => {
-            const type = btn.getAttribute("data-profile-type");
-            if (!type) return;
-            const isActive = type === activeType;
-            btn.classList.toggle("active", isActive);
-            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
-            const cb = btn.querySelector(".sub-check");
-            if (cb) cb.checked = isActive;
-        });
-    }
-
-    function syncMobilePrimaryButtons() {
-        const buttons = document.querySelectorAll("[data-mobile-mode]");
-        const profileBlock = document.querySelector(".results-mobile-profile-block");
-        buttons.forEach((btn) => {
-            const mode = btn.getAttribute("data-mobile-mode");
-            const isActive = mode === state.mobilePrimaryMode;
-            btn.classList.toggle("active", isActive);
-            btn.setAttribute("aria-pressed", isActive ? "true" : "false");
-        });
-        // Le bloc "Type de transporteur" (étiquette + switch Simple/Cargo)
-        // n'apparaît QUE sur l'onglet "Chercher un voyageur" (traveler)
-        if (profileBlock) {
-            profileBlock.classList.toggle("hidden", state.mobilePrimaryMode !== "traveler");
-        }
-    }
-
-    function setProfileType(profileType) {
-        state.filterProfileType = profileType;
-        state.mobilePrimaryMode = "traveler";
-        syncProfileTypeButtons();
-        syncMobilePrimaryButtons();
-        const headLine = document.getElementById("results-headline");
-        if (headLine) {
-            headLine.innerHTML = profileType === "cargo"
-                ? "<span class=\"kc-title-accent\">Cargo</span> disponibles"
-                : "<span class=\"kc-title-accent\">Voyageurs</span> disponibles";
-        }
-        renderOffers();
-    }
-
-    function setMobilePrimaryMode(mode) {
-        state.mobilePrimaryMode = mode;
-        syncMobilePrimaryButtons();
-        syncProfileTypeButtons();
-        // Le titre change selon la section
-        const headLine = document.getElementById("results-headline");
-        if (headLine) {
-            if (mode === "demand") {
-                headLine.innerHTML = "<span class=\"kc-title-accent\">Demandes</span> de transport";
-            } else if (state.filterProfileType === "cargo") {
-                headLine.innerHTML = "<span class=\"kc-title-accent\">Cargo</span> disponibles";
-            } else {
-                headLine.innerHTML = "<span class=\"kc-title-accent\">Voyageurs</span> disponibles";
+            if (seq !== state.seq.offers) return;
+            console.error("Chargement des offres impossible :", error);
+            state.error.offers = error?.message || "Erreur réseau";
+            if (state.section !== "demand") renderOffersError();
+        } finally {
+            if (seq === state.seq.offers) {
+                state.loading.offers = false;
+                setBusy(false);
             }
-        }
-        // La liste change : offres (voyageur) ou demandes (voyageur qui cherche des clients)
-        if (mode === "demand") {
-            renderDemands();
-        } else if (!Array.isArray(state.offers) || !state.offers.length) {
-            // Si l'utilisateur est arrive directement sur « Demandes » pendant
-            // l'initialisation, les offres n'ont jamais ete chargees : renderOffers()
-            // affichait a tort « Aucune offre ».
-            loadOffers().catch((err) => console.warn(err));
-        } else {
-            renderOffers();
         }
     }
 
     async function loadDemands() {
-        if (!els.offersList) return;
-        // ANTI-RACE : symétrique de loadOffers() — si l'utilisateur est revenu sur
-        // « Chercher un voyageur », on n'écrase pas la liste des offres.
-        if (state.mobilePrimaryMode !== "demand") return;
-        els.offersList.innerHTML = '<div class="loading-state">Chargement des demandes...</div>';
-        state.demandsError = "";
+        if (!els.list) return;
+        const seq = ++state.seq.demands;
+        state.loading.demands = true;
+        state.error.demands = "";
+        if (!state.demands.length) renderSkeleton("demand");
+        else {
+            setBusy(true);
+            setCounter(SECTION_META.demand.refresh);
+        }
+
         let items = [];
         try {
             if (window.ccSupabase) {
-                // Nom/photo du demandeur : lisibles seulement par un utilisateur connecte (RLS profiles)
-                const ownerCols = window.CCCommon?.state?.user
+                const ownerColumns = CC.state?.user
                     ? "*, owner:profiles!parcel_requests_user_id_fkey(full_name, is_verified, profile_type, profile_photo)"
                     : "*";
                 const { data, error } = await window.ccSupabase
                     .from("parcel_requests")
-                    .select(ownerCols)
+                    .select(ownerColumns)
                     .eq("status", "pending")
                     .order("created_at", { ascending: false });
                 if (error) throw error;
                 items = data || [];
             } else {
-                const payload = await window.CCCommon.api("/api/parcel-requests", { auth: false });
-                items = Array.isArray(payload?.items) ? payload.items : [];
+                const payload = await CC.api("/api/parcel-requests", { auth: false });
+                items = Array.isArray(payload?.items) ? payload.items
+                    : Array.isArray(payload) ? payload : [];
             }
-        } catch (err) {
-            console.warn("Impossible de charger les demandes:", err);
-            state.demandsError = err.message || "Erreur reseau";
-            items = [];
+            if (seq !== state.seq.demands) return;
+            state.demands = items;
+            state.demandsLoaded = true;
+            if (state.section === "demand") renderDemands();
+        } catch (error) {
+            if (seq !== state.seq.demands) return;
+            console.warn("Chargement des demandes impossible :", error);
+            state.error.demands = error?.message || "Erreur réseau";
+            if (state.section === "demand") renderDemandsError();
+        } finally {
+            if (seq === state.seq.demands) {
+                state.loading.demands = false;
+                setBusy(false);
+            }
         }
-        state.demands = items;
-        // ANTI-RACE : une réponse tardive ne doit pas repeindre la liste quand
-        // l'utilisateur est repassé sur l'onglet « Chercher un voyageur ».
-        if (state.mobilePrimaryMode !== "demand") return;
-        renderDemands();
     }
 
-    // Footer de carte partage (carte voyageur ET carte demande) : profil + bouton « Contacter ».
-    // Sans dataAttr, le bouton devient un libelle inactif (ex. sa propre demande).
-    function cc3CardFooter(opts) {
-        const eh = (value) => window.CCCommon.escapeHtml(String(value === undefined || value === null ? "" : value));
-        const name = String(opts.name || "").trim();
-        const parts = name.split(/\s+/).filter(Boolean);
-        const firstName = parts[0] || "";
-        const lastName = parts.slice(1).join(" ");
-        const initials = getInitials(name);
-        // Pied de carte : 3 états possibles
-        //   1. editAttr → MA publication : « Modifier mon trajet » / « Modifier ma demande »
-        //   2. dataAttr → publication d'un autre membre : « Contacter »
-        //   3. aucun    → libellé inactif (repli, ex. contact impossible)
-        const editBtn = opts.editAttr
-            ? `<button class="cc3-cta cc3-cta-edit" type="button" ${opts.editAttr} aria-label="${eh(opts.editAriaLabel || opts.editLabel || "Modifier")}">
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17v3z"></path><path d="M13.5 6.5l3 3"></path></svg>
-        <span>${eh(opts.editLabel || "Modifier")}</span>
-      </button>`
-            : "";
-        const btn = editBtn || (opts.dataAttr
-            ? `<button class="cc3-cta" type="button" ${opts.dataAttr} aria-label="${eh(opts.ariaLabel)}">
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23.7 8C14 8 6.1 14.5 6.1 22.5c0 4.7 2.8 8.9 7.1 11.5l-1.1 6.1 7-3.7c1.5.4 3 .6 4.6.6 9.7 0 17.6-6.5 17.6-14.5S33.4 8 23.7 8z"></path></svg>
-        <span>Contacter</span>
-      </button>`
-            : `<span class="cc3-cta" aria-disabled="true"><span>${eh(opts.inactiveLabel)}</span></span>`);
-        // Corbeille (mes propres publications uniquement) : icône seule, compacte
-        const delBtn = opts.deleteAttr
-            ? `<button class="cc3-del" type="button" ${opts.deleteAttr} title="${eh(opts.deleteLabel || "Supprimer")}" aria-label="${eh(opts.deleteLabel || "Supprimer")}">
-        <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"></path><path d="M9.5 7V4.8h5V7"></path><path d="M6.2 7l1 12.2h9.6L17.8 7"></path><path d="M10 10.8v5.2M14 10.8v5.2"></path></svg>
-      </button>`
-            : "";
-        const actions = delBtn ? `<div class="cc3-actions">${delBtn}${btn}</div>` : btn;
-        return `
-    <footer class="cc3-foot">
-      <div class="cc3-profile">
-        ${opts.ownerId ? `<a class="cc3-profile-link" href="profil.html?id=${encodeURIComponent(String(opts.ownerId))}" title="Voir le profil">` : ""}
-        ${opts.photo ? `<img class="cc3-avatar cc3-avatar-img" src="${eh(opts.photo)}" alt="">` : `<span class="cc3-avatar">${eh(initials)}</span>`}
-        <div class="cc3-profile-txt">
-          <div class="cc3-name-line">
-            <span class="cc3-name">${eh(firstName)} <em>${eh(lastName)}</em></span>
-            ${opts.isVerified ? `<svg class="cc3-shield" viewBox="0 0 36 40" aria-hidden="true"><path d="M18 2.5 32 8v10.3c0 8.5-5.7 15.2-14 18.9C9.7 33.5 4 26.8 4 18.3V8l14-5.5z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"></path><path d="M15.6 22.4 12 18.8l-2 2 5.6 5.6L26.8 15.2l-2-2z" fill="currentColor"></path></svg>` : ""}
-          </div>
-          <span class="cc3-meta">${eh(opts.label)}</span>
-        </div>
-        ${opts.ownerId ? "</a>" : ""}
-      </div>
-      ${actions}
-    </footer>`;
-    }
+    // ─────────────────────────────────────────────────────────────
+    // Filtrage et tri
+    // ─────────────────────────────────────────────────────────────
+    function offerMatches(offer, filters) {
+        const mode = String(offer.mode || "").trim();
+        if (state.subSection === "traveler" && mode !== "") return false;
+        if (state.subSection === "cargo" && mode === "") return false;
 
-    // Relance la liste de la SECTION ACTIVE : offres (voyageur/cargo) ou demandes.
-    // Un seul point d'entrée pour « Rechercher » et « Effacer » : avant, la
-    // recherche n'agissait que sur les offres, donc sur l'onglet « Demande » elle
-    // ne faisait rien du tout (correctif Yoyo 2026-10-16).
-    function relancerRecherche() {
-        if (state.mobilePrimaryMode === "demand") {
-            renderDemands();
-            return Promise.resolve();
+        if (filters.origin) {
+            const haystack = `${normalize(offer.origin)} ${normalize(offer.city_origin || offer.cityOrigin)}`;
+            if (!haystack.includes(normalize(filters.origin))) return false;
         }
-        return loadOffers().catch((err) => console.warn(err));
+        if (filters.destination) {
+            const haystack = `${normalize(offer.destination)} ${normalize(offer.city_destination || offer.cityDestination)}`;
+            if (!haystack.includes(normalize(filters.destination))) return false;
+        }
+        if (filters.minKg !== null) {
+            const available = Number(offer.availableKg ?? offer.available_kg);
+            if (!Number.isFinite(available) || available < filters.minKg) return false;
+        }
+        if (filters.verified && !(offer.ownerIsVerified || offer.owner_is_verified)) return false;
+        if (filters.urgent) {
+            const departure = validDate(offer.departureDate || offer.departure_date);
+            if (!departure) return false;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const limit = new Date(today);
+            limit.setDate(limit.getDate() + 7);
+            if (departure < today || departure > new Date(limit.getTime() + 86399999)) return false;
+        }
+        if (filters.date) {
+            const departure = validDate(offer.departureDate || offer.departure_date);
+            const limit = validDate(filters.date);
+            if (departure && limit && departure > new Date(limit.getTime() + 86399999)) return false;
+        }
+        return true;
     }
 
-    // Vide les champs de recherche, remet les pastilles à zéro et réaffiche la
-    // liste complète de la section active (bouton « Effacer »).
-    function effacerRecherche() {
-        ["res-origin", "res-dest", "res-date", "res-weight"].forEach((id) => {
-            const champ = document.getElementById(id);
-            if (champ) champ.value = "";
-        });
-        state.filterVerified = false;
-        state.filterWeight10 = false;
-        state.filterUrgent = false;
-        const PILL_OFF = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer";
-        ["pill-verified", "pill-weight", "pill-urgent"].forEach((id) => {
-            const pastille = document.getElementById(id);
-            if (pastille) pastille.className = PILL_OFF;
-        });
-        return relancerRecherche();
-    }
-
-    // ── Filtres appliqués aux DEMANDES (correctif Yoyo 2026-10-16) ─────────────
-    // Avant : la liste des demandes était affichée telle quelle — taper un pays
-    // puis « Rechercher » ne changeait rien. On applique donc les mêmes critères
-    // que pour les offres : pays de départ, pays d'arrivée, date limite et poids.
-    const normFiltre = (v) => String(v || "").toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-
-    function demandesFiltrees(items) {
-        const origine = normFiltre(document.getElementById("res-origin")?.value);
-        const arrivee = normFiltre(document.getElementById("res-dest")?.value);
-        const dateLimite = (document.getElementById("res-date")?.value || "").trim();
-        const poidsTexte = (document.getElementById("res-weight")?.value || "").trim();
-        if (!origine && !arrivee && !dateLimite && !poidsTexte) return items;
-        const maxKg = poidsTexte ? parseInt(poidsTexte, 10) : null;
-        return items.filter((d) => {
-            if (origine) {
-                const champs = normFiltre(d.origin) + " " + normFiltre(d.origin_city);
-                if (champs.indexOf(origine) === -1) return false;
-            }
-            if (arrivee) {
-                const champs = normFiltre(d.destination) + " " + normFiltre(d.destination_city);
-                if (champs.indexOf(arrivee) === -1) return false;
-            }
-            if (dateLimite) {
-                // La demande n'est retenue que si elle peut être livrée avant la date choisie.
-                const butoir = String(d.needed_by_date || "").slice(0, 10);
-                if (butoir && butoir > dateLimite) return false;
-            }
-            if (maxKg !== null && Number.isFinite(maxKg)) {
-                const kg = Number(d.weight_kg);
-                if (Number.isFinite(kg) && kg > maxKg) return false;
-            }
-            return true;
-        });
-    }
-
-    function renderDemands() {
-        if (!els.offersList) return;
-        const toutes = state.demands || [];
-        if (state.demandsError) {
-            els.offersList.innerHTML = `<div class="empty-state" role="alert">
-                Impossible de charger les demandes.<br><small>${window.CCCommon.escapeHtml(state.demandsError)}</small><br>
-                <button type="button" class="btn secondary btn-sm" id="demands-retry-btn" style="margin-top:12px;">Reessayer</button>
-            </div>`;
-            document.getElementById("demands-retry-btn")?.addEventListener("click", () => {
-                loadDemands().catch((err) => console.warn(err));
+    function sortOffers(items, filters) {
+        const sorted = [...items];
+        if (filters.sort === "price") {
+            const rates = CC.EXCHANGE_RATES || {};
+            const price = (offer) => {
+                const value = Number(offer.pricePerKg ?? offer.price_per_kg);
+                if (!Number.isFinite(value)) return Number.POSITIVE_INFINITY;
+                const from = String(offer.baseCurrency || offer.base_currency || "EUR").toUpperCase();
+                const to = userCurrency();
+                if (from !== to && (!rates[from] || !rates[to])) return value;
+                return CC.convertCurrency(value, from, to);
+            };
+            sorted.sort((a, b) => price(a) - price(b));
+        } else {
+            sorted.sort((a, b) => {
+                const dateA = validDate(a.departureDate || a.departure_date);
+                const dateB = validDate(b.departureDate || b.departure_date);
+                if (!dateA && !dateB) return 0;
+                if (!dateA) return 1;
+                if (!dateB) return -1;
+                return dateA - dateB;
             });
-            return;
         }
-        // [Yoyo] Mes demandes en premier, PUIS les critères de recherche.
-        let items = ownFirst(demandesFiltrees(toutes));
-        if (!items.length) {
-            els.offersList.innerHTML = toutes.length
-                ? '<div class="empty-state">Aucune demande ne correspond à votre recherche.<br>Cliquez sur « Effacer » pour réafficher toutes les demandes.</div>'
-                : '<div class="empty-state">Aucune demande en ce moment.<br>Revenez plus tard !</div>';
-            return;
-        }
-        const esc = (s) => window.CCCommon?.escapeHtml ? window.CCCommon.escapeHtml(String(s ?? "")) : String(s ?? "");
-        els.offersList.innerHTML = items.map((d) => {
-            const orName = esc(d.origin || "");
-            const destName = esc(d.destination || "");
-            const orCity = d.origin_city ? esc(d.origin_city) : "";
-            const destCity = d.destination_city ? esc(d.destination_city) : "";
-
-            // Date limite courte en français (ex: "25 sept. 2026")
-            let limitDate = "";
-            if (d.needed_by_date) {
-                try {
-                    const dl = new Date(String(d.needed_by_date).slice(0, 10) + "T00:00:00");
-                    if (!isNaN(dl.getTime())) {
-                        limitDate = dl.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
-                    }
-                } catch (e) { /* fallback */ }
-                if (!limitDate) limitDate = esc(String(d.needed_by_date).slice(0, 10));
-            }
-
-            const hasDesc = !!(d.description && String(d.description).trim());
-            const descTxt = esc(d.description);
-            // Sa propre demande : pas de bouton inutile (le pont refuserait le contact)
-            const isOwnDemand = !!window.CCCommon?.state?.user?.id && d.user_id === window.CCCommon.state.user.id;
-            // DEVISE UNIQUE a l'ecran, comme les cartes d'offres : celle du pays de l'utilisateur.
-            // Le montant publie peut etre dans n'importe quelle devise (choisie par colis dans le
-            // formulaire) -> on convertit avec les taux partages (meme convertCurrency que les offres).
-            // Repli si le profil n'a pas de pays : devise de getUserCurrency(), sinon XOF.
-            const userCur = state.userCurrency || window.CCCommon.getUserCurrency?.() || "XOF";
-
-            // Partie « envoyer » d'un colis : <span class="cc3-demand-hl">12 kilo de valise</span>
-            const mkItemSendHl = (it) => {
-                const noun = it.item_type ? String(it.item_type).trim().toLowerCase() : "";
-                const hasW = it.weight_kg != null && it.weight_kg !== "";
-                const hasQ = it.quantity != null && it.quantity !== "";
-                if (hasW) return `<span class="cc3-demand-hl">${esc(it.weight_kg)} kilo${noun ? ` de ${esc(noun)}` : ""}</span>`;
-                if (hasQ) {
-                    const q = Number(it.quantity);
-                    // « 2 ordinateurs » (pluriel simple, sauf nom déjà terminé par s/x/z)
-                    const nounTxt = noun ? (q > 1 && !/[sxz]$/i.test(noun) ? `${noun}s` : noun) : "colis";
-                    return `<span class="cc3-demand-hl">${esc(it.quantity)} ${esc(nounTxt)}</span>`;
-                }
-                return "";
-            };
-            // Partie « prix » d'un colis : <span class="cc3-demand-hl">13 200 FCFA</span>
-            // Le montant saisi vaut pour le LOT complet (« combien pour 12 kg ? ») -> jamais de « /kg »
-            const mkItemPriceHl = (it) => {
-                const raw = (it.max_price_per_kg != null && it.max_price_per_kg !== "") ? it.max_price_per_kg
-                    : (it.max_price_total != null && it.max_price_total !== "") ? it.max_price_total
-                    : null;
-                if (raw === null) return "";
-                // Devise publiee : celle du colis (choisie dans le formulaire), sinon celle de la
-                // demande, sinon XOF. Les tres vieilles demandes n'ont que max_price_per_kg + currency.
-                const fromCur = String((it && it.currency) || d.currency || "XOF").toUpperCase();
-                // Taux manquant (devise absente de la table / hors ligne) : on n'invente pas un 1:1,
-                // on affiche le montant publie dans sa devise d'origine.
-                const rates = window.CCCommon.EXCHANGE_RATES || {};
-                if (fromCur !== userCur && (!rates[fromCur] || !rates[userCur])) {
-                    return `<span class="cc3-demand-hl">${esc(formatAmount(Number(raw), fromCur))}</span>`;
-                }
-                const shown = formatAmount(convertCurrency(Number(raw), fromCur, userCur), userCur);
-                return `<span class="cc3-demand-hl">${esc(shown)}</span>`;
-            };
-            // Phrase complète d'un colis (multi) : même tournure que la carte simple
-            // « Je veux envoyer 12 kilo de valise et je peux payer environ 20 EUR »
-            const mkItemSentence = (it) => {
-                const s = mkItemSendHl(it);
-                const p = mkItemPriceHl(it);
-                if (s && p) return `Je veux envoyer ${s} et je peux payer environ ${p}`;
-                if (s) return `Je veux envoyer ${s}`;
-                if (p) return `Je peux payer environ ${p}`;
-                return "";
-            };
-
-            // items (jsonb multi-colis) prioritaire ; sinon scalaires des anciennes demandes
-            const sentences = (Array.isArray(d.items) && d.items.length) ? d.items.map(mkItemSentence).filter(Boolean) : [];
-            const isMulti = sentences.length > 1;
-
-            // Au-delà de 2 phrases : la carte ne grandit pas, on affiche « … » + « Voir plus »
-            const VISIBLE_SENTENCES = 2;
-            let phraseTxt = "";
-            let demandLines = "";
-            if (isMulti) {
-                const restN = sentences.length - VISIBLE_SENTENCES;
-                const visible = sentences.slice(0, VISIBLE_SENTENCES).map((s, i, arr) =>
-                    `<span class="cc3-demand-sentence">${s}${restN > 0 && i === arr.length - 1 ? '<span class="cc3-demand-ellipsis" aria-hidden="true">…</span>' : ""}</span>`
-                ).join("");
-                const extra = restN > 0
-                    ? sentences.slice(VISIBLE_SENTENCES).map((s) => `<span class="cc3-demand-sentence cc3-demand-extra">${s}</span>`).join("")
-                    : "";
-                demandLines = `<span class="cc3-demand-lines">${visible}${extra}</span>`;
-                if (restN > 0) demandLines += `<button type="button" class="cc3-demand-more" data-count="${restN}">Voir plus (${restN})</button>`;
-            } else {
-                // Phrase classique pour un seul colis (identique à l'ancienne)
-                const it = (Array.isArray(d.items) && d.items.length === 1) ? d.items[0] : d;
-                const sendHl = mkItemSendHl(it);
-                const priceHl = mkItemPriceHl(it);
-                phraseTxt = sendHl
-                    ? `Je veux envoyer ${sendHl}` + (priceHl ? ` et je peux payer environ ${priceHl}` : "")
-                    : (priceHl ? `Je peux payer environ ${priceHl}` : "");
-            }
-
-            return (
-`<div class="offer-wrap">
-  <article class="cc3-card">
-    <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
-    <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
-    <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
-    <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
-
-    <section class="cc3-route">
-      <div class="cc3-flag-shell"><span class="cc3-flag" data-demande-flag data-cc-o="${orName}" data-role="origin" aria-hidden="true"></span></div>
-      <div class="cc3-place">
-        <span class="cc3-label">From</span>
-        <span class="cc3-country">${orName || "—"}</span>
-        ${orCity ? `<span class="cc3-city">${orCity}</span>` : ""}
-      </div>
-      <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
-        <path d="M2 47C50 11 105 8 181 45"></path>
-        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
-          <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
-        </g>
-      </svg>
-      <div class="cc3-place cc3-place-to">
-        <span class="cc3-label">To</span>
-        <span class="cc3-country">${destName || "—"}</span>
-        ${destCity ? `<span class="cc3-city">${destCity}</span>` : ""}
-      </div>
-      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag" data-demande-flag data-cc-d="${destName}" data-role="dest" aria-hidden="true"></span></div>
-    </section>
-
-    <div class="cc3-rule"></div>
-
-    <section class="cc3-details">
-      <div class="cc3-detail">
-        <div class="cc3-icon">
-          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
-        </div>
-        <div class="cc3-detail-txt">
-          <span class="cc3-d-label">Date limite</span>
-          <span class="cc3-value">${limitDate ? `<span class="cc3-gold">${limitDate}</span>` : "Non précisée"}</span>
-        </div>
-      </div>
-      ${phraseTxt || demandLines || hasDesc ? `
-      <div class="cc3-detail cc3-demand-phrase">
-        ${phraseTxt ? `<p class="cc3-demand-phrase-txt">${phraseTxt}</p>` : ""}
-        ${demandLines ? `<div class="cc3-demand-multi">${demandLines}</div>` : ""}
-        ${hasDesc ? `<p class="cc3-demand-desc">${descTxt}</p>` : ""}
-      </div>` : ""}
-    </section>
-
-    ${cc3CardFooter({
-      photo: d.owner ? d.owner.profile_photo : "",
-      ownerId: d.user_id || "",
-      name: (d.owner && d.owner.full_name) || "Demandeur",
-      isVerified: !!(d.owner && d.owner.is_verified),
-      label: "Expéditeur",
-      // C'est MA demande : bouton « Modifier ma demande » au lieu du libellé inactif
-      editAttr: isOwnDemand ? `data-edit-own-demand="${d.id}"` : "",
-      editLabel: "Modifier ma demande",
-      editAriaLabel: "Modifier ma demande de transport",
-      // Corbeille : suppression de ma propre demande (avec confirmation)
-      deleteAttr: isOwnDemand ? `data-delete-own-demand="${d.id}"` : "",
-      deleteLabel: "Supprimer ma demande",
-      dataAttr: isOwnDemand ? "" : `data-contact-request="${d.id}"`,
-      ariaLabel: `Contacter ${(d.owner && d.owner.full_name) || "ce demandeur"}`,
-      inactiveLabel: "Votre demande"
-    })}
-  </article>
-</div>`);
-        }).join("\n");
-
-        // Drapeaux : les demandes ne stockent pas de code pays -> résolution async (avec cache) sur le nom
-        hydrateDemandeFlags();
-
-        // « Voir plus » : révèle les phrases supplémentaires masquées d'une demande multi-colis
-        els.offersList.querySelectorAll(".cc3-demand-more").forEach((btn) => {
-            btn.addEventListener("click", () => {
-                const lines = btn.closest(".cc3-demand-multi")?.querySelector(".cc3-demand-lines");
-                if (!lines) return;
-                const isOpen = lines.classList.toggle("is-expanded");
-                btn.textContent = isOpen ? "Voir moins" : `Voir plus (${btn.dataset.count || ""})`;
-            });
-        });
+        return sorted;
     }
 
-    function hydrateDemandeFlags() {
-        if (!els.offersList) return;
-        const flagEls = els.offersList.querySelectorAll(".cc3-flag[data-demande-flag]");
-        if (!flagEls.length || !window.CCCommon?._getCountryCode) return;
-        flagEls.forEach((el) => {
-            const country = el.dataset.role === "dest" ? el.dataset.ccD : el.dataset.ccO;
+    function demandMatches(demand, filters) {
+        if (filters.origin) {
+            const haystack = `${normalize(demand.origin)} ${normalize(demand.origin_city)}`;
+            if (!haystack.includes(normalize(filters.origin))) return false;
+        }
+        if (filters.destination) {
+            const haystack = `${normalize(demand.destination)} ${normalize(demand.destination_city)}`;
+            if (!haystack.includes(normalize(filters.destination))) return false;
+        }
+        if (filters.date) {
+            const limit = dateOnly(demand.needed_by_date || demand.neededByDate);
+            if (limit && limit > filters.date) return false;
+        }
+        if (filters.demandCapacity !== null && filters.demandCapacity !== undefined) {
+            const weight = Number(demand.weight_kg);
+            if (!Number.isFinite(weight) || weight > filters.demandCapacity) return false;
+        }
+        return true;
+    }
+
+    function splitOwn(items) {
+        const userId = currentUserId();
+        const own = [];
+        const others = [];
+        items.forEach((item) => {
+            const ownerId = item.user_id || item.userId || "";
+            if (userId && String(ownerId).trim() !== "" && String(ownerId) === String(userId)) own.push(item);
+            else others.push(item);
+        });
+        return { own, others };
+    }
+
+    function groupHtml(own, others, renderCard, ownLabel, otherLabel) {
+        const groups = [];
+        if (own.length) {
+            groups.push(`<section class="cc-group" aria-label="${esc(ownLabel)}">
+              <h2 class="cc-group-head">${esc(ownLabel)}</h2>
+              <div class="cc-card-grid cc-card-grid--inner">${own.map(renderCard).join("")}</div>
+            </section>`);
+        }
+        if (others.length) {
+            const label = own.length ? otherLabel : (state.section === "demand" ? "Toutes les demandes" : "Toutes les offres");
+            groups.push(`<section class="cc-group" aria-label="${esc(label)}">
+              <h2 class="cc-group-head">${esc(label)}</h2>
+              <div class="cc-card-grid cc-card-grid--inner">${others.map(renderCard).join("")}</div>
+            </section>`);
+        }
+        return groups.join("");
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Rendu de la liste
+    // ─────────────────────────────────────────────────────────────
+    function flagsAfterRender() {
+        if (!els.list || !CC._getCountryCode) return;
+        els.list.querySelectorAll(".cc-flag[data-flag-country]").forEach((flag) => {
+            if (flag.classList.contains("fi")) return;
+            const country = flag.getAttribute("data-flag-country");
             if (!country) return;
-            window.CCCommon._getCountryCode(country)
+            CC._getCountryCode(country)
                 .then((code) => {
-                    if (el.isConnected && /^[A-Za-z]{2}$/.test(String(code || ""))) {
-                        el.classList.add("fi", "fis", "fi-" + String(code).toLowerCase());
+                    if (flag.isConnected && /^[A-Za-z]{2}$/.test(String(code || ""))) {
+                        flag.classList.add("fi", "fis", `fi-${String(code).toLowerCase()}`);
                     }
                 })
-                .catch(() => { /* pays inconnu -> drapeau laissé vide */ });
+                .catch(() => { /* pays inconnu : drapeau laissé vide */ });
         });
+    }
+
+    function emptyStateHtml(kind) {
+        const isDemand = state.section === "demand";
+        if (kind === "filter") {
+            return `
+              <div class="cc-empty" role="status">
+                <svg class="cc-empty-icon" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><circle cx="22" cy="22" r="13"></circle><path d="M31.5 31.5L40 40"></path><path d="M16 22h12"></path></svg>
+                <h2>${isDemand ? "Aucune demande ne correspond à votre recherche." : "Aucune offre ne correspond à votre recherche."}</h2>
+                <p>${isDemand ? "Modifiez vos filtres ou effacez-les pour voir toutes les demandes." : "Modifiez vos filtres ou effacez-les pour voir toutes les offres."}</p>
+                <div class="cc-empty-actions">
+                  <button type="button" class="cc-btn cc-btn-secondary" data-action="clear-filters">Effacer les filtres</button>
+                </div>
+              </div>`;
+        }
+        if (isDemand) {
+            return `
+              <div class="cc-empty" role="status">
+                <svg class="cc-empty-icon" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 8h20v34H14z"></path><path d="M18 4h12v8H18z"></path><path d="M20 20h8M20 28h8M20 36h5"></path></svg>
+                <h2>Aucune demande en ce moment. Revenez plus tard !</h2>
+                <p>Un expéditeur qui a besoin de vous publiera peut-être sa demande bientôt.</p>
+                <div class="cc-empty-actions">
+                  <button type="button" class="cc-btn cc-btn-primary" data-action="create-demand">Faire une demande de trajet</button>
+                </div>
+              </div>`;
+        }
+        return `
+          <div class="cc-empty" role="status">
+            <svg class="cc-empty-icon" viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 36l32-12-8 10-4 10-5-10z"></path><path d="M8 20l32-12-8 10-4 10-5-10z"></path></svg>
+            <h2>Aucune offre publiée pour le moment.</h2>
+            <p>Soyez le premier à proposer un trajet, ou publiez une demande pour que les voyageurs vous contactent.</p>
+            <div class="cc-empty-actions">
+              <a class="cc-btn cc-btn-secondary" href="post_trip.html">Publier un trajet</a>
+              <button type="button" class="cc-btn cc-btn-primary" data-action="create-demand">Faire une demande de trajet</button>
+            </div>
+          </div>`;
+    }
+
+    function errorHtml(section) {
+        const message = section === "demand" ? "Impossible de charger les demandes." : "Impossible de charger les offres.";
+        const cause = navigator.onLine === false
+            ? "hors ligne"
+            : (state.error[section === "demand" ? "demands" : "offers"] || "Erreur réseau");
+        return `
+          <div class="cc-error-panel" role="alert">
+            <svg class="cc-error-icon" viewBox="0 0 32 32" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3l13 24H3z"></path><path d="M16 11v7M16 23v.5"></path></svg>
+            <div class="cc-error-text">
+              <h2>${esc(message)}</h2>
+              <p>Cause : ${esc(cause)}</p>
+            </div>
+            <button type="button" class="cc-btn cc-btn-secondary" data-action="retry">Réessayer</button>
+          </div>`;
+    }
+
+    function renderOffersError() {
+        if (!els.list) return;
+        syncHeadline();
+        els.list.innerHTML = errorHtml("offers");
+        els.loadMore.hidden = true;
+        els.loadMoreStatus.hidden = true;
+        setCounter("Indisponible");
+        setBusy(false);
+    }
+
+    function renderDemandsError() {
+        if (!els.list) return;
+        syncHeadline();
+        els.list.innerHTML = errorHtml("demands");
+        els.loadMore.hidden = true;
+        els.loadMoreStatus.hidden = true;
+        setCounter("Indisponible");
+        setBusy(false);
     }
 
     function renderOffers() {
-        if (!els.offersList) return;
-
-        // 1. Filtrer les offres selon l'onglet actif et les filtres optionnels
-        let filteredOffers = state.offers.filter(offer => {
-            const mode = String(offer.mode || "").trim();
-            if (state.filterProfileType === 'traveler') {
-                if (mode !== "") return false;
-            } else if (state.filterProfileType === 'cargo') {
-                if (mode === "") return false;
-            }
-
-            // Filtre : Voyageurs vérifiés
-            if (state.filterVerified && !offer.ownerIsVerified) {
-                return false;
-            }
-
-            // Filtre : > 10 kg
-            if (state.filterWeight10 && (offer.availableKg || 0) <= 10) {
-                return false;
-            }
-
-            // Filtre : Départ proche (dans les 7 prochains jours)
-            if (state.filterUrgent) {
-                const depart = new Date(offer.departureDate);
-                const today = new Date();
-                const diffTime = depart - today;
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                if (diffDays < 0 || diffDays > 7) {
-                    return false;
-                }
-            }
-
-            // Filtre : Date limite (le départ doit être inférieur ou égal à la date choisie)
-            const dateLimitStr = document.getElementById("res-date")?.value || "";
-            if (dateLimitStr) {
-                const limitDate = new Date(dateLimitStr);
-                const departDate = new Date(offer.departureDate);
-                if (!isNaN(limitDate.getTime()) && !isNaN(departDate.getTime())) {
-                    if (departDate > limitDate) return false;
-                }
-            }
-
-            return true;
-        });
-
-        // 2. Trier les offres
-        const isSort = document.getElementById("sort-select")?.value || state.sortBy;
-        filteredOffers.sort((a, b) => {
-            if (isSort === 'price') {
-                const priceA = convertCurrency(Number(a.pricePerKg || 0), a.baseCurrency || 'EUR', state.userCurrency);
-                const priceB = convertCurrency(Number(b.pricePerKg || 0), b.baseCurrency || 'EUR', state.userCurrency);
-                return priceA - priceB;
-            } else {
-                const dateA = new Date(a.departureDate || 0);
-                const dateB = new Date(b.departureDate || 0);
-                return dateA - dateB;
-            }
-        });
-
-        // [Yoyo] Mes offres en premier sur l'affichage par défaut (aucune recherche
-        // ni filtre actif). Dès qu'une recherche/filtre est lancé, ordre normal.
-        if (isDefaultListingView()) {
-            filteredOffers = ownFirst(filteredOffers);
+        if (!els.list) return;
+        // Une réponse vide est un état vide, pas un chargement en cours : la
+        // garde s'appuie sur offersLoaded, pas sur loading (sinon squelette infini).
+        if (state.loading.offers && !state.offersLoaded) {
+            renderSkeleton(state.section);
+            return;
         }
+        if (state.error.offers) {
+            renderOffersError();
+            return;
+        }
+        const everything = state.offers.filter((offer) => {
+            const mode = String(offer.mode || "").trim();
+            return state.subSection === "cargo" ? mode !== "" : mode === "";
+        });
+        const filtered = sortOffers(everything.filter((offer) => offerMatches(offer, state.filters)), state.filters);
+        updateCounterAndTitle(filtered.length);
 
-        // 3. Rendu
-        if (!filteredOffers.length) {
-            els.offersList.innerHTML = `
-                <div class="empty-card empty-state">
-                    <p class="empty-title">Aucune offre correspondante.</p>
-                    <p class="empty-sub">Créez une demande de transport, si un voyageur est intéressé il vous contactera.</p>
-                    <button type="button" id="btn-faire-demande-trajet">Faire une demande de trajet</button>
-                </div>`;
-            setTimeout(() => {
-                document.getElementById("btn-faire-demande-trajet")?.addEventListener("click", () => {
-                    document.getElementById("demande-trajet-modal")?.classList.remove("hidden");
-                    window.resetDemandeWizard?.();
-                });
-            }, 50);
+        if (!filtered.length) {
+            els.list.innerHTML = emptyStateHtml(everything.length ? "filter" : "catalog");
+            els.loadMore.hidden = true;
+            els.loadMoreStatus.hidden = true;
+            renderActiveChips();
+            setBusy(false);
             return;
         }
 
-        els.offersList.innerHTML = filteredOffers
-            .map((offer) => {
-                const initials = getInitials(offer.ownerName);
-                const isVerified = Boolean(offer.ownerIsVerified);
-                // C'est MON offre (voyageur ou cargo) : le pied de carte proposera
-                // « Modifier mon trajet » au lieu de « Contacter ».
-                const currentUserId = window.CCCommon?.state?.user?.id;
-                const offerOwnerId = offer.user_id || offer.userId || "";
-                const isOwnOffer = !!currentUserId
-                    && String(offerOwnerId).trim() !== ""
-                    && String(offerOwnerId) === String(currentUserId);
-
-                const originCountry = offer.origin || "Origine";
-                const destCountry = offer.destination || "Arrivée";
-                const originCity = String(offer.city_origin || offer.cityOrigin || "").trim();
-                const destCity = String(offer.city_destination || offer.cityDestination || "").trim();
-                const departureDate = String(offer.departureDate || "-");
-                let formattedDate = departureDate;
-                try {
-                    const d = new Date(departureDate);
-                    if (!isNaN(d.getTime())) {
-                        formattedDate = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
-                    }
-                } catch (e) { /* fallback */ }
-
-                const pricePerKgRaw = Number(offer.pricePerKg || 0);
-                const baseCur = offer.baseCurrency || 'EUR';
-                const userCur = state.userCurrency;
-                const convertedPrice = convertCurrency(pricePerKgRaw, baseCur, userCur);
-                const availableKg = offer.availableKg || 0;
-
-                const priceDisplay = formatAmount(convertedPrice, userCur);
-                const offerMode = String(offer.mode || "").trim();
-
-                // [CARGO] Dates supplémentaires (jsonb) : triées puis formatées en chips courtes
-                let extraDateValues = [];
-                try {
-                    const raw = offer.extraDates || offer.extra_dates || [];
-                    const arr = Array.isArray(raw) ? raw : JSON.parse(raw || "[]");
-                    extraDateValues = (Array.isArray(arr) ? arr : [])
-                        .map((s) => String(s || "").trim())
-                        .filter(Boolean)
-                        .sort();
-                } catch (e) { extraDateValues = []; }
-                const fmtExtraDate = (iso) => {
-                    try {
-                        const d = new Date(iso);
-                        if (!isNaN(d.getTime())) return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-                    } catch (e) { /* fallback */ }
-                    return iso;
-                };
-                const extraDateChips = extraDateValues.map(fmtExtraDate);
-
-                // Colis acceptés / refusés
-                const colisAcceptes = String(offer.colis_types || offer.colisTypes || "").trim();
-                const colisRefuses = String(offer.refused_colis_types || offer.refusedColisTypes || "").trim();
-                const hasColisInfo = colisAcceptes || colisRefuses;
-
-                // Prix spéciaux (JSONB ou chaîne JSON)
-                let specialPrices = [];
-                try {
-                    const sp = offer.special_prices || offer.specialPrices || [];
-                    specialPrices = Array.isArray(sp) ? sp : JSON.parse(sp || "[]");
-                } catch (e) { specialPrices = []; }
-                const validSpecial = specialPrices.filter((p) => p && p.type && Number(p.price) > 0);
-                const specialPriceDisplay = (price) => formatAmount(convertCurrency(Number(price), baseCur, userCur), userCur);
-                // Unité lisible : "par kilo" ou "par <type de colis>" (ex: 100 yuan par ordinateur)
-                const specialUnitLabel = (p) => (p.mode === "qty" ? ` par ${window.CCCommon.escapeHtml(p.type)}` : " par kilo");
-                // Une ligne de prix spécial : nom à gauche, prix en évidence, unité SOUS le prix
-                // (noms > 14 caractères : classe "long" → taille réduite + wrap, pour ne jamais déborder sur le prix)
-                const specialRow = (p) => `
-        <div class="cc3-special-item">
-          <span class="cc3-special-type${p.type && p.type.length > 14 ? " cc3-type-long" : ""}">${window.CCCommon.escapeHtml(p.type)}</span>
-          <span class="cc3-special-price">${specialPriceDisplay(p.price)}</span>
-          <span class="cc3-special-unit">${specialUnitLabel(p).trim()}</span>
-        </div>`;
-                // Articles refusés : chaîne "A, B (précision), C" → liste {name, note?}
-                const refusesItems = colisRefuses
-                    .split(",")
-                    .map((s) => {
-                        const t = s.trim();
-                        if (!t) return null;
-                        const m = t.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
-                        return m ? { name: m[1].trim(), note: m[2].trim() } : { name: t, note: "" };
-                    })
-                    .filter(Boolean);
-                const refusedRow = (r) => `
-        <div class="cc3-refused-item">
-          <span class="cc3-refused-name${r.name && r.name.length > 14 ? " cc3-refused-long" : ""}">${window.CCCommon.escapeHtml(r.name)}</span>
-          ${r.note ? `<span class="cc3-refused-note">${window.CCCommon.escapeHtml(r.note)}</span>` : ""}
-        </div>`;
-                // La zone (2 colonnes) n'existe que si au moins un des deux côtés a du contenu
-                const hasSpecialZone = validSpecial.length > 0 || refusesItems.length > 0;
-                // Label du bouton accordéon : jamais mensonger selon le contenu
-                const accordionLabel = validSpecial.length > 0 && refusesItems.length > 0
-                    ? "Prix spéciaux et articles refusés"
-                    : (validSpecial.length > 0 ? "Prix spéciaux" : "Articles refusés");
-
-                const profilePhoto = String(offer.ownerProfilePhoto || offer.ownerAvatar || offer.avatar || "").trim();
-                const profileLabel = offerMode === "" ? "Voyageur" : "Transporteur Pro";
-                const profileIcon = offerMode === "" ? (isVerified ? "verified" : "person") : "local_shipping";
-
-                // Badge date : Aujourd'hui / Demain / date complète (style Kinetic)
-                let badgeDate = formattedDate;
-                try {
-                    const d = new Date(departureDate);
-                    const today = new Date();
-                    const tomorrow = new Date();
-                    tomorrow.setDate(today.getDate() + 1);
-                    if (!isNaN(d.getTime())) {
-                        if (d.toDateString() === today.toDateString()) badgeDate = "Aujourd'hui";
-                        else if (d.toDateString() === tomorrow.toDateString()) badgeDate = "Demain";
-                    }
-                } catch (e) { /* fallback */ }
-
-                // Code IATA : 3 premières lettres du pays (FRA, SEN...)
-                const iata = (name) => (String(name).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z]/g, '') || '???').slice(0, 3);
-                const codeFrom = iata(originCountry);
-                const codeDest = iata(destCountry);
-                // [FLAGS] Codes ISO stockés dans l'offre (option B) -> classe flag-icons fi-{code} 1x1
-                const ccCode = (v) => (/^[A-Za-z]{2}$/.test(String(v || "")) ? String(v).toLowerCase() : "");
-                const ccOrigin = ccCode(offer.originCountryCode || offer.origin_country_code);
-                const ccDest = ccCode(offer.destCountryCode || offer.destination_country_code);
-                const flagCls = (c) => (c ? ` fi fis fi-${c}` : "");
-                const routeIcon = offerMode === "" ? "flight_takeoff" : "local_shipping";
-
-                // Nom scindé (prénom + reste) pour le style "Yoann *Tato*"
-                const nameParts = String(offer.ownerName || "Voyageur").split(/\s+/).filter(Boolean);
-                const firstName = nameParts[0] || "Voyageur";
-                const lastName = nameParts.slice(1).join(" ") || "";
-                // Date courte pour la colonne DÉPART (ex: "21 août")
-                let shortDate = formattedDate;
-                try {
-                    const d = new Date(departureDate);
-                    if (!isNaN(d.getTime())) {
-                        shortDate = d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-                    }
-                } catch (e) { /* fallback */ }
-
-                // [CARGO] Cellule Départ : la date principale + les dates supplémentaires
-                // alignées sur UNE même ligne (un seul logo ; « · » entre les dates et
-                // « et » devant la DERNIÈRE pour la lisibilité). Dès qu'il y a PLUSIEURS
-                // dates, le label passe de « Départ » à « J'ai des voyages le : »
-                const dateLine = (txt) => `<span class="cc3-gold cc3-date-line">${window.CCCommon.escapeHtml(txt)}</span>`;
-                const departValueHtml = extraDateChips.length
-                    ? `<span class="cc3-value cc3-value-dates">${dateLine(shortDate)}${extraDateChips.map(dateLine).join("")}</span>`
-                    : `<span class="cc3-value"><span class="cc3-gold">${window.CCCommon.escapeHtml(shortDate)}</span></span>`;
-
-                return `
-<div class="offer-wrap">
-  <article class="cc3-card">
-    <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
-    <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
-    <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
-    <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
-
-    <section class="cc3-route">
-      <div class="cc3-flag-shell"><span class="cc3-flag${flagCls(ccOrigin)}" aria-hidden="true"></span></div>
-      <div class="cc3-place">
-        <span class="cc3-label">From</span>
-        <span class="cc3-country">${window.CCCommon.escapeHtml(originCountry)}</span>
-        ${originCity ? `<span class="cc3-city">${window.CCCommon.escapeHtml(originCity)}</span>` : ""}
-      </div>
-      <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
-        <path d="M2 47C50 11 105 8 181 45"></path>
-        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
-          <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
-        </g>
-      </svg>
-      <div class="cc3-place cc3-place-to">
-        <span class="cc3-label">To</span>
-        <span class="cc3-country">${window.CCCommon.escapeHtml(destCountry)}</span>
-        ${destCity ? `<span class="cc3-city">${window.CCCommon.escapeHtml(destCity)}</span>` : ""}
-      </div>
-      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag${flagCls(ccDest)}" aria-hidden="true"></span></div>
-    </section>
-
-    <div class="cc3-rule"></div>
-
-    <section class="cc3-details${extraDateChips.length ? " cc3-details--multi" : ""}">
-      <div class="cc3-detail">
-        <div class="cc3-icon">
-          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
-        </div>
-        <div class="cc3-detail-txt">
-          <span class="cc3-d-label cc3-d-label--big">${extraDateChips.length ? "J'ai des voyages le :" : "Départ"}</span>
-          ${departValueHtml}
-        </div>
-      </div>
-      ${offerMode === "" ? `
-      <div class="cc3-detail">
-        <div class="cc3-icon">
-          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="13" width="24" height="22" rx="4"></rect><path d="M14 13v-3a6 6 0 0 1 12 0v3M20 19v9"></path></svg>
-        </div>
-        <div class="cc3-detail-txt">
-          <span class="cc3-d-label">Disponibilité</span>
-          <span class="cc3-value">${availableKg} <span class="cc3-kg">kg</span></span>
-        </div>
-      </div>` : ""}
-      <div class="cc3-detail cc3-detail-price">
-        <div class="cc3-price-source" aria-hidden="true">
-          <span class="cc3-d-label">Prix / kg</span>
-          <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
-          <span class="cc3-inclusive">all inclusive</span>
-        </div>
-        <div class="water-lens" aria-label="Prix par kilogramme: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
-          <div class="water-lens__content">
-            <div class="cc3-detail-txt">
-              <span class="cc3-d-label">Prix / kg</span>
-              <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
-              <span class="cc3-inclusive">all inclusive</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    ${hasSpecialZone ? `
-    <!-- ACCORDÉON : un bouton déplie tous les prix spéciaux PUIS les articles refusés -->
-    <section class="cc3-special-grid">
-      <button type="button" class="cc3-special-toggle cc3-special-toggle-gold" data-cc-expand="special" aria-expanded="false">
-        <span class="cc3-toggle-label">${accordionLabel}</span>
-        <svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg>
-      </button>
-      <div class="cc3-accordion-body">
-        ${validSpecial.length ? `
-        <div class="cc3-special-list">
-          ${validSpecial.map(specialRow).join("")}
-        </div>` : ""}
-        ${refusesItems.length ? `
-        <div class="cc3-refused-block">
-          <div class="cc3-refused-head">
-            <span class="cc3-section-icon cc3-section-icon-refused" aria-hidden="true">
-              <svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="20" cy="20" r="13.5"></circle>
-                <path d="M11 11l18 18"></path>
-              </svg>
-            </span>
-            <div class="cc3-refused-label">Articles refusés</div>
-          </div>
-          <div class="cc3-refused-list">
-            ${refusesItems.map(refusedRow).join("")}
-          </div>
-        </div>` : ""}
-      </div>
-    </section>` : ""}
-
-    ${cc3CardFooter({
-      photo: profilePhoto,
-      ownerId: offer.user_id || offer.userId || "",
-      name: offer.ownerName || "Voyageur",
-      isVerified: isVerified,
-      label: profileLabel,
-      // Mon trajet (voyageur ou cargo) : « Modifier mon trajet » à la place de « Contacter »
-      editAttr: isOwnOffer ? `data-edit-own-offer="${offer.id}"` : "",
-      editLabel: "Modifier mon trajet",
-      editAriaLabel: "Modifier mon trajet publie",
-      // Corbeille : suppression de mon propre trajet (avec confirmation)
-      deleteAttr: isOwnOffer ? `data-delete-own-offer="${offer.id}"` : "",
-      deleteLabel: "Supprimer mon trajet",
-      dataAttr: isOwnOffer ? "" : `data-reserve-offer="${offer.id}"`,
-      ariaLabel: `Contacter ${offer.ownerName || "ce voyageur"}`
-    })}
-  </article>
-</div>`;
-            })
-            .join("\n");
+        // « Afficher plus » pagine localement le résultat déjà filtré : aucune
+        // troncature silencieuse, le compteur affiche le total filtré (C-40).
+        const ordered = splitOwn(filtered);
+        const allOrdered = ordered.own.concat(ordered.others);
+        const visible = allOrdered.slice(0, state.visibleOffers);
+        const { own, others } = splitOwn(visible);
+        els.list.innerHTML = groupHtml(
+            own,
+            others,
+            (offer) => window.CCResultsCard.offer(offer, { currency: userCurrency(), userId: currentUserId() }),
+            "Mes publications",
+            "Toutes les offres"
+        );
+        flagsAfterRender();
+        renderActiveChips();
+        updateLoadMore(visible.length, filtered.length);
+        setBusy(false);
     }
 
-    async function startReservation(offerId) {
-        const offer = state.offers.find((item) => Number(item.id) === Number(offerId));
-        if (!offer) return;
+    function renderDemands() {
+        if (!els.list) return;
+        if (state.loading.demands && !state.demandsLoaded) {
+            renderSkeleton("demand");
+            return;
+        }
+        if (state.error.demands) {
+            renderDemandsError();
+            return;
+        }
+        const filtered = (state.demands || []).filter((demand) => demandMatches(demand, state.filters));
+        updateCounterAndTitle(filtered.length);
+        if (!filtered.length) {
+            els.list.innerHTML = emptyStateHtml(state.demands.length ? "filter" : "catalog");
+            els.loadMore.hidden = true;
+            els.loadMoreStatus.hidden = true;
+            renderActiveChips();
+            setBusy(false);
+            return;
+        }
+        const { own, others } = splitOwn(filtered);
+        els.list.innerHTML = groupHtml(
+            own,
+            others,
+            (demand) => window.CCResultsCard.demand(demand, { currency: userCurrency(), userId: currentUserId() }),
+            "Mes demandes",
+            "Toutes les demandes"
+        );
+        flagsAfterRender();
+        renderActiveChips();
+        els.loadMore.hidden = true;
+        els.loadMoreStatus.hidden = true;
+        setBusy(false);
+    }
 
-        const target = `chat.html?offerId=${encodeURIComponent(String(offer.id))}`;
-        if (!window.CCCommon.requireAuth(target)) return;
+    function updateCounterAndTitle(filteredCount) {
+        syncHeadline();
+        setCounterCount(filteredCount);
+    }
 
-        const user = window.CCCommon.state?.user;
-        if (user && !user.profile_type) {
-            try {
-                const response = await window.CCCommon.api('/users/me/profile', {
-                    method: 'PATCH',
-                    body: { profileType: 'client' }
-                });
-                if (response.success) {
-                    window.CCCommon.state.user.profile_type = 'client';
-                }
-            } catch (err) {
-                console.warn("Erreur lors de la mise à jour automatique vers 'client':", err);
-            }
+    function updateLoadMore(displayed, total) {
+        if (!els.loadMore) return;
+        const more = displayed < total;
+        els.loadMore.hidden = !more;
+        els.loadMore.disabled = state.loading.offers;
+        els.loadMore.textContent = `${displayed} offres affichées sur ${total} — Afficher plus`;
+        if (els.loadMoreStatus) els.loadMoreStatus.hidden = more;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Sections
+    // ─────────────────────────────────────────────────────────────
+    function sectionFromTab(tab) {
+        return tab === "cargo" ? "cargo" : tab === "demand" ? "demand" : "traveler";
+    }
+
+    function setSection(section, { focus = false } = {}) {
+        if (!SECTION_META[section]) return;
+        state.section = section;
+        if (section !== "demand") state.subSection = section;
+        syncSectionUi();
+        renderActiveChips();
+
+        if (section === "demand") {
+            if (!state.demandsLoaded && !state.loading.demands) loadDemands();
+            else renderDemands();
+        } else {
+            state.visibleOffers = state.offersPageSize;
+            if (!state.offersLoaded && !state.loading.offers) loadOffers();
+            else renderOffers();
+        }
+        if (focus) {
+            const target = section === "demand" ? els.desktopTabs[2] : section === "cargo" ? els.desktopTabs[1] : els.desktopTabs[0];
+            target?.focus();
+        }
+    }
+
+    function syncSectionUi() {
+        const section = state.section;
+        const activeTab = section === "demand" ? "demand" : section === "cargo" ? "cargo" : "traveler";
+        const tabIds = ["traveler", "cargo", "demand"];
+        els.desktopTabs.forEach((tab, index) => {
+            if (!tab) return;
+            const selected = tabIds[index] === activeTab;
+            tab.setAttribute("aria-selected", selected ? "true" : "false");
+            tab.tabIndex = selected ? 0 : -1;
+        });
+        els.mobileTabs.forEach((tab, index) => {
+            if (!tab) return;
+            const selected = index === (section === "demand" ? 1 : 0);
+            tab.setAttribute("aria-selected", selected ? "true" : "false");
+            tab.tabIndex = selected ? 0 : -1;
+        });
+
+        // Sous-switch : famille Offres seulement
+        if (els.subSwitch) {
+            els.subSwitch.hidden = section === "demand";
+            els.subSwitch.querySelectorAll('input[name="offer-sub"]').forEach((input) => {
+                input.checked = input.value === (section === "demand" ? state.subSection : section);
+            });
         }
 
-        window.location.href = target;
+        // Barre de recherche : variante demandes
+        if (els.searchPanel) els.searchPanel.classList.toggle("cc-search-panel--demand", section === "demand");
+        if (els.searchWeightField) els.searchWeightField.hidden = section === "demand";
+        if (els.searchCapacityField) els.searchCapacityField.hidden = section !== "demand";
+        if (els.searchOptions) els.searchOptions.hidden = section === "demand";
+        if (els.demandCreate) els.demandCreate.hidden = section !== "demand";
+        if (els.demandCreateMobile) els.demandCreateMobile.hidden = section !== "demand";
+        if (els.resultsPanel) {
+            const label = isMobile()
+                ? (section === "demand" ? "mobile-tab-demand" : "mobile-tab-traveler")
+                : (section === "demand" ? "tab-demand" : section === "cargo" ? "tab-cargo" : "tab-traveler");
+            els.resultsPanel.setAttribute("aria-labelledby", label);
+        }
+        syncHeadline();
+        syncSearchFields();
+        syncSheetVariant();
     }
 
-    // Contact depuis une carte DEMANDE : ouvre (ou cree) le fil de chat avec le demandeur.
-    // Le fil n'a pas de colonne pour porter la demande -> son contexte est ecrit en premier message.
-    function startDemandContact(requestId) {
-        const id = Number(requestId);
-        if (!Number.isFinite(id) || id <= 0) return;
-        const demand = (state.demands || []).find((item) => Number(item.id) === id);
-        if (demand && window.CCCommon.state?.user?.id && demand.user_id === window.CCCommon.state.user.id) return;
-        const target = `chat.html?requestId=${encodeURIComponent(String(id))}`;
-        if (!window.CCCommon.requireAuth(target)) return;
-        window.location.href = target;
+    function syncSheetVariant() {
+        const demand = state.section === "demand";
+        if (els.mfWeightField) els.mfWeightField.hidden = demand;
+        if (els.mfWeightRangeWrap) els.mfWeightRangeWrap.hidden = demand;
+        if (els.mfCapacityField) els.mfCapacityField.hidden = !demand;
+        if (els.mfConfidence) els.mfConfidence.hidden = demand;
+        if (els.mfUrgentSection) els.mfUrgentSection.hidden = demand;
+        if (els.mfSortSection) els.mfSortSection.hidden = demand;
     }
 
-    function initCustomCurrencyDropdown() {
-        const currencyListEl = document.getElementById("currency-options-list");
-        const searchInput = document.getElementById("currency-search-input");
-        const triggerBtn = document.getElementById("currency-trigger-btn");
-        const valSpan = document.getElementById("current-currency-val");
-        const menuEl = document.getElementById("currency-dropdown-menu");
+    function reloadActive() {
+        // Une recherche explicite relit la source : une demande créée depuis le
+        // chargement initial doit apparaître (CA-18), comme une offre publiée.
+        if (state.section === "demand") return loadDemands();
+        return loadOffers();
+    }
 
-        if (!triggerBtn || !menuEl) return;
+    function clearFilters({ keepSort = true } = {}) {
+        const sort = keepSort ? state.filters.sort : "date";
+        state.filters = {
+            origin: "",
+            destination: "",
+            date: "",
+            minKg: null,
+            verified: false,
+            urgent: false,
+            sort,
+            demandCapacity: null
+        };
+        syncSearchFields();
+        syncPills();
+        renderActiveChips();
+        return reloadActive();
+    }
 
-        const exchangeRates = window.CCCommon?.EXCHANGE_RATES || {};
+    function updateFilter(key, value) {
+        state.filters[key] = value;
+        syncSearchFields();
+        renderActiveChips();
+    }
 
-        // Noms + acronymes : source unique = CCCommon.CURRENCY_META (standalone-common.js)
-        const sharedMeta = (window.CCCommon && window.CCCommon.CURRENCY_META) || {};
-        const CUR_DETAILS = Object.keys(sharedMeta).reduce((acc, code) => {
-            acc[code] = { symbol: sharedMeta[code].symbol, name: sharedMeta[code].name };
-            return acc;
-        }, {});
-        // Si les taux Supabase ne sont pas encore chargés, utiliser CUR_DETAILS comme fallback
-        const rateKeys = Object.keys(exchangeRates);
-        const hasRealRates = rateKeys.length > 2;
-        const sortedCurrencies = hasRealRates
-            ? rateKeys.sort()
-            : Object.keys(CUR_DETAILS).sort();
+    function removeFilter(key) {
+        if (key === "sort") state.filters.sort = "date";
+        else if (key === "minKg") state.filters.minKg = null;
+        else if (key === "demandCapacity") state.filters.demandCapacity = null;
+        else if (key === "verified" || key === "urgent") state.filters[key] = false;
+        else state.filters[key] = "";
+        syncSearchFields();
+        renderActiveChips();
+        return reloadActive();
+    }
 
-        function renderCurrencyList(filterText = "") {
-            if (!currencyListEl) return;
-            const normalizedFilter = filterText.toLowerCase().trim();
-
-            const matchedCurrencies = sortedCurrencies.filter(cur => {
-                if (!normalizedFilter) return true;
-                const detail = CUR_DETAILS[cur];
-                const name = detail ? detail.name.toLowerCase() : "";
-                return cur.toLowerCase().includes(normalizedFilter) || name.includes(normalizedFilter);
+    // ─────────────────────────────────────────────────────────────
+    // Changement de section (onglets desktop / mobile / sous-switch)
+    // ─────────────────────────────────────────────────────────────
+    function bindSectionControls() {
+        els.desktopTabs.forEach((tab, index) => {
+            if (!tab) return;
+            tab.addEventListener("click", () => setSection(sectionFromTab(["traveler", "cargo", "demand"][index]), { focus: false }));
+            tab.addEventListener("keydown", (event) => {
+                const keys = ["ArrowLeft", "ArrowRight", "Home", "End"];
+                if (!keys.includes(event.key)) return;
+                event.preventDefault();
+                let next = index;
+                if (event.key === "ArrowLeft") next = (index - 1 + 3) % 3;
+                if (event.key === "ArrowRight") next = (index + 1) % 3;
+                if (event.key === "Home") next = 0;
+                if (event.key === "End") next = 2;
+                const target = els.desktopTabs[next];
+                target?.focus();
+                setSection(["traveler", "cargo", "demand"][next]);
             });
+        });
+        els.mobileTabs.forEach((tab, index) => {
+            if (!tab) return;
+            tab.addEventListener("click", () => {
+                if (index === 1) setSection("demand");
+                else setSection(state.subSection);
+            });
+            tab.addEventListener("keydown", (event) => {
+                if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === "ArrowLeft" || event.key === "Home" ? 0 : 1;
+                els.mobileTabs[next]?.focus();
+                setSection(next === 1 ? "demand" : state.subSection);
+            });
+        });
+        els.subSwitch?.querySelectorAll('input[name="offer-sub"]').forEach((input) => {
+            input.addEventListener("change", () => {
+                if (!input.checked) return;
+                state.subSection = input.value === "cargo" ? "cargo" : "traveler";
+                if (state.section !== "demand") setSection(state.subSection);
+            });
+        });
+    }
 
-            if (matchedCurrencies.length === 0) {
-                currencyListEl.innerHTML = `<li style="padding: 10px 16px; color: var(--muted); font-size: 13px; text-align: center;">Aucun résultat</li>`;
+    // ─────────────────────────────────────────────────────────────
+    // Recherche, pastilles, tri, chips
+    // ─────────────────────────────────────────────────────────────
+    function bindSearchControls() {
+        els.searchForm?.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (!validateActiveSearchNumber()) {
+                (state.section === "demand" ? els.searchCapacity : els.searchWeight)?.focus();
                 return;
             }
+            readSearchFields();
+            renderActiveChips();
+            reloadActive();
+        });
+        els.searchClear?.addEventListener("click", () => clearFilters());
+        els.clearAllFilters?.addEventListener("click", () => clearFilters());
+        [els.searchWeight, els.searchCapacity].forEach((input) => {
+            if (!input) return;
+            input.addEventListener("input", () => {
+                const errorEl = input === els.searchWeight ? els.searchWeightError : els.searchCapacityError;
+                validateKgField(input, errorEl);
+            });
+        });
+        els.offlineRetry?.addEventListener("click", () => {
+            if (navigator.onLine === false) {
+                showToast("Toujours hors ligne. Vérifiez votre connexion.", "error");
+                return;
+            }
+            reloadActive();
+        });
 
-            currencyListEl.innerHTML = matchedCurrencies
-                .map(cur => {
-                    const detail = CUR_DETAILS[cur];
-                    const activeClass = state.userCurrency === cur ? "active" : "";
-                    const nameLabel = detail ? detail.name
-                        : (window.CCCommon?.currencyName?.(cur) || `Devise ${cur}`);
-                    return `<li class="currency-dropdown-item ${activeClass}" data-value="${cur}">
-                        <span class="currency-item-code">${(detail && detail.symbol) || cur}</span>
-                        <span class="currency-item-name">${nameLabel}</span>
-                    </li>`;
-                })
-                .join("\n");
+        els.pillVerified?.addEventListener("click", () => {
+            readSearchFields();
+            state.filters.verified = !state.filters.verified;
+            syncPills();
+            renderActiveChips();
+            reloadActive();
+        });
+        els.pillUrgent?.addEventListener("click", () => {
+            readSearchFields();
+            state.filters.urgent = !state.filters.urgent;
+            syncPills();
+            renderActiveChips();
+            reloadActive();
+        });
+        els.pillWeight?.addEventListener("click", () => {
+            readSearchFields();
+            const active = state.filters.minKg !== null && state.filters.minKg >= 10;
+            state.filters.minKg = active ? null : 10;
+            syncSearchFields();
+            renderActiveChips();
+            reloadActive();
+        });
+        els.sortSelect?.addEventListener("change", () => {
+            readSearchFields();
+            state.filters.sort = els.sortSelect.value === "price" ? "price" : "date";
+            renderActiveChips();
+            if (state.section === "demand") renderDemands();
+            else {
+                state.visibleOffers = state.offersPageSize;
+                renderOffers();
+            }
+        });
+
+        els.activeChips?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-remove-filter]");
+            if (!button) return;
+            removeFilter(button.getAttribute("data-remove-filter"));
+        });
+
+        els.list?.addEventListener("click", handleListClick);
+        els.loadMore?.addEventListener("click", () => {
+            if (!els.loadMore || els.loadMore.disabled) return;
+            state.visibleOffers += state.offersPageSize;
+            renderOffers();
+        });
+    }
+
+    function handleListClick(event) {
+        const action = event.target.closest("[data-action]");
+        if (action) {
+            const name = action.getAttribute("data-action");
+            if (name === "create-demand") openDemandModal();
+            if (name === "clear-filters") clearFilters();
+            if (name === "retry") reloadActive();
+            return;
         }
 
-        // Toggle dropdown open/close
-        triggerBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            menuEl.classList.toggle("hidden");
-            if (!menuEl.classList.contains("hidden")) {
-                if (searchInput) {
-                    searchInput.value = "";
-                    searchInput.focus();
-                }
-                renderCurrencyList("");
-            }
-        });
+        const accordion = event.target.closest("[data-cc-expand]");
+        if (accordion) {
+            const body = accordion.parentElement?.querySelector(".cc-accordion-body");
+            const open = accordion.getAttribute("aria-expanded") === "true";
+            accordion.setAttribute("aria-expanded", open ? "false" : "true");
+            accordion.classList.toggle("is-open", !open);
+            if (body) body.hidden = open;
+            return;
+        }
 
-        // Prevent closing dropdown when clicking inside search input or search container
-        searchInput?.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
+        const more = event.target.closest("[data-demand-more]");
+        if (more) {
+            const body = more.closest(".cc-demand-body");
+            const lines = body?.querySelector(".cc-demand-lines");
+            const open = more.getAttribute("aria-expanded") === "true";
+            more.setAttribute("aria-expanded", open ? "false" : "true");
+            lines?.classList.toggle("is-expanded", !open);
+            more.textContent = open ? `Voir plus (${more.dataset.count || ""})` : "Voir moins";
+            return;
+        }
 
-        searchInput?.addEventListener("input", (e) => {
-            renderCurrencyList(e.target.value);
-        });
+        const edit = event.target.closest("[data-edit-own-offer], [data-edit-own-demand]");
+        if (edit) {
+            const demandId = edit.getAttribute("data-edit-own-demand");
+            const offerId = edit.getAttribute("data-edit-own-offer");
+            if (demandId) openDemandeEditor(demandId);
+            else if (offerId) window.location.href = `post_trip.html?editOffer=${encodeURIComponent(offerId)}`;
+            return;
+        }
 
-        // Choice selection handler
-        currencyListEl?.addEventListener("click", (e) => {
-            const item = e.target.closest(".currency-dropdown-item");
-            if (!item) return;
-            const val = item.getAttribute("data-value");
-            if (val) {
-                state.userCurrency = val;
-            // Memoriser le choix (valable 3 h) : sans ca, il etait perdu au rechargement
-            window.CCCommon.saveCurrencyChoice?.(val);
-                // Acronyme local a l'ecran ("FCFA"), jamais le code ISO
-                if (valSpan) valSpan.textContent = displayCur(val);
-                menuEl.classList.add("hidden");
-                // Les deux listes affichent la devise choisie : on redessine celle qui est visible
-                setMobilePrimaryMode(state.mobilePrimaryMode);
-            }
-        });
+        const removeDemand = event.target.closest("[data-delete-own-demand]");
+        if (removeDemand) {
+            deleteDemand(removeDemand.getAttribute("data-delete-own-demand"));
+            return;
+        }
+        const removeOffer = event.target.closest("[data-delete-own-offer]");
+        if (removeOffer) {
+            deleteOffer(removeOffer.getAttribute("data-delete-own-offer"));
+            return;
+        }
 
-        // Close on click outside
-        document.addEventListener("click", (e) => {
-            if (!e.target.closest("#custom-currency-dropdown") && !e.target.closest(".currency-wrap")) {
-                menuEl.classList.add("hidden");
-            }
-        });
-
-        // Initialize display value
-        if (state.userCurrency && valSpan) {
-            valSpan.textContent = displayCur(state.userCurrency);
+        const contactDemand = event.target.closest("[data-contact-request]");
+        if (contactDemand) {
+            startDemandContact(contactDemand.getAttribute("data-contact-request"));
+            return;
+        }
+        const contactOffer = event.target.closest("[data-reserve-offer]");
+        if (contactOffer) {
+            startReservation(contactOffer.getAttribute("data-reserve-offer"));
         }
     }
 
-    // ── Suppression d'une de MES demandes ──────────────────────────────────────
-    // Confirmation obligatoire, puis DELETE ciblé (id + propriétaire). On vérifie que
-    // la ligne a bien été supprimée : sans droit RLS DELETE, Supabase renvoie 0 ligne
-    // SANS erreur (même piège que pour la modification).
-    async function deleteDemande(parcelId) {
-        const id = String(parcelId || "").trim();
+    // ─────────────────────────────────────────────────────────────
+    // Contact, suppression
+    // ─────────────────────────────────────────────────────────────
+    async function startReservation(offerId) {
+        const id = String(offerId || "").trim();
         if (!id) return;
-        if (!window.confirm("Supprimer définitivement cette demande ?\n\nCette action est irréversible.")) return;
+        const target = `chat.html?offerId=${encodeURIComponent(id)}`;
+        if (!CC.requireAuth(target)) return;
+        const user = CC.state?.user;
+        if (user && !user.profile_type) {
+            try {
+                const response = await CC.api("/users/me/profile", {
+                    method: "PATCH",
+                    body: { profileType: "client" }
+                });
+                if (response?.success) CC.state.user.profile_type = "client";
+            } catch (error) {
+                console.warn("Profil client non mis à jour :", error);
+            }
+        }
+        window.location.href = target;
+    }
+
+    function startDemandContact(requestId) {
+        const id = String(requestId || "").trim();
+        if (!id) return;
+        const demand = state.demands.find((item) => String(item.id) === id);
+        if (demand && currentUserId() && String(demand.user_id) === String(currentUserId())) return;
+        const target = `chat.html?requestId=${encodeURIComponent(id)}`;
+        if (!CC.requireAuth(target)) return;
+        window.location.href = target;
+    }
+
+    function maybeSessionExpired(error) {
+        const message = String(error?.message || error || "");
+        if (!/jwt|session|token|auth|401/i.test(message)) return false;
+        openConfirm({
+            title: "Votre session a expiré.",
+            text: "Reconnectez-vous pour continuer.",
+            okLabel: "Se reconnecter",
+            danger: false
+        }).then((ok) => {
+            if (!ok) return;
+            const next = encodeURIComponent(`${location.pathname}${location.search}`);
+            window.location.href = `auth.html?next=${next}`;
+        });
+        return true;
+    }
+
+    function openConfirm({ title, text, okLabel = "Supprimer", danger = true }) {
+        if (!els.confirm || !els.confirmTitle || !els.confirmText) return Promise.resolve(false);
+        state.lastFocus = document.activeElement;
+        els.confirmTitle.textContent = title;
+        els.confirmText.textContent = text;
+        els.confirmOk.textContent = okLabel;
+        els.confirmOk.classList.toggle("cc-btn-danger", danger);
+        els.confirmOk.classList.toggle("cc-btn-primary", !danger);
+        els.confirm.hidden = false;
+        els.confirmCancel?.focus();
+        return new Promise((resolve) => { state.confirmResolve = resolve; });
+    }
+
+    function settleConfirm(value) {
+        if (!els.confirm || els.confirm.hidden) return;
+        els.confirm.hidden = true;
+        const resolve = state.confirmResolve;
+        state.confirmResolve = null;
+        if (typeof resolve === "function") resolve(value);
+        if (state.lastFocus && typeof state.lastFocus.focus === "function") state.lastFocus.focus();
+    }
+
+    async function deleteDemand(demandId) {
+        const id = String(demandId || "").trim();
+        if (!id) return;
+        const ok = await openConfirm({
+            title: "Supprimer cette demande ?",
+            text: "Cette action est définitive. Les conversations liées seront supprimées.",
+            okLabel: "Supprimer"
+        });
+        if (!ok) return;
         if (!window.ccSupabase) {
-            window.alert("Suppression indisponible : mode dégradé sans base de données.");
+            showToast("Suppression indisponible : mode dégradé sans base de données.", "error");
             return;
         }
-        const userId = window.CCCommon.state?.user?.id;
+        const userId = currentUserId();
         if (!userId) {
-            window.alert("Vous devez être connecté pour supprimer votre demande.");
+            showToast("Vous devez être connecté pour supprimer votre demande.", "error");
             return;
         }
         try {
@@ -1077,1012 +1221,1151 @@
                 .select("id");
             if (error) throw error;
             if (!data || !data.length) {
-                throw new Error("Suppression refusee par la base de donnees (aucune ligne supprimee). Droits manquants : politique RLS DELETE sur parcel_requests.");
+                throw new Error("Suppression refusée par la base (aucune ligne supprimée). Droits manquants : politique RLS DELETE sur parcel_requests.");
             }
-            // Retrait immediat de la carte, puis etat mis a jour
-            state.demands = (state.demands || []).filter((d) => String(d.id) !== id);
+            state.demands = state.demands.filter((demand) => String(demand.id) !== id);
             renderDemands();
-        } catch (err) {
-            console.error("Erreur suppression demande:", err);
-            window.alert("Erreur: " + (err.message || "Suppression impossible."));
+            showToast("Demande supprimée.");
+        } catch (error) {
+            console.error("Erreur suppression demande :", error);
+            if (!maybeSessionExpired(error)) showToast(error?.message || "Suppression impossible.", "error");
         }
     }
 
-    // ── Suppression d'un de MES trajets (carte d'offre) ────────────────────────
-    // Même mécanique que le tableau de bord : fonction de la base sécurisée
-    // (elle n'accepte aucun identifiant d'utilisateur venant du client, elle se
-    // base sur l'identité réelle de la session et n'agit que sur ses propres
-    // annonces), avec repli en archivage si la ligne n'existe plus. On vérifie
-    // qu'une ligne a bien été touchée : 0 => on le dit au lieu de faire semblant.
-    async function deleteOffre(offerId) {
+    async function deleteOffer(offerId) {
         const id = String(offerId || "").trim();
         if (!id) return;
+        const ok = await openConfirm({
+            title: "Supprimer ce trajet ?",
+            text: "Cette action est définitive. Les conversations liées seront supprimées.",
+            okLabel: "Supprimer"
+        });
+        if (!ok) return;
         if (!window.ccSupabase) {
-            window.alert("Suppression indisponible : mode dégradé sans base de données.");
+            showToast("Suppression indisponible : mode dégradé sans base de données.", "error");
             return;
         }
-        if (!window.confirm("Supprimer définitivement ce trajet ?\n\nLes réservations et discussions liées seront également supprimées. Cette action est irréversible.")) return;
         try {
-            const { data: nDel, error: e1 } = await window.ccSupabase.rpc("cc_delete_own_offer", { p_offer_id: Number(id) });
-            if (e1) throw e1;
-            let fait = nDel || 0;
-            if (!fait) {
-                const { data: nArch, error: e2 } = await window.ccSupabase.rpc("cc_archive_own_offer", { p_offer_id: Number(id) });
-                if (e2) throw e2;
-                fait = nArch || 0;
+            const { data: deleted, error: deleteError } = await window.ccSupabase.rpc("cc_delete_own_offer", { p_offer_id: Number(id) });
+            if (deleteError) throw deleteError;
+            let done = deleted || 0;
+            if (!done) {
+                const { data: archived, error: archiveError } = await window.ccSupabase.rpc("cc_archive_own_offer", { p_offer_id: Number(id) });
+                if (archiveError) throw archiveError;
+                done = archived || 0;
             }
-            if (!fait) {
-                throw new Error("Suppression refusee par la base de donnees (aucune ligne supprimee) : ce trajet n'a pas ete trouve, ou il ne vous appartient pas.");
+            if (!done) {
+                throw new Error("Suppression refusée par la base (aucune ligne supprimée) : ce trajet n'a pas été trouvé, ou il ne vous appartient pas.");
             }
-
-            // Nettoyage des donnees liees (au mieux, ne bloque jamais la suppression)
+            // Nettoyage des données liées (au mieux, ne bloque jamais la suppression).
             try {
                 const { data: reservations } = await window.ccSupabase.from("reservations").select("id").eq("offer_id", id);
                 if (reservations && reservations.length) {
-                    const resIds = reservations.map((r) => r.id);
-                    const { data: threads } = await window.ccSupabase.from("chat_threads").select("id").in("reservation_id", resIds);
-                    const tIds = (threads || []).map((t) => t.id);
-                    if (tIds.length) {
-                        await window.ccSupabase.from("chat_messages").delete().in("thread_id", tIds);
-                        await window.ccSupabase.from("chat_threads").delete().in("id", tIds);
+                    const reservationIds = reservations.map((row) => row.id);
+                    const { data: threads } = await window.ccSupabase.from("chat_threads").select("id").in("reservation_id", reservationIds);
+                    const threadIds = (threads || []).map((row) => row.id);
+                    if (threadIds.length) {
+                        await window.ccSupabase.from("chat_messages").delete().in("thread_id", threadIds);
+                        await window.ccSupabase.from("chat_threads").delete().in("id", threadIds);
                     }
-                    await window.ccSupabase.from("reservations").delete().in("id", resIds);
+                    await window.ccSupabase.from("reservations").delete().in("id", reservationIds);
                 }
                 const { data: directThreads } = await window.ccSupabase.from("chat_threads").select("id").eq("offer_id", id);
                 if (directThreads && directThreads.length) {
-                    const tIds = directThreads.map((t) => t.id);
-                    await window.ccSupabase.from("chat_messages").delete().in("thread_id", tIds);
-                    await window.ccSupabase.from("chat_threads").delete().in("id", tIds);
+                    const threadIds = directThreads.map((row) => row.id);
+                    await window.ccSupabase.from("chat_messages").delete().in("thread_id", threadIds);
+                    await window.ccSupabase.from("chat_threads").delete().in("id", threadIds);
                 }
-            } catch (e) { console.warn("Nettoyage annexe partiel:", e); }
-
-            // Retrait immediat de la carte, puis etat mis a jour
-            state.offers = (state.offers || []).filter((o) => String(o.id) !== id);
+            } catch (cleanupError) {
+                console.warn("Nettoyage annexe partiel :", cleanupError);
+            }
+            state.offers = state.offers.filter((offer) => String(offer.id) !== id);
             renderOffers();
-        } catch (err) {
-            console.error("Erreur suppression trajet:", err);
-            window.alert("Erreur: " + (err.message || "Suppression impossible."));
+            showToast("Trajet supprimé.");
+        } catch (error) {
+            console.error("Erreur suppression trajet :", error);
+            if (!maybeSessionExpired(error)) showToast(error?.message || "Suppression impossible.", "error");
         }
     }
 
-    function bindEvents() {
-        initCustomCurrencyDropdown();
-
-        if (els.offersList) {
-            els.offersList.addEventListener("click", (event) => {
-                // Mes propres publications → « Modifier mon trajet / ma demande »
-                // Redirige vers le tableau de bord, qui ouvre sa modale d'édition.
-                const editOwnBtn = event.target.closest(
-                    "button[data-edit-own-offer],button[data-edit-own-demand]"
-                );
-                // Corbeille : suppression de ma propre demande (avec confirmation)
-                const delOwnBtn = event.target.closest("button[data-delete-own-demand]");
-                if (delOwnBtn) {
-                    deleteDemande(delOwnBtn.getAttribute("data-delete-own-demand"));
-                    return;
-                }
-                // Corbeille : suppression de mon propre trajet (avec confirmation)
-                const delOwnOfferBtn = event.target.closest("button[data-delete-own-offer]");
-                if (delOwnOfferBtn) {
-                    deleteOffre(delOwnOfferBtn.getAttribute("data-delete-own-offer"));
-                    return;
-                }
-                if (editOwnBtn) {
-                    const ownOfferId = editOwnBtn.getAttribute("data-edit-own-offer");
-                    const ownDemandId = editOwnBtn.getAttribute("data-edit-own-demand");
-                    if (ownDemandId) {
-                        // Édition DIRECTE dans cette page : réutilise le formulaire officiel
-                        // de demande (mêmes champs que la publication) → ni dashboard,
-                        // ni rechargement, et aucune divergence entre les 2 formulaires.
-                        if (typeof window.openDemandeEditor === "function") {
-                            window.openDemandeEditor(ownDemandId);
-                        }
-
-                    } else if (ownOfferId) {
-                        // Trajet : le formulaire de publication (post_trip.html) n'a pas encore
-                        // de mode édition -> on garde le tableau de bord pour l'instant
-                        // (l'unification post_trip ↔ dashboard est l'étape suivante).
-                        // On ouvre LE formulaire officiel de publication en mode modification
-                        // (aucune copie => aucun ecart avec la page post_trip).
-                        window.location.href = "post_trip.html?editOffer=" + encodeURIComponent(ownOfferId);
-                    }
-                    return;
-                }
-                const demandBtn = event.target.closest("button[data-contact-request]");
-                if (demandBtn) {
-                    startDemandContact(Number(demandBtn.getAttribute("data-contact-request")));
-                    return;
-                }
-                const button = event.target.closest("button[data-reserve-offer]");
-                if (!button) return;
-                const offerId = Number(button.getAttribute("data-reserve-offer"));
-                startReservation(offerId).catch((error) => {
-                    if (error?.code === "PROFILE_COMPLETION_REQUIRED") {
-                        window.CCCommon.openProfileCompletionGate("results.html");
-                    } else {
-                        alert(error.message || "Impossible de contacter ce voyageur.");
-                    }
-                });
-            });
+    // ─────────────────────────────────────────────────────────────
+    // Devise
+    // ─────────────────────────────────────────────────────────────
+    function currencyCodes() {
+        const meta = CC.CURRENCY_META || {};
+        const codes = Object.keys(meta);
+        if (!codes.length) {
+            const rates = CC.EXCHANGE_RATES || {};
+            return Object.keys(rates).length ? Object.keys(rates) : ["EUR"];
         }
+        return codes.sort((a, b) => a.localeCompare(b));
+    }
 
-        // Profil type Filters : DÉPLACÉS dans bindSwitchesEarly() (attachés dès le
-        // chargement du script, avant l'init async) pour ne perdre aucun clic.
-        // Idem pour les onglets [data-mobile-mode] ci-dessous.
+    function currencyOptions(filter = "") {
+        const needle = normalize(filter);
+        const rates = CC.EXCHANGE_RATES || {};
+        const hasRates = Object.keys(rates).length > 1;
+        return currencyCodes()
+            .filter((code) => {
+                if (!needle) return true;
+                const name = CC.currencyName?.(code) || "";
+                return normalize(code).includes(needle) || normalize(name).includes(needle);
+            })
+            .map((code) => ({
+                code,
+                acronym: currencyAcronym(code),
+                name: CC.currencyName?.(code) || `Devise ${code}`,
+                missingRate: hasRates && !rates[code]
+            }));
+    }
 
-        // Les boutons « Rechercher » et « Effacer » sont attachés TÔT, dans
-        // bindSwitchesEarly() : ici (fin de bootstrap) un clic fait pendant le
-        // chargement était perdu, et la recherche ne visait que les offres.
+    function renderCurrencyOptions(filter = "") {
+        if (!els.currencyList) return;
+        const options = currencyOptions(filter);
+        if (!options.length) {
+            els.currencyList.innerHTML = '<li class="cc-currency-empty" role="presentation">Aucun résultat</li>';
+            return;
+        }
+        els.currencyList.innerHTML = options.map((option) => `
+          <li role="option" id="cc-cur-opt-${esc(option.code)}" class="cc-currency-option${option.code === state.currency ? " is-selected" : ""}"
+              data-value="${esc(option.code)}" aria-selected="${option.code === state.currency ? "true" : "false"}" tabindex="-1">
+            <span class="cc-currency-option-code">${esc(option.acronym)}</span>
+            <span class="cc-currency-option-name">${esc(option.name)}</span>
+            ${option.missingRate ? '<span class="cc-warn-badge">Taux indisponible</span>' : ""}
+            ${option.code === state.currency ? '<svg class="cc-currency-check" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"></path></svg>' : ""}
+          </li>`).join("");
+    }
 
-        // Sort Select
-        document.getElementById("sort-select")?.addEventListener("change", (e) => {
-            state.sortBy = e.target.value;
-            renderOffers();
+    function openCurrencyMenu() {
+        if (!els.currencyMenu || !els.currencyTrigger) return;
+        els.currencyMenu.hidden = false;
+        els.currencyTrigger.setAttribute("aria-expanded", "true");
+        if (els.currencySearch) {
+            els.currencySearch.value = "";
+            els.currencySearch.focus();
+        }
+        renderCurrencyOptions("");
+    }
+
+    function closeCurrencyMenu({ focusTrigger = false } = {}) {
+        if (!els.currencyMenu) return;
+        els.currencyMenu.hidden = true;
+        els.currencyTrigger?.setAttribute("aria-expanded", "false");
+        if (focusTrigger) els.currencyTrigger?.focus();
+    }
+
+    function selectCurrency(code) {
+        if (!code) return;
+        state.currency = code;
+        CC.saveCurrencyChoice?.(code);
+        if (els.currencyValue) els.currencyValue.textContent = currencyAcronym(code);
+        closeCurrencyMenu({ focusTrigger: true });
+        if (state.section === "demand") renderDemands();
+        else renderOffers();
+    }
+
+    function bindCurrency() {
+        els.currencyTrigger?.addEventListener("click", () => {
+            if (els.currencyMenu?.hidden) openCurrencyMenu();
+            else closeCurrencyMenu({ focusTrigger: true });
         });
+        els.currencyTrigger?.addEventListener("keydown", (event) => {
+            if (["Enter", " ", "ArrowDown"].includes(event.key)) {
+                event.preventDefault();
+                openCurrencyMenu();
+            }
+            if (event.key === "Escape") closeCurrencyMenu({ focusTrigger: true });
+        });
+        els.currencySearch?.addEventListener("input", () => renderCurrencyOptions(els.currencySearch.value));
+        els.currencySearch?.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                els.currencyList?.querySelector('[role="option"]')?.focus();
+            }
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeCurrencyMenu({ focusTrigger: true });
+            }
+        });
+        els.currencyList?.addEventListener("click", (event) => {
+            const option = event.target.closest('[role="option"]');
+            if (option) selectCurrency(option.getAttribute("data-value"));
+        });
+        els.currencyList?.addEventListener("focusin", (event) => {
+            const option = event.target.closest('[role="option"]');
+            if (!option) return;
+            els.currencyList.setAttribute("aria-activedescendant", option.id);
+        });
+        els.currencyList?.addEventListener("keydown", (event) => {
+            const options = Array.from(els.currencyList.querySelectorAll('[role="option"]'));
+            const index = options.indexOf(document.activeElement);
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                options[Math.min(index + 1, options.length - 1)]?.focus();
+            } else if (event.key === "ArrowUp") {
+                event.preventDefault();
+                if (index <= 0) els.currencySearch?.focus();
+                else options[index - 1]?.focus();
+            } else if (event.key === "Home") {
+                event.preventDefault();
+                options[0]?.focus();
+            } else if (event.key === "End") {
+                event.preventDefault();
+                options[options.length - 1]?.focus();
+            } else if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                if (index >= 0) selectCurrency(options[index].getAttribute("data-value"));
+            } else if (event.key === "Escape") {
+                event.preventDefault();
+                closeCurrencyMenu({ focusTrigger: true });
+            }
+        });
+        document.addEventListener("click", (event) => {
+            if (!event.target.closest("#currency-wrap")) closeCurrencyMenu();
+        });
+    }
 
-        // Pill Toggles
-        const togglePill = (id, stateKey) => {
-            const btn = document.getElementById(id);
-            if (!btn) return;
-            btn.addEventListener("click", () => {
-                state[stateKey] = !state[stateKey];
-
-                // Toggle active styling
-                if (state[stateKey]) {
-                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-primary text-primary bg-primary/10 text-sm whitespace-nowrap transition-colors duration-200 active:scale-95 cursor-pointer";
-                } else {
-                    btn.className = "flex items-center gap-2 px-4 py-1.5 rounded-full border border-white/10 text-on-surface-variant hover:text-primary hover:border-primary/50 hover:bg-surface-variant text-sm whitespace-nowrap transition-all duration-200 active:scale-95 bg-transparent cursor-pointer";
-                }
-                renderOffers();
-            });
+    // ─────────────────────────────────────────────────────────────
+    // Feuille de filtres (brouillon)
+    // ─────────────────────────────────────────────────────────────
+    function openSheet() {
+        if (!els.sheet || !els.sheetOverlay) return;
+        state.lastFocus = document.activeElement;
+        state.sheetDraft = {
+            origin: state.filters.origin,
+            destination: state.filters.destination,
+            date: state.filters.date,
+            minKg: state.filters.minKg,
+            verified: state.filters.verified,
+            urgent: state.filters.urgent,
+            sort: state.filters.sort,
+            demandCapacity: state.filters.demandCapacity
         };
-
-        togglePill("pill-verified", "filterVerified");
-        togglePill("pill-weight", "filterWeight10");
-        togglePill("pill-urgent", "filterUrgent");
-
-    
-
-}
-
-    // ── Switches d'onglets : attachés DÈS le chargement du script ──────────────
-    // AVANT l'initialisation async (auth, taux de change, listes). Avant ce
-    // correctif, les écouteurs n'étaient posés qu'à la fin de bootstrap()
-    // (bindEvents) : tout clic fait pendant le chargement était IGNORÉ, et la liste
-    // affichée ensuite ne correspondait plus au bouton actif.
-    function bindSwitchesEarly() {
-        document.querySelectorAll('[data-profile-type="traveler"]').forEach((btn) => {
-            btn.addEventListener("click", () => setProfileType("traveler"));
-        });
-        document.querySelectorAll('[data-profile-type="cargo"]').forEach((btn) => {
-            btn.addEventListener("click", () => setProfileType("cargo"));
-        });
-        // Onglet « Je cherche un client » (les « demandes » de transport) : il
-        // bascule sur le mode demandes (table parcel_requests), comme le bouton
-        // mobile « Voir les demandes ». Les demandes ne vivent PAS dans `offers`.
-        document.querySelectorAll('[data-profile-type="client"]').forEach((btn) => {
-            btn.addEventListener("click", () => {
-                setMobilePrimaryMode("demand");
-                loadDemands();
-            });
-        });
-        document.querySelectorAll("[data-mobile-mode]").forEach((btn) => {
-            btn.addEventListener("click", () => {
-                const mode = btn.getAttribute("data-mobile-mode");
-                if (mode === "traveler") {
-                    setMobilePrimaryMode("traveler");
-                } else if (mode === "demand") {
-                    setMobilePrimaryMode("demand");
-                    loadDemands();
-                }
-            });
-        });
-        // Rechercher / Effacer : attachés TÔT, comme les onglets, pour qu'un clic
-        // pendant le chargement de la page ne soit jamais perdu (et pour que
-        // « Rechercher » agisse aussi sur la section Demande).
-        document.getElementById("new-search-btn")?.addEventListener("click", () => {
-            relancerRecherche();
-        });
-        document.getElementById("clear-search-btn")?.addEventListener("click", () => {
-            effacerRecherche();
-        });
-
-        syncProfileTypeButtons();
-        syncMobilePrimaryButtons();
+        state.sheetDirty = false;
+        syncSheetFromDraft();
+        els.sheetOverlay.hidden = false;
+        els.sheet.hidden = false;
+        document.documentElement.classList.add("cc-sheet-open");
+        setBackgroundInert(true);
+        setSheetDraftUi();
+        els.sheetClose?.focus();
     }
 
-    bindSwitchesEarly();
-
-    async function bootstrap() {
-        await window.CCCommon.init("results");
-        if (!window.CCCommon.requireAuth()) return;
-
-        const user = window.CCCommon.state?.user;
-        const userCountry = user?.country || user?.location;
-        if (userCountry) {
-            state.userCurrency = window.CCCommon.getUserCurrency?.() || COUNTRY_CURRENCIES[userCountry] || 'EUR'; // choix manuel encore valide sinon pays de residence
+    function closeSheet({ apply = false, restoreFocus = true } = {}) {
+        if (!els.sheet || !els.sheetOverlay) return;
+        if (apply && state.sheetDraft) {
+            state.filters = { ...state.sheetDraft };
+            syncSearchFields();
+            renderActiveChips();
         }
-        const valSpan = document.getElementById("current-currency-val");
-        if (valSpan) {
-            valSpan.textContent = displayCur(state.userCurrency);
+        els.sheet.hidden = true;
+        els.sheetOverlay.hidden = true;
+        document.documentElement.classList.remove("cc-sheet-open");
+        setBackgroundInert(false);
+        state.sheetDraft = null;
+        state.sheetDirty = false;
+        if (restoreFocus && state.lastFocus && typeof state.lastFocus.focus === "function") {
+            state.lastFocus.focus();
         }
+        state.lastFocus = null;
+        if (apply) reloadActive();
+    }
 
-        // Remplir le datalist des pays pour la modale
-        const demandeList = document.getElementById("demande-country-list");
-        const countryOptions = window.CCCommon.COUNTRY_OPTIONS || [];
-        if (demandeList && countryOptions.length) {
-            demandeList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
-        }
-        // Setup autocomplete pays pour la barre de recherche
-        if (window.CCCommon.setupCountryInput) {
-            ["res-origin", "res-dest", "mf-origin", "mf-dest"].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) window.CCCommon.setupCountryInput(el);
-            });
-        }
+    function syncSheetFromDraft() {
+        const draft = state.sheetDraft;
+        if (!draft) return;
+        if (els.mfOrigin) els.mfOrigin.value = draft.origin || "";
+        if (els.mfDest) els.mfDest.value = draft.destination || "";
+        if (els.mfDate) els.mfDate.value = draft.date || "";
+        if (els.mfWeight) els.mfWeight.value = draft.minKg ?? "";
+        if (els.mfWeightRange) els.mfWeightRange.value = String(Math.min(100, draft.minKg ?? 0));
+        if (els.mfCapacity) els.mfCapacity.value = draft.demandCapacity ?? "";
+        if (els.mfVerified) els.mfVerified.checked = Boolean(draft.verified);
+        if (els.mfUrgent) els.mfUrgent.checked = Boolean(draft.urgent);
+        const sort = els.sheet?.querySelector(`input[name="mf-sort"][value="${draft.sort === "price" ? "price" : "date"}"]`);
+        if (sort) sort.checked = true;
+        validateKgField(els.mfWeight, els.mfWeightError);
+        validateKgField(els.mfCapacity, els.mfCapacityError);
+        renderSheetChips();
+        setSheetDraftUi();
+    }
 
-        // [FIX] Les liens de l'estimateur d'accueil (results.html?origin=...&destination=...)
-        // n'etaient jamais lus : l'utilisateur arrivait sur une recherche vide.
-        const urlFilters = new URLSearchParams(window.location.search);
-        const prefill = [
-            ["origin", "res-origin"], ["destination", "res-dest"],
-            ["date", "res-date"], ["weight", "res-weight"], ["minKg", "res-weight"]
-        ];
-        prefill.forEach(([param, id]) => {
-            const value = urlFilters.get(param);
-            const field = document.getElementById(id);
-            if (value && field && !field.value) field.value = value;
-        });
-        const prefWeight = urlFilters.get("weight") || urlFilters.get("minKg");
-        const mfWeight = document.getElementById("mf-weight-display");
-        if (prefWeight && mfWeight) mfWeight.value = `${prefWeight} kg`;
-
-        // Setup autocomplete ville pour les champs ville déjà présents dans le HTML
-        if (window.CCCommon.setupAllCountryInputs) {
-            // Les champs ville sont déjà dans le HTML, on configure leur autocomplete
-            const cityOrig = document.getElementById("city-demande-origin");
-            const countryOrig = document.getElementById("demande-origin");
-            if (cityOrig && countryOrig && window.CCCommon.setupCityAutocomplete) {
-                window.CCCommon.setupCityAutocomplete(cityOrig, countryOrig);
-            }
-            const cityDest = document.getElementById("city-demande-destination");
-            const countryDest = document.getElementById("demande-destination");
-            if (cityDest && countryDest && window.CCCommon.setupCityAutocomplete) {
-                window.CCCommon.setupCityAutocomplete(cityDest, countryDest);
-            }
-        }
-        syncProfileTypeButtons();
-        syncMobilePrimaryButtons();
-        bindEvents();
-        // Les cartes (offres ET demandes) affichent des montants convertis dans la devise de
-        // l'utilisateur : on attend les taux partages avant le premier rendu, sinon une carte
-        // en devise etrangere s'afficherait avec un faux taux (loadExchangeRates est non bloquant).
-        try { await window.CCCommon.loadExchangeRates?.(); } catch (e) { /* fallback interne */ }
-        // ANTI-RACE : l'utilisateur a pu cliquer sur un onglet PENDANT le chargement
-        // (auth + taux). On applique l'onglet réellement actif au lieu de forcer les
-        // offres — sinon le bouton actif et la liste affichée se désynchronisaient.
-        if (state.mobilePrimaryMode === "demand") {
-            await loadDemands();
+    function readSheetDraft() {
+        if (!state.sheetDraft) return;
+        state.sheetDraft.origin = els.mfOrigin?.value.trim() || "";
+        state.sheetDraft.destination = els.mfDest?.value.trim() || "";
+        state.sheetDraft.date = els.mfDate?.value || "";
+        if (state.section === "demand") {
+            const capacity = Number(els.mfCapacity?.value);
+            state.sheetDraft.demandCapacity = els.mfCapacity?.value && Number.isFinite(capacity) && capacity > 0 ? capacity : null;
         } else {
-            await loadOffers();
+            const kg = Number(els.mfWeight?.value);
+            state.sheetDraft.minKg = els.mfWeight?.value && Number.isFinite(kg) && kg > 0 ? kg : null;
+        }
+        state.sheetDraft.verified = Boolean(els.mfVerified?.checked);
+        state.sheetDraft.urgent = Boolean(els.mfUrgent?.checked);
+        const sort = els.sheet?.querySelector('input[name="mf-sort"]:checked');
+        state.sheetDraft.sort = sort?.value === "price" ? "price" : "date";
+    }
+
+    function markSheetDirty() {
+        readSheetDraft();
+        state.sheetDirty = true;
+        renderSheetChips();
+        setSheetDraftUi();
+    }
+
+    function setSheetDraftUi() {
+        if (!els.sheetDraftNote) return;
+        els.sheetDraftNote.hidden = !state.sheetDirty;
+    }
+
+    function clearSheetDraft() {
+        if (!state.sheetDraft) return;
+        state.sheetDraft = {
+            origin: "",
+            destination: "",
+            date: "",
+            minKg: null,
+            verified: false,
+            urgent: false,
+            sort: "date",
+            demandCapacity: null
+        };
+        state.sheetDirty = true;
+        syncSheetFromDraft();
+        setSheetDraftUi();
+    }
+
+    function setBackgroundInert(inert) {
+        if (!("inert" in HTMLElement.prototype)) return;
+        [$("results-shell"), $("site-header-root"), $("mobile-bottom-nav-root"), els.floating].forEach((element) => {
+            if (element) element.inert = Boolean(inert);
+        });
+    }
+
+    function focusableIn(container) {
+        if (!container) return [];
+        return Array.from(container.querySelectorAll(
+            'button:not([disabled]), [href], input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter((element) => !element.hidden && element.offsetParent !== null);
+    }
+
+    function trapFocus(event, container) {
+        if (event.key !== "Tab") return;
+        const focusables = focusableIn(container);
+        if (!focusables.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
         }
     }
 
-    bootstrap().catch((error) => {
-        alert(error.message || "Initialisation impossible.");
-    });
-
-    // Evenements de la modale demande de trajet (toujours attachee, meme hors bootstrap)
-    document.addEventListener("DOMContentLoaded", () => {
-        // Toggle "Voir plus / Cacher" des prix spéciaux — attaché ici (indépendant de l'auth,
-        // car bootstrap s'arrête sur requireAuth() avant bindEvents pour les visiteurs)
-        const specialList = document.getElementById("offers-list");
-        if (specialList) {
-            specialList.addEventListener("click", (event) => {
-                const toggle = event.target.closest("[data-cc-expand]");
-                if (!toggle) return;
-                const col = toggle.closest(".cc3-special-grid");
-                if (!col) return;
-                const expanded = col.classList.toggle("expanded");
-                toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
-                toggle.classList.toggle("is-expanded", expanded);
-            });
-        }
-        document.getElementById("close-demande-modal")?.addEventListener("click", () => {
-            document.getElementById("demande-trajet-modal")?.classList.add("hidden");
-        });
-        document.getElementById("demande-trajet-modal")?.addEventListener("click", (e) => {
-            if (e.target === document.getElementById("demande-trajet-modal")) {
-                document.getElementById("demande-trajet-modal")?.classList.add("hidden");
-            }
-        });
-        // « Pas de date limite » : choix explicite, mémorisé.
-        // Règle (Yoyo) : étape 1 = une date limite OU ce choix, sinon on ne continue pas.
-        const dmdNoDateBtn = document.getElementById("demande-no-date-btn");
-        const dmdDateInput = document.getElementById("demande-date");
-        let dmdNoDate = false;
-        function applyNoDateChoice() {
-            dmdNoDateBtn?.classList.toggle("active", dmdNoDate);
-        }
-        dmdNoDateBtn?.addEventListener("click", () => {
-            dmdNoDate = !dmdNoDate;
-            if (dmdNoDate && dmdDateInput) dmdDateInput.value = "";
-            dmdDateInput?.classList.remove("dmd-invalid");
-            dmdShowError("");
-            applyNoDateChoice();
-        });
-        dmdDateInput?.addEventListener("change", () => {
-            if ((dmdDateInput.value || "").trim()) { dmdNoDate = false; applyNoDateChoice(); }
-            dmdDateInput.classList.remove("dmd-invalid");
-            dmdShowError("");
-        });
-
-        // ===== WIZARD DEMANDE : 3 étapes (Trajet → Colis & prix → Description) =====
-        const dmdStepError = document.getElementById("demande-step-error");
-        const dmdNextBtn = document.getElementById("demande-next-btn");
-        const dmdPrevBtn = document.getElementById("demande-prev-btn");
-        const dmdSubmitBtn = document.getElementById("demande-submit-btn");
-        let demandeStep = 1;
-        // Édition en cours : id de la demande en cours de modification (null = nouvelle demande).
-        // Le MÊME formulaire sert à publier et à modifier → aucune divergence possible.
-        let editingDemandeId = null;
-
-        // ── Multi-colis : chaque colis = un cadre (nom, mode, combien, montant) ──
-        const colisZone = document.getElementById("demande-colis-rows");
-        const dmdAddColisBtn = document.getElementById("demande-add-colis-btn");
-
-        const getColisBoxes = () => (colisZone ? Array.from(colisZone.querySelectorAll(".dmd-colis-box")) : []);
-
-        // Nom du colis saisi librement (première lettre en minuscule pour « Combien de X ? »)
-        const getBoxNom = (box) => {
-            const raw = (box.querySelector(".dmd-colis-nom")?.value || "").trim().replace(/\s+/g, " ");
-            return raw ? raw.replace(/^./, (c) => c.toLowerCase()) : "";
-        };
-        const getBoxMode = (box) => box.querySelector(".dmd-price-mode-btn.active")?.dataset?.mode || "per_kg";
-
-        // Affiche kg ou quantité selon le mode, adapte le libellé (« Combien de X ? ») et
-        // le placeholder du montant (« pour 5 kilos » / « pour 5 document »)
-        function refreshBoxUi(box) {
-            if (!box) return;
-            const isKg = getBoxMode(box) === "per_kg";
-            const kgField = box.querySelector(".dmd-kg-field");
-            const qtyField = box.querySelector(".dmd-qty-field");
-            if (kgField) kgField.style.display = isKg ? "" : "none";
-            if (qtyField) qtyField.style.display = isKg ? "none" : "";
-            const nom = getBoxNom(box);
-            const qtyLabel = box.querySelector(".dmd-qty-label");
-            if (qtyLabel) qtyLabel.textContent = nom ? `Combien de ${nom} ?` : "Combien de colis ?";
-            const priceInput = box.querySelector(".dmd-price-input");
-            if (!priceInput) return;
-            const raw = (isKg ? box.querySelector(".dmd-kg-input")?.value : box.querySelector(".dmd-qty-input")?.value) || "";
-            const v = Number(raw);
-            const vOk = Boolean(raw) && isFinite(v) && v > 0;
-            if (!vOk) {
-                priceInput.placeholder = "Ex: 2500";
-            } else if (isKg) {
-                priceInput.placeholder = `pour ${v} kilo${v > 1 ? "s" : ""}`;
-            } else {
-                priceInput.placeholder = `pour ${v} ${nom || "colis"}`;
-            }
-            // Libellé dynamique : « Combien proposez-vous pour 12 kg de vêtements ? » /
-            // « Combien proposez-vous pour 2 ordinateurs ? » (le montant = prix du lot complet)
-            const priceLabel = box.querySelector(".dmd-price-label");
-            if (priceLabel) {
-                const vTxt = Number.isInteger(v) ? String(v) : v.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
-                if (!vOk) {
-                    priceLabel.textContent = "Combien proposez-vous ?";
-                } else if (isKg) {
-                    priceLabel.textContent = `Combien proposez-vous pour ${vTxt} kg${nom ? ` de ${nom}` : ""} ?`;
-                } else {
-                    const q = v > 1 && nom && !/[sxz]$/i.test(nom) ? `${nom}s` : nom;
-                    priceLabel.textContent = `Combien proposez-vous pour ${vTxt} ${q || "colis"} ?`;
-                }
-            }
-        }
-
-        // Re-numérote « Colis 1 / Colis 2 … » et masque la croix quand il ne reste qu'un cadre
-        function renumberColisBoxes() {
-            const boxes = getColisBoxes();
-            boxes.forEach((box, i) => {
-                box.dataset.colis = String(i + 1);
-                const t = box.querySelector(".dmd-colis-title");
-                if (t) t.textContent = `Colis ${i + 1}`;
-                const del = box.querySelector(".dmd-colis-del");
-                if (del) del.style.display = boxes.length > 1 ? "" : "none";
-            });
-        }
-
-        // « Ajouter un autre colis » : clone du premier cadre, champs vidés, mode par kilo
-        function addColisBox() {
-            const first = getColisBoxes()[0];
-            if (!first || !colisZone) return;
-            const clone = first.cloneNode(true);
-            clone.querySelectorAll("input").forEach((inp) => { inp.value = ""; });
-            clone.querySelectorAll(".dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
-            clone.querySelectorAll(".dmd-price-mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.mode === "per_kg"));
-            colisZone.appendChild(clone);
-            renumberColisBoxes();
-            refreshBoxUi(clone);
-            clone.querySelector(".dmd-colis-nom")?.focus();
-        }
-
-        function removeColisBox(box) {
-            if (!box || getColisBoxes().length <= 1) return;
-            box.remove();
-            renumberColisBoxes();
-        }
-
-        function dmdShowError(msg) {
-            if (!dmdStepError) return;
-            dmdStepError.textContent = msg;
-            dmdStepError.classList.toggle("show", Boolean(msg));
-        }
-
-        function dmdGoTo(step) {
-            demandeStep = step;
-            document.querySelectorAll("#demande-form .dmd-step").forEach((sec) => {
-                sec.classList.toggle("active", Number(sec.dataset.step) === step);
-            });
-            document.querySelectorAll("#demande-wizard-progress .dmd-progress-step").forEach((el) => {
-                const n = Number(el.dataset.dstep);
-                el.classList.toggle("active", n === step);
-                el.classList.toggle("done", n < step);
-                const dot = el.querySelector(".dmd-progress-dot");
-                if (dot) dot.textContent = n < step ? "✓" : String(n);
-            });
-            document.querySelectorAll("#demande-wizard-progress .dmd-progress-line i").forEach((bar, idx) => {
-                bar.style.width = (idx + 1 < step) ? "100%" : "0%";
-            });
-            const isLast = step >= 2; // 2 etapes : la Description a ete supprimee (Yoyo)
-            if (dmdNextBtn) dmdNextBtn.style.display = isLast ? "none" : "";
-            if (dmdSubmitBtn) dmdSubmitBtn.style.display = isLast ? "" : "none";
-            if (dmdPrevBtn) dmdPrevBtn.style.visibility = step <= 1 ? "hidden" : "visible";
-            dmdShowError("");
-        }
-
-        window.resetDemandeWizard = () => {
-            try {
-                // Retour au mode « nouvelle demande » (par opposition au mode édition)
-                editingDemandeId = null;
-                const titleReset = document.getElementById("demande-modal-title");
-                if (titleReset) titleReset.textContent = "Demande de trajet";
-                if (dmdSubmitBtn) {
-                    dmdSubmitBtn.textContent = "Faire la demande";
-                    dmdSubmitBtn.disabled = false;
-                    dmdSubmitBtn.classList.remove("hidden");
-                }
-                document.getElementById("demande-feedback")?.classList.add("hidden");
-                // Vider AUSSI les champs du trajet : sinon une demande precedente laissait ses
-                // valeurs (pays, villes et surtout la date limite) dans le formulaire.
-                ["demande-origin", "city-demande-origin", "demande-destination",
-                    "city-demande-destination", "demande-date"].forEach((id) => {
-                    const el = document.getElementById(id);
-                    if (el) { el.value = ""; el.classList.remove("dmd-invalid"); }
-                });
-                // revenir à un seul cadre vierge (mode par kilo)
-                const boxes = getColisBoxes();
-                boxes.slice(1).forEach((b) => b.remove());
-                const first = getColisBoxes()[0];
-                if (first) {
-                    first.querySelectorAll("input").forEach((inp) => { inp.value = ""; });
-                    first.querySelectorAll(".dmd-price-mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.mode === "per_kg"));
-                    renumberColisBoxes();
-                    refreshBoxUi(first);
-                }
-                dmdNoDate = false;
-                applyNoDateChoice();
-                document.querySelectorAll("#demande-form .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
-                dmdGoTo(1);
-                syncDmdCurrencies(); // devises recalculees depuis les pays (vides)
-            } catch (e) { /* modale absente */ }
-        };
-
-        // ── ÉDITION d'une demande existante ───────────────────────────────────────
-        // Réutilise CE formulaire (le formulaire officiel de demande) : mêmes champs,
-        // mêmes règles colis/prix/devise que la publication -> conformité garantie et
-        // aucune double maintenance. Appelé par la carte « Modifier ma demande ».
-        window.openDemandeEditor = (parcelId) => {
-            const parcel = (state.demands || []).find((d) => String(d.id) === String(parcelId));
-            if (!parcel) return false;
-            // resetDemandeWizard() remet editingDemandeId a null -> on l'active APRES
-            window.resetDemandeWizard?.();
-            editingDemandeId = parcel.id;
-
-            // 1. Trajet
-            const setVal = (id, v) => {
-                const el = document.getElementById(id);
-                if (el) el.value = (v === undefined || v === null) ? "" : String(v);
-            };
-            setVal("demande-origin", parcel.origin);
-            setVal("city-demande-origin", parcel.origin_city);
-            setVal("demande-destination", parcel.destination);
-            setVal("city-demande-destination", parcel.destination_city);
-            setVal("demande-date", parcel.needed_by_date ? String(parcel.needed_by_date).slice(0, 10) : "");
-
-            // 2. Colis : un cadre par article (items JSONB), repli sur les champs racine
-            const items = (Array.isArray(parcel.items) && parcel.items.length)
-                ? parcel.items
-                : [{
-                    item_type: parcel.item_type,
-                    weight_kg: parcel.weight_kg,
-                    quantity: parcel.quantity,
-                    price_mode: parcel.price_mode,
-                    max_price_per_kg: parcel.max_price_per_kg,
-                    max_price_total: parcel.max_price_total,
-                    currency: parcel.currency
-                }];
-            while (getColisBoxes().length < items.length) addColisBox();
-            getColisBoxes().forEach((box, index) => {
-                const it = items[index];
-                if (!it) {
-                    box.querySelectorAll("input").forEach((inp) => { inp.value = ""; });
-                    return;
-                }
-                const hasKg = it.weight_kg !== null && it.weight_kg !== undefined;
-                const hasQty = it.quantity !== null && it.quantity !== undefined;
-                const isKg = it.price_mode === "per_kg" || (hasKg && !hasQty);
-                box.querySelectorAll(".dmd-price-mode-btn").forEach((b) => {
-                    b.classList.toggle("active", b.dataset.mode === (isKg ? "per_kg" : "total"));
-                });
-                const nom = box.querySelector(".dmd-colis-nom");
-                if (nom) nom.value = it.item_type || "";
-                const kg = box.querySelector(".dmd-kg-input");
-                if (kg) kg.value = hasKg ? it.weight_kg : "";
-                const qty = box.querySelector(".dmd-qty-input");
-                if (qty) qty.value = hasQty ? it.quantity : "";
-                const price = box.querySelector(".dmd-price-input");
-                const priceVal = isKg ? it.max_price_per_kg : it.max_price_total;
-                if (price) price.value = (priceVal === null || priceVal === undefined) ? "" : priceVal;
-                if (it.currency) setBoxCurrency(box, it.currency);
-                refreshBoxUi(box);
-            });
-            renumberColisBoxes();
-            syncDmdCurrencies();
-
-            // 3. Habillage « édition »
-            const titleEl = document.getElementById("demande-modal-title");
-            if (titleEl) titleEl.textContent = "Modifier ma demande";
-            if (dmdSubmitBtn) {
-                dmdSubmitBtn.textContent = "Enregistrer";
-                dmdSubmitBtn.disabled = false;
-                dmdSubmitBtn.classList.remove("hidden");
-            }
-            dmdGoTo(1);
-            document.getElementById("demande-trajet-modal")?.classList.remove("hidden");
-            return true;
-        };
-
-        if (colisZone) {
-            // Bascule par kilo/par quantité + suppression d'un cadre (délégation)
-            colisZone.addEventListener("click", (e) => {
-                const modeBtn = e.target.closest(".dmd-price-mode-btn");
-                if (modeBtn) {
-                    const box = modeBtn.closest(".dmd-colis-box");
-                    if (!box) return;
-                    box.querySelectorAll(".dmd-price-mode-btn").forEach((b) => b.classList.remove("active"));
-                    modeBtn.classList.add("active");
-                    refreshBoxUi(box);
-                    return;
-                }
-                const delBtn = e.target.closest(".dmd-colis-del");
-                if (delBtn) {
-                    removeColisBox(delBtn.closest(".dmd-colis-box"));
-                    return;
-                }
-            });
-            // Nom + champ « combien » pilotent en direct libellé et placeholder du montant
-            colisZone.addEventListener("input", (e) => {
-                const box = e.target.closest(".dmd-colis-box");
-                if (!box) return;
-                if (e.target.classList.contains("dmd-colis-nom") ||
-                    e.target.classList.contains("dmd-kg-input") ||
-                    e.target.classList.contains("dmd-qty-input")) {
-                    e.target.classList.remove("dmd-invalid");
-                    refreshBoxUi(box);
-                }
-            });
-        }
-        dmdAddColisBtn?.addEventListener("click", () => {
-            addColisBox();
-            syncDmdCurrencies();
-        });
-        // État initial : libellé + placeholder cohérents avec les champs déjà remplis
-        getColisBoxes().forEach(refreshBoxUi);
-
-        // ── DEVISE PAR COLIS (Yoyo) : au lieu d'une devise figee, chaque colis propose la
-        // devise du pays de depart ou celle du pays d'arrivee, comme le formulaire des
-        // voyageurs. Tout est calcule en local depuis COUNTRY_CURRENCIES (aucune requete).
-        const normCurKey = (s) => String(s || "")
-            .trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-            .replace(/[^a-z]/g, "");
-        let curKeyMap = null;
-        const currencyOfCountry = (raw) => {
-            const table = window.CCCommon?.COUNTRY_CURRENCIES || {};
-            if (!curKeyMap) {
-                curKeyMap = {};
-                Object.keys(table).forEach((k) => { curKeyMap[normCurKey(k)] = table[k]; });
-            }
-            const v = String(raw || "").trim();
-            return table[v] || curKeyMap[normCurKey(v)] || "";
-        };
-        const fallbackCurrency = () => state.userCurrency || window.CCCommon?.getUserCurrency?.() || "XOF";
-        // Acronyme lisible d'une devise ("FCFA" et non "XOF")
-        const curSym = (code) => window.CCCommon?.currencySymbol?.(code) || code;
-        const curName = (code) => window.CCCommon?.currencyName?.(code) || code;
-        // [DEVISE] Modèle unique du site (devise.js) : mêmes devises et même
-        // apparence que le formulaire de publication des offres.
-        const dmdCurOptions = () => {
-            const dep = document.getElementById("demande-origin")?.value;
-            const dst = document.getElementById("demande-destination")?.value;
-            return window.CCDevise.optionsForCountries(dep, dst, {
-                requireKnown: true,
-                fallback: fallbackCurrency()
-            });
-        };
-        // Devise courante d'un colis (celle deja choisie, sinon celle du compte)
-        const boxCurrencyOf = (box) => box?.dataset.currency || fallbackCurrency();
-        const setBoxCurrency = (box, cur) => {
-            if (!box || !cur) return;
-            box.dataset.currency = cur;
-            if (box.__ccPicker) box.__ccPicker.set(cur);
-        };
-        // Monte le sélecteur unique sur une boîte colis (une seule fois par boîte)
-        const attachBoxPicker = (box) => {
-            const host = box.querySelector(".dmd-cur-picker");
-            if (!host || !window.CCDevise || box.__ccPicker) return box.__ccPicker;
-            box.__ccPicker = window.CCDevise.picker(host, {
-                value: box.dataset.currency || "",
-                placeholder: "Devise",
-                onChange: (cur) => { box.dataset.currency = cur; }
-            });
-            return box.__ccPicker;
-        };
-        // Recale les devises proposees : celle choisie doit rester disponible dans la liste
-        const syncDmdCurrencies = () => {
-            const opts = dmdCurOptions();
-            const allowed = opts.map((o) => o.value);
-            getColisBoxes().forEach((box) => {
-                const picker = attachBoxPicker(box);
-                if (!picker) return;
-                const cur = boxCurrencyOf(box);
-                const list = (cur && !allowed.includes(cur))
-                    ? [{ value: cur, label: "Devise choisie" }].concat(opts)
-                    : opts;
-                picker.setOptions(list);
-                if (!picker.get()) picker.set(allowed[0] || cur || "");
-            });
-        };
-        // La devise suit les pays choisis a l'etape 1 (comme le formulaire des voyageurs)
-        ["demande-origin", "demande-destination"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            el.addEventListener("input", syncDmdCurrencies);
-            el.addEventListener("change", syncDmdCurrencies);
-        });
-        syncDmdCurrencies();
-
-        // Validation de l'etape 2 (colis + montants) : reutilisee par « Faire la demande »,
-        // le bouton « Continuer » n'existant plus sur la derniere etape.
-        const validateColisStep = () => {
-            // Nettoyage des bordures rouges de la validation precedente : elles
-            // restaient apres correction et se clonaient sur les nouveaux cadres.
-            document.querySelectorAll("#demande-colis-rows .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
-            const boxes = getColisBoxes();
-            if (!boxes.length) { dmdShowError("Ajoutez au moins un colis."); return false; }
-            for (let i = 0; i < boxes.length; i++) {
-                const box = boxes[i];
-                const isKg = getBoxMode(box) === "per_kg";
-                const valField = box.querySelector(isKg ? ".dmd-kg-input" : ".dmd-qty-input");
-                const raw = valField?.value || "";
-                const val = Number(raw);
-                if (!raw || !isFinite(val) || val <= 0 || (!isKg && !Number.isInteger(val))) {
-                    valField?.classList.add("dmd-invalid");
-                    valField?.focus?.();
-                    dmdShowError(isKg
-                        ? `Indiquez le poids du colis n°${i + 1} (en kilos).`
-                        : `Indiquez combien de colis pour le colis n°${i + 1}.`);
-                    return false;
-                }
-                const priceField = box.querySelector(".dmd-price-input");
-                const priceRaw = priceField?.value;
-                if (priceRaw !== undefined && String(priceRaw).trim() !== "" &&
-                    (!isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
-                    priceField?.classList.add("dmd-invalid");
-                    dmdShowError(`Le montant propose du colis n°${i + 1} n'est pas valide.`);
-                    return false;
-                }
-            }
-            dmdShowError("");
-            return true;
-        };
-
-        dmdNextBtn?.addEventListener("click", () => {
-            if (demandeStep === 1) {
-                // Etape 1 (trajet) : PAYS obligatoires ; VILLES optionnelles (Yoyo 2026-09-14).
-                // Pour la date : une date limite OU « Pas de date limite » (Yoyo).
-                const readVal = (id) => (document.getElementById(id)?.value || "").trim();
-                const missing = [];
-                if (!readVal("demande-origin")) missing.push({ id: "demande-origin", label: "le pays de depart" });
-                if (!readVal("demande-destination")) missing.push({ id: "demande-destination", label: "le pays d'arrivee" });
-                // La DATE LIMITE est OPTIONNELLE (Yoyo) : on ne bloque plus « Continuer » sans
-                // date et on ne force plus a cliquer « Pas de date limite ».
-                document.querySelectorAll("#demande-form .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
-                if (missing.length) {
-                    missing.forEach((m) => document.getElementById(m.id)?.classList.add("dmd-invalid"));
-                    document.getElementById(missing[0].id)?.focus?.();
-                    dmdShowError(missing.length === 1
-                        ? `Indiquez ${missing[0].label} pour continuer.`
-                        : `A completer : ${missing.map((m) => m.label).join(", ")}.`);
-                    return;
-                }
-                dmdShowError("");
-                dmdGoTo(2);
-            } else if (validateColisStep()) {
-                // Dernière étape (2/2) : « Faire la demande » est déjà affiché
-                document.getElementById("demande-submit-btn")?.click();
-            }
-        });
-
-        dmdPrevBtn?.addEventListener("click", () => {
-            if (demandeStep > 1) dmdGoTo(demandeStep - 1);
-        });
-
-        document.getElementById("demande-submit-btn")?.addEventListener("click", async () => {
-            // Dernière étape : on (re)valide les colis, le bouton « Continuer » n'existe plus
-            if (!validateColisStep()) return;
-            const origin = document.getElementById("demande-origin")?.value?.trim();
-            const destination = document.getElementById("demande-destination")?.value?.trim();
-            const villeDepart = document.getElementById("city-demande-origin")?.value?.trim();
-            const villeArrivee = document.getElementById("city-demande-destination")?.value?.trim();
-            const dateLimite = document.getElementById("demande-date")?.value || null;
-            // Un objet de colis par cadre : chaque colis garde son propre mode et son propre prix
-            const boxes = getColisBoxes();
-            const items = boxes.map((box) => {
-                const isKg = getBoxMode(box) === "per_kg";
-                const nomRaw = getBoxNom(box);
-                const valRaw = (isKg ? box.querySelector(".dmd-kg-input") : box.querySelector(".dmd-qty-input"))?.value;
-                const valNum = Number(valRaw);
-                const priceRaw = box.querySelector(".dmd-price-input")?.value;
-                const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
-                const priceVal = hasPrice ? Number(priceRaw) : null;
-                return {
-                    currency: boxCurrencyOf(box),
-                    item_type: nomRaw || null,
-                    price_mode: hasPrice ? (isKg ? "per_kg" : "total") : null,
-                    weight_kg: isKg ? valNum : null,
-                    quantity: isKg ? null : valNum,
-                    max_price_per_kg: hasPrice && isKg ? priceVal : null,
-                    max_price_total: hasPrice && !isKg ? priceVal : null
-                };
-            });
-            const first = items[0] || {};
-            const firstOk = (first.weight_kg != null && first.weight_kg > 0) || (first.quantity != null && first.quantity > 0);
-            if (!origin || !destination || !items.length || !firstOk) {
-                alert("Veuillez remplir tous les champs.");
+    function bindSheet() {
+        els.floating?.addEventListener("click", openSheet);
+        els.sheetClose?.addEventListener("click", () => closeSheet());
+        els.sheetOverlay?.addEventListener("click", () => closeSheet());
+        els.sheet?.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeSheet();
                 return;
             }
-            const feedback = document.getElementById("demande-feedback");
-            const submitBtn = document.getElementById("demande-submit-btn");
-            try {
-                if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi..."; }
-                if (dmdPrevBtn) dmdPrevBtn.style.visibility = "hidden";
-                if (window.ccSupabase) {
-                    const userId = window.CCCommon.state?.user?.id;
-                    if (!userId) {
-                        alert("Vous devez etre connecte pour faire une demande.");
-                        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
-                        return;
-                    }
-                    // Champs IDENTIQUES a la publication (formulaire unique).
-                    // Les champs racine sont un RESUME de tous les colis : avant, ils
-                    // ne reprenaient que le premier (un 2e colis de 30 kg etait invisible
-                    // dans les filtres de recherche).
-                    const totalWeight = items.reduce((sum, it) => sum + (Number(it.weight_kg) || 0), 0);
-                    const totalQuantity = items.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0);
-                    const payload = {
-                        title: `Demande ${origin} -> ${destination}`,
-                        origin,
-                        destination,
-                        weight_kg: totalWeight > 0 ? totalWeight : null,
-                        quantity: totalQuantity > 0 ? totalQuantity : null,
-                        needed_by_date: dateLimite || null,
-                        currency: first.currency || state.userCurrency || window.CCCommon.getUserCurrency?.(),
-                        origin_city: villeDepart || null,
-                        destination_city: villeArrivee || null,
-                        item_type: first.item_type || null,
-                        price_mode: first.price_mode,
-                        max_price_per_kg: first.max_price_per_kg ?? null,
-                        max_price_total: first.max_price_total ?? null,
-                        items
-                    };
-                    // .select("id") : permet de VERIFIER que la ligne a bien ete ecrite.
-                    // Sans cela, un UPDATE bloque par les droits (RLS Supabase) renvoie
-                    // 0 ligne SANS erreur -> l'interface affichait « envoye » alors que
-                    // rien n'etait enregistre (bug constate par Yoyo).
-                    const result = editingDemandeId
-                        // Modification d'une demande existante (proprietaire uniquement)
-                        ? await window.ccSupabase.from("parcel_requests")
-                            .update(payload)
-                            .eq("id", editingDemandeId)
-                            .eq("user_id", userId)
-                            .select("id")
-                        : await window.ccSupabase.from("parcel_requests")
-                            .insert({ user_id: userId, ...payload, status: "pending" })
-                            .select("id");
-                    if (result.error) throw result.error;
-                    if (!result.data || !result.data.length) {
-                        throw new Error(editingDemandeId
-                            ? "Modification non enregistree : la base de donnees n'a mis a jour aucune ligne (droits d'ecriture manquants — politique RLS UPDATE sur parcel_requests)."
-                            : "Demande non enregistree : la base n'a cree aucune ligne (droits manquants — politique RLS INSERT sur parcel_requests).");
-                    }
-                } else {
-                    // Dégradé sans Supabase : l'API historique ne porte qu'un colis (le premier)
-                    if (items.length > 1) console.warn("Mode API historique : seul le premier colis de la demande est envoye.");
-                    await window.CCCommon.api("/api/parcel-requests", { method: "POST", body: { origin, destination, kg: first.weight_kg ?? null, quantity: first.quantity ?? null, currency: first.currency || null, dateLimite } });
-                }
-                console.log("Demande de trajet enregistree avec succes!");
-                if (feedback) feedback.classList.remove("hidden");
-                if (submitBtn) submitBtn.classList.add("hidden");
-                // En modification : rafraichir la liste pour voir la demande mise a jour
-                if (editingDemandeId) {
-                    editingDemandeId = null;
-                    if (typeof loadDemands === "function") loadDemands().catch(() => { });
-                }
-                setTimeout(() => {
-                    document.getElementById("demande-trajet-modal")?.classList.add("hidden");
-                }, 1500);
-            } catch (err) {
-                console.error("Erreur soumission demande:", err);
-                alert("Erreur: " + (err.message || "Impossible de soumettre la demande."));
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = editingDemandeId ? "Enregistrer" : "Faire la demande";
-                }
+            trapFocus(event, els.sheet);
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            if (els.sheet && !els.sheet.hidden) {
+                event.preventDefault();
+                closeSheet();
             }
         });
-    });
+        ["input", "change"].forEach((type) => {
+            els.sheetBody?.addEventListener(type, (event) => {
+                if (!event.target.closest("input, select, textarea")) return;
+                markSheetDirty();
+            });
+        });
 
-    // ===== MOBILE FILTER LOGIC =====
-    const mobileFilter = {
-        active: {},
-        overlay: document.getElementById("mobile-filter-overlay"),
-        sheet: document.getElementById("mobile-filter-sheet"),
-        weightSheet: document.getElementById("slider-weight-sheet"),
-        weightOverlay: document.getElementById("slider-weight-overlay"),
+        els.mfWeight?.addEventListener("input", () => {
+            const value = Number(els.mfWeight.value);
+            if (els.mfWeightRange) els.mfWeightRange.value = String(Number.isFinite(value) && value > 0 ? Math.min(100, value) : 0);
+        });
+        els.mfWeightRange?.addEventListener("input", () => {
+            const value = Number(els.mfWeightRange.value);
+            if (els.mfWeight) els.mfWeight.value = value > 0 ? String(value) : "";
+            validateKgField(els.mfWeight, els.mfWeightError);
+        });
 
-        init() {
-            document.getElementById("mobile-filter-trigger")?.addEventListener("click", () => this.open());
-            document.getElementById("mf-close")?.addEventListener("click", () => this.close());
-            this.overlay?.addEventListener("click", () => this.close());
-
-            // Miroirs mf → desktop : synchro sur "input" ET "change" (le helper pays
-            // setupCountryInput dispatch "change" au clic sur une suggestion — sans quoi
-            // le choix dans le sheet ne copierait pas la valeur vers res-origin/res-dest)
-            const mfOrigin = document.getElementById("mf-origin");
-            if (mfOrigin) {
-                const syncOrigin = (e) => {
-                    document.getElementById("res-origin").value = e.target.value;
-                };
-                mfOrigin.addEventListener("input", syncOrigin);
-                mfOrigin.addEventListener("change", syncOrigin);
+        els.mfClearAll?.addEventListener("click", clearSheetDraft);
+        els.mfApply?.addEventListener("click", () => {
+            if (!validateActiveSheetNumber()) {
+                (state.section === "demand" ? els.mfCapacity : els.mfWeight)?.focus();
+                return;
             }
-            const mfDest = document.getElementById("mf-dest");
-            if (mfDest) {
-                const syncDest = (e) => {
-                    document.getElementById("res-dest").value = e.target.value;
-                };
-                mfDest.addEventListener("input", syncDest);
-                mfDest.addEventListener("change", syncDest);
-            }
-            document.getElementById("mf-date")?.addEventListener("change", (e) => {
-                document.getElementById("res-date").value = e.target.value;
+            readSheetDraft();
+            closeSheet({ apply: true, restoreFocus: true });
+        });
+        [els.mfWeight, els.mfCapacity].forEach((input) => {
+            if (!input) return;
+            input.addEventListener("input", () => {
+                const errorEl = input === els.mfWeight ? els.mfWeightError : els.mfCapacityError;
+                validateKgField(input, errorEl);
             });
-
-            const syncFromDesktop = () => {
-                document.getElementById("mf-origin").value = document.getElementById("res-origin")?.value || "";
-                document.getElementById("mf-dest").value = document.getElementById("res-dest")?.value || "";
-                document.getElementById("mf-date").value = document.getElementById("res-date")?.value || "";
-                const desktopWeight = String(document.getElementById("res-weight")?.value || "").trim();
-                const weightDisplay = document.getElementById("mf-weight-display");
-                if (weightDisplay) weightDisplay.value = desktopWeight ? `${desktopWeight} kg` : "";
-                if (desktopWeight) this.active.weight = Number(desktopWeight);
-            };
-            const origOpen = this.open.bind(this);
-            this.open = () => { syncFromDesktop(); origOpen(); };
-
-            document.getElementById("mf-apply")?.addEventListener("click", () => {
-                this.syncToDesktop();
-                this.close();
-                // Relance la SECTION ACTIVE (offres ou demandes). loadOffers() sortait
-                // immediatement en mode demandes : « Appliquer » ne faisait rien.
-                Promise.resolve(relancerRecherche()).catch((err) => console.warn(err));
-            });
-
-            // « Effacer tout » : passe par la remise a zero complete (poids + pastilles
-            // + champs desktop/mobile) puis relance la section active.
-            document.getElementById("mf-clear-all")?.addEventListener("click", () => {
-                this.active = {};
-                this.renderActiveTags();
-                const weightDisplay = document.getElementById("mf-weight-display");
-                if (weightDisplay) weightDisplay.value = "";
-                Promise.resolve(effacerRecherche()).catch((err) => console.warn(err));
-            });
-
-            // Déclencheur du panneau poids (il n'en existait aucun sur mobile).
-            const openWeight = () => this.openWeightSlider();
-            document.getElementById("mf-weight-display")?.addEventListener("click", openWeight);
-            document.getElementById("mf-weight-display")?.addEventListener("focus", openWeight);
-
-            const weightInput = document.getElementById("slider-weight-input");
-            weightInput?.addEventListener("input", () => {
-                document.getElementById("slider-weight-value").textContent = Number(weightInput.value) + " kg";
-            });
-            document.getElementById("slider-weight-ok")?.addEventListener("click", () => {
-                this.active.weight = Number(weightInput.value);
-                // Le chip mobile n'existe pas dans le HTML : sans garde, cette ligne
-                // levait un TypeError et empêchait la fermeture du panneau poids.
-                document.getElementById("mf-chip-weight")?.classList.add("is-active");
-                const weightDisplay = document.getElementById("mf-weight-display");
-                if (weightDisplay) weightDisplay.value = `${Number(weightInput.value)} kg`;
-                this.renderActiveTags();
-                this.closeWeightSlider();
-            });
-            document.getElementById("slider-weight-cancel")?.addEventListener("click", () => this.closeWeightSlider());
-            this.weightOverlay?.addEventListener("click", () => this.closeWeightSlider());
-        },
-
-        open() { this.overlay?.classList.add("is-open"); this.sheet?.classList.add("is-open"); },
-        close() { this.overlay?.classList.remove("is-open"); this.sheet?.classList.remove("is-open"); },
-
-        openWeightSlider() {
-            this.weightOverlay?.classList.add("is-open"); this.weightSheet?.classList.add("is-open");
-            const val = this.active.weight || 11;
-            document.getElementById("slider-weight-input").value = val;
-            document.getElementById("slider-weight-value").textContent = val + " kg";
-        },
-        closeWeightSlider() { this.weightOverlay?.classList.remove("is-open"); this.weightSheet?.classList.remove("is-open"); },
-
-        renderActiveTags() {
-            const container = document.getElementById("mf-tags");
-            const entries = Object.entries(this.active).filter(([, v]) => v !== false && v !== undefined);
-            const labels = { verified: "Voyageurs vérifiés", urgent: "Départ proche", weight: "", price: "" };
-            container.innerHTML = entries.map(([key, val]) => {
-                const label = key === "weight" ? "Poids min: " + val + " kg"
-                    : key === "price" ? "Prix max: " + Number(val).toLocaleString("fr-FR") + " " + curSym(state.userCurrency) + "/kg"
-                    : labels[key] || key;
-                return `<span class="mfa-tag">${label}<button data-remove="${key}">&times;</button></span>`;
-            }).join("");
-            container.querySelectorAll("button[data-remove]").forEach((btn) => {
-                btn.addEventListener("click", () => {
-                    delete this.active[btn.dataset.remove];
-                    if (btn.dataset.remove === "weight") {
-                        const weightDisplay = document.getElementById("mf-weight-display");
-                        if (weightDisplay) weightDisplay.value = "";
-                        const desktopWeight = document.getElementById("res-weight");
-                        if (desktopWeight) desktopWeight.value = "";
-                    }
-                    document.querySelector(`.mf-chip[data-chip="${btn.dataset.remove}"]`)?.classList.remove("is-active");
-                    this.renderActiveTags();
-                });
-            });
-        },
-
-        syncToDesktop() {
-            document.getElementById("res-origin").value = document.getElementById("mf-origin")?.value || "";
-            document.getElementById("res-dest").value = document.getElementById("mf-dest")?.value || "";
-            document.getElementById("res-date").value = document.getElementById("mf-date")?.value || "";
-            if (typeof state !== "undefined") {
-                state.filterVerified = !!this.active.verified;
-                state.filterWeight10 = (this.active.weight || 0) >= 10;
-                state.filterUrgent = !!this.active.urgent;
-            }
-            if (this.active.weight) document.getElementById("res-weight").value = this.active.weight;
-        }
-    };
-
-    if (document.readyState === "complete" || document.readyState === "interactive") {
-        mobileFilter.init();
-    } else {
-        document.addEventListener("DOMContentLoaded", () => mobileFilter.init());
+        });
+        els.mfTags?.addEventListener("click", (event) => {
+            const button = event.target.closest("[data-remove-draft]");
+            if (!button || !state.sheetDraft) return;
+            const key = button.getAttribute("data-remove-draft");
+            if (key === "sort") state.sheetDraft.sort = "date";
+            else if (key === "minKg") state.sheetDraft.minKg = null;
+            else if (key === "demandCapacity") state.sheetDraft.demandCapacity = null;
+            else if (key === "verified" || key === "urgent") state.sheetDraft[key] = false;
+            else state.sheetDraft[key] = "";
+            state.sheetDirty = true;
+            syncSheetFromDraft();
+            setSheetDraftUi();
+        });
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Modale de demande de trajet
+    // ─────────────────────────────────────────────────────────────
+    function getColisBoxes() {
+        return els.demandColisRows
+            ? Array.from(els.demandColisRows.querySelectorAll(".cc-colis-box"))
+            : [];
+    }
+
+    function getBoxName(box) {
+        const raw = (box.querySelector(".cc-colis-nom")?.value || "").trim().replace(/\s+/g, " ");
+        return raw ? raw.replace(/^./, (char) => char.toLowerCase()) : "";
+    }
+
+    function getBoxMode(box) {
+        return box.querySelector(".cc-seg-btn.active")?.dataset.mode || "per_kg";
+    }
+
+    function boxCurrency(box) {
+        return box.dataset.currency || CC.getUserCurrency?.() || state.currency || "EUR";
+    }
+
+    function setBoxCurrency(box, code) {
+        if (!box || !code) return;
+        box.dataset.currency = code;
+        if (box.__ccPicker) box.__ccPicker.set(code);
+    }
+
+    function refreshBoxUi(box) {
+        if (!box) return;
+        const isKg = getBoxMode(box) === "per_kg";
+        const kgField = box.querySelector(".cc-kg-field");
+        const qtyField = box.querySelector(".cc-qty-field");
+        if (kgField) kgField.hidden = !isKg;
+        if (qtyField) qtyField.hidden = isKg;
+        const name = getBoxName(box);
+        const qtyLabel = box.querySelector(".cc-qty-label");
+        if (qtyLabel) {
+            qtyLabel.textContent = name ? `Combien de ${name} ?` : "Combien de colis ?";
+            box.querySelector(".cc-qty-input")?.setAttribute("aria-label", qtyLabel.textContent);
+        }
+        const priceInput = box.querySelector(".cc-price-input");
+        if (!priceInput) return;
+        const raw = (isKg ? box.querySelector(".cc-kg-input")?.value : box.querySelector(".cc-qty-input")?.value) || "";
+        const amount = Number(raw);
+        const valid = Boolean(raw) && Number.isFinite(amount) && amount > 0;
+        if (!valid) priceInput.placeholder = "Ex. 2500";
+        else if (isKg) priceInput.placeholder = `pour ${amount} kilo${amount > 1 ? "s" : ""}`;
+        else priceInput.placeholder = `pour ${amount} ${name || "colis"}`;
+        const priceLabel = box.querySelector(".cc-price-label");
+        if (!priceLabel) return;
+        const amountText = Number.isInteger(amount) ? String(amount) : amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+        if (!valid) priceLabel.textContent = "Combien proposez-vous ?";
+        else if (isKg) priceLabel.textContent = `Combien proposez-vous pour ${amountText} kg${name ? ` de ${name}` : ""} ?`;
+        else {
+            const plural = amount > 1 && name && !/[sxz]$/i.test(name) ? `${name}s` : name;
+            priceLabel.textContent = `Combien proposez-vous pour ${amountText} ${plural || "colis"} ?`;
+        }
+        priceInput.setAttribute("aria-label", priceLabel.textContent);
+    }
+
+    function renumberBoxes() {
+        const boxes = getColisBoxes();
+        boxes.forEach((box, index) => {
+            box.dataset.colis = String(index + 1);
+            const title = box.querySelector(".cc-colis-title");
+            if (title) title.textContent = `Colis ${index + 1}`;
+            const remove = box.querySelector(".cc-colis-del");
+            if (remove) remove.hidden = boxes.length <= 1;
+        });
+    }
+
+    function createBox() {
+        const first = getColisBoxes()[0];
+        if (!first || !els.demandColisRows) return null;
+        const clone = first.cloneNode(true);
+        clone.querySelectorAll("input").forEach((input) => { input.value = ""; });
+        clone.querySelectorAll(".is-invalid").forEach((element) => element.classList.remove("is-invalid"));
+        clone.querySelectorAll(".cc-seg-btn").forEach((button) => {
+            const active = button.dataset.mode === "per_kg";
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+        clone.querySelectorAll(".cc-cur-picker").forEach((host) => { host.innerHTML = ""; });
+        delete clone.__ccPicker;
+        delete clone.dataset.currency;
+        els.demandColisRows.appendChild(clone);
+        renumberBoxes();
+        attachBoxPicker(clone);
+        refreshBoxUi(clone);
+        syncDemandCurrencies();
+        return clone;
+    }
+
+    function removeBox(box) {
+        if (!box || getColisBoxes().length <= 1) return;
+        box.remove();
+        renumberBoxes();
+    }
+
+    function attachBoxPicker(box) {
+        const host = box?.querySelector(".cc-cur-picker");
+        if (!host || !window.CCDevise || box.__ccPicker) return box?.__ccPicker;
+        box.__ccPicker = window.CCDevise.picker(host, {
+            value: box.dataset.currency || "",
+            placeholder: "Devise",
+            onChange: (code) => { box.dataset.currency = code; }
+        });
+        return box.__ccPicker;
+    }
+
+    function demandCurrencyOptions() {
+        const origin = els.demandOrigin?.value;
+        const destination = els.demandDestination?.value;
+        if (window.CCDevise?.optionsForCountries) {
+            return window.CCDevise.optionsForCountries(origin, destination, {
+                requireKnown: true,
+                fallback: CC.getUserCurrency?.() || state.currency
+            });
+        }
+        return [];
+    }
+
+    function syncDemandCurrencies() {
+        const options = demandCurrencyOptions();
+        const allowed = options.map((option) => option.value);
+        getColisBoxes().forEach((box) => {
+            const picker = attachBoxPicker(box);
+            if (!picker) return;
+            const current = boxCurrency(box);
+            const list = current && !allowed.includes(current)
+                ? [{ value: current, label: "Devise choisie" }].concat(options)
+                : options;
+            picker.setOptions(list);
+            if (!picker.get()) picker.set(allowed[0] || current || "");
+        });
+    }
+
+    function showDemandError(message, field) {
+        if (els.demandError) {
+            els.demandError.textContent = message;
+            els.demandError.hidden = !message;
+        }
+        if (field) {
+            field.classList.add("is-invalid");
+            field.focus?.();
+        }
+    }
+
+    function clearDemandError() {
+        if (els.demandError) {
+            els.demandError.textContent = "";
+            els.demandError.hidden = true;
+        }
+        els.demandForm?.querySelectorAll(".is-invalid").forEach((element) => element.classList.remove("is-invalid"));
+    }
+
+    function goToStep(step) {
+        state.demandStep = step;
+        els.demandForm?.querySelectorAll(".cc-step").forEach((section) => {
+            section.classList.toggle("active", Number(section.dataset.step) === step);
+        });
+        els.demandModal?.querySelectorAll(".cc-wizard-step").forEach((element) => {
+            const number = Number(element.dataset.dstep);
+            element.classList.toggle("active", number === step);
+            element.classList.toggle("done", number < step);
+            const dot = element.querySelector(".cc-wizard-dot");
+            if (dot) dot.textContent = number < step ? "✓" : String(number);
+        });
+        els.demandModal?.querySelectorAll(".cc-wizard-line i").forEach((bar) => {
+            bar.style.width = step >= 2 ? "100%" : "0%";
+        });
+        if (els.demandNext) els.demandNext.hidden = step >= 2;
+        if (els.demandSubmit) els.demandSubmit.hidden = step < 2;
+        if (els.demandPrev) els.demandPrev.hidden = step <= 1;
+        clearDemandError();
+    }
+
+    function resetDemandForm() {
+        state.editingDemandId = null;
+        state.demandStep = 1;
+        state.demandDirty = false;
+        if (els.demandTitle) els.demandTitle.textContent = "Demande de trajet";
+        if (els.demandSubmit) {
+            els.demandSubmit.textContent = "Faire la demande";
+            els.demandSubmit.disabled = false;
+            els.demandSubmit.hidden = true;
+        }
+        if (els.demandFeedback) els.demandFeedback.hidden = true;
+        [els.demandOrigin, els.demandCityOrigin, els.demandDestination, els.demandCityDestination, els.demandDate]
+            .forEach((input) => {
+                if (!input) return;
+                input.value = "";
+                input.classList.remove("is-invalid");
+            });
+        const boxes = getColisBoxes();
+        boxes.slice(1).forEach((box) => box.remove());
+        const first = getColisBoxes()[0];
+        if (first) {
+            first.querySelectorAll("input").forEach((input) => { input.value = ""; });
+            first.querySelectorAll(".cc-seg-btn").forEach((button) => {
+                const active = button.dataset.mode === "per_kg";
+                button.classList.toggle("active", active);
+                button.setAttribute("aria-pressed", active ? "true" : "false");
+            });
+            first.querySelectorAll(".cc-cur-picker").forEach((host) => { host.innerHTML = ""; });
+            delete first.__ccPicker;
+            delete first.dataset.currency;
+            refreshBoxUi(first);
+        }
+        renumberBoxes();
+        clearDemandError();
+        goToStep(1);
+        attachBoxPicker(first);
+        syncDemandCurrencies();
+    }
+
+    function openDemandModal() {
+        if (!els.demandModal) return;
+        state.lastFocus = document.activeElement;
+        state.demandTrigger = document.activeElement;
+        resetDemandForm();
+        els.demandModal.hidden = false;
+        document.documentElement.classList.add("cc-modal-open");
+        setBackgroundInert(true);
+        els.demandOrigin?.focus();
+    }
+
+    function closeDemandModal({ force = false } = {}) {
+        if (!els.demandModal || els.demandModal.hidden) return;
+        const close = () => {
+            els.demandModal.hidden = true;
+            document.documentElement.classList.remove("cc-modal-open");
+            setBackgroundInert(false);
+            state.demandDirty = false;
+            const restore = state.demandTrigger || state.lastFocus;
+            if (restore && typeof restore.focus === "function" && document.contains(restore)) restore.focus();
+            state.demandTrigger = null;
+            state.lastFocus = null;
+        };
+        if (force || !state.demandDirty) {
+            close();
+            return;
+        }
+        openConfirm({
+            title: "Abandonner cette demande ?",
+            text: "Les informations saisies ne seront pas enregistrées.",
+            okLabel: "Abandonner"
+        }).then((ok) => { if (ok) close(); });
+    }
+
+    function validateStep1() {
+        clearDemandError();
+        const origin = els.demandOrigin?.value.trim() || "";
+        const destination = els.demandDestination?.value.trim() || "";
+        if (!origin) {
+            showDemandError("Indiquez le pays de départ pour continuer.", els.demandOrigin);
+            return false;
+        }
+        if (!destination) {
+            showDemandError("Indiquez le pays d'arrivée pour continuer.", els.demandDestination);
+            return false;
+        }
+        if (normalize(origin) === normalize(destination)) {
+            showDemandError("Le pays de départ et le pays d'arrivée doivent être différents.", els.demandDestination);
+            return false;
+        }
+        const date = els.demandDate?.value || "";
+        if (date && date < todayISO()) {
+            showDemandError("La date limite doit être aujourd'hui ou plus tard.", els.demandDate);
+            return false;
+        }
+        return true;
+    }
+
+    function validateColisStep() {
+        clearDemandError();
+        const boxes = getColisBoxes();
+        if (!boxes.length) {
+            showDemandError("Ajoutez au moins un colis.");
+            return false;
+        }
+        for (let index = 0; index < boxes.length; index += 1) {
+            const box = boxes[index];
+            const isKg = getBoxMode(box) === "per_kg";
+            const valueField = box.querySelector(isKg ? ".cc-kg-input" : ".cc-qty-input");
+            const raw = valueField?.value || "";
+            const value = Number(raw);
+            if (!raw || !Number.isFinite(value) || value <= 0 || (!isKg && !Number.isInteger(value))) {
+                showDemandError(isKg
+                    ? `Indiquez le poids du colis n°${index + 1} (en kilos).`
+                    : `Indiquez combien de colis pour le colis n°${index + 1}.`, valueField);
+                return false;
+            }
+            const priceField = box.querySelector(".cc-price-input");
+            const priceRaw = priceField?.value;
+            if (priceRaw !== undefined && String(priceRaw).trim() !== "" && (!Number.isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
+                showDemandError(`Le montant proposé du colis n°${index + 1} n'est pas valide.`, priceField);
+                return false;
+            }
+            if (!boxCurrency(box)) {
+                showDemandError(`Choisissez une devise pour le colis n°${index + 1}.`);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function buildDemandPayload() {
+        const boxes = getColisBoxes();
+        const items = boxes.map((box) => {
+            const isKg = getBoxMode(box) === "per_kg";
+            const name = getBoxName(box);
+            const rawValue = (isKg ? box.querySelector(".cc-kg-input") : box.querySelector(".cc-qty-input"))?.value;
+            const value = Number(rawValue);
+            const priceRaw = box.querySelector(".cc-price-input")?.value;
+            const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
+            const price = hasPrice ? Number(priceRaw) : null;
+            return {
+                currency: boxCurrency(box),
+                item_type: name || null,
+                price_mode: hasPrice ? (isKg ? "per_kg" : "total") : null,
+                weight_kg: isKg ? value : null,
+                quantity: isKg ? null : value,
+                max_price_per_kg: hasPrice && isKg ? price : null,
+                max_price_total: hasPrice && !isKg ? price : null
+            };
+        });
+        const first = items[0] || {};
+        const origin = els.demandOrigin?.value.trim() || "";
+        const destination = els.demandDestination?.value.trim() || "";
+        const totalWeight = items.reduce((sum, item) => sum + (Number(item.weight_kg) || 0), 0);
+        const totalQuantity = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+        return {
+            title: `Demande ${origin} -> ${destination}`,
+            origin,
+            destination,
+            origin_city: els.demandCityOrigin?.value.trim() || null,
+            destination_city: els.demandCityDestination?.value.trim() || null,
+            weight_kg: totalWeight > 0 ? totalWeight : null,
+            quantity: totalQuantity > 0 ? totalQuantity : null,
+            needed_by_date: els.demandDate?.value || null,
+            currency: first.currency || state.currency || CC.getUserCurrency?.(),
+            item_type: first.item_type || null,
+            price_mode: first.price_mode,
+            max_price_per_kg: first.max_price_per_kg ?? null,
+            max_price_total: first.max_price_total ?? null,
+            items
+        };
+    }
+
+    async function submitDemand() {
+        if (!validateStep1()) {
+            goToStep(1);
+            return;
+        }
+        if (!validateColisStep()) return;
+        const payload = buildDemandPayload();
+        const submit = els.demandSubmit;
+        const originalLabel = state.editingDemandId ? "Enregistrer" : "Faire la demande";
+        try {
+            clearDemandError();
+            if (submit) {
+                submit.disabled = true;
+                submit.textContent = "Envoi…";
+            }
+            if (window.ccSupabase) {
+                const userId = currentUserId();
+                if (!userId) throw new Error("Vous devez être connecté pour faire une demande.");
+                const result = state.editingDemandId
+                    ? await window.ccSupabase.from("parcel_requests")
+                        .update(payload)
+                        .eq("id", state.editingDemandId)
+                        .eq("user_id", userId)
+                        .select("id")
+                    : await window.ccSupabase.from("parcel_requests")
+                        .insert({ user_id: userId, ...payload, status: "pending" })
+                        .select("id");
+                if (result.error) throw result.error;
+                if (!result.data || !result.data.length) {
+                    throw new Error(state.editingDemandId
+                        ? "Modification non enregistrée : la base n'a mis à jour aucune ligne (droits RLS UPDATE manquants)."
+                        : "Demande non enregistrée : la base n'a créé aucune ligne (droits RLS INSERT manquants).");
+                }
+            } else {
+                if (payload.items.length > 1) console.warn("Mode API historique : seul le premier colis est envoyé.");
+                await CC.api("/api/parcel-requests", {
+                    method: "POST",
+                    body: {
+                        origin: payload.origin,
+                        destination: payload.destination,
+                        kg: payload.items[0]?.weight_kg ?? null,
+                        quantity: payload.items[0]?.quantity ?? null,
+                        currency: payload.items[0]?.currency || null,
+                        dateLimite: payload.needed_by_date
+                    }
+                });
+            }
+            state.demandDirty = false;
+            if (els.demandFeedback) els.demandFeedback.hidden = false;
+            if (submit) submit.hidden = true;
+            if (els.demandPrev) els.demandPrev.hidden = true;
+            state.demandsLoaded = false;
+            if (state.section === "demand") await loadDemands();
+            window.setTimeout(() => closeDemandModal({ force: true }), 1500);
+        } catch (error) {
+            console.error("Erreur soumission demande :", error);
+            if (submit) {
+                submit.disabled = false;
+                submit.textContent = originalLabel;
+            }
+            if (maybeSessionExpired(error)) return;
+            showDemandError(error?.message || "Impossible de soumettre la demande. Réessayez.");
+        }
+    }
+
+    function openDemandeEditor(demandId) {
+        const demand = state.demands.find((item) => String(item.id) === String(demandId));
+        if (!demand || !els.demandModal) return;
+        state.lastFocus = document.activeElement;
+        state.demandTrigger = document.activeElement;
+        resetDemandForm();
+        state.editingDemandId = demand.id;
+        if (els.demandOrigin) els.demandOrigin.value = demand.origin || "";
+        if (els.demandCityOrigin) els.demandCityOrigin.value = demand.origin_city || "";
+        if (els.demandDestination) els.demandDestination.value = demand.destination || "";
+        if (els.demandCityDestination) els.demandCityDestination.value = demand.destination_city || "";
+        if (els.demandDate) els.demandDate.value = demand.needed_by_date ? String(demand.needed_by_date).slice(0, 10) : "";
+
+        const items = Array.isArray(demand.items) && demand.items.length ? demand.items : [{
+            item_type: demand.item_type,
+            weight_kg: demand.weight_kg,
+            quantity: demand.quantity,
+            price_mode: demand.price_mode,
+            max_price_per_kg: demand.max_price_per_kg,
+            max_price_total: demand.max_price_total,
+            currency: demand.currency
+        }];
+        while (getColisBoxes().length < items.length) createBox();
+        getColisBoxes().forEach((box, index) => {
+            const item = items[index];
+            if (!item) return;
+            const hasKg = item.weight_kg !== null && item.weight_kg !== undefined;
+            const hasQty = item.quantity !== null && item.quantity !== undefined;
+            const isKg = item.price_mode === "per_kg" || (hasKg && !hasQty);
+            box.querySelectorAll(".cc-seg-btn").forEach((button) => {
+                const active = button.dataset.mode === (isKg ? "per_kg" : "total");
+                button.classList.toggle("active", active);
+                button.setAttribute("aria-pressed", active ? "true" : "false");
+            });
+            const name = box.querySelector(".cc-colis-nom");
+            if (name) name.value = item.item_type || "";
+            const kg = box.querySelector(".cc-kg-input");
+            if (kg) kg.value = hasKg ? item.weight_kg : "";
+            const qty = box.querySelector(".cc-qty-input");
+            if (qty) qty.value = hasQty ? item.quantity : "";
+            const price = box.querySelector(".cc-price-input");
+            const priceValue = isKg ? item.max_price_per_kg : item.max_price_total;
+            if (price) price.value = priceValue === null || priceValue === undefined ? "" : priceValue;
+            if (item.currency) setBoxCurrency(box, item.currency);
+            refreshBoxUi(box);
+        });
+        renumberBoxes();
+        syncDemandCurrencies();
+        if (els.demandTitle) els.demandTitle.textContent = "Modifier ma demande";
+        if (els.demandSubmit) {
+            els.demandSubmit.textContent = "Enregistrer";
+            els.demandSubmit.disabled = false;
+            els.demandSubmit.hidden = true;
+        }
+        state.demandDirty = false;
+        goToStep(1);
+        els.demandModal.hidden = false;
+        document.documentElement.classList.add("cc-modal-open");
+        els.demandOrigin?.focus();
+    }
+
+    function bindDemandModal() {
+        [els.demandCreate, els.demandCreateMobile].forEach((button) => {
+            button?.addEventListener("click", openDemandModal);
+        });
+        els.demandClose?.addEventListener("click", () => closeDemandModal());
+        els.demandModal?.querySelectorAll("[data-demand-close]").forEach((element) => {
+            element.addEventListener("click", () => closeDemandModal());
+        });
+        els.demandModal?.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                closeDemandModal();
+                return;
+            }
+            if (event.key === "Tab") trapFocus(event, els.demandModal.querySelector(".cc-demand-card"));
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "Escape") return;
+            if (!els.demandModal || els.demandModal.hidden) return;
+            if (els.confirm && !els.confirm.hidden) return;
+            event.preventDefault();
+            closeDemandModal();
+        });
+        els.demandForm?.addEventListener("input", (event) => {
+            if (event.target.closest("input, select, textarea")) state.demandDirty = true;
+        });
+        els.demandForm?.addEventListener("change", (event) => {
+            if (event.target.closest("input, select, textarea")) state.demandDirty = true;
+        });
+        els.demandOrigin?.addEventListener("input", syncDemandCurrencies);
+        els.demandOrigin?.addEventListener("change", syncDemandCurrencies);
+        els.demandDestination?.addEventListener("input", syncDemandCurrencies);
+        els.demandDestination?.addEventListener("change", syncDemandCurrencies);
+
+        els.demandColisRows?.addEventListener("click", (event) => {
+            const modeButton = event.target.closest(".cc-seg-btn");
+            if (modeButton) {
+                const box = modeButton.closest(".cc-colis-box");
+                box?.querySelectorAll(".cc-seg-btn").forEach((button) => {
+                    const active = button === modeButton;
+                    button.classList.toggle("active", active);
+                    button.setAttribute("aria-pressed", active ? "true" : "false");
+                });
+                refreshBoxUi(box);
+                state.demandDirty = true;
+                return;
+            }
+            const remove = event.target.closest(".cc-colis-del");
+            if (remove) {
+                removeBox(remove.closest(".cc-colis-box"));
+                state.demandDirty = true;
+            }
+        });
+        els.demandColisRows?.addEventListener("input", (event) => {
+            const box = event.target.closest(".cc-colis-box");
+            if (!box) return;
+            event.target.classList.remove("is-invalid");
+            refreshBoxUi(box);
+        });
+        els.demandAddColis?.addEventListener("click", () => {
+            createBox();
+            state.demandDirty = true;
+            getColisBoxes().slice(-1)[0]?.querySelector(".cc-colis-nom")?.focus();
+        });
+        els.demandPrev?.addEventListener("click", () => {
+            if (state.demandStep > 1) goToStep(state.demandStep - 1);
+        });
+        els.demandNext?.addEventListener("click", () => {
+            if (state.demandStep === 1 && validateStep1()) goToStep(2);
+        });
+        els.demandForm?.addEventListener("submit", (event) => {
+            event.preventDefault();
+            if (state.demandStep === 1) {
+                if (validateStep1()) goToStep(2);
+                return;
+            }
+            submitDemand();
+        });
+
+        els.confirmCancel?.addEventListener("click", () => settleConfirm(false));
+        els.confirmOk?.addEventListener("click", () => settleConfirm(true));
+        els.confirm?.querySelectorAll("[data-confirm-cancel]").forEach((element) => {
+            element.addEventListener("click", () => settleConfirm(false));
+        });
+        els.confirm?.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                event.preventDefault();
+                settleConfirm(false);
+                return;
+            }
+            if (event.key === "Tab") trapFocus(event, els.confirm.querySelector(".cc-confirm-card"));
+        });
+
+        getColisBoxes().forEach((box) => {
+            attachBoxPicker(box);
+            refreshBoxUi(box);
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Thème, réseau, préremplissage URL
+    // ─────────────────────────────────────────────────────────────
+    function bindCalmMode() {
+        // Le bouton est injecté par shared-header.js : on l'attache ici pour que le
+        // Mode Calme reste fonctionnel et mémorisé (CA-75).
+        let toggle = null;
+        const attach = () => {
+            toggle = document.getElementById("calm-mode-toggle");
+            if (!toggle || toggle.__ccBound) return;
+            toggle.__ccBound = true;
+            toggle.addEventListener("click", () => {
+                const calm = document.body.classList.toggle("is-calm");
+                try { localStorage.setItem("calm-mode", calm ? "true" : "false"); } catch (e) { /* stockage indisponible */ }
+                toggle.setAttribute("aria-pressed", calm ? "true" : "false");
+            });
+        };
+        attach();
+        window.addEventListener("load", attach);
+        try {
+            if (localStorage.getItem("calm-mode") === "true") document.body.classList.add("is-calm");
+        } catch (e) { /* stockage indisponible */ }
+    }
+
+    function bindTheme() {
+        if (!els.themeToggle) return;
+        const updateIcon = () => {
+            const light = document.body.classList.contains("light");
+            if (!els.themeIcon) return;
+            els.themeIcon.innerHTML = light
+                ? '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>'
+                : '<path d="M20 14.5A8 8 0 0 1 9.5 4 8.4 8.4 0 1 0 20 14.5z"></path>';
+            els.themeToggle.setAttribute("aria-label", light ? "Passer au thème sombre" : "Passer au thème clair");
+        };
+        updateIcon();
+        els.themeToggle.addEventListener("click", () => {
+            const light = document.body.classList.toggle("light");
+            try { localStorage.setItem("cc-theme", light ? "light" : "dark"); } catch (e) { /* stockage indisponible */ }
+            document.documentElement.classList.toggle("cc-theme-light", light);
+            updateIcon();
+        });
+    }
+
+    function bindNetwork() {
+        const update = () => {
+            if (els.offlineBanner) els.offlineBanner.hidden = navigator.onLine !== false;
+            if (els.list) els.list.querySelectorAll(".cc-card").forEach((card) => card.classList.toggle("is-offline", navigator.onLine === false));
+            // Une erreur affichée pendant la coupure nomme la cause « hors ligne ».
+            if (navigator.onLine === false) {
+                if (state.section === "demand" && state.error.demands) renderDemandsError();
+                else if (state.section !== "demand" && state.error.offers) renderOffersError();
+            }
+            renderActiveChips();
+            if (!els.counter) return;
+            const text = els.counter.textContent || "";
+            if (navigator.onLine === false && !text.includes("hors ligne")) {
+                els.counter.innerHTML = `${esc(text)} <span class="cc-offline-badge">hors ligne</span>`;
+            } else if (navigator.onLine !== false) {
+                els.counter.innerHTML = esc(text.replace(/\s*hors ligne\s*$/, ""));
+            }
+        };
+        window.addEventListener("online", update);
+        window.addEventListener("offline", update);
+        update();
+    }
+
+    function applyUrlPrefill() {
+        const params = new URLSearchParams(window.location.search);
+        const origin = params.get("origin") || "";
+        const destination = params.get("destination") || params.get("dest") || "";
+        const date = params.get("date") || "";
+        const weight = params.get("weight") || params.get("minKg") || "";
+        if (origin) state.filters.origin = origin;
+        if (destination) state.filters.destination = destination;
+        if (date) state.filters.date = date;
+        if (weight) {
+            const kg = Number(weight);
+            if (Number.isFinite(kg) && kg > 0) state.filters.minKg = kg;
+        }
+        const section = params.get("section");
+        if (section === "demand") state.section = "demand";
+        if (section === "cargo") { state.section = "cargo"; state.subSection = "cargo"; }
+        syncSearchFields();
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Démarrage
+    // ─────────────────────────────────────────────────────────────
+    async function boot() {
+        bindSectionControls();
+        bindSearchControls();
+        bindSheet();
+        bindDemandModal();
+        bindCurrency();
+        bindTheme();
+        bindCalmMode();
+        bindNetwork();
+
+        if (els.floating) els.floating.hidden = true;
+
+        try {
+            await CC.init("results");
+        } catch (error) {
+            console.error("Initialisation impossible :", error);
+            showToast("Initialisation impossible. Rechargez la page.", "error");
+            return;
+        }
+        if (!CC.requireAuth()) return;
+
+        state.currency = CC.getUserCurrency?.() || "EUR";
+        if (els.currencyValue) els.currencyValue.textContent = currencyAcronym(state.currency);
+
+        const countryOptions = CC.COUNTRY_OPTIONS || [];
+        const datalist = $("demand-country-list");
+        if (datalist && countryOptions.length) {
+            datalist.innerHTML = countryOptions.map((country) => `<option value="${esc(country)}">`).join("");
+        }
+        if (CC.setupCountryInput) {
+            ["search-origin", "search-dest", "mf-origin", "mf-dest", "demand-origin", "demand-destination"]
+                .forEach((id) => {
+                    const input = $(id);
+                    if (input) CC.setupCountryInput(input);
+                });
+        }
+        if (CC.setupCityAutocomplete) {
+            const cityOrigin = $("demand-city-origin");
+            const cityDestination = $("demand-city-destination");
+            if (cityOrigin && els.demandOrigin) CC.setupCityAutocomplete(cityOrigin, els.demandOrigin);
+            if (cityDestination && els.demandDestination) CC.setupCityAutocomplete(cityDestination, els.demandDestination);
+        }
+
+        applyUrlPrefill();
+        syncSectionUi();
+
+        try { await CC.loadExchangeRates?.(); } catch (error) { /* taux indisponibles : montants d'origine */ }
+
+        if (els.shell) els.shell.hidden = false;
+        if (els.floating) els.floating.hidden = false;
+        renderActiveChips();
+        if (mq.addEventListener) {
+            mq.addEventListener("change", () => {
+                if (!els.shell || els.shell.hidden) return;
+                syncSectionUi();
+                if (state.section === "demand") {
+                    if (state.demandsLoaded) renderDemands();
+                } else if (state.offersLoaded) {
+                    renderOffers();
+                }
+            });
+        }
+
+        if (state.section === "demand") await loadDemands();
+        else await loadOffers();
+    }
+
+    boot().catch((error) => {
+        console.error("results.js : démarrage impossible", error);
+        showToast(error?.message || "Initialisation impossible.", "error");
+    });
 })();
