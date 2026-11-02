@@ -19409,6 +19409,44 @@ body.post-trip-page .option-card:hover {
     border-color: var(--cc-accent);
 }
 
+/* Toute ligne ajoutee doit pouvoir etre retiree : le type personnalise porte
+   sa propre croix, sinon l'ajout n'a pas de contre-action. */
+body.post-trip-page .option-card .option-remove {
+    margin-left: auto;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--cc-muted);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+body.post-trip-page .option-card .option-remove:hover {
+    background: var(--cc-danger);
+    color: var(--cc-on-danger);
+}
+
+body.post-trip-page .option-card .option-remove:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+@media (max-width: 767px) {
+    body.post-trip-page .option-card .option-remove {
+        width: 44px;
+        height: 44px;
+        margin-right: -8px;
+        font-size: 19px;
+    }
+}
+
 body.post-trip-page .option-card:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px var(--cc-focus);

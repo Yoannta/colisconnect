@@ -1742,6 +1742,12 @@
         };
 
         refusedGrid?.addEventListener("click", (e) => {
+            const removeBtn = e.target.closest(".option-remove");
+            if (removeBtn) {
+                e.stopPropagation();
+                removeTypeCard(removeBtn.closest(".option-card"));
+                return;
+            }
             const card = e.target.closest(".option-card");
             if (!card) return;
             toggleRefusedCard(card);
@@ -1749,11 +1755,35 @@
 
         refusedGrid?.addEventListener("keydown", (e) => {
             if (e.key !== "Enter" && e.key !== " ") return;
+            if (e.target.closest(".option-remove")) return;
             const card = e.target.closest(".option-card");
             if (!card) return;
             e.preventDefault();
             toggleRefusedCard(card);
         });
+
+        // Toute ligne ajoutee doit pouvoir etre retiree. Un type personnalise
+        // pose sans bouton de suppression restait dans la grille jusqu'au
+        // rechargement : l'ajout n'avait aucune contre-action.
+        const addRemoveTypeButton = (card, value) => {
+            if (!card || card.querySelector(".option-remove")) return;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "option-remove";
+            btn.setAttribute("aria-label", "Supprimer le type " + value);
+            btn.title = "Supprimer ce type";
+            btn.textContent = "\u00d7";
+            card.appendChild(btn);
+        };
+
+        const removeTypeCard = (card) => {
+            if (!card) return;
+            const value = String(card.getAttribute("data-value") || "");
+            const i = refusedSelections.indexOf(value);
+            if (i >= 0) refusedSelections.splice(i, 1);
+            card.remove();
+            syncRefusedText();
+        };
 
         toggleRefusedBtn?.addEventListener("click", () => {
             if (refusedGroup) {
@@ -1793,11 +1823,15 @@
                 label.className = "option-text";
                 label.textContent = val;
                 newCard.append(circle, label);
+                addRemoveTypeButton(newCard, val);
                 refusedGrid?.appendChild(newCard);
                 refusedSelections.push(val);
             }
             if (newRefusedInput) newRefusedInput.value = "";
             if (refusedGroup) refusedGroup.style.display = "none";
+            // L'ajout doit se voir tout de suite dans le resume, pas au moment
+            // ou l'on ferme la modale.
+            syncRefusedText();
         });
 
         const syncRefusedText = () => {
@@ -1846,6 +1880,7 @@
                     label.className = "option-text";
                     label.textContent = clean;
                     card.append(circle, label);
+                    addRemoveTypeButton(card, clean);
                     refusedGrid.appendChild(card);
                 }
                 card.classList.add("selected");
