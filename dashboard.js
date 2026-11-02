@@ -10,9 +10,77 @@
         cargoActiveOffers: [],
     };
 
+    // Identifiant de la demande de trajet en cours de modification.
+    // Doit vivre au niveau du module : le bouton « Enregistrer » est cable dans
+    // bootstrap(), alors que la modale est ouverte depuis bindEvents(). Avec une
+    // variable declaree dans bindEvents, l'enregistrement levait
+    // « ReferenceError: _editParcelId is not defined » et ne sauvegardait rien.
+    let editParcelId = null;
+
+    // ===== Retours d'action sans alert()/confirm() natifs (S-05) =====
+    let feedbackTimer = null;
+
+    function ccNotify(message, isError = false) {
+        const host = document.getElementById("dashboard-feedback");
+        if (!host) { console.warn(message); return; }
+        host.textContent = message || "";
+        host.classList.remove("hidden", "is-error", "is-success");
+        if (!message) { host.classList.add("hidden"); return; }
+        host.classList.add(isError ? "is-error" : "is-success");
+        if (feedbackTimer) clearTimeout(feedbackTimer);
+        feedbackTimer = setTimeout(() => host.classList.add("hidden"), 6000);
+    }
+
+    // Remplace confirm() : promesse booleenne, focus initial sur « Annuler ».
+    function ccConfirm(title, body, confirmLabel = "Supprimer") {
+        return new Promise((resolve) => {
+            const modal = document.getElementById("cc-confirm-modal");
+            const titre = document.getElementById("cc-confirm-title");
+            const corps = document.getElementById("cc-confirm-body");
+            const ok = document.getElementById("cc-confirm-ok");
+            const cancel = document.getElementById("cc-confirm-cancel");
+            // Si la modale manque, on n'invente pas une confirmation : on refuse.
+            if (!modal || !ok || !cancel) { resolve(false); return; }
+            if (titre) titre.textContent = title || "Confirmer";
+            if (corps) {
+                corps.textContent = body || "";
+                corps.classList.toggle("hidden", !body);
+            }
+            ok.textContent = confirmLabel;
+            modal.classList.remove("hidden");
+            const previous = document.activeElement;
+            cancel.focus();
+            const finish = (value) => {
+                modal.classList.add("hidden");
+                ok.removeEventListener("click", onOk);
+                cancel.removeEventListener("click", onCancel);
+                modal.removeEventListener("click", onBackdrop);
+                document.removeEventListener("keydown", onKey);
+                if (previous && typeof previous.focus === "function") previous.focus();
+                resolve(value);
+            };
+            const onOk = () => finish(true);
+            const onCancel = () => finish(false);
+            const onBackdrop = (event) => { if (event.target === modal) finish(false); };
+            const onKey = (event) => { if (event.key === "Escape") finish(false); };
+            ok.addEventListener("click", onOk);
+            cancel.addEventListener("click", onCancel);
+            modal.addEventListener("click", onBackdrop);
+            document.addEventListener("keydown", onKey);
+        });
+    }
+
+    // Message d'erreur sous un formulaire de modale (C-22), sans alerte native.
+    function setFormError(id, message) {
+        const host = document.getElementById(id);
+        if (!host) return;
+        host.textContent = message || "";
+        host.classList.toggle("hidden", !message);
+    }
+
     const els = {
         dashboardUser: document.getElementById("dashboard-user"),
-        refreshBtn: document.getElementById("refresh-dashboard-btn"),
+        refreshBtns: Array.from(document.querySelectorAll("[data-refresh-dashboard]")),
         manageOfferBtn: document.getElementById("manage-offer-btn"),
         editOfferBtn: document.getElementById("edit-offer-btn"),
         openMessagesBtn: document.getElementById("open-messages-btn"),
@@ -60,18 +128,10 @@
         cargoStatCapacity: document.getElementById("cargo-stat-capacity"),
         cargoOpsTable: document.getElementById("cargo-ops-table"),
         cargoFileList: document.getElementById("cargo-file-list"),
-        cargoRequestsModal: document.getElementById("cargo-requests-modal"),
-        cargoRequestsModalList: document.getElementById("cargo-requests-modal-list"),
-        cargoRequestsModalCount: document.getElementById("cargo-requests-modal-count"),
         cargoLimitBadge: document.getElementById("cargo-limit-badge"),
         cargoProgressFill: document.getElementById("cargo-progress-fill"),
         cargoLimitNote: document.getElementById("cargo-limit-note"),
         // Modale générique "Voir tous"
-        voirTousModal: document.getElementById("voir-tous-modal"),
-        voirTousKicker: document.getElementById("voir-tous-kicker"),
-        voirTousTitle: document.getElementById("voir-tous-title"),
-        voirTousCount: document.getElementById("voir-tous-count"),
-        voirTousList: document.getElementById("voir-tous-list"),
     };
 
     // [DEVISE] Sélecteur unique du site (voir devise.js)
@@ -91,15 +151,17 @@
     // enregistree meme apres un changement de pays.
     function refreshOfferCurrencyOptions() {
         if (!offerCurrencyPicker || !window.CCDevise) return;
-        const current = String(els.offerBaseCurrency?.value || getUserCurrency()).toUpperCase();
+        const current = String(els.offerBaseCurrency?.value || "").toUpperCase();
         const origin = String(els.offerOrigin?.value || "").trim();
         const destination = String(els.offerDestination?.value || "").trim();
         const opts = window.CCDevise.optionsForCountries(origin, destination, { fallback: getUserCurrency() });
-        if (current && !opts.some((o) => o.value === current)) {
-            opts.unshift({ value: current, label: "Devise actuelle" });
-        }
         offerCurrencyPicker.setOptions(opts);
-        offerCurrencyPicker.set(current || opts[0]?.value || getUserCurrency());
+        // La devise doit SUIVRE le nouvel itineraire. Avant, l'ancienne devise
+        // etait re-ajoutee dans la liste puis re-selectionnee : apres « France ->
+        // Senegal », l'offre restait en EUR alors que l'option XOF etait proposee.
+        // On ne conserve la selection que si elle reste valable pour ce trajet.
+        const next = opts.some((o) => o.value === current) ? current : (opts[0]?.value || getUserCurrency());
+        offerCurrencyPicker.set(next);
     }
 
 
@@ -133,6 +195,16 @@
         });
     }
 
+    // Libelles francais du tableau cargo (le statut brut de la base est en anglais).
+    const CARGO_STATUS_LABELS = {
+        active: "Active",
+        paused: "En pause",
+        archived: "Archivee",
+        expired: "Expiree",
+        draft: "Brouillon",
+        closed: "Fermee"
+    };
+
     // Classification UNIQUE (identique au bridge) : les anciennes offres pouvaient
     // stocker "traveler"/"voyageur"/"simple" dans mode ; elles ne sont PAS cargo.
     function isCargoOffer(offer) {
@@ -164,6 +236,14 @@
         return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
     }
 
+    // Format compact (14/11/2026) pour les listes ou la place est comptee.
+    function formatDateNumeric(value) {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleDateString("fr-FR");
+    }
+
     function getProfileTypeLabel(user) {
         const type = String(user?.profile_type || "").toLowerCase();
         if (type === "traveler") return "Voyageur";
@@ -180,6 +260,85 @@
         if (type === "client") return "accent-client";
         if (type === "traveler") return "accent-traveler";
         return "accent-none";
+    }
+
+    // Verifie un pays a l'ENVOI (meme regle que le champ : nom exact, ou prefixe
+    // qui ne correspond qu'a un seul pays). Le controle au blur ne suffit pas :
+    // une valeur posee sans passer par le champ (collage, script, focus absent)
+    // partait telle quelle en base.
+    function normalizeCountryName(value) {
+        return String(value || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+    }
+
+    function resolveCountryName(value) {
+        const target = normalizeCountryName(value);
+        if (!target) return null;
+        const options = window.CCCommon.COUNTRY_OPTIONS || [];
+        const exact = options.find((c) => normalizeCountryName(c) === target);
+        if (exact) return exact;
+        const matches = options.filter((c) => normalizeCountryName(c).includes(target));
+        return matches.length === 1 ? matches[0] : null;
+    }
+
+    // Une ville saisie mais jamais selectionnee dans la liste ne doit pas partir
+    // telle quelle : meme regle qu'a la publication (verifierVilleAnnonce).
+    // Le controle au blur ne couvre pas l'envoi au clavier (Entree depuis le champ).
+    async function validateCityField(pays, ville) {
+        const city = String(ville || "").trim();
+        if (!city || typeof window.CCCommon?.verifierVilleAnnonce !== "function") {
+            return { ok: true, ville: city };
+        }
+        try {
+            return await window.CCCommon.verifierVilleAnnonce(pays, city);
+        } catch (e) {
+            return { ok: true, ville: city }; // base injoignable : on ne bloque pas
+        }
+    }
+
+    function todayISO() {
+        const now = new Date();
+        return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+
+    // Regle metier commune aux annonces et aux demandes : le pays de depart et
+    // le pays d'arrivee doivent etre differents. Detectable des que les deux
+    // champs sont remplis : on l'affiche tout de suite, pas a l'envoi.
+    function countriesAreSame(origin, destination) {
+        const a = normalizeCountryName(origin);
+        const b = normalizeCountryName(destination);
+        return Boolean(a && b && a === b);
+    }
+
+    // Les champs pays peuvent etre remplis par programme (ouverture d'une modale,
+    // remise a zero) : sans evenement `change`, l'autocomplete ville garde en
+    // memoire l'ANCIEN pays et ne vide plus la ville quand le pays change.
+    function notifyCountryChanged(ids) {
+        ids.forEach((id) => {
+            const input = document.getElementById(id);
+            if (input) input.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+    }
+
+    // Même principe pour une date déjà passée : l'utilisateur le voit en la
+    // choisissant, pas seulement après avoir cliqué sur Enregistrer.
+    function updateDateHint(inputId, hintId) {
+        const hint = document.getElementById(hintId);
+        if (!hint) return false;
+        const value = String(document.getElementById(inputId)?.value || "");
+        const past = Boolean(value) && value < todayISO();
+        hint.classList.toggle("hidden", !past);
+        return past;
+    }
+
+    function updateSameCountryHint(originId, destinationId, hintId) {
+        const hint = document.getElementById(hintId);
+        if (!hint) return false;
+        const same = countriesAreSame(
+            document.getElementById(originId)?.value,
+            document.getElementById(destinationId)?.value
+        );
+        hint.classList.toggle("hidden", !same);
+        return same;
     }
 
     function getRouteLabel(offer) {
@@ -221,7 +380,8 @@
     function renderStats(offer, requests) {
         const availableKg = Number(offer?.availableKg || offer?.available_kg || 0);
 
-        if (els.statRemainingKg) els.statRemainingKg.textContent = `${availableKg} kg`;
+        // Sans offre, la disponibilite est inconnue : un tiret, jamais un faux « 0 kg ».
+        if (els.statRemainingKg) els.statRemainingKg.textContent = offer ? `${availableKg} kg` : "—";
         if (els.statRemainingLabel) els.statRemainingLabel.textContent = "Disponibles";
         if (els.statInterested) els.statInterested.textContent = `${requests.length}`;
         if (els.statInterestedLabel) els.statInterestedLabel.textContent = "Personnes intéressées";
@@ -336,6 +496,23 @@
 
     // ===== CLIENT DASHBOARD FUNCTIONS =====
 
+    // Libelles francais des statuts de demande (la base stocke l'anglais).
+    const PARCEL_STATUS_LABELS = {
+        pending: "En attente",
+        accepted: "Acceptée",
+        in_progress: "En cours",
+        shipped: "Expédiée",
+        delivered: "Livrée",
+        cancelled: "Annulée",
+        rejected: "Refusée"
+    };
+
+    function formatParcelStatus(status) {
+        const key = String(status || "").trim().toLowerCase();
+        if (!key) return "";
+        return PARCEL_STATUS_LABELS[key] || status;
+    }
+
     function renderClientRequests(parcelRequests) {
         if (!els.clientRequestsList) return;
 
@@ -348,19 +525,42 @@
             return;
         }
 
-        els.clientRequestsList.innerHTML = parcelRequests.map((item, i) => `
+        els.clientRequestsList.innerHTML = parcelRequests.map((item, i) => {
+            const statusLabel = formatParcelStatus(item.status);
+            // « En attente » est le cas courant : l'afficher sur chaque ligne
+            // poussait l'echeance hors de la place disponible. On ne montre
+            // le statut que lorsqu'il apporte une information (acceptee, livree…).
+            const showStatus = statusLabel && String(item.status || "").toLowerCase() !== "pending";
+            const deadline = item.needed_by_date ? `Avant le ${formatDateNumeric(item.needed_by_date)}` : "";
+            const fullDetails = [
+                item.origin_city || item.destination_city
+                    ? [item.origin_city, item.destination_city].filter(Boolean).join(" → ")
+                    : "",
+                item.weight_kg ? `${item.weight_kg} kg` : "",
+                showStatus ? statusLabel : "",
+                deadline
+            ].filter(Boolean).join(" · ");
+            const details = [
+                item.origin_city || item.destination_city
+                    ? [item.origin_city, item.destination_city].filter(Boolean).map(c => window.CCCommon.escapeHtml(c)).join(" &rarr; ")
+                    : "",
+                item.weight_kg ? `${item.weight_kg} kg` : "",
+                showStatus ? window.CCCommon.escapeHtml(statusLabel) : "",
+                deadline ? window.CCCommon.escapeHtml(deadline) : ""
+            ].filter(Boolean).join(" &middot; ");
+            return `
             <div class="client-discussion-item" data-parcel-id="${window.CCCommon.escapeHtml(item.id)}">
                 <div class="client-item-index">${i + 1}</div>
                 <div class="item-content">
                     <div class="item-name">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                    <div class="item-desc">${[item.origin_city, item.destination_city].filter(Boolean).map(c => window.CCCommon.escapeHtml(c)).join(" &rarr; ")}${item.origin_city || item.destination_city ? " &middot; " : ""}${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}${item.needed_by_date ? " - Avant le " + item.needed_by_date : ""}</div>
+                    <div class="item-desc" title="${window.CCCommon.escapeHtml(fullDetails)}">${details}</div>
                 </div>
                 <div class="dash-row-inline">
                     <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
                     <button class="client-item-btn client-item-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}">Supprimer</button>
                 </div>
-            </div>
-        `).join("");
+            </div>`;
+        }).join("");
     }
 
     function renderClientDiscussions(conversations) {
@@ -452,6 +652,9 @@
         document.querySelectorAll(".dashboard-toggles").forEach((group) => {
             const visibleButtons = Array.from(group.querySelectorAll(".dash-toggle")).filter((button) => !button.classList.contains("hidden"));
             const activeIndex = visibleButtons.findIndex((button) => button.getAttribute("data-switch") === activeView);
+            // Aucune bascule disponible (profil client) : le conteneur vide dessinait
+            // une barre de 10 px en travers de l'en-tete. On le masque entierement.
+            group.classList.toggle("is-empty", visibleButtons.length === 0);
             group.classList.remove("toggle-count-1", "toggle-count-2", "toggle-count-3", "toggle-index-0", "toggle-index-1", "toggle-index-2");
             group.classList.add(`toggle-count-${Math.min(Math.max(visibleButtons.length, 1), 3)}`);
             group.classList.add(`toggle-index-${Math.min(Math.max(activeIndex, 0), 2)}`);
@@ -467,23 +670,37 @@
         // echouer TOUT l'ecran client quand l'une tombait, pour des donnees jamais lues.
         // Et le filtre !isOfferOwner cachait au client les discussions issues de SES
         // demandes (dans ce cas offer_owner_id = client, donc isOfferOwner = true).
-        const [conversationsResp, parcelResp] = await Promise.all([
-            window.CCCommon.api("/api/conversations"),
-            window.ccSupabase ? window.ccSupabase.from("parcel_requests")
-                .select("*")
-                .eq("user_id", user.id)
-                .order("created_at", { ascending: false }) : Promise.resolve({ data: [] })
-        ]);
+        // Chaque panneau est desormais independant ET remonte ses erreurs.
+        const parcelsTask = (async () => {
+            try {
+                const parcelResp = await withTimeout(window.ccSupabase ? window.ccSupabase.from("parcel_requests")
+                    .select("*")
+                    .eq("user_id", user.id)
+                    .order("created_at", { ascending: false }) : Promise.resolve({ data: [] }));
+                // Une requete en erreur affichait « Aucune demande » : l'utilisateur
+                // croyait avoir perdu ses demandes. On affiche la vraie erreur.
+                if (parcelResp?.error) throw parcelResp.error;
+                const parcelRequests = parcelResp?.data || [];
+                state.parcelRequests = parcelRequests;
+                renderClientRequests(parcelRequests);
+            } catch (error) {
+                renderPanelError(els.clientRequestsList, error, loadDashboard);
+            }
+        })();
 
-        const conversations = Array.isArray(conversationsResp)
-            ? conversationsResp.filter(c => !c.isOfferOwner || c.kind === "request")
-            : [];
-        const parcelRequests = parcelResp?.data || [];
-        state.parcelRequests = parcelRequests;
-        state.clientConversations = conversations;
+        const convTask = (async () => {
+            try {
+                const convResp = await withTimeout(window.CCCommon.api("/api/conversations"));
+                const conversations = (Array.isArray(convResp) ? convResp : [])
+                    .filter(c => !c.isOfferOwner || c.kind === "request");
+                state.clientConversations = conversations;
+                renderClientDiscussions(conversations);
+            } catch (error) {
+                renderPanelError(els.clientDiscussionsList, error, loadDashboard);
+            }
+        })();
 
-        renderClientRequests(parcelRequests);
-        renderClientDiscussions(conversations);
+        await Promise.all([parcelsTask, convTask]);
     }
 
     function openChatPage(threadId = "", offerId = "") {
@@ -519,6 +736,8 @@
 
         if (els.offerOrigin) els.offerOrigin.value = offer.origin || "";
         if (els.offerDestination) els.offerDestination.value = offer.destination || "";
+        // Synchroniser le suivi pays de l'autocomplete ville AVANT de poser les villes.
+        notifyCountryChanged(["offer-origin", "offer-destination"]);
         if (els.offerCityOrigin) els.offerCityOrigin.value = offer.city_origin || offer.cityOrigin || "";
         if (els.offerCityDestination) els.offerCityDestination.value = offer.city_destination || offer.cityDestination || "";
         if (els.offerDepartureDate) els.offerDepartureDate.value = String(offer.departureDate || offer.departure_date || "");
@@ -550,6 +769,17 @@
             offerCurrencyPicker.setOptions(opts);
             offerCurrencyPicker.set(existing || opts[0]?.value || getUserCurrency());
         }
+
+        // Une offre cargo peut etre vendue au kilo OU au CBM (price_unit).
+        // L'etiquette etait figee sur « Prix par kilo » : le prix affiche etait
+        // alors interprete dans la mauvaise unite.
+        const priceUnit = String(offer.price_unit || offer.priceUnit || "kg").toLowerCase();
+        const priceLabel = document.getElementById("offer-price-label");
+        if (priceLabel) {
+            priceLabel.textContent = (state.offerIsCargo && priceUnit === "cbm") ? "Prix par CBM" : "Prix par kilo";
+        }
+        updateSameCountryHint("offer-origin", "offer-destination", "offer-same-country-hint");
+        updateDateHint("offer-departure-date", "offer-date-hint");
 
         setFeedback("");
         modal.classList.remove("hidden");
@@ -583,23 +813,6 @@
 
         if (!cargo) payload.available_kg = Number(els.offerAvailableKg?.value || 0);
 
-        // CODES PAYS : le drapeau affiche sur les cartes est construit a partir du code
-        // ISO enregistre dans l'offre (origin_country_code / destination_country_code).
-        // L'edition mettait bien a jour le NOM du pays mais pas son code : le drapeau
-        // restait donc celui de l'ancien pays. On resout les codes ici.
-        try {
-            if (typeof window.CCCommon._getCountryCode === "function") {
-                const [codeDepart, codeArrivee] = await Promise.all([
-                    window.CCCommon._getCountryCode(payload.origin),
-                    window.CCCommon._getCountryCode(payload.destination)
-                ]);
-                if (codeDepart) payload.origin_country_code = String(codeDepart).toUpperCase();
-                if (codeArrivee) payload.destination_country_code = String(codeArrivee).toUpperCase();
-            }
-        } catch (e) {
-            console.warn("Codes pays non resolus (le drapeau peut rester inchange):", e);
-        }
-
         if (!payload.origin || !payload.destination || !payload.departure_date) {
             setFeedback("Remplis le depart, l'arrivee et la date.", true);
             return;
@@ -618,6 +831,19 @@
             return;
         }
 
+        // Memes regles qu'a la publication : trajet entre deux pays differents et
+        // date de depart non passee. Elles n'etaient controlees nulle part ici.
+        if (countriesAreSame(payload.origin, payload.destination)) {
+            document.getElementById("offer-same-country-hint")?.classList.remove("hidden");
+            setFeedback("Le pays de depart et le pays d'arrivee doivent etre differents.", true);
+            return;
+        }
+        if (payload.departure_date < todayISO()) {
+            document.getElementById("offer-date-hint")?.classList.remove("hidden");
+            setFeedback("La date du voyage doit etre aujourd'hui ou plus tard.", true);
+            return;
+        }
+
         if (cargo) {
             if (!(payload.price_per_kg > 0)) {
                 setFeedback("Indique ton prix.", true);
@@ -629,6 +855,37 @@
             setFeedback("Les kilos doivent etre entre 1 et 69, et le prix au kilo superieur a 0.", true);
             return;
         }
+
+        // CODES PAYS (reseau) : resolus seulement quand le formulaire est deja
+        // valide. Avant, chaque erreur locale attendait ces requetes avant de
+        // s'afficher. Le drapeau des cartes depend de ces codes : le nom du pays
+        // etait mis a jour mais pas son code, le drapeau restait celui d'avant.
+        try {
+            if (typeof window.CCCommon._getCountryCode === "function") {
+                const [codeDepart, codeArrivee] = await Promise.all([
+                    window.CCCommon._getCountryCode(payload.origin),
+                    window.CCCommon._getCountryCode(payload.destination)
+                ]);
+                if (codeDepart) payload.origin_country_code = String(codeDepart).toUpperCase();
+                if (codeArrivee) payload.destination_country_code = String(codeArrivee).toUpperCase();
+            }
+        } catch (e) {
+            console.warn("Codes pays non resolus (le drapeau peut rester inchange):", e);
+        }
+
+        // Villes : verifiees en base (et reecrites a l'orthographe officielle).
+        const [cityOriginCheck, cityDestinationCheck] = await Promise.all([
+            validateCityField(payload.origin, payload.city_origin),
+            validateCityField(payload.destination, payload.city_destination)
+        ]);
+        if (!cityOriginCheck.ok || !cityDestinationCheck.ok) {
+            setFeedback((!cityOriginCheck.ok && cityOriginCheck.message) || cityDestinationCheck.message, true);
+            return;
+        }
+        payload.city_origin = cityOriginCheck.ville;
+        payload.city_destination = cityDestinationCheck.ville;
+        if (els.offerCityOrigin) els.offerCityOrigin.value = payload.city_origin;
+        if (els.offerCityDestination) els.offerCityDestination.value = payload.city_destination;
 
         if (els.saveOfferBtn) {
             els.saveOfferBtn.disabled = true;
@@ -679,21 +936,20 @@
             const kg = Number(o.availableKg || o.available_kg || 0);
             const mode = o.mode || "Avion";
             const realStatus = String(o.status || "active").toLowerCase();
-            const isArchived = realStatus === "archived";
-            const isFull = kg < 5;
-            let statusPill = "pill-green";
-            let statusLabel = "Active";
-            if (realStatus !== "active") {
-                statusPill = isArchived ? "pill-pink" : "pill-yellow";
-                statusLabel = realStatus.charAt(0).toUpperCase() + realStatus.slice(1);
-            } else if (isFull) {
-                statusPill = "pill-pink";
-                statusLabel = "Presque plein";
-            }
+            const isFull = realStatus === "active" && kg > 0 && kg < 5;
+            // La colonne STATUT existait mais restait vide (pastille retiree sans
+            // remplacement) : la ligne ne disait pas si l'offre etait active,
+            // en pause ou presque pleine.
+            let statusLabel = CARGO_STATUS_LABELS[realStatus]
+                || (realStatus.charAt(0).toUpperCase() + realStatus.slice(1));
+            let statusClass = "status-off";
+            if (realStatus === "active") { statusClass = "status-active"; statusLabel = "Active"; }
+            else if (["paused", "draft", "expired"].includes(realStatus)) { statusClass = "status-warn"; }
+            if (isFull) { statusClass = "status-warn"; statusLabel = "Presque plein"; }
             return `<div class="cargo-ops-row">
                 <div class="col-ligne">${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
                 <div class="col-mode">${window.CCCommon.escapeHtml(mode)}</div>
-                <div class="col-statut"></div>
+                <div class="col-statut"><span class="cargo-status-text ${statusClass}">${window.CCCommon.escapeHtml(statusLabel)}</span></div>
                 <div class="col-actions">
                     <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-edit-offer="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
                     <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
@@ -726,70 +982,131 @@
         const user = window.CCCommon.state.user;
         if (!user) return;
 
-        // Charger les offres ET conversations en parallèle
-        const [offersResp, convResp] = await Promise.all([
-            window.CCCommon.api("/api/offers?scope=mine&pageSize=20"),
-            window.CCCommon.api("/api/conversations")
-        ]);
-        const myOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
-        state.offers = myOffers;
-        // Cargo dashboard : classification unique (isCargoOffer), pas "mode non vide"
-        // qui comptait a tort les anciennes offres mode="traveler" comme cargo.
-        const cargoOffers = myOffers.filter(isCargoOffer);
-        const activeOffers = cargoOffers.filter(o => String(o.status || "").toLowerCase() === "active");
-        // Les offres en pause / non actives restent accessibles (modif/suppression).
-        const allOffers = myOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
-        const activeCount = activeOffers.length;
+        // Les deux requetes sont INDEPENDANTES : la lenteur (8 s en production) ou
+        // l'echec des conversations ne doit plus laisser le tableau des offres sur
+        // « Chargement... » ni vider les panneaux deja remplis.
+        // Chaque tache rend SON panneau des que SA requete repond.
+        const offersTask = (async () => {
+            try {
+                const offersResp = await withTimeout(window.CCCommon.api("/api/offers?scope=mine&pageSize=20"));
+                const myOffers = Array.isArray(offersResp?.items) ? offersResp.items : [];
+                state.offers = myOffers;
+                // Cargo dashboard : classification unique (isCargoOffer), pas "mode non vide"
+                // qui comptait a tort les anciennes offres mode="traveler" comme cargo.
+                const cargoOffers = myOffers.filter(isCargoOffer);
+                const activeOffers = cargoOffers.filter(o => String(o.status || "").toLowerCase() === "active");
+                // Les offres en pause / non actives restent accessibles (modif/suppression).
+                // On ne garde QUE les offres cargo : avant, une offre voyageur du meme
+                // compte apparaissait aussi dans « Mes offres » cargo.
+                const visibleOffers = cargoOffers.filter(o => String(o.status || "").toLowerCase() !== "archived");
+                const activeCount = activeOffers.length;
 
-        // Filtrer les conversations pour n'afficher que celles liées aux offres cargo
-        const cargoOfferIds = new Set(cargoOffers.map(o => String(o.id)));
-        const incoming = Array.isArray(convResp) ? convResp.filter(c => {
-            if (c.isOfferOwner) return false; // seulement les demandes entrantes
-            // Ne garder que les conversations liées à une offre cargo
-            return cargoOfferIds.has(String(c.offer_id || c.offerId || ""));
-        }) : [];
-        state.incomingRequests = incoming;
+                if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
+                renderCargoOffersTable(visibleOffers);
 
-        // Stats
-        if (els.cargoStatOffers) els.cargoStatOffers.textContent = `${activeCount} / 5`;
-        if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${incoming.length}`;
-        const cargoInterestedCount = document.getElementById("cargo-interested-count");
-        if (cargoInterestedCount) cargoInterestedCount.textContent = `${incoming.length}`;
+                // Jauge de limite (C-33) : decorative, la note n'apparait qu'a 5/5.
+                const pct = Math.min(100, (activeCount / 5) * 100);
+                if (els.cargoLimitBadge) els.cargoLimitBadge.textContent = `${activeCount}/5`;
+                if (els.cargoProgressFill) {
+                    els.cargoProgressFill.style.width = `${pct}%`;
+                    els.cargoProgressFill.closest(".cargo-limit")?.classList.toggle("is-full", activeCount >= 5);
+                }
+                if (els.cargoLimitNote) {
+                    const limiteAtteinte = activeCount >= 5;
+                    els.cargoLimitNote.textContent = limiteAtteinte
+                        ? "Limite atteinte. Desactivez une offre pour en creer une nouvelle."
+                        : "";
+                    els.cargoLimitNote.classList.toggle("hidden", !limiteAtteinte);
+                }
+                // Memes offres que le tableau : une conversation rattachee a une
+                // offre archivee ne doit pas apparaitre dans « Personnes interessees ».
+                return new Set(visibleOffers.map(o => String(o.id)));
+            } catch (error) {
+                if (els.cargoStatOffers) els.cargoStatOffers.textContent = "— / 5";
+                if (els.cargoProgressFill) els.cargoProgressFill.style.width = "0%";
+                renderPanelError(els.cargoOpsTable, error, loadDashboard);
+                return null;
+            }
+        })();
 
-        // Table operations (4 colonnes: LIGNE | MODE | STATUT | [action])
-        // Repliee par defaut : une offre visible, « Voir tous » deplie le reste.
-        // On passe TOUTES les offres non archivees pour ne pas perdre les pauses.
-        renderCargoOffersTable(allOffers);
-
-        // Demandes (conversations where user is not owner)
-        if (els.cargoFileList) {
-            if (!incoming.length) {
-                els.cargoFileList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
-            } else {
-                // Toutes les demandes (le bouton « Voir tous » avait ete retire du HTML :
-                // les demandes au-dela de la 5e etaient invisibles et inaccessibles).
-                els.cargoFileList.innerHTML = incoming.map((item, i) => {
-                    var _userName_ = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
-                    var _tripInfo_ = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "Trajet non precise");
-                    return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
-                        <div class="cargo-file-index">${i + 1}</div>
-                        <div class="file-content">
-                            <div class="file-title">${_userName_} | ${window.CCCommon.escapeHtml(_tripInfo_)}</div>
-                            <div class="file-desc">${item.preview ? window.CCCommon.escapeHtml(item.preview) : ""}</div>
-                        </div>
-                        <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
-                    </div>`;}).join("");
+        const convTask = (async () => {
+            try {
+                const convResp = await withTimeout(window.CCCommon.api("/api/conversations"));
+                const cargoOfferIds = await offersTask;
+                // « Personnes interessees » = fils dont JE suis le proprietaire de l'offre.
+                // Le filtre inverse (!isOfferOwner) laissait ce panneau vide a vie.
+                const incoming = Array.isArray(convResp) ? convResp.filter(c => {
+                    if (!c.isOfferOwner) return false;
+                    if (cargoOfferIds) {
+                        return cargoOfferIds.has(String(c.offer_id || c.offerId || ""));
                     }
-        }
+                    return true; // offres indisponibles : on montre au moins mes fils entrants
+                }) : [];
+                state.incomingRequests = incoming;
 
-        // Limite offres (progress bar)
-        const pct = Math.min(100, (activeCount / 5) * 100);
-        if (els.cargoLimitBadge) els.cargoLimitBadge.textContent = `${activeCount}/5`;
-        if (els.cargoProgressFill) els.cargoProgressFill.style.width = `${pct}%`;
-        if (els.cargoLimitNote) {
-            if (activeCount >= 5) els.cargoLimitNote.textContent = "Limite atteinte. Desactivez une offre pour en creer une nouvelle.";
-            else els.cargoLimitNote.textContent = `${5 - activeCount} place(s) restante(s) pour une nouvelle ligne active.`;
-        }
+                if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${incoming.length}`;
+                const cargoInterestedCount = document.getElementById("cargo-interested-count");
+                if (cargoInterestedCount) cargoInterestedCount.textContent = `${incoming.length}`;
+
+                if (els.cargoFileList) {
+                    if (!incoming.length) {
+                        els.cargoFileList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
+                    } else {
+                        els.cargoFileList.innerHTML = incoming.map((item, i) => {
+                            const userName = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
+                            // L'itineraire vit dans `item.offer` (le fil ne porte pas origin/destination
+                            // a la racine) : avant, on repetait l'apercu du message dans le titre.
+                            const offer = item.offer || {};
+                            const route = offer.origin && offer.destination ? `${offer.origin} -> ${offer.destination}` : "";
+                            const preview = item.preview ? window.CCCommon.escapeHtml(item.preview) : "";
+                            return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+                                <div class="cargo-file-index">${i + 1}</div>
+                                <div class="file-content">
+                                    <div class="file-title">${userName}${route ? " | " + window.CCCommon.escapeHtml(route) : ""}</div>
+                                    <div class="file-desc">${preview || "Aucun message"}</div>
+                                </div>
+                                <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
+                            </div>`;
+                        }).join("");
+                    }
+                }
+            } catch (error) {
+                if (els.cargoStatRequests) els.cargoStatRequests.textContent = "—";
+                const cargoInterestedCount = document.getElementById("cargo-interested-count");
+                if (cargoInterestedCount) cargoInterestedCount.textContent = "—";
+                renderPanelError(els.cargoFileList, error, loadDashboard);
+            }
+        })();
+
+        await Promise.all([offersTask, convTask]);
+    }
+
+    // Un panneau ne doit JAMAIS rester sur « Chargement... » : on borne l'attente.
+    // (La requete des conversations peut depasser 8 s en production ; sans borne,
+    // un serveur muet laissait le panneau fige indefiniment.)
+    function withTimeout(promise, ms = 20000) {
+        let timer = null;
+        return Promise.race([
+            Promise.resolve(promise),
+            new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new Error("Le serveur met trop de temps a repondre.")), ms);
+            })
+        ]).finally(() => { if (timer) clearTimeout(timer); });
+    }
+
+    // Erreur limitee a UN panneau : les autres panneaux gardent leurs donnees.
+    // (Avant, l'echec d'une requete optionnelle vidait tout l'ecran.)
+    function renderPanelError(target, error, onRetry) {
+        if (!target) return;
+        const message = window.CCCommon.escapeHtml(error?.message || "Erreur reseau");
+        target.innerHTML = `<div class="traveler-empty-requests" role="alert">
+            <p>Impossible de charger ces donnees.</p>
+            <span style="opacity:.7;font-size:.85rem;">${message}</span>
+            <button type="button" class="btn secondary btn-sm dashboard-panel-retry" style="margin-top:10px;">Reessayer</button>
+        </div>`;
+        target.querySelector(".dashboard-panel-retry")?.addEventListener("click", () => {
+            (onRetry || loadDashboard)().catch((err) => renderPanelError(target, err, onRetry));
+        });
     }
 
     // Etat d'erreur explicite : avant, une requete en echec laissait les panneaux
@@ -815,45 +1132,57 @@
 
         try {
         if (viewType === "traveler") {
-            const [offersResp, requestsResp] = await Promise.all([
-                window.CCCommon.api("/api/offers?scope=mine&pageSize=100"),
-                window.CCCommon.api("/api/conversations")
-            ]);
+            // Offres et conversations chargees separement : la carte d'offre doit
+            // s'afficher des que les offres repondent, sans attendre les messages.
+            const offersTask = (async () => {
+                try {
+                    const offersResp = await withTimeout(window.CCCommon.api("/api/offers?scope=mine&pageSize=100"));
+                    state.offers = (Array.isArray(offersResp?.items) ? offersResp.items : [])
+                        .filter(o => !isCargoOffer(o)); // meme classification que le bridge
+                    state.activeOffer = getActiveOffer();
+                    renderActiveOffer(state.activeOffer, []);
+                    renderStats(state.activeOffer, []);
+                    if (els.manageOfferBtn) {
+                        els.manageOfferBtn.textContent = state.activeOffer ? "Modifier mon offre" : "Publier mon trajet";
+                    }
+                    if (els.editOfferBtn) els.editOfferBtn.disabled = !state.activeOffer;
+                    if (els.openMessagesBtn) {
+                        els.openMessagesBtn.href = state.activeOffer ? `chat.html?offerId=${encodeURIComponent(String(state.activeOffer.id))}` : "chat.html";
+                    }
+                    if (els.quickSummaryText) {
+                        els.quickSummaryText.textContent = state.activeOffer
+                            ? `${getRouteLabel(state.activeOffer)} | ${formatAmount(Number(state.activeOffer.pricePerKg || state.activeOffer.price_per_kg || 0), state.activeOffer.baseCurrency || state.activeOffer.base_currency || getCurrencyCode(user, state.activeOffer))}/kg`
+                            : "Aucune offre.";
+                    }
+                } catch (error) {
+                    renderPanelError(els.activeOfferCard, error, loadDashboard);
+                }
+            })();
 
-            state.offers = (Array.isArray(offersResp?.items) ? offersResp.items : [])
-                .filter(o => !isCargoOffer(o)); // meme classification que le bridge
-            state.activeOffer = getActiveOffer();
-            state.requests = (Array.isArray(requestsResp) ? requestsResp : []).filter((item) => item.isOfferOwner);
-
-            const requests = getRequestsForOffer(state.activeOffer);
-            const currency = getCurrencyCode(user, state.activeOffer);
+            const convTask = (async () => {
+                try {
+                    const convResp = await withTimeout(window.CCCommon.api("/api/conversations"));
+                    state.requests = (Array.isArray(convResp) ? convResp : []).filter((item) => item.isOfferOwner);
+                    await offersTask; // l'offre active doit etre connue pour filtrer
+                    const requests = getRequestsForOffer(state.activeOffer);
+                    renderRequests(requests, state.activeOffer);
+                    renderStats(state.activeOffer, requests);
+                } catch (error) {
+                    state.requests = [];
+                    if (els.requestsCount) els.requestsCount.textContent = "-";
+                    renderPanelError(els.requestsList, error, loadDashboard);
+                }
+            })();
 
             if (els.dashboardUser) {
-                if (els.dashboardUser) els.dashboardUser.textContent = user?.fullName || "Voyageur";
+                els.dashboardUser.textContent = user?.fullName || "Voyageur";
             }
             if (els.userChip) {
-                if (els.userChip) els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
+                els.userChip.textContent = `${getProfileTypeLabel(user)}${user?.is_verified ? " verifie" : ""}`;
             }
             renderProfileChip(user);
-            renderStats(state.activeOffer, requests);
-            renderActiveOffer(state.activeOffer, requests);
-            renderRequests(requests, state.activeOffer);
 
-            if (els.manageOfferBtn) {
-                if (els.manageOfferBtn) els.manageOfferBtn.textContent = state.activeOffer ? "Modifier mon offre" : "Publier mon trajet";
-            }
-            if (els.editOfferBtn) {
-                if (els.editOfferBtn) els.editOfferBtn.disabled = !state.activeOffer;
-            }
-            if (els.openMessagesBtn) {
-                if (els.openMessagesBtn) els.openMessagesBtn.href = state.activeOffer ? `chat.html?offerId=${encodeURIComponent(String(state.activeOffer.id))}` : "chat.html";
-            }
-
-            if (els.quickSummaryText && state.activeOffer) {
-                if (els.quickSummaryText) els.quickSummaryText.textContent = `${getRouteLabel(state.activeOffer)} | ${formatAmount(Number(state.activeOffer.pricePerKg || state.activeOffer.price_per_kg || 0), state.activeOffer.baseCurrency || state.activeOffer.base_currency || currency)}/kg`;
-            } else if (els.quickSummaryText) {
-                if (els.quickSummaryText) els.quickSummaryText.textContent = "Aucune offre.";
-            }
+            await Promise.all([offersTask, convTask]);
         } else if (viewType === "cargo") {
             await loadCargoDashboard();
         } else {
@@ -878,6 +1207,36 @@
             els.offerDestination.addEventListener("input", refreshOfferCurrencyOptions);
         }
 
+        // Alerte immediate « depart = arrivee » sur les trois formulaires.
+        [
+            ["offer-origin", "offer-destination", "offer-same-country-hint"],
+            ["dash-demande-origin", "dash-demande-destination", "dash-demande-same-country-hint"],
+            ["edit-parcel-origin", "edit-parcel-destination", "edit-parcel-same-country-hint"]
+        ].forEach(([originId, destinationId, hintId]) => {
+            [originId, destinationId].forEach((id) => {
+                const input = document.getElementById(id);
+                if (!input || input.dataset.sameCountryBound === "true") return;
+                input.dataset.sameCountryBound = "true";
+                const refresh = () => updateSameCountryHint(originId, destinationId, hintId);
+                input.addEventListener("input", refresh);
+                input.addEventListener("change", refresh);
+            });
+        });
+
+        // Alerte immediate « date passee » sur les trois formulaires.
+        [
+            ["offer-departure-date", "offer-date-hint"],
+            ["dash-demande-date", "dash-demande-date-hint"],
+            ["edit-parcel-date", "edit-parcel-date-hint"]
+        ].forEach(([inputId, hintId]) => {
+            const input = document.getElementById(inputId);
+            if (!input || input.dataset.dateHintBound === "true") return;
+            input.dataset.dateHintBound = "true";
+            const refresh = () => updateDateHint(inputId, hintId);
+            input.addEventListener("input", refresh);
+            input.addEventListener("change", refresh);
+        });
+
         // Dashboard toggles (Voyageur/Cargo)
         document.querySelectorAll(".dash-toggle").forEach(btn => {
             btn.addEventListener("click", async () => {
@@ -888,8 +1247,14 @@
             });
         });
 
-        els.refreshBtn?.addEventListener("click", () => {
-            loadDashboard().catch((error) => alert(error.message || "Rafraichissement impossible."));
+        // Bouton « Actualiser » (C-03) : un par vue, meme action.
+        els.refreshBtns.forEach((btn) => {
+            btn.addEventListener("click", () => {
+                btn.setAttribute("aria-busy", "true");
+                loadDashboard()
+                    .catch(() => ccNotify("Le rafraîchissement a échoué. Réessaie.", true))
+                    .finally(() => btn.removeAttribute("aria-busy"));
+            });
         });
 
         els.manageOfferBtn?.addEventListener("click", () => {
@@ -920,6 +1285,10 @@
         });
 
         els.offerEditForm?.addEventListener("submit", saveOfferEdits);
+        // Des que l'utilisateur corrige, l'ancien message d'erreur ne doit plus
+        // rester affiche (il decrivait un probleme deja resolu).
+        els.offerEditForm?.addEventListener("input", () => setFeedback(""));
+        els.offerEditForm?.addEventListener("change", () => setFeedback(""));
 
         els.openChatFromModalBtn?.addEventListener("click", () => {
             if (!state.activeOffer) return;
@@ -1002,36 +1371,32 @@
             }
         });
 
-        function openVoirTousModal(title, kicker, items, renderItem) {
-            if (!els.voirTousModal) return;
-            if (els.voirTousKicker) els.voirTousKicker.textContent = kicker || "";
-            if (els.voirTousTitle) els.voirTousTitle.textContent = title;
-            if (els.voirTousCount) els.voirTousCount.textContent = `${items.length}`;
-            if (els.voirTousList) {
-                if (!items.length) {
-                    els.voirTousList.innerHTML = `<div class="traveler-empty-requests"><p>Aucun element.</p></div>`;
-                } else {
-                    els.voirTousList.innerHTML = items.map((item, i) => renderItem(item, i)).join("");
-                }
-            }
-            els.voirTousModal.classList.remove("hidden");
-        }
-
         // Modale de modification de demande
-        let _editParcelId = null;
         async function openEditParcelModal(parcelId) {
-            _editParcelId = parcelId;
+            editParcelId = parcelId;
             const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId);
             if (!parcel) return;
             document.getElementById("edit-parcel-origin").value = parcel.origin || "";
             document.getElementById("edit-parcel-destination").value = parcel.destination || "";
+            notifyCountryChanged(["edit-parcel-origin", "edit-parcel-destination"]);
             const editCityOrigin = document.getElementById("city-edit-parcel-origin");
             const editCityDest = document.getElementById("city-edit-parcel-destination");
             if (editCityOrigin) editCityOrigin.value = parcel.origin_city || parcel.city_origin || "";
             if (editCityDest) editCityDest.value = parcel.destination_city || parcel.city_destination || "";
             document.getElementById("edit-parcel-date").value = parcel.needed_by_date || "";
             document.getElementById("edit-parcel-kg").value = parcel.weight_kg || "";
+            const editBudget = document.getElementById("edit-parcel-budget");
+            if (editBudget) editBudget.value = parcel.max_price_per_kg ?? "";
+            const editBadge = document.getElementById("edit-parcel-currency-badge");
+            if (editBadge) {
+                const cur = parcel.currency
+                    || window.CCCommon.COUNTRY_CURRENCIES?.[window.CCCommon.state?.user?.country]
+                    || getUserCurrency();
+                editBadge.textContent = window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(cur) : cur;
+            }
             document.getElementById("edit-parcel-description").value = parcel.description || "";
+            updateSameCountryHint("edit-parcel-origin", "edit-parcel-destination", "edit-parcel-same-country-hint");
+            updateDateHint("edit-parcel-date", "edit-parcel-date-hint");
             const fb = document.getElementById("edit-parcel-feedback");
             if (fb) fb.classList.add("hidden");
             const saveBtn = document.getElementById("edit-parcel-save-btn");
@@ -1040,8 +1405,12 @@
         }
 
         async function deleteParcelRequest(parcelId) {
-            if (!window.ccSupabase) { alert("Connexion indisponible."); return; }
-            if (!confirm("Supprimer cette demande de trajet ? Les réservations et discussions liées seront également supprimées lorsqu'elles existent.")) return;
+            if (!window.ccSupabase) { ccNotify("Connexion indisponible.", true); return; }
+            if (!(await ccConfirm(
+                "Supprimer cette demande ?",
+                "Cette action est définitive : les réservations et discussions liées seront supprimées lorsqu'elles existent.",
+                "Supprimer"
+            ))) return;
             try {
                 const supabase = window.ccSupabase;
                 const uid = window.CCCommon.state?.user?.id;
@@ -1074,13 +1443,18 @@
                 if (viewType === "client") await loadClientDashboard();
                 else await loadDashboard();
             } catch (e) {
-                alert("Erreur lors de la suppression: " + (e.message || ""));
+                console.error("Suppression de la demande impossible:", e);
+                ccNotify("La suppression a échoué. Réessaie.", true);
             }
         }
 
         async function deleteOffer(offerId) {
-            if (!window.ccSupabase) { alert("Connexion indisponible."); return; }
-            if (!confirm("Supprimer cette offre ? Les réservations et discussions liées seront également supprimées.")) return;
+            if (!window.ccSupabase) { ccNotify("Connexion indisponible.", true); return; }
+            if (!(await ccConfirm(
+                "Supprimer cette offre ?",
+                "Cette action est définitive : les réservations et discussions liées seront supprimées lorsqu'elles existent.",
+                "Supprimer"
+            ))) return;
             const supabase = window.ccSupabase;
             const uid = window.CCCommon.state?.user?.id;
             try {
@@ -1089,7 +1463,7 @@
                 // une erreur incomprehensible ("annonce introuvable").
                 const { data: { session } } = await supabase.auth.getSession();
                 if (!session) {
-                    alert("Ta session a expire. Reconnecte-toi pour pouvoir supprimer ton annonce.");
+                    ccNotify("Ta session a expiré. Reconnecte-toi pour continuer.", true);
                     window.location.href = "auth.html";
                     return;
                 }
@@ -1105,7 +1479,7 @@
                     if (e2) throw e2;
                     fait = nArch || 0;
                 }
-                if (!fait) { alert("Retrait impossible : cette annonce n'a pas ete trouvee (ou ne vous appartient pas)."); return; }
+                if (!fait) { ccNotify("Retrait impossible : cette annonce n'a pas été trouvée (ou ne t'appartient pas).", true); return; }
 
                 // Nettoyage des donnees liees (au mieux, ne bloque jamais la suppression)
                 try {
@@ -1134,145 +1508,22 @@
                 else if (viewType === "cargo") await loadCargoDashboard();
                 else if (viewType === "client") await loadClientDashboard();
             } catch (e) {
-                alert("Erreur lors de la suppression: " + (e.message || ""));
+                console.error("Suppression de l'offre impossible:", e);
+                ccNotify("La suppression a échoué. Réessaie.", true);
             }
         }
 
-        // Client "Voir tous" propositions -> ouvre la modale de demande
-        document.getElementById("client-voir-tous-propositions")?.addEventListener("click", () => {
-            const items = state.parcelRequests || [];
-            openVoirTousModal("Toutes les demandes", "Demandes", items, (item, i) => `
-                <div class="cargo-file-item" data-parcel-id="${window.CCCommon.escapeHtml(item.id)}">
-                    <div class="cargo-file-index">${i + 1}</div>
-                    <div class="file-content">
-                        <div class="file-title">${window.CCCommon.escapeHtml(item.origin || "")} &rarr; ${window.CCCommon.escapeHtml(item.destination || "")}</div>
-                        <div class="file-desc">${item.weight_kg ? item.weight_kg + " kg" : ""}${item.status ? " - " + item.status : ""}</div>
-                    </div>
-                    <div class="dash-row-inline">
-                        <button class="cargo-file-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
-                        <button class="cargo-ops-btn cargo-ops-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}">Supprimer</button>
-                    </div>
-                </div>
-            `);
-        });
 
 
-
-
-
-
-
-
-        // Client "Voir tous" discussions
-        document.getElementById("client-voir-tous-discussions")?.addEventListener("click", () => {
-            const items = state.clientConversations || [];
-            openVoirTousModal("Toutes les discussions", "Discussions", items, (item, i) => `
-                <div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
-                    <div class="cargo-file-index">${i + 1}</div>
-                    <div class="file-content">
-                        <div class="file-title">${window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client")}</div>
-                        <div class="file-desc">${window.CCCommon.escapeHtml(item.origin && item.destination ? item.origin + " -> " + item.destination : item.preview || "")}</div>
-                    </div>
-                    <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
-                </div>
-            `);
-        });
-
-        // Fermer la modale "Voir tous"
-        document.getElementById("close-voir-tous-modal")?.addEventListener("click", () => {
-            els.voirTousModal?.classList.add("hidden");
-        });
-        els.voirTousModal?.addEventListener("click", (event) => {
-            if (event.target === els.voirTousModal) els.voirTousModal.classList.add("hidden");
-        });
-
-        // Clic sur ligne dans modale "Voir tous"
-        els.voirTousList?.addEventListener("click", async (event) => {
-            const livrerBtn = event.target.closest("[data-livrer]");
-            if (livrerBtn) {
-                const reservationId = livrerBtn.getAttribute("data-livrer");
-                if (!reservationId || !confirm("Marquer ce colis comme livre ?")) return;
-                try {
-                    if (window.ccSupabase) {
-                        const { data: updated, error } = await window.ccSupabase.from("reservations").update({
-                            status: "livre", updated_at: new Date().toISOString()
-                        }).eq("id", reservationId).select("id");
-                        if (error) throw error;
-                        if (!updated || !updated.length) throw new Error("Statut non enregistre (session expiree ?).");
-                    }
-                    await loadClientDashboard();
-                    els.voirTousModal?.classList.add("hidden");
-                } catch (e) { alert("Erreur: " + (e.message || "")); }
-                return;
-            }
-            // Modifier offre depuis la popup
-            const modifyBtn = event.target.closest("[data-action='modify-offer']");
-            if (modifyBtn) {
-                const offerId = modifyBtn.getAttribute("data-offer-id");
-                if (offerId) {
-                    const offer = state.offers?.find(o => String(o.id) === offerId);
-                    if (offer) {
-                        state.activeOffer = offer;
-                        els.voirTousModal?.classList.add("hidden");
-                        openOfferModal();
-                    }
-                }
-                return;
-            }
-            // Supprimer offre depuis la popup (cargo)
-            const deleteBtn = event.target.closest("[data-action='delete']");
-            if (deleteBtn) {
-                const offerId = deleteBtn.getAttribute("data-offer-id");
-                if (offerId) {
-                    els.voirTousModal?.classList.add("hidden");
-                    await deleteOffer(offerId);
-                }
-                return;
-            }
-            // Modifier demande de trajet depuis la popup
-            const editParcelBtn = event.target.closest("[data-edit-parcel]");
-            if (editParcelBtn) {
-                const parcelId = editParcelBtn.getAttribute("data-edit-parcel");
-                if (!parcelId) return;
-                els.voirTousModal?.classList.add("hidden");
-                openEditParcelModal(parcelId);
-                return;
-            }
-            // Supprimer demande de trajet depuis la popup
-            const deleteParcelBtn = event.target.closest("[data-delete-parcel]");
-            if (deleteParcelBtn) {
-                const parcelId = deleteParcelBtn.getAttribute("data-delete-parcel");
-                if (parcelId) {
-                    els.voirTousModal?.classList.add("hidden");
-                    await deleteParcelRequest(parcelId);
-                }
-                return;
-            }
-            // Bouton "Voir" ou "Repondre" dans la popup → ouvre la discussion
-            const openThreadBtn = event.target.closest("[data-open-thread]");
-            if (openThreadBtn) {
-                const threadId = openThreadBtn.getAttribute("data-open-thread");
-                if (threadId) {
-                    els.voirTousModal?.classList.add("hidden");
-                    openChatPage(threadId);
-                }
-                return;
-            }
-            // Clic sur ligne → ouvrir discussion (si applicable)
-            const itemRow = event.target.closest("[data-thread-id]");
-            if (itemRow && !event.target.closest("button")) {
-                const threadId = itemRow.getAttribute("data-thread-id");
-                if (threadId) {
-                    els.voirTousModal?.classList.add("hidden");
-                    openChatPage(threadId);
-                }
-            }
-        });
 
         // Client cercle + nouvelle proposition
-        document.querySelector(".client-plus-btn")?.addEventListener("click", () => {
+        // (cible explicite : un second .client-plus-btn existe dans la vue cargo,
+        //  il ne doit pas dependre de l'ordre du document)
+        document.querySelector(".client-requests-panel .client-plus-btn")?.addEventListener("click", () => {
             const modal = document.getElementById("dashboard-demande-modal");
             if (modal) modal.classList.remove("hidden");
+            updateSameCountryHint("dash-demande-origin", "dash-demande-destination", "dash-demande-same-country-hint");
+            updateDateHint("dash-demande-date", "dash-demande-date-hint");
             // Reinitialisation : apres un premier envoi, le bouton etait masque et
             // le message de succes restait affiche a la deuxieme ouverture.
             const fb = document.getElementById("dash-demande-feedback");
@@ -1293,54 +1544,7 @@
             }
         });
 
-        // Cargo "Voir tous" demandes (conserve l'ancienne modale cargo)
-        document.getElementById("cargo-see-all-requests")?.addEventListener("click", () => {
-            if (els.cargoRequestsModal) {
-                els.cargoRequestsModal.classList.remove("hidden");
-                // Remplir la modale avec la liste complete
-                const allItems = state.incomingRequests || [];
-                if (els.cargoRequestsModalCount) els.cargoRequestsModalCount.textContent = `${allItems.length}`;
-                if (els.cargoRequestsModalList) {
-                    if (!allItems.length) {
-                        els.cargoRequestsModalList.innerHTML = `<div class="traveler-empty-requests"><p>Aucune demande.</p></div>`;
-                    } else {
-                        els.cargoRequestsModalList.innerHTML = allItems.map((item, i) => {
-                            var _userName_ = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
-                            var _userName_ = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Client");
-                            var _tripInfo_ = item.origin && item.destination ? `${item.origin} -> ${item.destination}` : (item.preview ? item.preview : "Trajet non precise");
-                            return `<div class="cargo-file-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
-                                <div class="cargo-file-index">${i + 1}</div>
-                                <div class="file-content">
-                                    <div class="file-title">${_userName_} | ${window.CCCommon.escapeHtml(_tripInfo_)}</div>
-                                    <div class="file-desc">${item.preview ? window.CCCommon.escapeHtml(item.preview) : ""}</div>
-                                </div>
-                                <button class="cargo-file-btn" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Repondre</button>
-                            </div>`;
-                        }).join("");
-                    }
-                }
-            }
-        });
-
-        // Fermer la modale
-        document.getElementById("close-cargo-requests-modal")?.addEventListener("click", () => {
-            els.cargoRequestsModal?.classList.add("hidden");
-        });
-        els.cargoRequestsModal?.addEventListener("click", (event) => {
-            if (event.target === els.cargoRequestsModal) els.cargoRequestsModal.classList.add("hidden");
-        });
-
-        // Clic sur les elements de la modale
-        els.cargoRequestsModalList?.addEventListener("click", (event) => {
-            const button = event.target.closest("[data-open-thread]");
-            if (button) {
-                const threadId = button.getAttribute("data-open-thread");
-                if (threadId) {
-                    els.cargoRequestsModal?.classList.add("hidden");
-                    openChatPage(threadId);
-                }
-            }
-        });
+        // S-04 : la modale #cargo-requests-modal (inatteignable) a ete supprimee.
 
         // Cargo file list click delegation
         els.cargoFileList?.addEventListener("click", (event) => {
@@ -1412,7 +1616,7 @@
                             console.log("Photo de profil sauvegardee");
                         } catch (err) {
                             console.warn("Impossible de sauvegarder la photo:", err);
-                            alert(err.message || "Impossible d'enregistrer la photo de profil.");
+                            ccNotify("Impossible d'enregistrer la photo de profil.", true);
                         }
                     }
                 };
@@ -1496,6 +1700,27 @@
         document.addEventListener("keydown", (ev) => {
             if (ev.key === "Escape") { closeAvatarMenu(); closeAvatarLightbox(); }
         });
+
+        // Echap ferme aussi les modales du dashboard. Avant, seule la fenetre de
+        // photo reagissait : une modale d'offre ouverte restait au-dessus de la
+        // page et interceptait tous les clics (on ne pouvait plus rien faire).
+        const DASHBOARD_MODAL_IDS = [
+            "offer-details-modal",
+            "dashboard-demande-modal",
+            "edit-parcel-modal"
+        ];
+        document.addEventListener("keydown", (ev) => {
+            if (ev.key !== "Escape") return;
+            let closed = false;
+            DASHBOARD_MODAL_IDS.forEach((id) => {
+                const modal = document.getElementById(id);
+                if (modal && !modal.classList.contains("hidden")) {
+                    modal.classList.add("hidden");
+                    closed = true;
+                }
+            });
+            if (closed) setFeedback("");
+        });
     }
 
     // ── Édition directe depuis l'URL ────────────────────────────────────────────
@@ -1519,9 +1744,22 @@
         // Le bouton « Modifier » est rendu dans la vue correspondant au type de
         // publication (voyageur / cargo / client) : on cherche, puis on bascule de
         // vue via les toggles visibles si la publication n'est pas dans la vue active.
+        // Tableau cargo replie : seule la premiere offre est rendue. Sans depliage,
+        // le bouton « Modifier » des autres lignes n'existe pas dans la page et
+        // l'edition demandee depuis results.html echouait silencieusement.
+        const expandCargoIfNeeded = () => {
+            const cargoView = document.getElementById("cargo-dashboard-view");
+            const seeAll = document.getElementById("cargo-voir-tous-trajets");
+            if (!cargoView || cargoView.classList.contains("hidden")) return;
+            if (!seeAll || seeAll.hidden || state.cargoOffersExpanded === true) return;
+            state.cargoOffersExpanded = true;
+            renderCargoOffersTable(state.cargoActiveOffers || []);
+        };
+
         const findEditBtn = () => document.querySelector(selector);
         const waitForBtn = async (tries) => {
             for (let i = 0; i < tries; i += 1) {
+                expandCargoIfNeeded();
                 const btn = findEditBtn();
                 if (btn) { btn.click(); return true; }
                 await new Promise((resolve) => setTimeout(resolve, 250));
@@ -1590,9 +1828,13 @@
         const travelerName = document.getElementById("traveler-welcome-name");
         const clientName = document.getElementById("client-welcome-name");
         const cargoName = document.getElementById("cargo-welcome-name");
-        if (travelerName) travelerName.textContent = fullName;
-        if (clientName) clientName.textContent = fullName;
-        if (cargoName) cargoName.textContent = fullName;
+        [travelerName, clientName, cargoName].forEach((nameEl) => {
+            if (!nameEl) return;
+            nameEl.textContent = fullName;
+            // Le squelette de chargement disparait des que le nom est connu (C-03).
+            nameEl.classList.remove("cc-name-skeleton");
+            nameEl.removeAttribute("aria-label");
+        });
 
         // Charger la photo de profil depuis Supabase
         if (user?.id && window.ccSupabase) {
@@ -1630,6 +1872,12 @@
         updateIdentiteSteps();
 
         bindEvents();
+
+        // Dates passees interdites (meme regle que la page de publication).
+        ["offer-departure-date", "dash-demande-date", "edit-parcel-date"].forEach((id) => {
+            const input = document.getElementById(id);
+            if (input) input.min = todayISO();
+        });
 
         // Remplir le datalist des pays pour la modale d'edition d'offre
         const countryDatalist = document.getElementById("offer-country-list");
@@ -1673,18 +1921,48 @@
         });
         document.getElementById("dash-demande-no-date-btn")?.addEventListener("click", () => {
             document.getElementById("dash-demande-date").value = "";
+            updateDateHint("dash-demande-date", "dash-demande-date-hint");
         });
         document.getElementById("dash-demande-submit-btn")?.addEventListener("click", async () => {
-            const origin = document.getElementById("dash-demande-origin")?.value?.trim();
-            const destination = document.getElementById("dash-demande-destination")?.value?.trim();
+            let origin = document.getElementById("dash-demande-origin")?.value?.trim();
+            let destination = document.getElementById("dash-demande-destination")?.value?.trim();
             const originCity = document.getElementById("city-dash-demande-origin")?.value?.trim() || "";
             const destinationCity = document.getElementById("city-dash-demande-destination")?.value?.trim() || "";
-            const kg = parseInt(document.getElementById("dash-demande-kg")?.value, 10);
+            // Number (et non parseInt) : 5,7 kg etait tronque a 5 sans prévenir.
+            const kg = Number(document.getElementById("dash-demande-kg")?.value);
             const budget = parseFloat(document.getElementById("dash-demande-budget")?.value) || 0;
             const description = document.getElementById("dash-demande-description")?.value?.trim();
             const dateLimite = document.getElementById("dash-demande-date")?.value || null;
-            if (!origin || !destination || !kg || !description) {
-                alert("Veuillez remplir tous les champs.");
+            setFormError("dash-demande-error", "");
+            if (!origin || !destination || !description) {
+                setFormError("dash-demande-error", "Veuillez remplir tous les champs.");
+                return;
+            }
+            if (!Number.isFinite(kg) || kg < 1) {
+                setFormError("dash-demande-error", "Indiquez un poids d'au moins 1 kg.");
+                return;
+            }
+            // Validation a l'ENVOI : le champ pays ne doit contenir qu'un pays de
+            // la liste officielle (nom exact ou prefixe sans ambiguite).
+            const officialOrigin = resolveCountryName(origin);
+            const officialDestination = resolveCountryName(destination);
+            if (!officialOrigin || !officialDestination) {
+                setFormError("dash-demande-error", "Choisissez les pays de depart et d'arrivee dans la liste proposee.");
+                return;
+            }
+            origin = officialOrigin;
+            destination = officialDestination;
+            const originField = document.getElementById("dash-demande-origin");
+            const destinationField = document.getElementById("dash-demande-destination");
+            if (originField) originField.value = origin;
+            if (destinationField) destinationField.value = destination;
+
+            if (countriesAreSame(origin, destination)) {
+                document.getElementById("dash-demande-same-country-hint")?.classList.remove("hidden");
+                return;
+            }
+            if (dateLimite && dateLimite < todayISO()) {
+                document.getElementById("dash-demande-date-hint")?.classList.remove("hidden");
                 return;
             }
             const user = window.CCCommon.state?.user;
@@ -1694,10 +1972,20 @@
             const submitBtn = document.getElementById("dash-demande-submit-btn");
             try {
                 if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Envoi..."; }
+                // Villes verifiees en base (meme regle qu'a la publication).
+                const [originCityCheck, destinationCityCheck] = await Promise.all([
+                    validateCityField(origin, originCity),
+                    validateCityField(destination, destinationCity)
+                ]);
+                if (!originCityCheck.ok || !destinationCityCheck.ok) {
+                    setFormError("dash-demande-error", (!originCityCheck.ok && originCityCheck.message) || destinationCityCheck.message || "Ville introuvable.");
+                    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
+                    return;
+                }
                 if (window.ccSupabase) {
                     const userId = window.CCCommon.state?.user?.id;
                     if (!userId) {
-                        alert("Vous devez etre connecte.");
+                        setFormError("dash-demande-error", "Vous devez être connecté.");
                         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
                         return;
                     }
@@ -1706,8 +1994,8 @@
                         title: `Demande ${origin} -> ${destination}`,
                         origin,
                         destination,
-                        origin_city: originCity || null,
-                        destination_city: destinationCity || null,
+                        origin_city: originCityCheck.ville || null,
+                        destination_city: destinationCityCheck.ville || null,
                         weight_kg: kg,
                         max_price_per_kg: budget > 0 ? budget : null,
                         currency: currency,
@@ -1721,12 +2009,29 @@
                 if (submitBtn) submitBtn.classList.add("hidden");
                 setTimeout(async () => {
                     document.getElementById("dashboard-demande-modal")?.classList.add("hidden");
+                    // Vider le formulaire : a la reouverture, la demande precedente
+                    // restait affichee et pouvait etre renvoyee par erreur.
+                    [
+                        "dash-demande-origin", "city-dash-demande-origin",
+                        "dash-demande-destination", "city-dash-demande-destination",
+                        "dash-demande-date", "dash-demande-kg", "dash-demande-budget",
+                        "dash-demande-description"
+                    ].forEach((id) => {
+                        const field = document.getElementById(id);
+                        if (!field) return;
+                        field.value = "";
+                        field.classList.remove("cc-country-invalid");
+                        field.removeAttribute("title");
+                    });
+                    // Resynchroniser le suivi pays -> ville apres la remise a zero.
+                    notifyCountryChanged(["dash-demande-origin", "dash-demande-destination"]);
+                    updateDateHint("dash-demande-date", "dash-demande-date-hint");
                     // Recharger le dashboard pour afficher la nouvelle demande
                     await loadClientDashboard();
                 }, 1500);
             } catch (err) {
                 console.error("Erreur:", err);
-                alert("Erreur: " + (err.message || "Impossible de soumettre."));
+                setFormError("dash-demande-error", "La demande n'a pas pu être envoyée. Réessaie.");
                 if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
             }
         });
@@ -1742,6 +2047,7 @@
         });
         document.getElementById("edit-parcel-no-date-btn")?.addEventListener("click", () => {
             document.getElementById("edit-parcel-date").value = "";
+            updateDateHint("edit-parcel-date", "edit-parcel-date-hint");
         });
         // Remplir le datalist
         const editList = document.getElementById("edit-parcel-country-list");
@@ -1749,16 +2055,43 @@
             editList.innerHTML = countryOptions.map(c => `<option value="${c}">`).join("");
         }
         document.getElementById("edit-parcel-save-btn")?.addEventListener("click", async () => {
-            if (!_editParcelId) return;
-            const origin = document.getElementById("edit-parcel-origin")?.value?.trim();
-            const destination = document.getElementById("edit-parcel-destination")?.value?.trim();
+            if (!editParcelId) return;
+            let origin = document.getElementById("edit-parcel-origin")?.value?.trim();
+            let destination = document.getElementById("edit-parcel-destination")?.value?.trim();
             const originCity = document.getElementById("city-edit-parcel-origin")?.value?.trim() || "";
             const destinationCity = document.getElementById("city-edit-parcel-destination")?.value?.trim() || "";
-            const kg = parseInt(document.getElementById("edit-parcel-kg")?.value, 10);
+            const kg = Number(document.getElementById("edit-parcel-kg")?.value);
+            const budget = parseFloat(document.getElementById("edit-parcel-budget")?.value) || 0;
             const description = document.getElementById("edit-parcel-description")?.value?.trim();
             const dateLimite = document.getElementById("edit-parcel-date")?.value || null;
-            if (!origin || !destination || !kg || !description) {
-                alert("Veuillez remplir tous les champs.");
+            setFormError("edit-parcel-error", "");
+            if (!origin || !destination || !description) {
+                setFormError("edit-parcel-error", "Veuillez remplir tous les champs.");
+                return;
+            }
+            if (!Number.isFinite(kg) || kg < 1) {
+                setFormError("edit-parcel-error", "Indiquez un poids d'au moins 1 kg.");
+                return;
+            }
+            const officialOrigin = resolveCountryName(origin);
+            const officialDestination = resolveCountryName(destination);
+            if (!officialOrigin || !officialDestination) {
+                setFormError("edit-parcel-error", "Choisissez les pays de depart et d'arrivee dans la liste proposee.");
+                return;
+            }
+            origin = officialOrigin;
+            destination = officialDestination;
+            const editOriginField = document.getElementById("edit-parcel-origin");
+            const editDestinationField = document.getElementById("edit-parcel-destination");
+            if (editOriginField) editOriginField.value = origin;
+            if (editDestinationField) editDestinationField.value = destination;
+
+            if (countriesAreSame(origin, destination)) {
+                document.getElementById("edit-parcel-same-country-hint")?.classList.remove("hidden");
+                return;
+            }
+            if (dateLimite && dateLimite < todayISO()) {
+                document.getElementById("edit-parcel-date-hint")?.classList.remove("hidden");
                 return;
             }
             const feedback = document.getElementById("edit-parcel-feedback");
@@ -1766,16 +2099,26 @@
             try {
                 if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = "Enregistrement..."; }
                 if (!window.ccSupabase) throw new Error("Connexion Supabase indisponible.");
+                const [originCityCheck, destinationCityCheck] = await Promise.all([
+                    validateCityField(origin, originCity),
+                    validateCityField(destination, destinationCity)
+                ]);
+                if (!originCityCheck.ok || !destinationCityCheck.ok) {
+                    setFormError("edit-parcel-error", (!originCityCheck.ok && originCityCheck.message) || destinationCityCheck.message || "Ville introuvable.");
+                    if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Enregistrer"; }
+                    return;
+                }
                 const { data: updated, error } = await window.ccSupabase.from("parcel_requests").update({
                     origin,
                     destination,
-                    origin_city: originCity || null,
-                    destination_city: destinationCity || null,
+                    origin_city: originCityCheck.ville || null,
+                    destination_city: destinationCityCheck.ville || null,
                     weight_kg: kg,
+                    max_price_per_kg: budget > 0 ? budget : null,
                     description,
                     needed_by_date: dateLimite || null,
                     updated_at: new Date().toISOString()
-                }).eq("id", _editParcelId)
+                }).eq("id", editParcelId)
                     .eq("user_id", window.CCCommon.state?.user?.id)
                     .select("id");
                 if (error) throw error;
@@ -1789,7 +2132,8 @@
                     await loadClientDashboard();
                 }, 1200);
             } catch (err) {
-                alert("Erreur: " + (err.message || "Impossible de modifier."));
+                console.error("Modification impossible:", err);
+                setFormError("edit-parcel-error", "La demande n'a pas pu être enregistrée. Réessaie.");
                 if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = "Enregistrer"; }
             }
         });
@@ -1802,13 +2146,48 @@
 
     // Les panneaux repliables (client et voyageur) sont branches des le chargement de la page :
     // le depliage ne doit pas dependre de la session, sinon un panneau reste fige.
+    // Le focus revient au declencheur a la fermeture de chaque modale (D-11).
+    function setupModalFocusReturn() {
+        const ouvertPar = new WeakMap();
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                const modal = mutation.target;
+                const visible = !modal.classList.contains("hidden");
+                if (visible && !ouvertPar.has(modal)) {
+                    ouvertPar.set(modal, document.activeElement);
+                    // Ouverture : focus sur le premier champ, sinon le premier controle (C-28).
+                    if (!modal.contains(document.activeElement)) {
+                        const cible = modal.querySelector(
+                            'input:not([type="hidden"]), textarea, select, button, [href], [tabindex]:not([tabindex="-1"])'
+                        );
+                        if (cible) cible.focus();
+                    }
+                } else if (!visible && ouvertPar.has(modal)) {
+                    const declencheur = ouvertPar.get(modal);
+                    ouvertPar.delete(modal);
+                    if (declencheur && document.contains(declencheur) && typeof declencheur.focus === "function") {
+                        declencheur.focus();
+                    }
+                }
+            });
+        });
+        document.querySelectorAll(".modal").forEach((modal) => {
+            observer.observe(modal, { attributes: true, attributeFilter: ["class"] });
+        });
+    }
+
     if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", setupClientAccordions);
+        document.addEventListener("DOMContentLoaded", () => {
+            setupClientAccordions();
+            setupModalFocusReturn();
+        });
     } else {
         setupClientAccordions();
+        setupModalFocusReturn();
     }
 
     bootstrap().catch((error) => {
-        alert(error.message || "Initialisation impossible.");
+        console.error("Initialisation impossible:", error);
+        ccNotify("Le tableau de bord n'a pas pu démarrer. Recharge la page.", true);
     });
 })();

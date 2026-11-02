@@ -26,6 +26,8 @@
     function formatMissing(completion) {
         const missing = Array.isArray(completion?.missingFields) ? completion.missingFields : [];
         const labels = [];
+        if (missing.includes("fullName")) labels.push("nom complet");
+        if (missing.includes("country")) labels.push("pays de residence");
         if (missing.includes("phoneNumber")) labels.push("numero de telephone");
         if (missing.includes("identityDocument")) labels.push("piece justificative");
         return labels;
@@ -33,25 +35,27 @@
 
     function renderProgress(user) {
         const completion = window.CCCommon.getProfileCompletion(user);
-        const percent = Math.max(0, Math.min(100, Number(completion?.percent || 25)));
+        const rawPercent = Number(completion?.percent);
+        const percent = Math.max(0, Math.min(100, Number.isFinite(rawPercent) ? rawPercent : 0));
         const missing = formatMissing(completion);
         const isVerified = window.CCCommon.isUserVerified(user);
+        const complete = Boolean(completion?.isComplete);
 
         if (els.progressValue) els.progressValue.textContent = `${percent}%`;
         if (els.progressBar) els.progressBar.style.width = `${percent}%`;
         if (els.progressLabel) {
             els.progressLabel.textContent = isVerified
                 ? "Compte verifie"
-                : percent >= 75
+                : complete
                     ? "Profil complet - en attente d'approbation admin"
                     : "Profil incomplet";
         }
         if (els.missing) {
             els.missing.textContent = isVerified
                 ? "Vos informations sont validees."
-                : percent >= 75
+                : complete
                     ? "Votre dossier est en attente d'approbation admin. Vous pouvez mettre a jour vos fichiers ici si necessaire."
-                    : `Il manque: ${missing.join(", ")}.`;
+                    : (missing.length ? `Il manque: ${missing.join(", ")}.` : "Completez vos informations ci-dessous.");
         }
 
         // Pre-fill fields with existing user data
@@ -136,7 +140,8 @@
         saved1: "", saved2: "",           // numeros de reference (enregistres)
         editing1: false, editing2: false, // en cours de modification ?
         verified1: false, verified2: false,
-        sent1: false, sent2: false        // un code a-t-il ete envoye ?
+        sent1: false, sent2: false,       // un code a-t-il ete envoye ?
+        removed2: false                   // le 2e numero a ete supprime -> persister la suppression
     };
 
     const pel = {
@@ -155,7 +160,8 @@
         otpInput2: document.getElementById("verification-otp-code-2"),
         confirmOtp2: document.getElementById("verification-confirm-otp-2"),
         status2: document.getElementById("verification-phone-status-2"),
-        edit2: document.getElementById("verification-phone-edit-2")
+        edit2: document.getElementById("verification-phone-edit-2"),
+        remove2: document.getElementById("verification-phone-remove-2")
     };
 
     // --- petits utilitaires ---
@@ -249,10 +255,10 @@
             }
         }
 
-        // L'affichage du bouton est evalue dans TOUS les cas (repos comme edition)
-        if (numberEl) { numberEl.readOnly = false; numberEl.style.cursor = ""; }
-        if (prefixEl) prefixEl.disabled = false;
-        editBtn?.classList.add("is-locked");
+        // [FIX 2026-10-28] Ces trois lignes deverrouillaient le champ APRES le bloc
+        // ci-dessus, quel que soit l'etat : le crayon ne servait donc a rien et un
+        // numero enregistre restait modifiable en permanence. L'etat est desormais
+        // pilote uniquement par `editing` (crayon / ajout d'un numero).
 
         // REGLE DEMANDEE : le bouton "Envoyer un code" n'existe a l'ecran que si le
         // numero affiche DIFFERE de celui deja enregistre. Il apparait des la premiere
@@ -265,10 +271,14 @@
         const sent = isOne ? ph.sent1 : ph.sent2;
 
         // ORDRE CRITIQUE : on teste d'abord si le numero a CHANGE.
-        // Avant, 'verified' etait teste en premier ; comme un numero deja
-        // enregistre est marque "verifie" au chargement, la branche 'verified'
-        // s'executait toujours et le bouton restait masque meme apres modification.
-        if (changed && typed && !sent) {
+        // [FIX] 'verified' est desormais invalide des la premiere frappe (voir les
+        // listeners input). On peut donc le tester en premier : s'il est vrai, le
+        // numero affiche est exactement celui qui a recu le code.
+        if (verified) {
+            show(sendBtn, false);
+            show(isOne ? pel.otpSection : pel.otpSection2, false);
+            setStatus(statusEl, "Numero verifie.", true);
+        } else if (changed && typed && !sent) {
             // Le numero affiche differe de celui enregistre : le bouton apparait.
             show(sendBtn, true);
             sendBtn.disabled = false;
@@ -278,11 +288,6 @@
             show(sendBtn, true);
             sendBtn.disabled = true;
             sendBtn.textContent = "Code envoye";
-        } else if (verified && !changed) {
-            // Numero deja valide et inchange : rien a faire ici.
-            show(sendBtn, false);
-            show(isOne ? pel.otpSection : pel.otpSection2, false);
-            setStatus(statusEl, "");
         } else {
             show(sendBtn, false);
             show(isOne ? pel.otpSection : pel.otpSection2, false);
@@ -374,9 +379,14 @@
                 refreshPhone(idx);
                 return;
             }
-            if (isOne) ph.verified1 = true; else ph.verified2 = true;
+            if (isOne) { ph.verified1 = true; ph.sent1 = false; }
+            else { ph.verified2 = true; ph.sent2 = false; }
+            // Le numero verifie est fige : toute nouvelle frappe le rendra "non verifie"
+            // (voir les listeners input ci-dessous). On referme l'edition tout de suite.
+            if (isOne) ph.editing1 = false; else ph.editing2 = false;
             if (input) input.value = "";
             show(section, false);
+            setStatus(statusEl, "Numero verifie.", true);
             refreshPhone(idx);
         });
 
@@ -397,6 +407,10 @@
                 if (verified) return;                       // deja valide, on garde
                 const sent = isOne ? ph.sent1 : ph.sent2;
                 if (sent || (section2 && !section2.hasAttribute("hidden"))) return; // code en cours
+                // Un numero nouvellement saisi n'a pas de valeur de reference :
+                // on garde la saisie au lieu de l'effacer au premier clic ailleurs.
+                const savedRef = isOne ? ph.saved1 : ph.saved2;
+                if (!String(savedRef || "").trim()) { refreshPhone(idx); return; }
                 cancelEdit(idx);                            // sinon : on annule proprement
             }, 250);
         });
@@ -432,6 +446,10 @@
             return true;
         }
         const filled1 = fill(1, ph.saved1);
+        // Nouveau compte sans numero : le champ doit etre saisissable tout de suite
+        // (auparavant le champ etait verrouille et le crayon masque -> impossible
+        // de saisir le premier numero).
+        if (!filled1) ph.editing1 = true;
 
         if (ph.saved2) {
             pel.wrap2?.classList.remove("hidden");
@@ -446,9 +464,42 @@
         pel.addPhone?.addEventListener("click", () => {
             pel.wrap2?.classList.remove("hidden");
             show(pel.addPhone, false);                  // un seul numero supplementaire
+            ph.editing2 = true;                         // nouveau numero : saisie directe
             refreshPhone(2);
             pel.number2?.focus();
         });
+
+        // Bouton "Supprimer" du second numero (demande Yoyo 2026-10-28).
+        // Il retire la ligne ET marque la suppression pour qu'elle soit enregistree
+        // en base au prochain clic sur "Enregistrer" (sinon l'ancien numero revenait).
+        function removeSecondPhone() {
+            const saved = String(ph.saved2 || "").trim();
+            const typed = String(pel.number2?.value || "").trim();
+            if ((saved || typed) && !window.confirm("Supprimer ce second numero de telephone ?")) return;
+            if (pel.number2) pel.number2.value = "";
+            if (pel.otpInput2) pel.otpInput2.value = "";
+            show(pel.otpSection2, false);
+            show(pel.wrap2, false);
+            show(pel.addPhone, true);
+            setStatus(pel.status2, "");
+            ph.verified2 = false;
+            ph.editing2 = false;
+            ph.sent2 = false;
+            ph.removed2 = Boolean(saved);               // uniquement si un numero etait enregistre
+            ph.saved2 = "";
+            refreshPhone(2);
+            refreshSubmitState();
+        }
+        pel.remove2?.addEventListener("click", removeSecondPhone);
+
+        // Toute modification reelle du numero invalide la verification precedente.
+        // Sans ca, on pouvait valider un code puis taper un autre numero : le submit
+        // voyait verified=true et enregistrait un numero jamais verifie.
+        ["input", "change", "paste", "cut"].forEach((evt) => {
+            els.phoneNumber?.addEventListener(evt, () => { ph.verified1 = false; });
+            pel.number2?.addEventListener(evt, () => { ph.verified2 = false; });
+        });
+        els.phonePrefix?.addEventListener("change", () => { ph.verified1 = false; });
 
         // La saisie reevalue l'etat sur TOUS les evenements possibles : frappe,
         // clavier, collage, remplissage automatique, changement d'indicatif.
@@ -459,7 +510,7 @@
         els.phonePrefix?.addEventListener("input", () => refreshPhone(1));
         els.phonePrefix?.addEventListener("change", () => refreshPhone(1));
         pel.prefix2?.addEventListener("input", () => refreshPhone(2));
-        pel.prefix2?.addEventListener("change", () => refreshPhone(2));
+        pel.prefix2?.addEventListener("change", () => { ph.verified2 = false; refreshPhone(2); });
 
         refreshPhone(1);
         refreshPhone(2);
@@ -475,11 +526,8 @@
         // Prénom + Nom → fullName
         const firstname = String(els.firstname?.value || "").trim();
         const lastname = String(els.lastname?.value || "").trim();
-        if (firstname && lastname) {
-            body.fullName = `${firstname} ${lastname}`;
-        } else if (firstname) {
-            body.fullName = firstname;
-        }
+        const fullName = [firstname, lastname].filter(Boolean).join(" ").trim();
+        if (fullName) body.fullName = fullName;
 
         // Pays de résidence
         const country = String(els.country?.value || "").trim();
@@ -522,6 +570,10 @@
                 return;
             }
             body.phoneNumber2 = `${prefix2} ${number2}`;
+        } else if (ph.removed2) {
+            // Suppression explicite : on ecrit une chaine vide en base, sinon
+            // l'ancien second numero restait enregistre et reapparaissait.
+            body.phoneNumber2 = "";
         }
 
         const idFile = els.idDocument?.files?.[0];
@@ -557,6 +609,15 @@
             if (body.phoneNumber2) {
                 ph.saved2 = String(body.phoneNumber2).trim();
                 ph.verified2 = true; ph.editing2 = false; ph.sent2 = false;
+                ph.removed2 = false;
+                refreshPhone(2);
+            } else if (ph.removed2) {
+                // La suppression est bien enregistree : on remet l'etat a zero.
+                ph.saved2 = "";
+                ph.verified2 = false; ph.editing2 = false; ph.sent2 = false;
+                ph.removed2 = false;
+                show(pel.wrap2, false);
+                show(pel.addPhone, true);
                 refreshPhone(2);
             }
             renderProgress(payload?.user || null);
@@ -593,6 +654,14 @@
             submitVerification(event).catch((error) => {
                 setFeedback(error.message || "Enregistrement impossible.");
             });
+        });
+
+        // [FIX] L'ancien bouton appelait setSession(null, null) seulement : la session
+        // Supabase et le refresh_token survivaient, donc l'utilisateur etait reconnecte
+        // au rechargement. On passe par la vraie deconnexion.
+        document.getElementById("verification-logout-btn")?.addEventListener("click", async () => {
+            await window.CCCommon.logout();
+            window.location.href = "index.html";
         });
     }
 

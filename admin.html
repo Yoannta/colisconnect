@@ -10,24 +10,26 @@
             document.documentElement.classList.add(isMobile ? 'mobile-mode' : 'desktop-mode');
         })();
     </script>
+    
     <title>Admin - ColisConnect</title>
+    <link rel="icon" type="image/png" href="logo_final.png">
     <meta name="description" content="Backoffice admin ColisConnect: moderation, securite, reservations et audit.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261019j"> <!-- Supabase Core & Init -->
+    <link rel="stylesheet" href="style.css?v=20261028a"> <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <link rel="stylesheet" href="admin-refonte.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
-    <script defer src="standalone-common.js?v=20261026a"></script>
+    <script defer src="standalone-common.js?v=20261028a"></script>
     <script defer src="pinceau.js?v=20261015b"></script>
     <script defer src="devise.js?v=2"></script>
-    <script defer src="admin.js"></script>
+    <script defer src="admin.js?v=20261028"></script>
     <style>
         /* AI Assistant Quick styles */
         .ai-assistant-container {
@@ -295,8 +297,8 @@
                                 <h3>Approbations <span id="admin-approvals-badge" class="notif-bubble">0</span></h3>
                             </div>
                             <div id="admin-approvals-note" class="admin-note"></div>
-                            <a href="approvals.html" class="btn primary sm" style="margin-top:12px">Voir les
-                                demandes</a>
+                            <button type="button" id="admin-approvals-open" class="btn primary sm"
+                                style="margin-top:12px">Voir les demandes</button>
                         </section>
 
                         <section class="admin-card">
@@ -460,6 +462,28 @@
 
                     <section class="admin-card" style="margin-top:20px">
                         <div class="card-header">
+                            <h3>Conversations</h3>
+                        </div>
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Reservation</th>
+                                        <th>Participants</th>
+                                        <th>Statut</th>
+                                        <th>Messages</th>
+                                        <th>Apercu</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-conversations-body"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="admin-card" style="margin-top:20px">
+                        <div class="card-header">
                             <h3>Signalements (Flags)</h3>
                             <div class="card-actions">
                                 <input id="admin-flag-entity-type" type="text" placeholder="Type" class="sm">
@@ -555,6 +579,8 @@
                                 </select>
                                 <input id="admin-block-value" type="text" placeholder="Valeur...">
                                 <input id="admin-block-reason" type="text" placeholder="Motif...">
+                                <input id="admin-block-duration" type="number" min="1" max="8760" value="24" class="sm"
+                                    title="Duree du blocage (heures)" style="width:90px;">
                                 <button id="admin-block-create-btn" class="btn danger sm">Bannir</button>
                             </div>
                         </div>

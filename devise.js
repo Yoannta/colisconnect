@@ -138,7 +138,22 @@
         const close = () => {
             pop.hidden = true;
             pop.classList.add("hidden");
+            pop.classList.remove("cc-cur-pop-up");
             btn.setAttribute("aria-expanded", "false");
+        };
+        // La bulle s'ouvre vers le bas par defaut. Dans une modale (conteneur
+        // `overflow:auto`), les dernieres options sortaient de la carte et
+        // etaient coupees : on la retourne vers le haut quand la place manque.
+        const place = () => {
+            pop.classList.remove("cc-cur-pop-up");
+            const hostRect = host.getBoundingClientRect();
+            const card = host.closest(".modal-card");
+            const limit = card ? card.getBoundingClientRect().bottom : window.innerHeight;
+            const hauteur = Math.min(pop.scrollHeight || 0, 260);
+            const placeSous = limit - hostRect.bottom;
+            if (placeSous < hauteur + 12 && hostRect.top > hauteur + 12) {
+                pop.classList.add("cc-cur-pop-up");
+            }
         };
         const open = () => {
             // Une seule bulle ouverte à la fois sur la page
@@ -146,10 +161,12 @@
                 if (p === pop) return;
                 p.hidden = true;
                 p.classList.add("hidden");
+                p.classList.remove("cc-cur-pop-up");
                 p.parentElement?.querySelector(".cc-cur-btn")?.setAttribute("aria-expanded", "false");
             });
             pop.hidden = false;
             pop.classList.remove("hidden");
+            place();
             btn.setAttribute("aria-expanded", "true");
         };
 
@@ -299,6 +316,8 @@ const CC_CUR_CSS = `
     animation: fadeInSlide 0.2s ease-out;
 }
 .cc-cur-pop.hidden, .cc-cur-pop[hidden] { display: none !important; }
+/* Ouverture vers le haut (modale proche du bas de l'ecran) */
+.cc-cur-pop.cc-cur-pop-up { top: auto; bottom: calc(100% + 8px); }
 .cc-cur-opt {
     display: flex;
     align-items: center;

@@ -34,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        els.userChip.textContent = currentUser.fullName || currentUser.email;
+        if (els.userChip) els.userChip.textContent = currentUser.fullName || currentUser.email;
 
         if (!currentUser.referralCode) {
             showActivationUI();
@@ -71,19 +71,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function fetchStats() {
+        if (els.referralTbody) {
+            els.referralTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted);">Chargement des activites...</td></tr>';
+        }
         try {
             const stats = await CCCommon.api("/api/partner/stats");
             renderStats(stats);
         } catch (err) {
             console.error("Failed to fetch partner stats", err);
+            // Etat d'erreur visible : avant, la page restait sur des zeros sans
+            // expliquer que les statistiques n'avaient pas pu etre chargees.
+            if (els.referralTbody) {
+                els.referralTbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#ffc8b7;">
+                    Impossible de charger vos statistiques.<br><small>${CCCommon.escapeHtml(err.message || "Erreur reseau")}</small><br>
+                    <button type="button" class="copy-btn" id="partner-retry-btn" style="margin-top:12px;">Reessayer</button>
+                </td></tr>`;
+                document.getElementById("partner-retry-btn")?.addEventListener("click", fetchStats);
+            }
         }
     }
 
     function renderStats(stats) {
-        els.statTrips.textContent = stats.tripsCount || 0;
-        els.statConversions.textContent = stats.conversionsCount || 0;
-        els.statEarnings.textContent = stats.totalEarnings + "€";
+        if (els.statTrips) els.statTrips.textContent = stats.tripsCount || 0;
+        if (els.statConversions) els.statConversions.textContent = stats.conversionsCount || 0;
+        if (els.statEarnings) els.statEarnings.textContent = `${Number(stats.totalEarnings || 0).toFixed(2)}€`;
 
+        if (!els.referralTbody) return;
+        if (!stats.activity || stats.activity.length === 0) {
+            els.referralTbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--muted);">Aucune activite enregistree pour le moment.</td></tr>';
+            return;
+        }
         if (stats.activity && stats.activity.length > 0) {
             els.referralTbody.innerHTML = stats.activity.map(act => {
                 const dateStr = new Date(act.date).toLocaleDateString("fr-FR");

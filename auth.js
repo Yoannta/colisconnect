@@ -36,10 +36,21 @@
             body: { email, password }
         });
 
+        if (!payload?.token) throw new Error("Connexion impossible : jeton absent.");
         window.CCCommon.setSession(payload.token, payload.user);
         setFeedback("Connexion reussie.", false);
 
-        afterAuthRedirect(payload.user);
+        // Recuperer le profil complet (nom, pays, verification) : le login ne
+        // renvoie que les metadonnees Auth, ce qui faussait la redirection.
+        let user = payload.user;
+        try {
+            const me = await window.CCCommon.api("/api/auth/me");
+            if (me?.user) {
+                user = me.user;
+                window.CCCommon.setSession(payload.token, user);
+            }
+        } catch (e) { /* on garde les metadonnees */ }
+        afterAuthRedirect(user);
     }
 
     async function submitRegister(event) {
@@ -57,10 +68,26 @@
             body: { fullName, email, password, role, country, profile_type: "client" }
         });
 
+        // Si Supabase exige la confirmation d'e-mail, signUp ne renvoie aucun jeton :
+        // l'ancien code stockait « undefined » et redirigeait vers une page protegee,
+        // qui renvoyait aussitot sur l'accueil.
+        if (!payload?.token) {
+            setFeedback("Compte cree. Confirmez votre adresse e-mail (lien recu par mail), puis connectez-vous.", false);
+            resetRegisterView();
+            return;
+        }
         window.CCCommon.setSession(payload.token, payload.user);
         setFeedback("Inscription reussie.", false);
 
-        afterAuthRedirect(payload.user);
+        let user = payload.user;
+        try {
+            const me = await window.CCCommon.api("/api/auth/me");
+            if (me?.user) {
+                user = me.user;
+                window.CCCommon.setSession(payload.token, user);
+            }
+        } catch (e) { /* on garde les metadonnees */ }
+        afterAuthRedirect(user);
     }
 
     function resetRegisterView() {

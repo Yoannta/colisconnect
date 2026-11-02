@@ -3,975 +3,35 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>
         (function () {
             var isMobile = window.innerWidth <= 800 || /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
             document.documentElement.classList.add(isMobile ? 'mobile-mode' : 'desktop-mode');
         })();
     </script>
+
     <title>Proposer un trajet | ColisConnect</title>
+    <link rel="icon" type="image/png" href="logo_final.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261019j"> <!-- Supabase Core & Init — ?v= = cache-bust (bumper à chaque déploiement) -->
+    <link rel="stylesheet" href="style.css?v=20261102a">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
-    <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js?v=59"></script>
 
-    <script defer src="standalone-common.js?v=20261026a"></script>
+    <script defer src="standalone-common.js?v=20261030a"></script>
     <script defer src="pinceau.js?v=20261015b"></script>
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
-    <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput -->
-    <script defer src="post_trip.js?v=41"></script>
+    <script defer src="post_trip.js?v=45"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-    <style>
-        /* Simple Text-based List Styles */
-        .pm-choices-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .pm-text-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 16px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .pm-text-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--primary-color);
-            transform: translateX(5px);
-        }
-
-        .pm-btn-name {
-            font-size: 1rem;
-            font-weight: 500;
-            color: white;
-        }
-
-        .pm-btn-arrow {
-            color: var(--primary-color);
-            font-weight: bold;
-            opacity: 0.6;
-        }
-
-        .pm-text-btn:hover .pm-btn-arrow {
-            opacity: 1;
-        }
-
-        .pm-back-btn {
-            background: none;
-            border: none;
-            color: var(--primary-color);
-            font-weight: 600;
-            cursor: pointer;
-            padding: 5px 0;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            margin-bottom: 15px;
-        }
-
-        .pm-back-btn:hover {
-            text-decoration: underline;
-        }
-
-        .input-with-action {
-            display: flex;
-            gap: 10px;
-            align-items: stretch;
-        }
-
-        .btn-verify {
-            background: rgba(255, 179, 71, 0.1);
-            border: 1px solid var(--line);
-            color: #ffb347;
-            padding: 0 15px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-
-        .btn-verify:not(:disabled):hover {
-            background: var(--emerald-glow);
-            border-color: #ffb347;
-        }
-
-        .pm-hint {
-            font-size: 0.75rem;
-            color: #888;
-            margin-top: 6px;
-        }
-
-        .pm-otp-box {
-            background: rgba(255, 179, 71, 0.05);
-            border: 1px solid rgba(255, 179, 71, 0.15);
-            border-radius: 16px;
-            padding: 16px;
-            margin-top: 16px;
-            animation: slideDown 0.3s ease-out;
-        }
-
-        .otp-input-wrap {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-
-        .otp-field {
-            text-align: center;
-            letter-spacing: 0.5em;
-            font-weight: 800;
-            font-size: 1.2rem;
-            flex: 1;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .spinner-sm {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid rgba(255, 179, 71, 0.3);
-            border-top-color: #ffb347;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            vertical-align: middle;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Profile Selection Modal Styles */
-        .profile-type-modal-card {
-            max-width: 480px !important;
-            width: 90%;
-            text-align: center;
-        }
-
-        .profile-options-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin: 24px 0;
-            text-align: left;
-        }
-
-        .profile-option-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 179, 71, 0.2);
-            border-radius: 16px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            gap: 15px;
-            align-items: flex-start;
-        }
-
-        .profile-option-card.selected {
-            background: rgba(255, 179, 71, 0.1);
-            border-color: #ffb347 !important;
-            box-shadow: 0 0 20px rgba(255, 179, 71, 0.2);
-        }
-
-        .profile-option-card:hover {
-            background: rgba(255, 255, 255, 0.06);
-            transform: translateY(-2px);
-            border-color: rgba(255, 179, 71, 0.4);
-        }
-
-        .profile-option-icon {
-            font-size: 1.8rem;
-            color: #ffb347;
-            flex-shrink: 0;
-            margin-top: 2px;
-        }
-
-        .profile-option-content {
-            flex: 1;
-        }
-
-        .profile-option-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 6px;
-        }
-
-        .profile-option-desc {
-            font-size: 0.85rem;
-            color: #b0b0b0;
-            line-height: 1.4;
-        }
-
-        /* Transport mode selector */
-        .transport-mode-grid {
-            display: flex;
-            gap: 10px;
-            margin-top: 8px;
-        }
-        .transport-mode-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--line, rgba(255, 179, 71, 0.12));
-            border-radius: 10px;
-            padding: 10px 20px;
-            cursor: pointer;
-            color: var(--text, #f0f7f6);
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-            justify-content: center;
-        }
-        .transport-mode-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #ffb347;
-        }
-        .transport-mode-btn.selected {
-            background: rgba(255, 179, 71, 0.15);
-            border-color: #ffb347;
-            color: #ffb347;
-            font-weight: 700;
-        }
-
-        /* Surbrillance dorée temporaire d'un GROUPE de boutons à choisir (validation) */
-        .gold-pulse {
-            outline: 2px solid #f1b52b !important;
-            outline-offset: 3px;
-            border-color: #f1b52b !important;
-            animation: goldPulse 0.75s ease-out 2;
-        }
-        @keyframes goldPulse {
-            0% { box-shadow: 0 0 0 0 rgba(241, 181, 43, 0.55); }
-            70% { box-shadow: 0 0 0 12px rgba(241, 181, 43, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(241, 181, 43, 0); }
-        }
-
-        /* Modal transport buttons */
-        .modal-transport-mode {
-            margin-bottom: 16px;
-        }
-        .modal-transport-divider {
-            height: 1px;
-            background: rgba(255,255,255,0.08);
-            margin: 16px 0;
-        }
-        .modal-transport-grid {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .modal-transport-btn {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 12px 8px;
-            cursor: pointer;
-            color: #f0f7f6;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .modal-transport-btn:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: #ffb347;
-        }
-        .modal-transport-btn.selected {
-            background: rgba(255, 179, 71,0.15);
-            border-color: #ffb347;
-            color: #ffb347;
-            font-weight: 700;
-        }
-
-        /* Profile select buttons */
-        .profile-select-grid {
-            display: flex;
-            gap: 8px;
-        }
-        .profile-select-btn {
-            background: transparent;
-            border: 1px solid rgba(255, 179, 71,0.25);
-            border-radius: 8px;
-            padding: 8px 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            flex: 1;
-            white-space: nowrap;
-        }
-        .profile-select-btn:hover {
-            background: rgba(255,255,255,0.06);
-            border-color: rgba(255, 179, 71,0.5);
-        }
-        .profile-select-btn.selected {
-            background: rgba(255, 179, 71,0.12);
-            border-color: #ffb347;
-        }
-        .profile-select-btn .ps-title {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: white;
-        }
-
-        /* Hide native datalist so options never show as raw text */
-        datalist {
-            display: none !important;
-        }
-
-        /* === Autocomplete pays (standalone-common.js) === */
-        .cc-autocomplete-ctn {
-            position: relative;
-        }
-        .cc-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .cc-input-wrapper .form-input {
-            flex: 1;
-        }
-        .cc-custom-arrow {
-            color: #ffb347;
-            font-size: 0.7rem;
-            cursor: pointer;
-            opacity: 0.6;
-            padding: 4px;
-            user-select: none;
-            pointer-events: none;
-        }
-        .cc-suggestions-list {
-            position: absolute;
-            z-index: 2147483647;
-            top: calc(100% + 4px);
-            left: 0;
-            right: 0;
-            background: rgba(10, 15, 20, 0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 179, 71, 0.3);
-            border-radius: 12px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 15px rgba(255, 179, 71, 0.1);
-            max-height: 280px;
-            overflow-y: auto;
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            display: none;
-            animation: ccFadeIn 0.15s ease-out;
-        }
-        .cc-suggestions-list li {
-            padding: 12px 16px;
-            color: #f0f7f6;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
-        .cc-suggestions-list li:last-child {
-            border-bottom: none;
-        }
-        .cc-suggestions-list li:hover,
-        .cc-suggestions-list li.active {
-            background: rgba(255, 179, 71, 0.15);
-            color: #ffb347;
-            padding-left: 20px;
-        }
-        .cc-suggestions-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .cc-suggestions-list::-webkit-scrollbar-thumb {
-            background: #ffb347;
-            border-radius: 10px;
-        }
-        .cc-country-invalid {
-            border-color: #ff4444 !important;
-            box-shadow: 0 0 0 2px rgba(255, 68, 68, 0.2) !important;
-        }
-        @keyframes ccFadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* === Popup Types de colis === */
-        .popup-trigger-btn {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: #f0f7f6;
-            font-size: 0.95rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-        }
-        .popup-trigger-btn:hover {
-            border-color: #ffb347;
-            background: rgba(255,255,255,0.08);
-        }
-        /* Garde anti-débordement : aucun enfant ne doit gonfler le formulaire
-           au-delà de la carte (min-content des flex/grid), surtout en mobile. */
-        #trip-extra-fields {
-            min-width: 0;
-        }
-        /* === Section Détails colis (nom du colis + prix/kilo ou prix/quantité) === */
-        .colis-detail-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.045);
-            border: 1px solid rgba(255,255,255,0.07);
-            border-radius: 12px;
-            padding: 10px 12px;
-        }
-        .colis-detail-row .colis-name-btn {
-            width: auto;
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-        .colis-name-input {
-            flex: 1 1 220px;
-            min-width: 0;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255, 179, 71,0.4);
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: #f0f7f6;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .colis-price-modes {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1 1 0;
-            min-width: 0;
-            margin-left: 0;
-        }
-        .price-mode-btn {
-            background: rgba(255, 179, 71,0.1);
-            border: 1px solid rgba(255, 179, 71,0.3);
-            border-radius: 8px; /* bords ANGULAIRES (demande Yoyo — plus de pilules) */
-            color: #ffb347;
-            font-size: 0.85rem;
-            font-weight: 700;
-            padding: 8px 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-            flex: 1 1 0;
-            text-align: center;
-        }
-        .price-mode-btn:hover {
-            background: rgba(255, 179, 71,0.2);
-        }
-        .price-or {
-            color: rgba(255,255,255,0.35);
-            font-size: 0.8rem;
-            flex-shrink: 0;
-        }
-        .price-field {
-            width: 110px;
-            background: rgba(255, 179, 71,0.1);
-            border: 1px solid rgba(255, 179, 71,0.35);
-            border-radius: 8px; /* bords ANGULAIRES (demande Yoyo) */
-            padding: 8px 14px;
-            color: #ffb347;
-            font-size: 0.85rem;
-            font-weight: 700;
-            outline: none;
-            transition: all 0.2s;
-            flex: 1 1 0; /* ⚠️ flex-basis 0 : l'inline width du JS est ignoré → le champ s'étend sur toute la ligne (demande Yoyo) */
-            min-width: 0;
-        }
-        .price-field:focus {
-            border-color: #ffb347;
-            box-shadow: 0 0 0 2px rgba(255, 179, 71,0.15);
-        }
-        /* Choix du mode de prix : le bouton choisi s'illumine comme le bouton « Oui »
-           (meme degrade dore et meme halo). Avant, la difference etait trop discrete
-           (fond a 0.28 d'opacite) et on ne voyait pas ce qui etait selectionne. */
-        .price-mode-btn.active,
-        .price-mode-btn.active:hover {
-            background: linear-gradient(135deg, #e9a614, #f1b52b) !important;
-            border-color: #f1b52b !important;
-            color: #1c1400 !important;
-            font-weight: 700 !important;
-            box-shadow: 0 10px 22px -6px rgba(192, 133, 10, 0.55),
-                        0 0 0 2px rgba(255, 179, 71, 0.35) !important;
-            filter: brightness(1.05);
-        }
-        /* Theme clair : texte blanc comme le bouton Oui */
-        body.post-trip-page.light .price-mode-btn.active,
-        body.post-trip-page.light .price-mode-btn.active:hover {
-            background: linear-gradient(135deg, #e9a614, #f1b52b) !important;
-            color: #ffffff !important;
-            border-color: #f1b52b !important;
-        }
-        .special-price-line {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 100%;
-            margin-top: 4px;
-        }
-        .special-price-line .price-field {
-            flex: 1 1 0;
-            width: auto;
-        }
-        .special-price-currency {
-            flex-shrink: 0;
-            background: rgba(255, 179, 71,0.12);
-            border: 1px solid rgba(255, 179, 71,0.35);
-            border-radius: 8px;
-            color: #ffb347;
-            font-size: 0.85rem;
-            font-weight: 800;
-            padding: 8px 14px;
-            white-space: nowrap;
-        }
-        .btn-add-type {
-            width: 100%;
-            background: transparent;
-            border: 1px dashed rgba(255, 179, 71,0.35);
-            border-radius: 12px;
-            padding: 10px 16px;
-            color: #ffb347;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-top: 2px;
-        }
-        .btn-add-type:hover {
-            background: rgba(255, 179, 71,0.08);
-            border-color: #ffb347;
-        }
-        .btn-add-type:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-        }
-
-        /* [ENTREPRISE / CARGO] Dates multiples — lignes ajoutées par « Ajouter une autre date » */
-        #trip-extra-dates-wrap {
-            margin-top: 10px;
-        }
-        .trip-extra-date-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .trip-extra-date-row .trip-extra-date {
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-        .trip-extra-dates-hint {
-            margin: 8px 0 0;
-            font-size: 0.78rem;
-            opacity: 0.6;
-        }
-        .colis-row-del {
-            flex-shrink: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,0.12);
-            background: rgba(255,255,255,0.04);
-            color: rgba(255,255,255,0.5);
-            font-size: 0.7rem;
-            line-height: 1;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        /* Champ « Date du voyage » : largeur reduite (il etait aussi long que la
-           colonne et sortait de son cadre) */
-        /* Bandeau « mode modification » (annonce pre-remplie) */
-        .edit-notice {
-            display: flex; align-items: center; gap: 10px;
-            padding: 10px 12px; margin-bottom: 10px; border-radius: 12px;
-            border: 1px solid rgba(255, 179, 71, 0.35); background: rgba(255, 179, 71, 0.10);
-            color: #ffd08a; font-size: 0.82rem; line-height: 1.3;
-        }
-        .edit-notice.hidden { display: none; }
-        #date-depart {
-            width: 100% !important;
-            max-width: 250px;
-            min-width: 0;
-        }
-        .colis-row-del:hover {
-            color: #ff6b6b;
-            border-color: rgba(255,107,107,0.5);
-            background: rgba(255,107,107,0.1);
-        }
-        /* Lignes de contact (paiement) — 1 ligne = bouton + ✕, espacées */
-        .payment-contact-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .payment-contact-row .btn.payment-method-btn {
-            flex: 1 1 auto;
-        }
-        #addContactBtn {
-            margin-top: 4px;
-        }
-        /* Mobile (≤560px) : DEUX lignes volontaires — L1 nom pleine largeur
-           (cohérent avec les autres champs), L2 modes à gauche + ✕ à droite.
-           Au-delà : UNE ligne (nom + modes + ✕). */
-        @media (max-width: 560px) {
-            .colis-detail-row {
-                gap: 8px;
-            }
-            .colis-detail-row .colis-name-btn {
-                flex: 1 1 100%;
-                padding: 14px 16px;
-                font-size: 0.9rem !important;
-                min-width: 0;
-            }
-            .colis-name-btn .colis-name-label {
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-                min-width: 0;
-            }
-            .colis-name-input {
-                flex: 1 1 100%;
-                padding: 14px 16px;
-                font-size: 0.9rem !important;
-                min-width: 0;
-            }
-            .colis-price-modes {
-                margin-left: 0;
-                gap: 10px;
-            }
-            .price-mode-btn {
-                padding: 9px 14px;
-                font-size: 0.82rem !important;
-            }
-            .price-or {
-                font-size: 0.78rem;
-            }
-            .price-field {
-                padding: 9px 14px;
-                font-size: 0.85rem !important;
-            }
-            .colis-row-del {
-                margin-left: auto;
-                width: 26px;
-                height: 26px;
-            }
-        }
-        .popup-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: white;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-        .options-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .option-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 10px;
-            padding: 10px 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-            user-select: none;
-        }
-        .option-card:hover {
-            background: rgba(255, 179, 71,0.08);
-            border-color: rgba(255, 179, 71,0.3);
-        }
-        .option-card.selected {
-            background: rgba(255, 179, 71,0.15);
-            border-color: #ffb347;
-        }
-        .option-circle {
-            width: 16px;
-            height: 16px;
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 50%;
-            flex-shrink: 0;
-            transition: all 0.2s;
-        }
-        .option-card.selected .option-circle {
-            background: #ffb347;
-            border-color: #ffb347;
-            box-shadow: 0 0 6px rgba(255, 179, 71,0.5);
-        }
-        .option-text {
-            font-size: 0.85rem;
-            color: #d0d0d0;
-        }
-        .option-card.selected .option-text {
-            color: white;
-            font-weight: 600;
-        }
-        .add-custom-section {
-            margin-bottom: 16px;
-        }
-        .btn-add-trigger {
-            background: none;
-            border: 1px dashed rgba(255,255,255,0.15);
-            border-radius: 10px;
-            padding: 10px 14px;
-            color: #ffb347;
-            font-size: 0.85rem;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-        }
-        .btn-add-trigger:hover {
-            background: rgba(255, 179, 71,0.06);
-            border-color: #ffb347;
-        }
-        .custom-input-group {
-            display: none;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .custom-input {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 10px 14px;
-            color: white;
-            font-size: 0.9rem;
-            outline: none;
-        }
-        .custom-input:focus {
-            border-color: #ffb347;
-        }
-        .btn-save-custom {
-            background: rgba(255, 179, 71,0.15);
-            border: 1px solid rgba(255, 179, 71,0.3);
-            border-radius: 10px;
-            padding: 10px 16px;
-            color: #ffb347;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-        .btn-save-custom:hover {
-            background: rgba(255, 179, 71,0.25);
-        }
-        .btn-validate {
-            width: 100%;
-            background: rgba(255, 179, 71,0.15);
-            border: 1px solid #ffb347;
-            border-radius: 12px;
-            padding: 14px;
-            color: #ffb347;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-validate:hover {
-            background: rgba(255, 179, 71,0.25);
-        }
-
-        /* Masquer le champ "Types de colis acceptés" (logique conservée) */
-        div.form-group:has(> button#openColisPopupBtn) {
-            display: none !important;
-        }
-
-        /* === Section téléphone (modal contact) === */
-        .phone-section-container {
-            margin-top: 16px;
-        }
-        .phone-label {
-            font-size: 0.85rem;
-            color: #b0b0b0;
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        .phone-input-row {
-            display: flex;
-            flex-wrap: wrap; /* le bouton Vérifier passe SOUS le champ (Yoyo : caché sur certains écrans) */
-            gap: 8px;
-            align-items: stretch;
-        }
-        .phone-prefix-select {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 0 8px;
-            color: #f0f7f6;
-            font-size: 0.85rem;
-            cursor: pointer;
-            min-width: 80px;
-        }
-        .phone-prefix-select option {
-            background: #1a1a2e;
-            color: #f0f7f6;
-        }
-        .phone-main-input {
-            flex: 1;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            padding: 12px 14px;
-            color: white;
-            font-size: 0.95rem;
-            outline: none;
-        }
-        .phone-main-input:focus {
-            border-color: rgba(255,179,71,0.6); /* plus d'aura émeraude (Yoyo) */
-            box-shadow: 0 0 0 3px rgba(255,140,0,0.12);
-        }
-        .phone-verify-btn {
-            flex: 1 1 100%; /* pleine largeur SOUS le numéro (Yoyo) */
-            justify-content: center;
-            background: rgba(255,179,71,0.08);
-            border: 1px solid rgba(255,179,71,0.5);
-            border-radius: 12px;
-            padding: 14px 16px;
-            color: #ffb347;
-            font-size: 0.9rem;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.2s;
-        }
-        .phone-verify-btn:not(:disabled):hover {
-            background: rgba(255,179,71,0.15);
-            border-color: #ffb347;
-        }
-        .phone-verify-btn:disabled {
-            opacity: 0.4;
-            cursor: default;
-        }
-        .phone-help-text {
-            font-size: 0.75rem;
-            color: #888;
-            margin-top: 8px;
-        }
-
-        /* Popup overlays for colis types (hidden by default) */
-        .popup-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-        .popup-overlay.active {
-            display: flex;
-        }
-        .popup-content {
-            background: #1a1a2e;
-            border: 1px solid rgba(255, 179, 71, 0.3);
-            border-radius: 20px;
-            padding: 28px 24px;
-            max-width: 420px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        /* ============================================================
-           Prix speciaux : une ligne = [nom + croix] puis [les 2 modes],
-           puis le champ de prix (demande Yoyo, 17/10/2026).
-           Le nom et la croix restent sur la meme ligne a toutes les
-           largeurs, les modes passent dessous (avant, tout se chevauchait).
-           ============================================================ */
-        #colis-detail-rows .colis-name-btn {
-            order: 1;
-            flex: 1 1 auto;
-            min-width: 0;
-        }
-
-        #colis-detail-rows .colis-row-del {
-            order: 2;
-            margin-left: auto;
-        }
-
-        #colis-detail-rows .colis-price-modes {
-            order: 3;
-            flex: 1 1 100%;
-        }
-
-        #colis-detail-rows .special-price-line {
-            order: 4;
-        }
-    </style>
-<style>
-  /* [CARGO] fleche retour du choix kilo / CBM */
-  /* Fleche retour du choix kilo / CBM — dorée comme les boutons du site,
-     visible aussi bien en thème clair qu'en thème sombre. */
-  #price-unit-back {
-    width: 34px; height: 34px; border-radius: 10px; border: 0;
-    background:
-      radial-gradient(circle at 27% 0%, rgba(255,255,255,.30), transparent 34%),
-      linear-gradient(135deg, #c18017, #e4aa2e 45%, #f0bd42 100%);
-    color: #101010; font-size: 16px; font-weight: 800; cursor: pointer; line-height: 1;
-    box-shadow: 0 4px 10px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.32);
-  }
-  #price-unit-back:hover { filter: brightness(1.06); }
-</style>
 </head>
 
 <body class="post-trip-page">
@@ -983,149 +43,390 @@
 
     <main class="page-main">
         <div class="container">
-            <section class="page-header" data-animate>
-                <p class="section-kicker">Monétisez votre trajet</p>
+            <section class="page-header">
+                <div class="page-header-top">
+                    <p class="section-kicker">Monétisez votre trajet</p>
+                    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Basculer le thème"
+                        aria-pressed="false">
+                        <span id="theme-toggle-icon" class="theme-toggle-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
                 <h1>Publiez vos kilos disponibles</h1>
-                <p>Définissez votre route, votre prix au kilo et recevez des paiements directs de vos clients.</p>
+                <p class="page-intro">Définissez votre route, votre prix au kilo et recevez des paiements directs de vos
+                    clients.</p>
             </section>
 
             <section class="post-shell">
-                <aside class="trip-benefits glass-panel" data-animate>
-                    <h3>Pourquoi publier sur ColisConnect ?</h3>
-                    <ul>
-                        <li><ion-icon name="cash-outline"></ion-icon> Revenus complementaires sur chaque deplacement.
-                        </li>
-                        <li><ion-icon name="shield-checkmark-outline"></ion-icon> Echanges securises avec profils
-                            verifies.</li>
-                        <li><ion-icon name="flash-outline"></ion-icon> Mise en relation rapide avec des expediteurs
-                            serieux.</li>
-                        <li><ion-icon name="star-outline"></ion-icon> Reputation construite via les avis.</li>
-                    </ul>
+                <aside class="trip-benefits" data-benefits>
+                    <button type="button" class="benefits-trigger" id="benefits-trigger" aria-expanded="false"
+                        aria-controls="benefits-body">
+                        <h2>Pourquoi publier sur ColisConnect ?</h2>
+                        <span class="benefits-chevron" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </span>
+                    </button>
+                    <div class="benefits-body" id="benefits-body">
+                        <ul>
+                            <li>
+                                <span class="benefits-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <line x1="12" y1="1" x2="12" y2="23" />
+                                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                                    </svg>
+                                </span>
+                                <span>Revenus complementaires sur chaque deplacement.</span>
+                            </li>
+                            <li>
+                                <span class="benefits-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                                        <polyline points="9 12 11 14 15 10" />
+                                    </svg>
+                                </span>
+                                <span>Echanges securises avec profils verifies.</span>
+                            </li>
+                            <li>
+                                <span class="benefits-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                    </svg>
+                                </span>
+                                <span>Mise en relation rapide avec des expediteurs serieux.</span>
+                            </li>
+                            <li>
+                                <span class="benefits-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polygon
+                                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                    </svg>
+                                </span>
+                                <span>Reputation construite via les avis.</span>
+                            </li>
+                        </ul>
+                        <p class="benefits-limit">
+                            <span class="benefits-icon benefits-icon-warn" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                    <line x1="12" y1="9" x2="12" y2="13" />
+                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                </svg>
+                            </span>
+                            1 trajet actif en voyageur · 5 en cargo.
+                        </p>
+                    </div>
                 </aside>
 
-                <section class="trip-form-card glass-panel" data-animate>
+                <section class="trip-form-card">
+                    <!-- Mode modification : chargement et erreur bloquante -->
+                    <div id="edit-loading" class="edit-loading hidden" role="status" aria-live="polite">
+                        <div class="edit-loading-head">
+                            <span class="cc-spinner" aria-hidden="true"></span>
+                            <span>Chargement de l'annonce...</span>
+                        </div>
+                        <div class="cc-skeleton cc-skeleton-60"></div>
+                        <div class="cc-skeleton cc-skeleton-80"></div>
+                        <div class="cc-skeleton cc-skeleton-40"></div>
+                        <div class="cc-skeleton-blocks">
+                            <div class="cc-skeleton cc-skeleton-48"></div>
+                            <div class="cc-skeleton cc-skeleton-48"></div>
+                        </div>
+                    </div>
+                    <div id="edit-error" class="edit-error hidden" role="alert">
+                        <span class="edit-error-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                        </span>
+                        <h2 id="edit-error-title">Impossible de charger l'annonce.</h2>
+                        <p id="edit-error-cause">Vérifiez votre connexion, puis réessayez.</p>
+                        <div class="edit-error-actions">
+                            <button type="button" class="cc-btn cc-btn-primary" id="edit-retry-btn">Réessayer</button>
+                            <button type="button" class="cc-btn cc-btn-secondary" id="edit-back-btn">Retour au
+                                dashboard</button>
+                        </div>
+                    </div>
+
                     <form class="trip-form" id="trip-form">
+                        <div id="trip-notice" class="notice-bar hidden" role="status">
+                            <span class="notice-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                    <line x1="12" y1="9" x2="12" y2="13" />
+                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                </svg>
+                            </span>
+                            <span id="trip-notice-text" class="notice-text"></span>
+                            <button type="button" id="trip-notice-retry"
+                                class="cc-btn cc-btn-secondary cc-btn-sm hidden">Réessayer</button>
+                        </div>
+
                         <div id="edit-notice" class="edit-notice hidden">
+                            <span class="edit-notice-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z" />
+                                </svg>
+                            </span>
                             <span>Mode modification — votre annonce est pré-remplie. Changez seulement ce que vous
                                 voulez.</span>
                         </div>
+
                         <!-- Barre de progression du wizard -->
                         <div class="wizard-progress" aria-label="Progression">
-                            <div class="wp-step active" data-wstep="1"><span class="wp-dot">1</span><span class="wp-label">Voyage</span></div>
-                            <div class="wp-step" data-wstep="2"><span class="wp-dot">2</span><span class="wp-label">Colis</span></div>
-                            <div class="wp-step" data-wstep="3"><span class="wp-dot">3</span><span class="wp-label">Prix spéciaux</span></div>
-                            <div class="wp-step" data-wstep="4"><span class="wp-dot">4</span><span class="wp-label">Contact</span></div>
+                            <div class="wp-step active" data-wstep="1" aria-current="step">
+                                <span class="wp-dot">1</span>
+                                <span class="wp-label">Voyage</span>
+                            </div>
+                            <div class="wp-step" data-wstep="2">
+                                <span class="wp-dot">2</span>
+                                <span class="wp-label">Colis</span>
+                            </div>
+                            <div class="wp-step" data-wstep="3">
+                                <span class="wp-dot">3</span>
+                                <span class="wp-label">Prix spéciaux</span>
+                            </div>
+                            <div class="wp-step" data-wstep="4">
+                                <span class="wp-dot">4</span>
+                                <span class="wp-label">Contact</span>
+                            </div>
                         </div>
 
                         <!-- Étape 1 : Détails du voyage -->
                         <div class="trip-section wizard-step active" id="step-voyage">
                             <div class="trip-section-head">
-                                <span class="tsh-icon">✈️</span>
+                                <span class="tsh-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M2 12l20-8-8 20-3-9-9-3z" />
+                                    </svg>
+                                </span>
                                 <div class="tsh-text">
-                                    <h3 class="trip-section-title">Détails du voyage</h3>
-                                    <p class="trip-section-sub">Indiquez votre itinéraire et la date de votre voyage.</p>
+                                    <h2 class="trip-section-title">Détails du voyage</h2>
+                                    <p class="trip-section-sub">Indiquez votre itinéraire et la date de votre voyage.
+                                    </p>
                                 </div>
                             </div>
                             <div id="step1-errors" class="step-errors hidden" role="alert"></div>
 
-                        <!-- Choix du type de profil — en tête de l'étape 1 -->
-                        <div id="profile-choice-section" class="form-group">
-                            <label style="margin-bottom:10px;display:block;font-weight:600;">Vous etes :</label>
-                            <div class="profile-select-grid">
-                                <button type="button" class="profile-select-btn" id="btn-traveler-choice" data-guide="trip-type">
-                                    <span class="ps-icon">👤</span>
-                                    <span class="ps-body">
-                                        <span class="ps-title">Voyageur simple</span>
-                                        <span class="ps-sub">Je rentabilise mes kilos inutilisés</span>
-                                    </span>
-                                    <span class="ps-check">✓</span>
-                                </button>
-                                <button type="button" class="profile-select-btn" id="btn-cargo-choice" data-guide="trip-type">
-                                    <span class="ps-icon">🏢</span>
-                                    <span class="ps-body">
-                                        <span class="ps-title">Entreprise / Cargo</span>
-                                        <span class="ps-sub">Je transporte régulièrement des colis</span>
-                                    </span>
-                                    <span class="ps-check">✓</span>
-                                </button>
+                            <!-- Choix du type de profil — en tête de l'étape 1 -->
+                            <div id="profile-choice-section" class="form-group">
+                                <span class="cc-label" id="profile-choice-label">Vous etes :</span>
+                                <div class="profile-select-grid" role="group"
+                                    aria-labelledby="profile-choice-label">
+                                    <button type="button" class="profile-select-btn" id="btn-traveler-choice"
+                                        data-guide="trip-type" aria-pressed="false">
+                                        <span class="ps-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                                <circle cx="12" cy="7" r="4" />
+                                            </svg>
+                                        </span>
+                                        <span class="ps-body">
+                                            <span class="ps-title">Voyageur simple</span>
+                                            <span class="ps-sub">Je rentabilise mes kilos inutilisés</span>
+                                        </span>
+                                        <span class="ps-check" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                    <button type="button" class="profile-select-btn" id="btn-cargo-choice"
+                                        data-guide="trip-type" aria-pressed="false">
+                                        <span class="ps-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <rect x="4" y="2" width="16" height="20" rx="2" />
+                                                <path d="M9 22v-4h6v4" />
+                                                <path d="M8 6h.01M16 6h.01M12 6h.01M12 10h.01M12 14h.01M16 10h.01M16 14h.01M8 10h.01M8 14h.01" />
+                                            </svg>
+                                        </span>
+                                        <span class="ps-body">
+                                            <span class="ps-title">Entreprise / Cargo</span>
+                                            <span class="ps-sub">Je transporte régulièrement des colis</span>
+                                        </span>
+                                        <span class="ps-check" aria-hidden="true">
+                                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                                stroke="currentColor" stroke-width="3" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        <div class="location-group" data-type="departure"></div>
-                        <div class="location-group" data-type="destination"></div>
-                        <datalist id="country-options-trip" data-country-list></datalist>
+                            <div class="location-group" data-type="departure"></div>
+                            <div class="location-group" data-type="destination"></div>
+                            <!-- Alerte immediate : depart et arrivee identiques (regle metier). -->
+                            <p id="same-country-hint" class="field-error hidden" role="alert">
+                                <span class="field-error-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <line x1="12" y1="8" x2="12" y2="12" />
+                                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                                    </svg>
+                                </span>
+                                Le pays de départ et le pays d'arrivée doivent être différents.
+                            </p>
 
-                        <div class="form-group">
-                            <label for="date-depart">Date du voyage</label>
-                            <input type="date" id="date-depart" data-guide="trip-date" class="form-input" required>
-                            <!-- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet (mêmes départ/destination) -->
-                            <div id="trip-extra-dates-wrap" class="hidden">
-                                <div id="trip-extra-dates" class="trip-extra-dates"></div>
-                                <button type="button" class="btn-add-type" id="addTripDateBtn">+ Ajouter une autre date</button>
-                                <p class="trip-extra-dates-hint">Même itinéraire, même destination — toutes vos dates apparaîtront sur une seule annonce.</p>
+                            <div class="form-group form-group-date">
+                                <label for="date-depart">Date du voyage</label>
+                                <input type="date" id="date-depart" data-guide="trip-date" class="form-input" required>
+                                <!-- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet -->
+                                <div id="trip-extra-dates-wrap" class="hidden">
+                                    <div id="trip-extra-dates" class="trip-extra-dates"></div>
+                                    <button type="button" class="cc-btn cc-btn-add" id="addTripDateBtn">+ Ajouter une
+                                        autre date</button>
+                                    <p class="trip-extra-dates-hint">Même itinéraire, même destination — toutes vos
+                                        dates apparaîtront sur une seule annonce.</p>
+                                </div>
                             </div>
-                        </div>
+
                             <div class="wizard-footer">
                                 <div class="wizard-nav wizard-nav-end">
-                                    <button type="button" class="btn primary wizard-next">Continuer →</button>
+                                    <button type="button" class="cc-btn cc-btn-primary wizard-next">Continuer →</button>
                                 </div>
                                 <div class="wizard-step-info">
                                     <span class="wsi-text">Étape 1 sur 4</span>
-                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:25%"></span></div>
+                                    <div class="wsi-gauge" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                        aria-valuenow="25" aria-label="Progression de l'étape">
+                                        <span class="wsi-fill" style="width:25%"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
                         <!-- Étape 2 : Espace & prix -->
                         <div class="trip-section wizard-step" id="step-colis">
                             <div class="trip-section-head">
-                                <span class="tsh-icon">📦</span>
+                                <span class="tsh-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                                        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                                        <line x1="12" y1="22.08" x2="12" y2="12" />
+                                    </svg>
+                                </span>
                                 <div class="tsh-text">
-                                    <h3 class="trip-section-title">Espace & prix</h3>
+                                    <h2 class="trip-section-title">Espace & prix</h2>
                                     <p class="trip-section-sub">Vos kilos disponibles et votre prix par kilo.</p>
                                 </div>
                             </div>
                             <div id="step2-errors" class="step-errors hidden" role="alert"></div>
+
                             <div class="form-row">
                                 <div class="form-group" id="kilos-group">
                                     <label for="kilos">Kilos disponibles</label>
                                     <div class="input-with-suffix">
-                                        <input type="number" id="kilos" class="form-input" placeholder="0" min="1" max="69">
-                                        <span>kg</span>
+                                        <input type="number" id="kilos" class="form-input" placeholder="0" min="1"
+                                            max="69">
+                                        <span class="input-suffix">kg</span>
                                     </div>
                                 </div>
                                 <div class="form-group hidden" id="cargo-unit-choice">
-                                    <label>Comment fixez-vous votre prix ?</label>
-                                    <div class="transport-mode-grid">
-                                        <button type="button" class="transport-mode-btn cargo-unit-btn" data-unit="kg">⚖️ Prix par kilo</button>
-                                        <button type="button" class="transport-mode-btn cargo-unit-btn" data-unit="cbm">📦 Prix par CBM</button>
+                                    <span class="cc-label">Comment fixez-vous votre prix ?</span>
+                                    <div class="segment" role="group" aria-label="Unité de prix">
+                                        <button type="button" class="segment-btn cargo-unit-btn" data-unit="kg"
+                                            aria-pressed="false">Prix par kilo</button>
+                                        <button type="button" class="segment-btn cargo-unit-btn" data-unit="cbm"
+                                            aria-pressed="false">Prix par CBM</button>
                                     </div>
                                 </div>
                                 <div class="form-group" id="price-group">
                                     <label for="price" id="price-label">Prix par kilo</label>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <button type="button" class="hidden" id="price-unit-back" title="Revenir au choix kilo / CBM" aria-label="Revenir au choix kilo ou CBM">←</button>
-                                        <input type="number" id="price" class="form-input" placeholder="0" min="0" style="width: 120px;">
+                                    <div class="price-row">
+                                        <button type="button" class="hidden cc-btn-icon price-unit-back"
+                                            id="price-unit-back" title="Revenir au choix kilo / CBM"
+                                            aria-label="Revenir au choix kilo ou CBM">
+                                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                                                stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <line x1="19" y1="12" x2="5" y2="12" />
+                                                <polyline points="12 19 5 12 12 5" />
+                                            </svg>
+                                        </button>
+                                        <!-- step="any" : un prix decimal (7,25) est valide. -->
+                                        <input type="number" id="price" class="form-input price-input" placeholder="0"
+                                            min="0" step="any" inputmode="decimal">
                                         <div id="currency-selector-wrap"></div>
                                         <input type="hidden" id="price-currency" value="">
                                     </div>
                                 </div>
                             </div>
+
                             <div class="form-group" id="transport-mode-section" style="display:none;">
-                                <label>Moyen de transport</label>
-                                <div class="transport-mode-grid">
-                                    <button type="button" class="transport-mode-btn" data-mode="avion">✈️ Avion</button>
-                                    <button type="button" class="transport-mode-btn" data-mode="bateau">🚢 Bateau</button>
-                                    <button type="button" class="transport-mode-btn" data-mode="les_deux">✈️🚢 Les deux</button>
+                                <span class="cc-label">Moyen de transport</span>
+                                <div class="segment segment-3" role="group" aria-label="Moyen de transport">
+                                    <button type="button" class="segment-btn transport-mode-btn" data-mode="avion"
+                                        aria-pressed="false">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M2 12l20-8-8 20-3-9-9-3z" />
+                                        </svg>
+                                        Avion
+                                    </button>
+                                    <button type="button" class="segment-btn transport-mode-btn" data-mode="bateau"
+                                        aria-pressed="false">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M3 16l2-6h14l2 6" />
+                                            <path d="M5 10V6h14v4" />
+                                            <path d="M3 16c1.5 2 3 2 4.5 0s3-2 4.5 0 3 2 4.5 0 3-2 4.5 0" />
+                                        </svg>
+                                        Bateau
+                                    </button>
+                                    <button type="button" class="segment-btn transport-mode-btn" data-mode="les_deux"
+                                        aria-pressed="false">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" aria-hidden="true">
+                                            <path d="M2 12l20-8-8 20-3-9-9-3z" />
+                                        </svg>
+                                        Les deux
+                                    </button>
                                 </div>
                             </div>
+
                             <div class="wizard-footer">
                                 <div class="wizard-nav">
-                                    <button type="button" class="btn secondary wizard-prev">← Retour</button>
-                                    <button type="button" class="btn primary wizard-next">Continuer →</button>
+                                    <button type="button" class="cc-btn cc-btn-secondary wizard-prev">← Retour</button>
+                                    <button type="button" class="cc-btn cc-btn-primary wizard-next">Continuer →</button>
                                 </div>
                                 <div class="wizard-step-info">
                                     <span class="wsi-text">Étape 2 sur 4</span>
-                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:50%"></span></div>
+                                    <div class="wsi-gauge" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                        aria-valuenow="50" aria-label="Progression de l'étape">
+                                        <span class="wsi-fill" style="width:50%"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- /step-colis -->
@@ -1133,65 +434,105 @@
                         <!-- Étape 3 : Prix spéciaux -->
                         <div class="trip-section wizard-step" id="step-special">
                             <div class="trip-section-head">
-                                <span class="tsh-icon">🏷️</span>
+                                <span class="tsh-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                                        <line x1="7" y1="7" x2="7.01" y2="7" />
+                                    </svg>
+                                </span>
                                 <div class="tsh-text">
-                                    <h3 class="trip-section-title">Prix spéciaux</h3>
+                                    <h2 class="trip-section-title">Prix spéciaux</h2>
                                     <p class="trip-section-sub">Des prix différents pour certains types de colis.</p>
                                 </div>
                             </div>
-                            <div class="wizard-question-box">
-                                <p class="wizard-question">Voulez-vous ajouter des prix spéciaux pour certains types de colis ?</p>
-                                <div class="wizard-yesno">
-                                    <button type="button" class="btn primary" id="special-yes" data-guide="special-price-yes">Oui</button>
-                                    <button type="button" class="btn secondary" id="special-no" data-guide="special-price-no">Non</button>
+                            <div id="step3-errors" class="step-errors hidden" role="alert"></div>
+
+                            <div class="quiz-box">
+                                <p class="wizard-question" id="special-question">Voulez-vous ajouter des prix spéciaux
+                                    pour certains types de colis ?</p>
+                                <div class="wizard-yesno" role="group" aria-labelledby="special-question">
+                                    <button type="button" class="pill-btn" id="special-yes"
+                                        data-guide="special-price-yes" aria-pressed="false">Oui</button>
+                                    <button type="button" class="pill-btn" id="special-no"
+                                        data-guide="special-price-no" aria-pressed="false">Non</button>
                                 </div>
                             </div>
-                        <div class="form-group">
-                            <label class="form-label">Types de colis acceptés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                            <button type="button" class="popup-trigger-btn" id="openColisPopupBtn" data-guide="parcel-types">
-                                <span id="selectedColisText">Choisir les types de colis</span>
-                                <span>▼</span>
-                            </button>
-                        </div>
+
                             <div id="special-prices-panel" class="hidden">
-                        <div class="form-group" id="colis-details-group">
-                            <div id="colis-detail-rows" data-guide="special-price-line">
-                                <div class="colis-detail-row" data-row="0">
-                                    <button type="button" class="popup-trigger-btn colis-name-btn" data-row="0">
-                                        <span class="colis-name-label">Nom du colis</span>
-                                        <span>▼</span>
-                                    </button>
-                                    <div class="colis-price-modes" data-guide="special-price-mode" data-row="0">
-                                        <button type="button" class="price-mode-btn" data-mode="kilo" data-row="0">prix/kilo</button>
-                                        <span class="price-or">ou</span>
-                                        <button type="button" class="price-mode-btn" data-mode="qty" data-row="0">prix/quantité</button>
+                                <div class="form-group" id="colis-details-group">
+                                    <div id="colis-detail-rows" data-guide="special-price-line">
+                                        <div class="colis-detail-row" data-row="0">
+                                            <button type="button" class="colis-name-btn" data-row="0">
+                                                <span class="colis-name-label">Nom du colis</span>
+                                                <span class="colis-name-chevron" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                                        stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                        stroke-linejoin="round">
+                                                        <polyline points="6 9 12 15 18 9" />
+                                                    </svg>
+                                                </span>
+                                            </button>
+                                            <div class="colis-price-modes" data-guide="special-price-mode"
+                                                data-row="0">
+                                                <button type="button" class="price-mode-btn" data-mode="kilo"
+                                                    data-row="0" aria-pressed="false">prix/kilo</button>
+                                                <span class="price-or">ou</span>
+                                                <button type="button" class="price-mode-btn" data-mode="qty"
+                                                    data-row="0" aria-pressed="false">prix/quantité</button>
+                                            </div>
+                                            <button type="button" class="cc-btn-icon danger colis-row-del"
+                                                data-row="0" aria-label="Supprimer cette ligne"
+                                                title="Supprimer cette ligne">
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" aria-hidden="true">
+                                                    <line x1="18" y1="6" x2="6" y2="18" />
+                                                    <line x1="6" y1="6" x2="18" y2="18" />
+                                                </svg>
+                                            </button>
+                                            <div class="special-price-line hidden" data-row="0">
+                                                <input type="number" class="price-field form-input" data-row="0"
+                                                    placeholder="0" min="0" step="any">
+                                                <span class="special-price-currency">—</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <button type="button" class="colis-row-del" data-row="0" aria-label="Supprimer cette ligne">✕</button>
-                                    <div class="special-price-line hidden" data-row="0">
-                                        <input type="number" class="price-field" data-row="0" placeholder="" min="0" step="any">
-                                        <span class="special-price-currency">FCFA</span>
-                                    </div>
+                                    <button type="button" class="cc-btn cc-btn-add" id="addColisTypeBtn"
+                                        data-guide="special-price-add">+ Ajouter un autre prix spécial</button>
                                 </div>
-                            </div>
-                            <button type="button" class="btn-add-type" id="addColisTypeBtn" data-guide="special-price-add">+ Ajouter un autre prix spécial</button>
-                        </div>
                             </div><!-- /special-prices-panel -->
-                        <div class="special-sep"></div>
-                        <div class="form-group">
-                            <label class="form-label">Types de colis refusés <span style="font-weight:400;opacity:0.6;">(optionnel)</span></label>
-                            <button type="button" class="popup-trigger-btn" id="openRefusedColisBtn" data-guide="parcel-refused">
-                                <span id="selectedRefusedText">Choisir les types refusés</span>
-                                <span>▼</span>
-                            </button>
-                        </div>
+
+                            <div class="special-sep"></div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="openRefusedColisBtn">Types de colis refusés
+                                    <span class="label-optional">(optionnel)</span></label>
+                                <button type="button" class="refused-trigger" id="openRefusedColisBtn"
+                                    data-guide="parcel-refused" aria-haspopup="dialog" aria-expanded="false"
+                                    aria-controls="refusedPopupOverlay">
+                                    <span id="selectedRefusedText">Choisir les types refusés</span>
+                                    <span class="refused-chevron" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <polyline points="6 9 12 15 18 9" />
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+
                             <div class="wizard-footer">
                                 <div class="wizard-nav">
-                                    <button type="button" class="btn secondary wizard-prev">← Retour</button>
-                                    <button type="button" class="btn primary wizard-next">Continuer →</button>
+                                    <button type="button" class="cc-btn cc-btn-secondary wizard-prev">← Retour</button>
+                                    <button type="button" class="cc-btn cc-btn-primary wizard-next">Continuer →</button>
                                 </div>
                                 <div class="wizard-step-info">
                                     <span class="wsi-text">Étape 3 sur 4</span>
-                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:75%"></span></div>
+                                    <div class="wsi-gauge" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                        aria-valuenow="75" aria-label="Progression de l'étape">
+                                        <span class="wsi-fill" style="width:75%"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- /step-special -->
@@ -1199,35 +540,55 @@
                         <!-- Étape 4 : Contact -->
                         <div class="trip-section wizard-step" id="step-contact">
                             <div class="trip-section-head">
-                                <span class="tsh-icon">📞</span>
+                                <span class="tsh-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path
+                                            d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+                                    </svg>
+                                </span>
                                 <div class="tsh-text">
-                                    <h3 class="trip-section-title">Contact</h3>
+                                    <h2 class="trip-section-title">Contact</h2>
                                     <p class="trip-section-sub">Comment le client vous contacte ?</p>
                                 </div>
                             </div>
+                            <div id="step4-errors" class="step-errors hidden" role="alert"></div>
+
                             <div class="form-group">
                                 <div id="payment-contact-rows">
                                     <div class="payment-contact-row">
-                                        <button type="button" id="open-payment-method-btn" class="btn secondary payment-method-btn contact-row-btn">
+                                        <button type="button" id="open-payment-method-btn"
+                                            class="contact-row-btn contact-row-first">
                                             <span id="payment-method-label" class="pm-label">
-                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none"
+                                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                                    stroke-linejoin="round" aria-hidden="true">
+                                                    <rect x="1" y="4" width="22" height="16" rx="2" />
+                                                    <line x1="1" y1="10" x2="23" y2="10" />
+                                                </svg>
                                                 <span>Mon numero de contact</span>
                                             </span>
                                         </button>
                                     </div>
                                 </div>
-                                <button type="button" id="addContactBtn" data-guide="contacts" class="btn-add-type">+ Ajouter un autre numéro</button>
+                                <button type="button" id="addContactBtn" data-guide="contacts"
+                                    class="cc-btn cc-btn-add">+ Ajouter un autre numéro</button>
                                 <input type="hidden" id="payment-method" name="paymentMethod">
                                 <input type="hidden" id="payment-qr" name="paymentQr">
                             </div>
+
                             <div class="wizard-footer">
                                 <div class="wizard-nav">
-                                    <button type="button" class="btn secondary wizard-prev">← Retour</button>
-                                    <button type="submit" class="btn primary" id="submit-trip-btn" data-guide="submit">Publier mon trajet →</button>
+                                    <button type="button" class="cc-btn cc-btn-secondary wizard-prev">← Retour</button>
+                                    <button type="submit" class="cc-btn cc-btn-primary" id="submit-trip-btn"
+                                        data-guide="submit">Publier mon trajet →</button>
                                 </div>
                                 <div class="wizard-step-info">
                                     <span class="wsi-text">Étape 4 sur 4</span>
-                                    <div class="wsi-gauge"><span class="wsi-fill" style="width:100%"></span></div>
+                                    <div class="wsi-gauge" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                                        aria-valuenow="100" aria-label="Progression de l'étape">
+                                        <span class="wsi-fill" style="width:100%"></span>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- /step-contact -->
@@ -1237,225 +598,206 @@
         </div>
     </main>
 
-    <!-- ===== MODALE TYPES DE COLIS ===== -->
-    <div class="popup-overlay" id="colisPopupOverlay">
+    <!-- ===== MODALE TYPES DE COLIS REFUSÉS ===== -->
+    <div class="popup-overlay" id="refusedPopupOverlay" role="dialog" aria-modal="true"
+        aria-labelledby="refused-title">
         <div class="popup-content">
-            <div class="popup-title">📦 Types de colis acceptés</div>
-            <div class="options-grid" id="colisOptionsGrid">
-                <div class="option-card" data-value="Documents">
-                    <span class="option-circle"></span>
+            <button type="button" class="cc-modal-close" id="close-refused-modal" aria-label="Fermer">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+            <h2 class="popup-title" id="refused-title">
+                <span class="popup-title-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07" />
+                    </svg>
+                </span>
+                Types de colis refusés
+            </h2>
+            <p class="popup-subtitle">Les types cochés ne seront pas acceptés sur vos trajets.</p>
+            <div class="options-grid" id="refusedOptionsGrid">
+                <div class="option-card" data-value="Documents" role="checkbox" aria-checked="false" tabindex="0">
+                    <span class="option-circle" aria-hidden="true"></span>
                     <span class="option-text">Documents</span>
                 </div>
-                <div class="option-card" data-value="Électronique">
-                    <span class="option-circle"></span>
+                <div class="option-card" data-value="Électronique" role="checkbox" aria-checked="false" tabindex="0">
+                    <span class="option-circle" aria-hidden="true"></span>
                     <span class="option-text">Électronique</span>
                 </div>
-                <div class="option-card" data-value="Vêtements">
-                    <span class="option-circle"></span>
+                <div class="option-card" data-value="Vêtements" role="checkbox" aria-checked="false" tabindex="0">
+                    <span class="option-circle" aria-hidden="true"></span>
                     <span class="option-text">Vêtements</span>
                 </div>
-                <div class="option-card" data-value="Nourriture">
-                    <span class="option-circle"></span>
+                <div class="option-card" data-value="Nourriture" role="checkbox" aria-checked="false" tabindex="0">
+                    <span class="option-circle" aria-hidden="true"></span>
                     <span class="option-text">Nourriture</span>
                 </div>
-                <div class="option-card" data-value="Cosmétiques">
-                    <span class="option-circle"></span>
+                <div class="option-card" data-value="Cosmétiques" role="checkbox" aria-checked="false" tabindex="0">
+                    <span class="option-circle" aria-hidden="true"></span>
                     <span class="option-text">Cosmétiques</span>
                 </div>
-                <div class="option-card" data-value="Médicaments">
-                    <span class="option-circle"></span>
+                <div class="option-card" data-value="Médicaments" role="checkbox" aria-checked="false" tabindex="0">
+                    <span class="option-circle" aria-hidden="true"></span>
                     <span class="option-text">Médicaments</span>
                 </div>
-                <div class="option-card" data-value="Autres">
-                    <span class="option-circle"></span>
+                <div class="option-card" data-value="Autres" role="checkbox" aria-checked="false" tabindex="0">
+                    <span class="option-circle" aria-hidden="true"></span>
                     <span class="option-text">Autres</span>
                 </div>
             </div>
             <div class="add-custom-section">
-                <button type="button" class="btn-add-trigger" id="toggleCustomColisBtn">+ Ajouter un type personnalisé</button>
-                <div class="custom-input-group" id="customColisGroup">
-                    <input type="text" class="custom-input" id="newColisTypeInput" placeholder="Entrer le nom du type...">
-                    <button type="button" class="btn-save-custom" id="saveCustomColisBtn">Enregistrer</button>
-                </div>
-            </div>
-            <button type="button" class="btn-validate" id="validateColisBtn">Valider la sélection</button>
-        </div>
-    </div>
-
-    <!-- ===== MODALE TYPES DE COLIS REFUSÉS ===== -->
-    <div class="popup-overlay" id="refusedPopupOverlay">
-        <div class="popup-content">
-            <div class="popup-title">🚫 Types de colis refusés</div>
-            <div class="options-grid" id="refusedOptionsGrid">
-                <div class="option-card" data-value="Documents"><span class="option-circle"></span><span class="option-text">Documents</span></div>
-                <div class="option-card" data-value="Électronique"><span class="option-circle"></span><span class="option-text">Électronique</span></div>
-                <div class="option-card" data-value="Vêtements"><span class="option-circle"></span><span class="option-text">Vêtements</span></div>
-                <div class="option-card" data-value="Nourriture"><span class="option-circle"></span><span class="option-text">Nourriture</span></div>
-                <div class="option-card" data-value="Cosmétiques"><span class="option-circle"></span><span class="option-text">Cosmétiques</span></div>
-                <div class="option-card" data-value="Médicaments"><span class="option-circle"></span><span class="option-text">Médicaments</span></div>
-                <div class="option-card" data-value="Autres"><span class="option-circle"></span><span class="option-text">Autres</span></div>
-            </div>
-            <div class="add-custom-section">
-                <button type="button" class="btn-add-trigger" id="toggleCustomRefusedBtn">+ Ajouter un type personnalisé</button>
+                <button type="button" class="cc-btn cc-btn-add" id="toggleCustomRefusedBtn">+ Ajouter un type
+                    personnalisé</button>
                 <div class="custom-input-group" id="customRefusedGroup">
-                    <input type="text" class="custom-input" id="newRefusedTypeInput" placeholder="Entrer le nom du type...">
-                    <button type="button" class="btn-save-custom" id="saveCustomRefusedBtn">Enregistrer</button>
+                    <input type="text" class="form-input custom-input" id="newRefusedTypeInput"
+                        placeholder="Entrer le nom du type...">
+                    <button type="button" class="cc-btn cc-btn-secondary" id="saveCustomRefusedBtn">Enregistrer</button>
                 </div>
             </div>
-            <button type="button" class="btn-validate" id="validateRefusedBtn">Valider la sélection</button>
+            <button type="button" class="cc-btn cc-btn-primary cc-btn-block" id="validateRefusedBtn">Valider la
+                sélection</button>
         </div>
     </div>
 
-    <!-- ===== MODALE MOYEN DE PAIEMENT ===== -->
+    <!-- ===== MODALE CONTACT ===== -->
     <div id="payment-method-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true"
-        aria-labelledby="pm-modal-title">
-        <div class="pt-modal-card glass-panel">
-            <button class="pt-modal-close" id="close-payment-modal-btn" aria-label="Fermer">&times;</button>
+        aria-labelledby="pm-upload-title">
+        <div class="pt-modal-card">
+            <button type="button" class="cc-modal-close" id="close-payment-modal-btn" aria-label="Fermer">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
 
-            <!-- Étape 1 : Supprimée (Direct au numéro) -->
-            <div id="pm-step-choose" class="hidden"></div>
-
-            <!-- Étape 2 : Numéro de compte -->
             <div id="pm-step-upload">
-                <h3 class="pm-title" id="pm-upload-title">Votre numéro de contact</h3>
+                <h2 class="pm-title" id="pm-upload-title">Votre numéro de contact</h2>
                 <p class="pm-subtitle">Ce numéro sera révélé au client après validation.</p>
 
+                <p class="demo-banner" id="pm-demo-banner" role="note">
+                    <span class="demo-banner-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                    </span>
+                    Démonstration — aucun SMS n'est envoyé ; la vérification est simulée.
+                </p>
+
                 <div class="phone-section-container">
-                    <label class="phone-label">Votre numéro de contact</label>
+                    <label class="phone-label" for="phoneMainNumber">Votre numéro de contact</label>
                     <div class="phone-input-row">
-                        <select class="phone-prefix-select" id="phonePrefix">
-                            <option value="+33">🇫🇷 +33</option>
-                            <option value="+225">🇨🇮 +225</option>
-                            <option value="+221">🇸🇳 +221</option>
-                            <option value="+229">🇧🇯 +229</option>
-                            <option value="+223">🇲🇱 +223</option>
-                            <option value="+226">🇧🇫 +226</option>
-                            <option value="+228">🇹🇬 +228</option>
-                            <option value="+227">🇳🇪 +227</option>
-                            <option value="+237">🇨🇲 +237</option>
-                            <option value="+242">🇨🇬 +242</option>
-                            <option value="+243">🇨🇩 +243</option>
-                            <option value="+241">🇬🇦 +241</option>
-                            <option value="+224">🇬🇳 +224</option>
-                            <option value="+245">🇬🇼 +245</option>
-                            <option value="+240">🇬🇶 +240</option>
-                            <option value="+244">🇦🇴 +244</option>
-                            <option value="+238">🇨🇻 +238</option>
-                            <option value="+239">🇸🇹 +239</option>
-                            <option value="+222">🇲🇷 +222</option>
-                            <option value="+1">🇺🇸 +1</option>
-                            <option value="+86">🇨🇳 +86</option>
-                            <option value="+44">🇬🇧 +44</option>
-                            <option value="+49">🇩🇪 +49</option>
-                            <option value="+32">🇧🇪 +32</option>
-                            <option value="+41">🇨🇭 +41</option>
+                        <select class="phone-prefix-select" id="phonePrefix" aria-label="Indicatif">
+                            <option value="+33">+33</option>
+                            <option value="+225">+225</option>
+                            <option value="+221">+221</option>
+                            <option value="+229">+229</option>
+                            <option value="+223">+223</option>
+                            <option value="+226">+226</option>
+                            <option value="+228">+228</option>
+                            <option value="+227">+227</option>
+                            <option value="+237">+237</option>
+                            <option value="+242">+242</option>
+                            <option value="+243">+243</option>
+                            <option value="+241">+241</option>
+                            <option value="+224">+224</option>
+                            <option value="+245">+245</option>
+                            <option value="+240">+240</option>
+                            <option value="+244">+244</option>
+                            <option value="+238">+238</option>
+                            <option value="+239">+239</option>
+                            <option value="+222">+222</option>
+                            <option value="+1">+1</option>
+                            <option value="+86">+86</option>
+                            <option value="+44">+44</option>
+                            <option value="+49">+49</option>
+                            <option value="+32">+32</option>
+                            <option value="+41">+41</option>
                         </select>
-                        <input type="tel" class="phone-main-input" id="phoneMainNumber" placeholder="07 00 00 00 00" autocomplete="off">
+                        <input type="tel" class="phone-main-input form-input" id="phoneMainNumber"
+                            placeholder="07 00 00 00 00" autocomplete="off">
                         <button type="button" class="phone-verify-btn" id="pm-verify-sms-btn">Vérifier</button>
                     </div>
-                    <p class="phone-help-text">Ce numéro sera révélé au client dès qu'il aura validé sa réservation.</p>
+                    <p class="phone-help-text">Ce numéro sera révélé au client dès qu'il aura validé sa réservation.
+                    </p>
                     <p class="pm-hint hidden" id="pm-contact-note"></p>
                 </div>
 
-                <!-- Section OTP (cachée par défaut) -->
+                <!-- Section OTP -->
                 <div id="pm-otp-section" class="pm-otp-box hidden">
-                    <label for="pm-otp-code">Code de vérification (SMS)</label>
+                    <label for="pm-otp-code" class="otp-label">Code de vérification (SMS)</label>
                     <div class="otp-input-wrap">
                         <input type="text" id="pm-otp-code" class="form-input otp-field" placeholder="· · · · · ·"
-                            maxlength="6">
-                        <button type="button" id="pm-confirm-otp-btn" class="btn primary sm">Valider</button>
+                            maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+                        <button type="button" id="pm-confirm-otp-btn" class="cc-btn cc-btn-primary cc-btn-sm">Valider</button>
                     </div>
-                    <p class="pm-hint">Saisissez le code reçu par SMS (Simulé).</p>
+                    <p class="pm-hint">Saisissez le code reçu par SMS.</p>
+                    <p id="pm-otp-error" class="field-error hidden" role="alert">
+                        <span class="field-error-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                        </span>
+                        Code invalide. Réessayez.
+                    </p>
+                    <button type="button" id="pm-change-number-btn" class="cc-btn cc-btn-ghost">Modifier le
+                        numéro</button>
                 </div>
 
-                <button type="button" class="btn primary full-width" id="pm-confirm-btn" disabled
-                    style="margin-top: 20px;">Enregistrer mon contact</button>
+                <button type="button" class="cc-btn cc-btn-primary cc-btn-block" id="pm-confirm-btn" disabled>Enregistrer
+                    mon contact</button>
             </div>
         </div>
     </div>
 
-    <!-- Modale de redirection vers Dashboard -->
-    <div id="qr-redirect-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true">
-        <div class="pt-modal-card glass-panel" style="text-align: center;">
-            <div style="font-size: 3rem; margin-bottom: 20px;">🛡️</div>
-            <h3>Moyens de paiement centralisés</h3>
-            <p>Installer vos QR codes pour faciliter vos prochaines publications (une seule fois).</p>
-
-            <div class="modal-actions" style="margin-top: 30px; display: flex; flex-direction: column; gap: 10px;">
-                <button id="qr-go-dashboard-btn" class="btn primary full-width">Aller sur mon Dashboard</button>
-                <button id="qr-redirect-close-btn" class="btn ghost full-width">Plus tard</button>
-            </div>
-        </div>
-    </div>
-
-
-
-    <!-- Modale succès publication (remplace l'alerte navigateur "yoannta.github.io says") -->
+    <!-- Modale succès publication -->
     <div id="publish-success-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true"
         aria-labelledby="publish-success-title">
-        <div class="pt-modal-card glass-panel" style="text-align: center; max-width: 420px;">
-            <div class="publish-success-icon"
-                style="margin: 8px auto 18px; width: 72px; height: 72px; border-radius: 50%; background: rgba(34,197,94,0.12); border: 2px solid #22c55e; display: flex; align-items: center; justify-content: center;">
-                <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="#22c55e" stroke-width="2.4"
+        <div class="pt-modal-card success-card">
+            <button type="button" class="cc-modal-close" id="close-publish-success-btn" aria-label="Fermer">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+            </button>
+            <div class="publish-success-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="38" height="38" fill="none" stroke="currentColor" stroke-width="2.4"
                     stroke-linecap="round" stroke-linejoin="round">
                     <path d="M5 12.5l4.5 4.5L19 7.5" />
                 </svg>
             </div>
-            <h3 id="publish-success-title" class="pm-title" style="color: #ffd08a;">Offre publiée avec succès !</h3>
-            <p id="publish-success-msg" class="pm-subtitle" style="margin: 10px 0 0;">Votre trajet a bien été publié.</p>
-            <div class="modal-actions" style="margin-top: 28px;">
-                <button type="button" id="publish-success-ok-btn" class="btn primary full-width">Aller sur la page des offres</button>
+            <h2 id="publish-success-title" class="pm-title">Offre publiée avec succès !</h2>
+            <p id="publish-success-msg" class="pm-subtitle">Votre trajet a bien été publié.</p>
+            <div class="modal-actions">
+                <button type="button" id="publish-success-ok-btn" class="cc-btn cc-btn-primary cc-btn-block">Aller sur
+                    la page des offres</button>
             </div>
         </div>
     </div>
 
-
-
-    <!-- Modale de sélection de type de profil + mode transport -->
-    <div id="profile-type-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true">
-        <div class="pt-modal-card glass-panel profile-type-modal-card">
-            <h3 class="pm-title">Choisissez votre type de profil</h3>
-            <p class="pm-subtitle">Afin de personnaliser votre expérience et adapter nos limites de publication.</p>
-
-            <div class="profile-options-grid">
-                <div class="profile-option-card" id="profile-choice-traveler" data-type="traveler">
-                    <div class="profile-option-icon">✈️</div>
-                    <div class="profile-option-content">
-                        <div class="profile-option-title">Voyageur simple</div>
-                        <div class="profile-option-desc">Je voyage ponctuellement et je souhaite rentabiliser mes kilos
-                            de bagages non utilisés. (Limite : 1 trajet actif)</div>
-                    </div>
-                </div>
-
-                <div class="profile-option-card" id="profile-choice-cargo" data-type="cargo">
-                    <div class="profile-option-icon">📦</div>
-                    <div class="profile-option-content">
-                        <div class="profile-option-title">Entreprise cargo</div>
-                        <div class="profile-option-desc">Je suis un professionnel, import-export ou transitaire avec un
-                            volume régulier. (Limite : 5 trajets actifs)</div>
-                    </div>
-                </div>
+    <!-- Modale de confirmation (doublon < 3 min) — remplace confirm() natif -->
+    <div id="cc-confirm-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true"
+        aria-labelledby="cc-confirm-title">
+        <div class="pt-modal-card confirm-card">
+            <h2 id="cc-confirm-title" class="confirm-title">Cette annonce vient d'être publiée.</h2>
+            <p class="confirm-text">Vous venez de publier la même annonce il y a moins de 3 minutes. La publier une
+                deuxième fois ?</p>
+            <div class="modal-actions confirm-actions">
+                <button type="button" id="cc-confirm-cancel" class="cc-btn cc-btn-ghost">Annuler</button>
+                <button type="button" id="cc-confirm-ok" class="cc-btn cc-btn-primary">Publier quand même</button>
             </div>
-
-            <!-- Choix mode transport (caché par défaut, visible si cargo) -->
-            <div id="modal-transport-mode" class="modal-transport-mode hidden">
-                <div class="modal-transport-divider"></div>
-                <p class="pm-subtitle" style="margin-bottom:12px;font-weight:600;">Mode de transport</p>
-                <div class="modal-transport-grid">
-                    <button type="button" class="modal-transport-btn" data-mode="avion">
-                        <span>Avion</span>
-                    </button>
-                    <button type="button" class="modal-transport-btn" data-mode="bateau">
-                        <span>Bateau</span>
-                    </button>
-                    <button type="button" class="modal-transport-btn" data-mode="les_deux">
-                        <span>Les deux</span>
-                    </button>
-                </div>
-            </div>
-
-            <button type="button" class="btn primary full-width" id="profile-type-confirm-btn" disabled>Confirmer mon
-                choix</button>
         </div>
     </div>
 
@@ -1463,6 +805,8 @@
         /* === SECTION DÉTAILS COLIS — nom du colis + prix/kilo OU prix/quantité (exclusif) === */
         (function () {
             'use strict';
+            var CHEVRON = '<span class="colis-name-chevron" aria-hidden="true"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>';
+            var CROSS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
             var rowsBox = document.getElementById('colis-detail-rows');
             if (!rowsBox) return;
 
@@ -1481,49 +825,84 @@
                 row.className = 'colis-detail-row';
                 row.setAttribute('data-row', String(r));
                 row.innerHTML =
-                    '<button type="button" class="popup-trigger-btn colis-name-btn" data-row="' + r + '">' +
-                    '<span class="colis-name-label">Nom du colis</span><span>▼</span></button>' +
+                    '<button type="button" class="colis-name-btn" data-row="' + r + '">' +
+                    '<span class="colis-name-label">Nom du colis</span>' + CHEVRON + '</button>' +
                     '<div class="colis-price-modes" data-row="' + r + '">' +
-                    '<button type="button" class="price-mode-btn" data-mode="kilo" data-row="' + r + '">prix/kilo</button>' +
+                    '<button type="button" class="price-mode-btn" data-mode="kilo" data-row="' + r + '" aria-pressed="false">prix/kilo</button>' +
                     '<span class="price-or">ou</span>' +
-                    '<button type="button" class="price-mode-btn" data-mode="qty" data-row="' + r + '">prix/quantité</button>' +
+                    '<button type="button" class="price-mode-btn" data-mode="qty" data-row="' + r + '" aria-pressed="false">prix/quantité</button>' +
                     '</div>' +
-                    '<button type="button" class="colis-row-del" data-row="' + r + '" aria-label="Supprimer cette ligne">✕</button>' +
+                    '<button type="button" class="cc-btn-icon danger colis-row-del" data-row="' + r + '" aria-label="Supprimer cette ligne" title="Supprimer cette ligne">' + CROSS + '</button>' +
                     '<div class="special-price-line hidden" data-row="' + r + '">' +
-                    '<input type="number" class="price-field" data-row="' + r + '" placeholder="" min="0" step="any">' +
-                    '<span class="special-price-currency">FCFA</span>' +
+                    '<input type="number" class="price-field form-input" data-row="' + r + '" placeholder="0" min="0" step="any">' +
+                    '<span class="special-price-currency">—</span>' +
                     '</div>';
                 rowsBox.appendChild(row);
             }
 
             // Libellé du badge à côté du prix : "DEVISE par kilo" ou "DEVISE par <nom du colis>"
+            // Aucune devise choisie -> tiret, jamais un code en dur (S-12).
             function refreshUniteLabel(rowEl) {
                 if (!rowEl) return;
                 var mode = rowEl.getAttribute('data-mode');
                 var curSpan = rowEl.querySelector('.special-price-currency');
                 if (!mode || !curSpan) return;
                 var curEl = document.getElementById('price-currency');
-                var code = (curEl && curEl.value) ? curEl.value : 'FCFA';
-                var cur = (window.CCCommon && window.CCCommon.currencySymbol) ? window.CCCommon.currencySymbol(code) : code;
+                var code = (curEl && curEl.value) ? curEl.value : '';
+                var cur = code && window.CCCommon && window.CCCommon.currencySymbol
+                    ? window.CCCommon.currencySymbol(code) : (code || '');
                 var nameEl = rowEl.querySelector('.colis-name-label');
                 var nom = nameEl ? nameEl.textContent.trim() : '';
                 var unite = mode === 'kilo' ? 'kilo' : (nom && nom !== 'Nom du colis' ? nom : 'unité');
-                curSpan.textContent = cur + ' par ' + unite;
+                curSpan.textContent = (cur || '—') + ' par ' + unite;
             }
 
             // Expose pour rafraichir les badges quand la devise change (voir post_trip.js)
             window.ccRefreshUniteLabel = refreshUniteLabel;
 
+            // Validation des lignes de prix special, utilisee par l'etape 3 du wizard
+            // ET par l'envoi (post_trip.js).
+            function firstSpecialPriceProblem() {
+                var panel = document.getElementById('special-prices-panel');
+                var yes = document.getElementById('special-yes');
+                if (!panel || panel.classList.contains('hidden')) return null;
+                if (!yes || !yes.classList.contains('selected')) return null;
+                var rows = Array.prototype.slice.call(rowsBox.querySelectorAll('.colis-detail-row'));
+                // Une seule ligne fautive à la fois : on repart d'un état propre.
+                rows.forEach(function (r) { r.classList.remove('has-error'); });
+                for (var i = 0; i < rows.length; i++) {
+                    var row = rows[i];
+                    var nameEl = row.querySelector('.colis-name-label');
+                    var nom = nameEl ? nameEl.textContent.trim() : '';
+                    var nomSaisi = !!nom && nom !== 'Nom du colis';
+                    var mode = row.getAttribute('data-mode');
+                    var field = row.querySelector('.price-field');
+                    var prix = field ? parseFloat(field.value) : NaN;
+                    var prixSaisi = !!field && String(field.value || '').trim() !== '';
+                    if (!nomSaisi && !mode && !prixSaisi) continue; // ligne entierement vide : ignoree
+                    if (!nomSaisi) {
+                        row.classList.add('has-error');
+                        return { message: 'Donnez un nom au colis (ou supprimez la ligne).', el: row.querySelector('.colis-name-btn'), row: row };
+                    }
+                    if (!mode) {
+                        row.classList.add('has-error');
+                        return { message: 'Choisissez « prix/kilo » ou « prix/quantité » pour « ' + nom + ' ».', el: row.querySelector('.price-mode-btn'), row: row };
+                    }
+                    if (!(prix > 0)) {
+                        row.classList.add('has-error');
+                        return { message: 'Indiquez un prix supérieur à 0 pour « ' + nom + ' ».', el: field, row: row };
+                    }
+                }
+                return null;
+            }
+            window.ccSpecialPricesError = firstSpecialPriceProblem;
+
             // Recree la 1re ligne de prix special si toutes ont ete supprimees.
-            // Appele par le bouton « Oui » (post_trip.js) : sans ca, le panneau
-            // s'ouvrait vide apres une suppression et les champs ne revenaient pas.
             window.ccEnsureSpecialRow = function () {
                 if (!rowsBox.querySelector('.colis-detail-row')) makeRow();
             };
 
             // [FIX 2026-10-19] Restauration des prix speciaux en modification.
-            // Rien ne rechargeait offer.special_prices : les lignes revenaient vides et
-            // l'enregistrement ecrasait la colonne avec [] -> la section disparaissait.
             window.ccSetSpecialPrices = function (liste) {
                 var items = Array.isArray(liste) ? liste.filter(function (x) { return x && x.type; }) : [];
                 rowsBox.innerHTML = '';
@@ -1537,7 +916,9 @@
                     var mode = String(item.mode || 'kilo') === 'qty' ? 'qty' : 'kilo';
                     rowEl.setAttribute('data-mode', mode);
                     rowEl.querySelectorAll('.price-mode-btn').forEach(function (b) {
-                        b.classList.toggle('active', b.getAttribute('data-mode') === mode);
+                        var actif = b.getAttribute('data-mode') === mode;
+                        b.classList.toggle('active', actif);
+                        b.setAttribute('aria-pressed', actif ? 'true' : 'false');
                     });
                     var line = rowEl.querySelector('.special-price-line');
                     if (line) line.classList.remove('hidden');
@@ -1549,22 +930,23 @@
                     var oui = document.getElementById('special-yes');
                     var non = document.getElementById('special-no');
                     var panneau = document.getElementById('special-prices-panel');
-                    if (oui) oui.classList.add('selected');
-                    if (non) non.classList.remove('selected');
+                    if (oui) { oui.classList.add('selected'); oui.setAttribute('aria-pressed', 'true'); }
+                    if (non) { non.classList.remove('selected'); non.setAttribute('aria-pressed', 'false'); }
                     if (panneau) panneau.classList.remove('hidden');
                 }
                 return items.length;
             };
 
             function commitName(input) {
+                if (!input || !input.isConnected || input.dataset.ccCommitted === '1') return;
+                input.dataset.ccCommitted = '1';
                 var val = input.value.trim();
                 var btn = document.createElement('button');
                 btn.type = 'button';
-                btn.className = 'popup-trigger-btn colis-name-btn';
+                btn.className = 'colis-name-btn';
                 btn.setAttribute('data-row', input.getAttribute('data-row'));
-                btn.innerHTML = '<span class="colis-name-label">' + (val ? esc(val) : 'Nom du colis') + '</span><span>▼</span>';
+                btn.innerHTML = '<span class="colis-name-label">' + (val ? esc(val) : 'Nom du colis') + '</span>' + CHEVRON;
                 input.replaceWith(btn);
-                // Le badge "DEVISE par <colis>" suit le nom saisi (mode quantité)
                 refreshUniteLabel(btn.closest('.colis-detail-row'));
             }
 
@@ -1574,15 +956,12 @@
                     var rowToDel = delBtn.closest('.colis-detail-row');
                     if (rowToDel) {
                         rowToDel.remove();
-                        // Plus aucune ligne de prix special : on remet la question sur « Non »
-                        // et on referme le panneau. Sinon le switch restait bloque sur « Oui »
-                        // avec un panneau vide, et re-cliquer « Oui » n'affichait plus rien.
                         if (!rowsBox.querySelector('.colis-detail-row')) {
                             var yesBase = document.getElementById('special-yes');
                             var noBase = document.getElementById('special-no');
                             var pnlBase = document.getElementById('special-prices-panel');
-                            if (yesBase) yesBase.classList.remove('selected');
-                            if (noBase) noBase.classList.add('selected');
+                            if (yesBase) { yesBase.classList.remove('selected'); yesBase.setAttribute('aria-pressed', 'false'); }
+                            if (noBase) { noBase.classList.add('selected'); noBase.setAttribute('aria-pressed', 'true'); }
                             if (pnlBase) pnlBase.classList.add('hidden');
                         }
                     }
@@ -1593,7 +972,7 @@
                     var label = nameBtn.querySelector('.colis-name-label').textContent;
                     var input = document.createElement('input');
                     input.type = 'text';
-                    input.className = 'colis-name-input';
+                    input.className = 'colis-name-input form-input';
                     input.setAttribute('data-row', nameBtn.getAttribute('data-row'));
                     input.placeholder = 'Nom du colis';
                     if (label && label !== 'Nom du colis') input.value = label;
@@ -1606,21 +985,21 @@
                     var rowEl = modeBtn.closest('.colis-detail-row');
                     var chosen = modeBtn.getAttribute('data-mode');
                     var prev = rowEl.getAttribute('data-mode');
-                    if (prev === chosen) return; // mode déjà choisi
+                    if (prev === chosen) return;
                     var line = rowEl.querySelector('.special-price-line');
                     var field = line ? line.querySelector('.price-field') : null;
-                    // Reset de l'ancien choix (changement de mode → champ vidé)
                     if (prev) {
                         rowEl.removeAttribute('data-mode');
                         if (field) field.value = '';
                     }
                     rowEl.querySelectorAll('.price-mode-btn').forEach(function (b) {
                         b.classList.remove('active');
+                        b.setAttribute('aria-pressed', 'false');
                     });
                     modeBtn.classList.add('active');
+                    modeBtn.setAttribute('aria-pressed', 'true');
                     rowEl.setAttribute('data-mode', chosen);
                     if (line) {
-                        // 3e ligne : champ prix + libellé "DEVISE par kilo / par <colis>"
                         line.classList.remove('hidden');
                         refreshUniteLabel(rowEl);
                         if (field) field.focus();
@@ -1647,41 +1026,38 @@
         })();
     </script>
 
-    <!-- Navigation Mobile Basse -->
-    <div id="mobile-bottom-nav-root"></div>
-
-    <!-- Basculer thème sombre/clair (même système que results.html — Gold Light) -->
-    <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Basculer thème">
-        <span id="theme-toggle-icon" class="theme-toggle-icon">🌙</span>
-    </button>
-
+    <!-- Theme toggle: icone SVG + aria-pressed, place dans le page-header (S-16) -->
     <script>
         (function () {
             var body = document.body;
             var btn = document.getElementById("theme-toggle");
             var icon = document.getElementById("theme-toggle-icon");
-            var saved = localStorage.getItem("cc-theme");
-            if (saved === "light") {
-                body.classList.add("light");
-                icon.textContent = "☀️";
+            var MOON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+            var SUN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+            var applyTheme = function (light) {
+                body.classList.toggle("light", light);
+                if (icon) icon.innerHTML = light ? SUN : MOON;
+                if (btn) btn.setAttribute("aria-pressed", light ? "true" : "false");
+            };
+            var saved = null;
+            try { saved = localStorage.getItem("cc-theme"); } catch (e) { }
+            applyTheme(saved === "light");
+            if (btn) {
+                btn.addEventListener("click", function () {
+                    var light = !body.classList.contains("light");
+                    applyTheme(light);
+                    try { localStorage.setItem("cc-theme", light ? "light" : "dark"); } catch (e) { }
+                });
             }
-            btn.addEventListener("click", function () {
-                var light = body.classList.toggle("light");
-                icon.textContent = light ? "☀️" : "🌙";
-                localStorage.setItem("cc-theme", light ? "light" : "dark");
-            });
         })();
     </script>
 
-
-
-
+    <!-- Navigation Mobile Basse -->
+    <div id="mobile-bottom-nav-root"></div>
 
     <!-- LE PETIT VOYAGEUR (mascotte) + l'assistant et le guide -->
     <script src="mascotte.js?v=7" defer></script>
     <script src="mascotte-site.js?v=3" defer></script>
-    <!-- L'assistant (chat) + le guide. mascotte-chat.js ouvre le panneau de chat
-         au clic sur la mascotte et lance le guide tout seul. -->
     <script src="guide-controller.js?v=1" defer></script>
     <script src="guide-session.js?v=1" defer></script>
     <script src="guide-intents.js?v=1" defer></script>

@@ -407,11 +407,12 @@ body {
     overflow-x: hidden;
 }
 
-/* Bloque le zoom auto iOS sur les champs de formulaire */
+/* Bloque le zoom auto iOS sur les champs de formulaire.
+   Les boutons ne declenchent pas ce zoom : ils gardent l'echelle de leur
+   composant (C-14, C-17, C-18, C-19, C-23, C-29). */
 input,
 select,
-textarea,
-button {
+textarea {
     font-size: 16px !important;
 }
 
@@ -1629,20 +1630,10 @@ label.form-field:has(> input#city-offer-origin),
 label.form-field:has(> input#city-offer-destination) {
     display: none !important;
 }
-/* dashboard.html — modale demande */
-input#city-dash-demande-origin,
-input#city-dash-demande-destination,
-label[for="city-dash-demande-origin"],
-label[for="city-dash-demande-destination"] {
-    display: none !important;
-}
-/* dashboard.html — modale modification */
-input#city-edit-parcel-origin,
-input#city-edit-parcel-destination,
-label[for="city-edit-parcel-origin"],
-label[for="city-edit-parcel-destination"] {
-    display: none !important;
-}
+/* dashboard.html — modales demande et modification :
+   les champs Ville sont VISIBLES. Ils etaient masques en CSS alors que
+   dashboard.js cable leur autocomplete et enregistre origin_city /
+   destination_city : la ville ne pouvait donc jamais etre renseignee. */
 /* post_trip.html — champs ville VISIBLES (demande utilisateur 2026-08 :
    « ajoute ville de départ / ville d'arrivée juste après les pays » — les
    champs existaient déjà, générés par initLocationFields, masqués ici) */
@@ -1652,12 +1643,8 @@ label[for^="city-departure"],
 label[for^="city-destination"] {
     display: block !important;
 }
-/* Cache les conteneurs .demande-field qui contiennent une ville
-   (results modale demande exclue : champs ville reactives 2026-09) */
-div.demande-field:has(> input[id^="city-dash-demande"]),
-div.demande-field:has(> input[id^="city-edit-parcel"]) {
-    display: none !important;
-}
+/* (Les conteneurs .demande-field des villes du dashboard restent visibles :
+   voir la regle commentee plus haut. Le masquage empechait toute saisie.) */
 
 .site-header {
     position: sticky;
@@ -3005,6 +2992,12 @@ label {
     background: rgba(13, 24, 40, 0.9);
     color: var(--text);
     cursor: pointer;
+    z-index: 3;
+}
+/* La croix est posee dans le coin : sans cette reserve, elle recouvrait la
+   pastille « Active » (et le compteur des modales « Voir tous »). */
+.modal-panel-head {
+    padding-right: 44px;
 }
 
 .modal-panel h3 {
@@ -6345,6 +6338,17 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     text-overflow: ellipsis;
 }
 
+/* Demandes de trajet : la ligne (villes, poids, statut, echeance) est longue.
+   Sur une seule ligne, l'echeance etait coupee par les boutons Modifier/Supprimer.
+   On autorise deux lignes, toujours bornees. */
+.dashboard-page .client-request-list .item-desc {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .dashboard-page .client-item-btn {
     background: var(--emerald-bright);
     color: var(--d-on-gold);
@@ -6557,6 +6561,12 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     color: #ffd666;
 }
 
+/* Theme clair : le jaune clair sur fond creme etait illisible. */
+body.dashboard-page.light .identite-steps.level-1 {
+    background: rgba(255, 179, 71, 0.3);
+    color: #8a5a00;
+}
+
 .dashboard-page .identite-steps.level-2 {
     background: rgba(255, 179, 71, 0.2);
     color: var(--emerald-bright);
@@ -6574,6 +6584,36 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     position: relative;
     overflow: hidden;
 }
+
+/* Groupe sans aucune bascule visible (profil client) : masque entierement.
+   Sinon le conteneur vide dessine une barre de 10 px dans l'en-tete. */
+.dashboard-page .dashboard-toggles.is-empty {
+    display: none;
+}
+
+/* Statut des offres cargo : texte discret (remplace la pastille retiree,
+   la colonne STATUT restait vide). */
+.dashboard-page .cargo-status-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.dashboard-page .cargo-status-text.status-active {
+    color: var(--emerald-bright);
+}
+
+.dashboard-page .cargo-status-text.status-warn {
+    color: #ffbf6b;
+}
+
+.dashboard-page .cargo-status-text.status-off {
+    color: #ff8fa3;
+}
+
+/* Theme clair : contraste suffisant sur le fond creme. */
+body.dashboard-page.light .cargo-status-text.status-warn { color: #a05f00; }
+body.dashboard-page.light .cargo-status-text.status-off { color: #b03a4a; }
 
 .dashboard-page .dashboard-toggles::before {
     content: "";
@@ -6925,13 +6965,7 @@ body.dashboard-page:not(.light) .traveler-acc-title {
 }
 
 /* Modale liste complète demandes */
-.dashboard-page .cargo-requests-modal {
-    max-width: 500px !important;
-    max-height: calc(100dvh - 40px);
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    width: 90%;
-}
+/* S-04 : la modale #cargo-requests-modal a ete supprimee. */
 
 /* File items */
 .dashboard-page .cargo-file-list {
@@ -7223,403 +7257,7 @@ body.dashboard-page:not(.light) .traveler-acc-title {
     }
 }
 
-/* Dashboard mobile: compact, action-first, no wasted vertical space */
-@media (max-width: 800px) {
-    .mobile-mode .dashboard-page {
-        overflow-x: hidden;
-    }
-
-    .mobile-mode .dashboard-page .app-shell {
-        width: 100%;
-        padding: 8px 10px 96px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-dashboard-view,
-    .mobile-mode .dashboard-page .client-dashboard-view,
-    .mobile-mode .dashboard-page .cargo-dashboard-view {
-        display: block;
-    }
-
-    .mobile-mode .dashboard-page .view.hidden {
-        display: none;
-    }
-
-    .mobile-mode .dashboard-page .traveler-head,
-    .mobile-mode .dashboard-page .client-head,
-    .mobile-mode .dashboard-page .cargo-head {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin-top: 8px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-welcome,
-    .mobile-mode .dashboard-page .client-hero,
-    .mobile-mode .dashboard-page .cargo-hero.card {
-        min-height: 0;
-        padding: 12px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 179, 71, 0.18);
-        background: var(--d-panel);
-        backdrop-filter: blur(14px);
-        gap: 10px;
-    }
-
-    .mobile-mode .dashboard-page .cargo-welcome-row {
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 0;
-    }
-
-    .mobile-mode .dashboard-page .avatar-circle {
-        width: 56px;
-        height: 56px;
-        border-width: 2px;
-        box-shadow: none;
-    }
-
-    .mobile-mode .dashboard-page .avatar-circle svg {
-        width: 22px;
-        height: 22px;
-    }
-
-    .mobile-mode .dashboard-page .cargo-welcome-text {
-        min-width: 0;
-    }
-
-    .mobile-mode .dashboard-page .cargo-welcome-text .kicker,
-    .mobile-mode .dashboard-page .cargo-hero .kicker {
-        margin-bottom: 3px;
-        font-size: 0.62rem;
-        letter-spacing: 0.04em;
-    }
-
-    .mobile-mode .dashboard-page .welcome-title,
-    .mobile-mode .dashboard-page .client-hero .welcome-title,
-    .mobile-mode .dashboard-page .cargo-hero .welcome-title,
-    .mobile-mode .dashboard-page .cargo-welcome-text .welcome-title {
-        margin: 0;
-        font-size: clamp(1.05rem, 5vw, 1.28rem) !important;
-        line-height: 1.15;
-        overflow-wrap: anywhere;
-    }
-
-    .mobile-mode .dashboard-page .traveler-actions,
-    .mobile-mode .dashboard-page .client-actions,
-    .mobile-mode .dashboard-page .cargo-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
-        margin-top: 2px;
-    }
-
-    .mobile-mode .dashboard-page .identite-btn {
-        width: 100%;
-        min-height: 38px;
-        padding: 8px 10px;
-        border-radius: 12px;
-        justify-content: space-between;
-        font-size: 0.78rem;
-    }
-
-    .mobile-mode .dashboard-page .identite-btn svg {
-        width: 15px;
-        height: 15px;
-    }
-
-    .mobile-mode .dashboard-page .dashboard-toggles {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 4px;
-        padding: 4px;
-        overflow: hidden;
-    }
-
-    .mobile-mode .dashboard-page .dash-toggle {
-        min-width: 0;
-        height: 34px;
-        padding: 0 6px;
-        border-radius: 10px;
-        font-size: 0.72rem;
-    }
-
-    .mobile-mode .dashboard-page .traveler-stats,
-    .mobile-mode .dashboard-page .cargo-stats {
-        display: grid;
-        gap: 8px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .mobile-mode .dashboard-page .cargo-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .mobile-mode .dashboard-page .traveler-stat-card,
-    .mobile-mode .dashboard-page .cargo-stat-card,
-    .mobile-mode .dashboard-page .cargo-stat-card.card {
-        min-height: 74px;
-        padding: 10px;
-        gap: 6px;
-        border-radius: 12px;
-        background: var(--d-grid);
-    }
-
-    .mobile-mode .dashboard-page .traveler-stat-card strong,
-    .mobile-mode .dashboard-page .cargo-stat-card strong {
-        font-size: clamp(1.05rem, 4.8vw, 1.35rem);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .mobile-mode .dashboard-page .traveler-stat-card span,
-    .mobile-mode .dashboard-page .cargo-stat-card span {
-        font-size: 0.68rem;
-        line-height: 1.15;
-        text-transform: none;
-    }
-
-    .mobile-mode .dashboard-page .traveler-grid,
-    .mobile-mode .dashboard-page .client-grid,
-    .mobile-mode .dashboard-page .cargo-middle,
-    .mobile-mode .dashboard-page .cargo-bottom {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 10px;
-        margin-top: 10px;
-        margin-bottom: 0;
-    }
-
-    .mobile-mode .dashboard-page .dashboard-panel,
-    .mobile-mode .dashboard-page .cargo-middle .card,
-    .mobile-mode .dashboard-page .cargo-bottom .card {
-        min-height: 0;
-        padding: 12px;
-        border-radius: 14px;
-        background: var(--d-panel-strong);
-        backdrop-filter: blur(14px);
-    }
-
-    .mobile-mode .dashboard-page .panel-head,
-    .mobile-mode .dashboard-page .client-grid .panel-head,
-    .mobile-mode .dashboard-page .section-header {
-        gap: 8px;
-        margin-bottom: 10px;
-        align-items: center;
-    }
-
-    .mobile-mode .dashboard-page .panel-head h3,
-    .mobile-mode .dashboard-page .client-grid .panel-head h3,
-    .mobile-mode .dashboard-page .section-title {
-        font-size: 0.98rem;
-        line-height: 1.2;
-    }
-
-    .mobile-mode .dashboard-page .panel-head-right {
-        gap: 6px;
-    }
-    .mobile-mode .dashboard-page .client-acc-toggle {
-        padding: 10px;
-        font-size: 0.98rem;
-    }
-
-    .mobile-mode .dashboard-page .client-acc-actions {
-        gap: 6px;
-        margin-bottom: 10px;
-    }
-
-    .mobile-mode .dashboard-page .cargo-see-all-btn,
-    .mobile-mode .dashboard-page .client-item-btn,
-    .mobile-mode .dashboard-page .cargo-file-btn,
-    .mobile-mode .dashboard-page .cargo-ops-btn {
-        min-height: 32px;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 0.72rem;
-    }
-
-    .mobile-mode .dashboard-page .action-plus-btn {
-        height: 32px;
-        padding: 0 10px;
-        gap: 6px;
-        font-size: 0.72rem;
-    }
-
-    .mobile-mode .dashboard-page .action-plus-btn span {
-        display: inline;
-    }
-
-    .mobile-mode .dashboard-page .count-badge,
-    .mobile-mode .dashboard-page .progress-badge {
-        min-height: 26px;
-        padding: 4px 9px;
-        font-size: 0.72rem;
-    }
-
-    .mobile-mode .dashboard-page .offer-preview-shell,
-    .mobile-mode .dashboard-page .traveler-request-list,
-    .mobile-mode .dashboard-page .client-request-list,
-    .mobile-mode .dashboard-page .client-discussion-list,
-    .mobile-mode .dashboard-page .cargo-file-list {
-        gap: 8px;
-        max-height: none;
-        min-height: 0;
-        overflow: visible;
-    }
-
-    .mobile-mode .dashboard-page .traveler-route-chips {
-        gap: 6px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-chip {
-        min-height: 28px;
-        padding: 5px 8px;
-        font-size: 0.72rem;
-        max-width: 100%;
-    }
-
-    .mobile-mode .dashboard-page .traveler-route-summary {
-        gap: 8px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-route-summary-row,
-    .mobile-mode .dashboard-page .traveler-route-summary p {
-        font-size: 0.82rem;
-    }
-
-    .mobile-mode .dashboard-page .traveler-empty-state,
-    .mobile-mode .dashboard-page .traveler-empty-requests,
-    .mobile-mode .dashboard-page .offer-preview-shell .loading-state,
-    .mobile-mode .dashboard-page .traveler-request-list .loading-state {
-        min-height: 104px;
-        padding: 14px;
-        gap: 9px;
-        border-radius: 12px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-route-empty {
-        width: 48px;
-        height: 48px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-route-empty span {
-        width: 11px;
-        height: 11px;
-    }
-
-    .mobile-mode .dashboard-page .traveler-empty-state p,
-    .mobile-mode .dashboard-page .traveler-empty-requests p {
-        font-size: 0.86rem;
-        line-height: 1.25;
-    }
-
-    .mobile-mode .dashboard-page .traveler-empty-requests span {
-        font-size: 0.76rem;
-        line-height: 1.3;
-    }
-
-    .mobile-mode .dashboard-page .traveler-request-item,
-    .mobile-mode .dashboard-page .client-discussion-item,
-    .mobile-mode .dashboard-page .cargo-file-item {
-        display: grid;
-        grid-template-columns: 34px minmax(0, 1fr) auto;
-        gap: 9px;
-        align-items: center;
-        padding: 10px;
-        margin-bottom: 8px;
-        border-radius: 12px;
-        background: var(--d-surface-1);
-    }
-
-    .mobile-mode .dashboard-page .traveler-request-avatar,
-    .mobile-mode .dashboard-page .client-item-index,
-    .mobile-mode .dashboard-page .cargo-file-index {
-        width: 30px;
-        height: 30px;
-        min-width: 30px;
-        border-radius: 9px;
-        font-size: 0.74rem;
-    }
-
-    .mobile-mode .dashboard-page .traveler-request-copy strong,
-    .mobile-mode .dashboard-page .item-name,
-    .mobile-mode .dashboard-page .file-title {
-        font-size: 0.82rem;
-        line-height: 1.2;
-    }
-
-    .mobile-mode .dashboard-page .traveler-request-copy span,
-    .mobile-mode .dashboard-page .traveler-request-copy small,
-    .mobile-mode .dashboard-page .item-desc,
-    .mobile-mode .dashboard-page .file-desc {
-        font-size: 0.72rem;
-        line-height: 1.25;
-    }
-
-    .mobile-mode .dashboard-page .traveler-request-action {
-        grid-column: auto;
-        justify-self: end;
-        min-width: 0;
-    }
-
-    .mobile-mode .dashboard-page .cargo-ops-table {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-
-    .mobile-mode .dashboard-page .cargo-ops-header {
-        display: none;
-    }
-
-    .mobile-mode .dashboard-page .cargo-ops-row {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: 8px;
-        align-items: center;
-        padding: 10px;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        background: var(--d-surface-1);
-    }
-
-    .mobile-mode .dashboard-page .cargo-ops-row>.col-ligne {
-        font-size: 0.82rem;
-        line-height: 1.25;
-    }
-
-    .mobile-mode .dashboard-page .cargo-ops-row>.col-mode {
-        grid-column: 1;
-        font-size: 0.72rem;
-    }
-
-    .mobile-mode .dashboard-page .cargo-ops-row>.col-statut {
-        grid-column: 2;
-        grid-row: 1;
-        justify-content: flex-end;
-    }
-
-    .mobile-mode .dashboard-page .cargo-ops-row>.col-actions {
-        grid-column: 1 / -1;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-    }
-
-    .mobile-mode .dashboard-page .progress-track {
-        height: 7px;
-    }
-
-    .mobile-mode .dashboard-page .cargo-note {
-        margin: 10px 0 0;
-        font-size: 0.78rem;
-        line-height: 1.35;
-    }
-}
-
+/* Bloc mobile-mode du dashboard remplace par la refonte du 2026-11-01. */
 .payment-modal-card {
     width: min(420px, 100%);
     max-height: calc(100dvh - 40px);
@@ -8549,7 +8187,7 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 }
 
 #pm-confirm-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
@@ -10605,6 +10243,16 @@ body.dashboard-page.light .cc-suggestions-list::-webkit-scrollbar-thumb
     font-weight: 600;
     color: #b0b0b0;
 }
+/* Alerte « pays identiques » : visible des que les deux pays sont choisis. */
+.demande-hint {
+    margin: -6px 0 0;
+    color: #ff6b6b;
+    font-size: 0.85rem;
+    line-height: 1.3;
+}
+body.dashboard-page.light .demande-hint {
+    color: #b42318;
+}
 .demande-input {
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
@@ -10701,6 +10349,38 @@ body.dashboard-page #cc-auth-phone-input {
     background: rgba(255, 179, 71, 0.2);
     border-color: #ffb347;
     color: #ffe6c0;
+}
+/* Budget : le champ et le badge de devise doivent rester sur UNE ligne.
+   Sans ces regles, le badge « EUR » passait seul sous le champ. */
+.demande-budget-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.demande-budget-row .demande-input {
+    flex: 1 1 170px;
+    min-width: 0;
+}
+.demande-currency-badge {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 54px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 179, 71, 0.28);
+    background: rgba(255, 179, 71, 0.1);
+    color: #ffb347;
+    font-weight: 700;
+    font-size: 0.95rem;
+    white-space: nowrap;
+}
+body.dashboard-page.light .demande-currency-badge {
+    background: rgba(184, 134, 11, 0.12);
+    border-color: rgba(184, 134, 11, 0.35);
+    color: #8a6d1f;
 }
 .demande-submit {
     background: linear-gradient(135deg, #f4b82a, #e5a313 55%, #c98208);
@@ -15614,3 +15294,5132 @@ body.home-page.light .cc3-demand-desc { color: #7d776e; }
 .cc3-profile-link { display: flex; align-items: center; gap: 12px; min-width: 0;
   text-decoration: none; color: inherit; border-radius: 12px; }
 .cc3-profile-link:hover .cc3-name { text-decoration: underline; }
+
+/* ============================================================
+   REFONTE DASHBOARD — direction artistique du 2026-11-01
+   Source : REGISTRE/design/dashboard.md (ticket REFONTE-DASHBOARD)
+   Toutes les couleurs du dashboard passent par --cc-* (S-14).
+   ============================================================ */
+body.dashboard-page {
+    /* --- Tokens sombres : Obsidian Luxe (valeurs contractuelles) --- */
+    --cc-bg: #050505;
+    --cc-surface-0: #0B0C0E;
+    --cc-surface-1: #141516;
+    --cc-surface-2: #1A1B1C;
+    --cc-surface-3: #1F1F21;
+    --cc-border: #302517;
+    --cc-border-strong: #BB8437;
+    --cc-input-border: #7A6E5A;
+    --cc-text: #F2ECE1;
+    --cc-text-soft: #B1ADA6;
+    --cc-muted: #B0A795;
+    --cc-accent: #FFB347;
+    --cc-accent-strong: #D99A0E;
+    --cc-accent-fill: #FFB347;
+    --cc-accent-fill-end: #D99A0E;
+    --cc-on-accent: #050709;
+    --cc-danger: #FF7D7D;
+    --cc-on-danger: #050709;
+    --cc-success: #4ADE80;
+    --cc-warn: #FFC864;
+    --cc-focus: rgba(255, 179, 71, 0.45);
+    --cc-overlay: rgba(5, 5, 5, 0.82);
+    --cc-accent-text: var(--cc-accent);
+    --cc-accent-soft: rgba(255, 179, 71, 0.12);
+    --cc-accent-soft-strong: rgba(255, 179, 71, 0.28);
+    --cc-accent-border: rgba(255, 179, 71, 0.30);
+    --cc-danger-soft: rgba(255, 125, 125, 0.08);
+    --cc-danger-border: rgba(255, 125, 125, 0.35);
+    --cc-success-soft: rgba(74, 222, 128, 0.14);
+    --cc-warn-soft: rgba(255, 200, 100, 0.14);
+    --cc-shadow-1: 0 8px 24px rgba(0, 0, 0, .35);
+    --cc-shadow-2: 0 18px 40px rgba(0, 0, 0, .45);
+    --cc-shadow-3: 0 32px 80px rgba(0, 0, 0, .55);
+    --cc-ease: cubic-bezier(.4, 0, .2, 1);
+
+    /* --- Typographie --- */
+    --cc-font: 'Hanken Grotesk', system-ui, sans-serif;
+    --cc-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --cc-text-display: 28px;
+    --cc-text-modal: 20px;
+    --cc-text-h3: 18px;
+    --cc-text-body: 15px;
+    --cc-text-strong: 15px;
+    --cc-text-small: 13px;
+    --cc-text-label: 12px;
+    --cc-text-kicker: 12px;
+    --cc-text-stat: 30px;
+    --cc-text-mono: 13px;
+    --cc-text-button: 14px;
+    --cc-text-table: 13px;
+
+    /* --- Espacement, rayons --- */
+    --cc-space-1: 4px;
+    --cc-space-2: 8px;
+    --cc-space-3: 12px;
+    --cc-space-4: 16px;
+    --cc-space-5: 20px;
+    --cc-space-6: 24px;
+    --cc-space-8: 32px;
+    --cc-space-10: 40px;
+    --cc-space-12: 48px;
+    --cc-space-16: 64px;
+    --cc-radius-xs: 8px;
+    --cc-radius-sm: 10px;
+    --cc-radius-md: 12px;
+    --cc-radius-lg: 16px;
+    --cc-radius-xl: 20px;
+    --cc-radius-pill: 999px;
+
+    font-family: var(--cc-font);
+    color: var(--cc-text);
+}
+
+body.dashboard-page.light {
+    /* --- Tokens clairs : Gold Light (valeurs contractuelles) --- */
+    --cc-bg: #F7F2E9;
+    --cc-surface-0: #FFFDF8;
+    --cc-surface-1: #F7F1E6;
+    --cc-surface-2: #EFE6D6;
+    --cc-surface-3: #E7DBC5;
+    --cc-border: #EEE0C1;
+    --cc-border-strong: #B8860B;
+    --cc-input-border: #B8860B;
+    --cc-text: #3A2F1E;
+    --cc-text-soft: #6D6252;
+    --cc-muted: #6D6252;
+    --cc-accent: #8A5A00;
+    --cc-accent-strong: #7A5200;
+    --cc-accent-fill: #C9971A;
+    --cc-accent-fill-end: #B8860B;
+    --cc-on-accent: #2A2110;
+    --cc-danger: #B42318;
+    --cc-on-danger: #FFFFFF;
+    --cc-success: #1E6F3E;
+    --cc-warn: #8A5A00;
+    --cc-focus: rgba(138, 90, 0, 0.35);
+    --cc-overlay: rgba(58, 47, 30, 0.45);
+    --cc-accent-text: #7A5200;
+    --cc-accent-soft: rgba(201, 151, 26, 0.12);
+    --cc-accent-soft-strong: rgba(201, 151, 26, 0.28);
+    --cc-accent-border: rgba(184, 134, 11, 0.30);
+    --cc-danger-soft: rgba(180, 35, 24, 0.08);
+    --cc-danger-border: rgba(180, 35, 24, 0.35);
+    --cc-success-soft: rgba(30, 111, 62, 0.12);
+    --cc-warn-soft: rgba(138, 90, 0, 0.12);
+    --cc-shadow-1: 0 8px 24px rgba(65, 55, 38, .10);
+    --cc-shadow-2: 0 18px 40px rgba(65, 55, 38, .14);
+    --cc-shadow-3: 0 32px 80px rgba(65, 55, 38, .20);
+}
+
+/* ---------- Conteneur et rythme de page ---------- */
+body.dashboard-page .app-shell {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding: 24px;
+}
+
+body.dashboard-page .view {
+    min-width: 0;
+}
+
+/* L'attribut hidden doit gagner contre les display: de nos composants. */
+body.dashboard-page [hidden] {
+    display: none !important;
+}
+
+/* ---------- Bandeau de vue (C-03) ---------- */
+body.dashboard-page .traveler-head,
+body.dashboard-page .client-head,
+body.dashboard-page .cargo-head {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    margin-top: 18px;
+    min-width: 0;
+}
+
+body.dashboard-page .traveler-welcome,
+body.dashboard-page .client-hero,
+body.dashboard-page .cargo-hero {
+    position: relative;
+    flex: 0 0 55%;
+    min-width: 0;
+    min-height: 212px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 0;
+    padding: 24px;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-xl);
+    background: var(--cc-surface-0);
+    box-shadow: var(--cc-shadow-1), inset 0 1px 0 rgba(255, 255, 255, .04);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.dashboard-page.light .traveler-welcome,
+body.dashboard-page.light .client-hero,
+body.dashboard-page.light .cargo-hero.card {
+    box-shadow: var(--cc-shadow-1), inset 0 1px 0 rgba(255, 255, 255, .8);
+}
+
+body.dashboard-page .client-head .client-hero {
+    flex: 1 1 auto;
+    width: 100%;
+}
+
+/* .view-head recoit 16 px de padding en mobile-mode ; le bandeau doit
+   occuper les 340 px du conteneur a 360 (D-01). */
+body.dashboard-page .traveler-head {
+    padding: 0;
+    margin-bottom: 0;
+}
+
+body.dashboard-page .cargo-welcome-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    margin-bottom: 8px;
+    min-width: 0;
+    padding-right: 56px;
+}
+
+body.dashboard-page .cargo-welcome-text {
+    min-width: 0;
+}
+
+body.dashboard-page .cc-kicker {
+    margin: 0 0 4px;
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-kicker);
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--cc-accent-text);
+}
+
+body.dashboard-page .view .welcome-title {
+    margin: 0;
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-display) !important;
+    font-weight: 800;
+    line-height: 1.21;
+    letter-spacing: -.02em;
+    color: var(--cc-text);
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+body.dashboard-page .cc-name-skeleton {
+    display: inline-block;
+    width: 120px;
+    height: 20px;
+    border-radius: 6px;
+    background: var(--cc-surface-2);
+    vertical-align: middle;
+    position: relative;
+    overflow: hidden;
+}
+
+body.dashboard-page .cc-name-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .08), transparent);
+    animation: cc-sweep 1.2s linear infinite;
+}
+
+/* Avatar */
+body.dashboard-page .avatar-upload-label {
+    flex-shrink: 0;
+}
+
+body.dashboard-page .avatar-circle {
+    width: 112px;
+    height: 112px;
+    border-radius: 50%;
+    border: 2px solid var(--cc-border-strong);
+    background: var(--cc-surface-1);
+    color: var(--cc-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: border-color 120ms var(--cc-ease), background 120ms var(--cc-ease);
+}
+
+body.dashboard-page .avatar-circle:hover {
+    background: var(--cc-surface-2);
+    border-color: var(--cc-accent);
+}
+
+body.dashboard-page .avatar-circle svg {
+    width: 34px;
+    height: 34px;
+}
+
+/* Bouton Actualiser (haut droite du bandeau) */
+body.dashboard-page .cc-refresh-btn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    cursor: pointer;
+    transition: background 120ms var(--cc-ease), border-color 120ms var(--cc-ease);
+}
+
+body.dashboard-page .cc-refresh-btn:hover {
+    background: var(--cc-surface-2);
+}
+
+/* Actions du bandeau */
+body.dashboard-page .traveler-actions,
+body.dashboard-page .client-actions,
+body.dashboard-page .cargo-actions {
+    display: grid;
+    grid-template-columns: minmax(208px, auto) minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+}
+
+/* Bouton identite (C-04) */
+body.dashboard-page .identite-btn {
+    min-height: 40px;
+    height: 40px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--cc-accent);
+    border-radius: var(--cc-radius-md);
+    background: transparent;
+    color: var(--cc-text);
+    font-family: var(--cc-font);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 120ms var(--cc-ease), border-color 120ms var(--cc-ease);
+}
+
+body.dashboard-page .identite-btn:hover {
+    background: var(--cc-surface-1);
+    border-color: var(--cc-border-strong);
+}
+
+body.dashboard-page .identite-steps {
+    padding: 2px 8px;
+    border-radius: var(--cc-radius-pill);
+    font-size: 11px;
+    font-weight: 700;
+}
+
+body.dashboard-page .identite-steps.level-0 {
+    background: var(--cc-danger-soft);
+    color: var(--cc-danger);
+}
+
+body.dashboard-page .identite-steps.level-1 {
+    background: var(--cc-warn-soft);
+    color: var(--cc-warn);
+}
+
+body.dashboard-page .identite-steps.level-2 {
+    background: var(--cc-accent-soft);
+    color: var(--cc-accent-text);
+}
+
+/* Bascules de vue (C-05) */
+body.dashboard-page .dashboard-toggles {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    height: 46px;
+    box-sizing: border-box;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-lg);
+    background: var(--cc-surface-0);
+    min-width: 0;
+    overflow: hidden;
+}
+
+body.dashboard-page .dashboard-toggles::before {
+    display: none;
+}
+
+body.dashboard-page .dashboard-toggles.is-empty {
+    display: none;
+}
+
+body.dashboard-page .dash-toggle {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    min-width: 84px;
+    height: 38px;
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    border-radius: var(--cc-radius-md);
+    background: transparent;
+    color: var(--cc-muted);
+    font-family: var(--cc-font);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color 120ms var(--cc-ease), background 120ms var(--cc-ease),
+        border-color 120ms var(--cc-ease);
+}
+
+body.dashboard-page .dash-toggle:hover {
+    color: var(--cc-accent);
+    border-color: var(--cc-border-strong);
+    background: transparent;
+}
+
+body.dashboard-page .dash-toggle.active {
+    background: var(--cc-accent-soft-strong);
+    border-color: var(--cc-accent);
+    color: var(--cc-on-accent);
+    font-weight: 700;
+    text-shadow: none;
+}
+
+body.dashboard-page.light .dash-toggle.active {
+    color: var(--cc-accent-text);
+}
+
+/* ---------- Cartes de statistiques (C-06) ---------- */
+body.dashboard-page .traveler-stats,
+body.dashboard-page .cargo-stats {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 12px;
+    min-width: 0;
+}
+
+body.dashboard-page .traveler-stat-card,
+body.dashboard-page .cargo-stat-card,
+body.dashboard-page .cargo-stat-card.card {
+    min-width: 0;
+    height: 100px;
+    min-height: 100px;
+    box-sizing: border-box;
+    padding: 18px 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid var(--cc-border);
+    border-radius: 14px;
+    background: var(--cc-surface-0);
+    box-shadow: var(--cc-shadow-1);
+}
+
+body.dashboard-page .traveler-stat-card strong,
+body.dashboard-page .cargo-stat-card strong {
+    font-family: var(--cc-mono);
+    font-size: var(--cc-text-stat);
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    color: var(--cc-text);
+    overflow-wrap: anywhere;
+}
+
+body.dashboard-page .traveler-stat-card span,
+body.dashboard-page .cargo-stat-card span {
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    line-height: 1.38;
+    color: var(--cc-muted);
+    text-transform: none;
+}
+
+/* ---------- Grilles de panneaux ---------- */
+body.dashboard-page .traveler-grid,
+body.dashboard-page .client-grid,
+body.dashboard-page .cargo-middle {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+    min-width: 0;
+    align-items: start;
+}
+
+/* ---------- Panneau (C-07) ---------- */
+body.dashboard-page .view .dashboard-panel,
+body.dashboard-page .view .cargo-middle .card {
+    min-width: 0;
+    min-height: 0;
+    padding: 20px;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-lg);
+    background: var(--cc-surface-0);
+    box-shadow: var(--cc-shadow-1);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+body.dashboard-page .view .dashboard-panel.is-open {
+    min-height: 280px;
+}
+
+body.dashboard-page .view .traveler-offer-panel {
+    min-height: 280px;
+}
+
+body.dashboard-page .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    min-height: 48px;
+    margin-bottom: 16px;
+    min-width: 0;
+}
+
+body.dashboard-page .panel-title {
+    margin: 0;
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-h3);
+    font-weight: 700;
+    line-height: 1.33;
+    color: var(--cc-text);
+}
+
+body.dashboard-page .panel-heading {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-h3);
+    font-weight: 700;
+    line-height: 1.33;
+}
+
+body.dashboard-page .panel-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+}
+
+/* ---------- Accordéon (C-09) ---------- */
+body.dashboard-page .cc-acc-toggle {
+    width: 100%;
+    min-height: 48px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: var(--cc-font);
+    font-size: 16px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: background 120ms var(--cc-ease), border-color 120ms var(--cc-ease);
+}
+
+body.dashboard-page .cc-acc-toggle:hover {
+    background: var(--cc-surface-2);
+}
+
+body.dashboard-page .cc-acc-toggle[aria-expanded="true"] {
+    border-color: var(--cc-border-strong);
+}
+
+body.dashboard-page .cc-acc-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.dashboard-page .cc-acc-chevron {
+    flex-shrink: 0;
+    transition: transform 200ms var(--cc-ease);
+}
+
+body.dashboard-page .cc-acc-toggle[aria-expanded="true"] .cc-acc-chevron {
+    transform: rotate(180deg);
+}
+
+body.dashboard-page .cc-acc-body {
+    margin-top: 12px;
+    min-width: 0;
+}
+
+body.dashboard-page .cc-acc-body[hidden] {
+    display: none;
+}
+
+/* Badge compteur (C-10) */
+body.dashboard-page .count-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    padding: 0 10px;
+    border: 1px solid var(--cc-accent-border);
+    border-radius: var(--cc-radius-pill);
+    background: var(--cc-accent-soft);
+    color: var(--cc-accent-text);
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-label);
+    font-weight: 700;
+}
+
+/* ---------- Boutons (C-15 a C-19) ---------- */
+body.dashboard-page .btn {
+    min-height: 44px;
+    height: 44px;
+    padding: 0 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: var(--cc-radius-md);
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-button);
+    font-weight: 700;
+    line-height: 1.43;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 120ms var(--cc-ease), filter 120ms var(--cc-ease),
+        box-shadow 120ms var(--cc-ease), transform 120ms var(--cc-ease);
+}
+
+body.dashboard-page .btn.primary {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end));
+    color: var(--cc-on-accent);
+    border-color: transparent;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .30);
+}
+
+body.dashboard-page.light .btn.primary {
+    border-color: var(--cc-accent-strong);
+    box-shadow: 0 8px 20px rgba(65, 55, 38, .18);
+}
+
+body.dashboard-page .btn.primary:hover {
+    filter: brightness(1.05);
+    box-shadow: var(--cc-shadow-2);
+}
+
+body.dashboard-page .btn.primary:active {
+    transform: translateY(1px);
+}
+
+body.dashboard-page .btn.secondary {
+    background: transparent;
+    border-color: var(--cc-border-strong);
+    color: var(--cc-accent);
+}
+
+body.dashboard-page .btn.secondary:hover {
+    background: var(--cc-surface-1);
+}
+
+body.dashboard-page .btn.btn-danger,
+body.dashboard-page .btn.danger {
+    background: transparent;
+    border-color: var(--cc-danger-border);
+    color: var(--cc-danger);
+}
+
+body.dashboard-page .btn.btn-danger:hover,
+body.dashboard-page .btn.danger:hover {
+    background: var(--cc-danger);
+    border-color: var(--cc-danger);
+    color: var(--cc-on-danger);
+}
+
+body.dashboard-page .btn.compact,
+body.dashboard-page .btn.btn-sm {
+    min-height: 36px;
+    height: 36px;
+    padding: 0 16px;
+    font-size: 13px;
+}
+
+body.dashboard-page .btn.full-width {
+    width: 100%;
+}
+
+body.dashboard-page .btn:disabled,
+body.dashboard-page .btn[aria-busy="true"] {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+body.dashboard-page .client-plus-btn {
+    width: auto;
+    min-width: 0;
+    border-radius: var(--cc-radius-md);
+}
+
+body.dashboard-page .client-plus-btn svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+/* ---------- Jauge de limite cargo (C-33) ---------- */
+body.dashboard-page .cargo-limit {
+    margin: 0 0 16px;
+}
+
+body.dashboard-page .cargo-limit-track {
+    height: 4px;
+    border-radius: var(--cc-radius-pill);
+    background: var(--cc-surface-3);
+    overflow: hidden;
+}
+
+body.dashboard-page .cargo-limit-fill {
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--cc-accent), var(--cc-accent-strong));
+    transition: width 200ms var(--cc-ease);
+}
+
+body.dashboard-page .cargo-limit.is-full .cargo-limit-fill {
+    background: var(--cc-danger);
+}
+
+body.dashboard-page .cargo-limit-note {
+    margin: 12px 0 0;
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    color: var(--cc-warn);
+}
+
+body.dashboard-page .cargo-offers-toggle {
+    width: 100%;
+    margin-top: 12px;
+    justify-content: center;
+}
+
+body.dashboard-page .cargo-offers-toggle .cc-toggle-chevron {
+    transition: transform 200ms var(--cc-ease);
+}
+
+body.dashboard-page .cargo-offers-toggle.is-expanded .cc-toggle-chevron {
+    transform: rotate(180deg);
+}
+
+/* ---------- Tableau cargo (C-14) ---------- */
+body.dashboard-page .cargo-ops-table {
+    display: grid;
+    grid-template-columns: minmax(150px, 2fr) minmax(70px, .8fr) minmax(100px, 1fr) auto;
+    column-gap: 16px;
+    row-gap: 0;
+    min-width: 0;
+}
+
+body.dashboard-page .cargo-ops-header,
+body.dashboard-page .cargo-ops-row {
+    display: contents;
+}
+
+body.dashboard-page .cargo-ops-table > .cc-loading,
+body.dashboard-page .cargo-ops-table > .traveler-empty-requests,
+body.dashboard-page .cargo-ops-table > .loading-state,
+body.dashboard-page .cargo-ops-table > .cargo-ops-empty {
+    grid-column: 1 / -1;
+}
+
+body.dashboard-page .cargo-ops-header > div {
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--cc-border);
+    color: var(--cc-muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+body.dashboard-page .cargo-ops-row > div {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--cc-border);
+    min-width: 0;
+}
+
+body.dashboard-page .cargo-ops-row > .col-ligne {
+    font-size: var(--cc-text-table);
+    font-weight: 600;
+    color: var(--cc-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.dashboard-page .cargo-ops-row > .col-mode {
+    font-size: var(--cc-text-table);
+    color: var(--cc-muted);
+}
+
+body.dashboard-page .cargo-ops-row > .col-statut {
+    justify-content: flex-start;
+}
+
+body.dashboard-page .cargo-ops-row > .col-actions {
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+body.dashboard-page .cargo-ops-btn {
+    min-height: 36px;
+    padding: 0 14px;
+    border: 1px solid var(--cc-border-strong);
+    border-radius: var(--cc-radius-md);
+    background: transparent;
+    color: var(--cc-accent);
+    font-family: var(--cc-font);
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 120ms var(--cc-ease);
+}
+
+body.dashboard-page .cargo-ops-btn:hover {
+    background: var(--cc-surface-1);
+}
+
+body.dashboard-page .cargo-ops-btn-danger {
+    border-color: var(--cc-danger-border);
+    color: var(--cc-danger);
+}
+
+body.dashboard-page .cargo-ops-btn-danger:hover {
+    background: var(--cc-danger);
+    color: var(--cc-on-danger);
+}
+
+body.dashboard-page .cargo-ops-more {
+    grid-column: 1 / -1;
+    padding: 12px 0 4px;
+    font-size: var(--cc-text-small);
+    color: var(--cc-muted);
+}
+
+/* Statuts (C-23) : point + libelle, jamais une couleur seule */
+body.dashboard-page .cargo-status-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 24px;
+    padding: 0 10px;
+    border-radius: var(--cc-radius-pill);
+    font-size: var(--cc-text-label);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+body.dashboard-page .cargo-status-text::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+body.dashboard-page .cargo-status-text.status-active {
+    color: var(--cc-success);
+    background: var(--cc-success-soft);
+}
+
+body.dashboard-page .cargo-status-text.status-warn {
+    color: var(--cc-warn);
+    background: var(--cc-warn-soft);
+}
+
+body.dashboard-page .cargo-status-text.status-off {
+    color: var(--cc-muted);
+    background: var(--cc-surface-2);
+}
+
+body.dashboard-page .status-pill.verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+    padding: 2px 8px;
+    border-radius: var(--cc-radius-pill);
+    background: var(--cc-accent-soft);
+    color: var(--cc-accent-text);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* ---------- Lignes de liste (C-12, C-13) ---------- */
+body.dashboard-page .traveler-request-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--cc-border);
+    min-width: 0;
+}
+
+body.dashboard-page .traveler-request-item:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+body.dashboard-page .traveler-request-avatar {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--cc-radius-sm);
+    background: var(--cc-accent-soft);
+    color: var(--cc-accent-text);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+body.dashboard-page .traveler-request-copy {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+body.dashboard-page .traveler-request-copy strong {
+    font-size: var(--cc-text-strong);
+    font-weight: 700;
+    color: var(--cc-text);
+}
+
+body.dashboard-page .traveler-request-copy span,
+body.dashboard-page .traveler-request-copy small {
+    font-size: var(--cc-text-small);
+    color: var(--cc-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+body.dashboard-page .traveler-request-action {
+    min-width: 92px;
+    height: 40px;
+}
+
+body.dashboard-page .client-discussion-item,
+body.dashboard-page .cargo-file-item {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--cc-border);
+    border-radius: 0;
+    background: transparent;
+    min-width: 0;
+    cursor: pointer;
+    transition: background 120ms var(--cc-ease);
+}
+
+body.dashboard-page .client-discussion-item:first-child,
+body.dashboard-page .cargo-file-item:first-child {
+    border-top: 0;
+}
+
+body.dashboard-page .client-discussion-item:hover,
+body.dashboard-page .cargo-file-item:hover {
+    background: var(--cc-surface-1);
+}
+
+body.dashboard-page .client-discussion-item.is-new {
+    border-left: 2px solid var(--cc-accent);
+    padding-left: 10px;
+}
+
+body.dashboard-page .client-item-index,
+body.dashboard-page .cargo-file-index {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--cc-radius-sm);
+    background: var(--cc-accent-soft);
+    color: var(--cc-accent-text);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+body.dashboard-page .item-content,
+body.dashboard-page .file-content {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+body.dashboard-page .item-name,
+body.dashboard-page .file-title {
+    font-size: var(--cc-text-strong);
+    font-weight: 700;
+    color: var(--cc-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.dashboard-page .item-desc,
+body.dashboard-page .file-desc {
+    font-size: var(--cc-text-small);
+    color: var(--cc-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+body.dashboard-page .client-item-btn,
+body.dashboard-page .cargo-file-btn {
+    min-height: 36px;
+    padding: 0 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--cc-border-strong);
+    border-radius: var(--cc-radius-md);
+    background: transparent;
+    color: var(--cc-accent);
+    font-family: var(--cc-font);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+body.dashboard-page .client-item-btn:hover,
+body.dashboard-page .cargo-file-btn:hover {
+    background: var(--cc-surface-1);
+}
+
+body.dashboard-page .client-item-btn-danger {
+    border-color: var(--cc-danger-border);
+    color: var(--cc-danger);
+}
+
+body.dashboard-page .client-item-btn-danger:hover {
+    background: var(--cc-danger);
+    color: var(--cc-on-danger);
+}
+
+body.dashboard-page .dash-row-inline {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+body.dashboard-page .client-request-list,
+body.dashboard-page .client-discussion-list,
+body.dashboard-page .cargo-file-list {
+    min-height: 120px;
+    max-height: 250px;
+    overflow-y: auto;
+    min-width: 0;
+}
+
+body.dashboard-page #voir-tous-list {
+    max-height: none;
+    overflow-y: visible;
+}
+
+/* ---------- Etats vides (C-24) ---------- */
+body.dashboard-page .traveler-empty-state,
+body.dashboard-page .traveler-empty-requests {
+    min-height: 160px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    border: 1px dashed var(--cc-border);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-0);
+    color: var(--cc-muted);
+}
+
+body.dashboard-page .traveler-empty-state p,
+body.dashboard-page .traveler-empty-requests p {
+    margin: 0;
+    font-size: var(--cc-text-body);
+    font-weight: 700;
+    color: var(--cc-text);
+}
+
+body.dashboard-page .traveler-empty-state span,
+body.dashboard-page .traveler-empty-requests span {
+    max-width: 36ch;
+    font-size: var(--cc-text-small);
+    color: var(--cc-muted);
+}
+
+body.dashboard-page .traveler-empty-state .btn,
+body.dashboard-page .traveler-empty-requests .btn {
+    margin-top: 8px;
+    height: 44px;
+}
+
+/* ---------- Squelettes de chargement (C-25) ---------- */
+body.dashboard-page .cc-loading {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+body.dashboard-page .cc-skeleton {
+    display: block;
+    background: var(--cc-surface-2);
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+body.dashboard-page .cc-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .07), transparent);
+    animation: cc-sweep 1.2s linear infinite;
+}
+
+body.dashboard-page .cc-skeleton-stat {
+    width: 64px;
+    height: 10px;
+}
+
+body.dashboard-page .cc-skeleton-card {
+    width: 100%;
+    height: 220px;
+    border-radius: var(--cc-radius-md);
+}
+
+body.dashboard-page .cc-skeleton-row {
+    width: 100%;
+    height: 64px;
+    border-radius: var(--cc-radius-sm);
+}
+
+body.dashboard-page .cc-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@keyframes cc-sweep {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+}
+
+/* ---------- Modales (C-28) ---------- */
+body.dashboard-page #offer-details-modal,
+body.dashboard-page #voir-tous-modal,
+body.dashboard-page #dashboard-demande-modal,
+body.dashboard-page #edit-parcel-modal,
+body.dashboard-page #cc-confirm-modal,
+body.dashboard-page #avatar-menu-modal {
+    align-items: center;
+    padding: 24px;
+    background: var(--cc-overlay);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+body.dashboard-page .modal-card {
+    width: min(560px, calc(100vw - 24px));
+    max-height: calc(100dvh - 48px);
+    padding: 24px;
+    border: 1px solid var(--cc-border-strong);
+    border-radius: var(--cc-radius-xl);
+    background: var(--cc-surface-0);
+    box-shadow: var(--cc-shadow-3);
+    color: var(--cc-text);
+    overflow-y: auto;
+}
+
+body.dashboard-page #offer-details-modal .modal-card {
+    width: min(680px, calc(100vw - 32px));
+}
+
+body.dashboard-page #cc-confirm-modal .modal-card {
+    width: min(440px, calc(100vw - 24px));
+}
+
+/* Les modales de demande portaient un max-width:500px !important et un
+   titre a 22 px : la DA fixe 560 px et un titre de 20 px. */
+body.dashboard-page .demande-modal-card {
+    max-width: none !important;
+    padding: 24px !important;
+}
+
+body.dashboard-page .demande-modal-card .cc-modal-title {
+    font-size: var(--cc-text-modal);
+    font-weight: 800;
+}
+
+body.dashboard-page .demande-subtitle {
+    margin: 8px 0 20px;
+    font-size: var(--cc-text-body);
+    color: var(--cc-text-soft);
+}
+
+body.dashboard-page .cc-modal-title {
+    margin: 0 0 8px;
+    font-family: var(--cc-font);
+    font-size: var(--cc-text-modal);
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--cc-text);
+}
+
+body.dashboard-page .modal-panel-head {
+    padding-right: 44px;
+    margin-bottom: 12px;
+}
+
+body.dashboard-page .modal-summary {
+    margin: 0 0 20px;
+    font-size: var(--cc-text-body);
+    color: var(--cc-text-soft);
+}
+
+body.dashboard-page .close-modal {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    cursor: pointer;
+    transition: background 120ms var(--cc-ease);
+}
+
+body.dashboard-page .close-modal:hover {
+    background: var(--cc-surface-2);
+}
+
+body.dashboard-page .cc-confirm-body {
+    margin: 0 0 20px;
+    font-size: var(--cc-text-body);
+    line-height: 1.47;
+    color: var(--cc-text-soft);
+}
+
+body.dashboard-page .cc-confirm-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+/* ---------- Formulaires (C-20 a C-22, C-30) ---------- */
+body.dashboard-page .demande-form {
+    display: grid;
+    gap: 16px;
+}
+
+body.dashboard-page .demande-field,
+body.dashboard-page .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+body.dashboard-page .demande-field label,
+body.dashboard-page .form-field > span {
+    font-size: var(--cc-text-small);
+    font-weight: 700;
+    color: var(--cc-text);
+}
+
+body.dashboard-page .cc-input,
+body.dashboard-page .form-field input,
+body.dashboard-page .estimator-input,
+body.dashboard-page .demande-input {
+    width: 100%;
+    height: 44px;
+    padding: 12px 14px;
+    box-sizing: border-box;
+    border: 1px solid var(--cc-input-border);
+    border-radius: var(--cc-radius-sm);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: var(--cc-font);
+    font-size: 16px;
+    line-height: 1.3;
+    transition: border-color 120ms var(--cc-ease), box-shadow 120ms var(--cc-ease);
+}
+
+body.dashboard-page textarea.cc-input,
+body.dashboard-page .demande-textarea {
+    height: auto;
+    min-height: 88px;
+    resize: vertical;
+}
+
+body.dashboard-page .cc-input::placeholder,
+body.dashboard-page .demande-input::placeholder {
+    color: var(--cc-muted);
+}
+
+body.dashboard-page .cc-input:disabled,
+body.dashboard-page .demande-input:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+body.dashboard-page .cc-input[readonly],
+body.dashboard-page .demande-input[readonly] {
+    background: var(--cc-surface-0);
+}
+
+body.dashboard-page .cc-input:focus,
+body.dashboard-page .estimator-input:focus,
+body.dashboard-page .demande-input:focus {
+    outline: none;
+    border-color: var(--cc-border-strong);
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.dashboard-page .demande-date-row,
+body.dashboard-page .demande-budget-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+body.dashboard-page .demande-date-row .demande-input,
+body.dashboard-page .demande-budget-row .demande-input {
+    flex: 1;
+    min-width: 140px;
+}
+
+body.dashboard-page .demande-date-alt {
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--cc-border-strong);
+    border-radius: var(--cc-radius-sm);
+    background: transparent;
+    color: var(--cc-accent);
+    font-family: var(--cc-font);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+body.dashboard-page .demande-date-alt:hover {
+    background: var(--cc-surface-1);
+}
+
+body.dashboard-page .demande-currency-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-sm);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: var(--cc-mono);
+    font-size: 14px;
+    font-weight: 700;
+}
+
+body.dashboard-page .cc-field-error,
+body.dashboard-page .demande-hint {
+    margin: 0;
+    font-size: var(--cc-text-small);
+    font-weight: 600;
+    color: var(--cc-danger);
+}
+
+body.dashboard-page .form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+}
+
+body.dashboard-page .traveler-modal-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 8px;
+}
+
+body.dashboard-page .demande-feedback {
+    margin: 0;
+    font-size: var(--cc-text-small);
+    font-weight: 700;
+    color: var(--cc-success);
+}
+
+body.dashboard-page .error-text {
+    margin: 0;
+    font-size: var(--cc-text-small);
+    font-weight: 600;
+    color: var(--cc-danger);
+}
+
+body.dashboard-page .error-text.is-success {
+    color: var(--cc-success);
+}
+
+body.dashboard-page .error-text.is-error {
+    color: var(--cc-danger);
+}
+
+/* Feedback global (remplace alert()) */
+body.dashboard-page .dashboard-feedback {
+    position: fixed;
+    left: 50%;
+    bottom: 88px;
+    transform: translateX(-50%);
+    z-index: 1500;
+    width: min(480px, calc(100vw - 32px));
+    padding: 12px 16px;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-0);
+    box-shadow: var(--cc-shadow-2);
+    color: var(--cc-text);
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+}
+
+body.dashboard-page .dashboard-feedback.is-error {
+    border-color: var(--cc-danger-border);
+    color: var(--cc-danger);
+}
+
+body.dashboard-page .dashboard-feedback.is-success {
+    color: var(--cc-success);
+}
+
+/* ---------- Bascule de theme (C-32) ---------- */
+body.dashboard-page .theme-toggle {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 150;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-1);
+    color: var(--cc-accent);
+    cursor: pointer;
+}
+
+body.dashboard-page .theme-toggle-icon {
+    display: grid;
+    place-items: center;
+    line-height: 0;
+}
+
+body.dashboard-page .theme-toggle .cc-icon-sun {
+    display: none;
+}
+
+body.dashboard-page.light .theme-toggle .cc-icon-moon {
+    display: none;
+}
+
+body.dashboard-page.light .theme-toggle .cc-icon-sun {
+    display: block;
+}
+
+/* ---------- Focus visible partout (D-06) ---------- */
+body.dashboard-page button:focus-visible,
+body.dashboard-page a:focus-visible,
+body.dashboard-page input:focus-visible,
+body.dashboard-page textarea:focus-visible,
+body.dashboard-page [tabindex]:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+    border-color: var(--cc-border-strong);
+}
+
+/* ---------- Mouvement reduit ---------- */
+@media (prefers-reduced-motion: reduce) {
+    body.dashboard-page *,
+    body.dashboard-page *::before,
+    body.dashboard-page *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}
+
+/* ---------- Tablette : 768 a 1279 ---------- */
+@media (max-width: 1279px) {
+    body.dashboard-page .app-shell {
+        padding: 16px;
+    }
+
+    body.dashboard-page .traveler-head,
+    body.dashboard-page .client-head,
+    body.dashboard-page .cargo-head {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    body.dashboard-page .traveler-welcome,
+    body.dashboard-page .client-hero,
+    body.dashboard-page .cargo-hero {
+        flex-basis: auto;
+        width: 100%;
+        min-height: 0;
+        padding: 16px;
+    }
+
+    body.dashboard-page .avatar-circle {
+        width: 72px;
+        height: 72px;
+    }
+
+    body.dashboard-page .avatar-circle svg {
+        width: 26px;
+        height: 26px;
+    }
+
+    body.dashboard-page .view .welcome-title {
+        font-size: 24px !important;
+    }
+
+    body.dashboard-page .traveler-stats,
+    body.dashboard-page .cargo-stats {
+        gap: 8px;
+    }
+
+    body.dashboard-page .traveler-stat-card,
+    body.dashboard-page .cargo-stat-card,
+    body.dashboard-page .cargo-stat-card.card {
+        height: 88px;
+        min-height: 88px;
+    }
+
+    body.dashboard-page .traveler-stat-card strong,
+    body.dashboard-page .cargo-stat-card strong {
+        font-size: 28px;
+    }
+
+    body.dashboard-page .view .dashboard-panel,
+    body.dashboard-page .view .cargo-middle .card {
+        padding: 16px;
+    }
+
+    body.dashboard-page .panel-title,
+    body.dashboard-page .panel-heading {
+        font-size: 17px;
+    }
+
+    body.dashboard-page .dash-toggle {
+        height: 38px;
+    }
+
+    body.dashboard-page .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.dashboard-page .traveler-modal-actions {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+
+    body.dashboard-page .traveler-modal-actions .btn {
+        width: auto;
+        min-width: 180px;
+    }
+}
+
+/* ---------- Mobile : jusqu'a 767 ---------- */
+@media (max-width: 767px) {
+    body.dashboard-page .app-shell {
+        padding: 10px;
+        padding-bottom: 80px;
+    }
+
+    body.dashboard-page .traveler-head,
+    body.dashboard-page .client-head,
+    body.dashboard-page .cargo-head {
+        margin-top: 8px;
+    }
+
+    body.dashboard-page .traveler-welcome,
+    body.dashboard-page .client-hero,
+    body.dashboard-page .cargo-hero {
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    body.dashboard-page .cargo-welcome-row {
+        gap: 12px;
+        padding-right: 48px;
+    }
+
+    body.dashboard-page .avatar-circle {
+        width: 56px;
+        height: 56px;
+    }
+
+    body.dashboard-page .avatar-circle svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    body.dashboard-page .view .welcome-title {
+        font-size: 22px !important;
+    }
+
+    body.dashboard-page .cc-refresh-btn {
+        top: 12px;
+        right: 12px;
+        width: 44px;
+        height: 44px;
+    }
+
+    body.dashboard-page .traveler-actions,
+    body.dashboard-page .client-actions,
+    body.dashboard-page .cargo-actions {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+    }
+
+    body.dashboard-page .identite-btn {
+        width: 100%;
+        height: 44px;
+    }
+
+    body.dashboard-page .dashboard-toggles {
+        height: 52px;
+    }
+
+    body.dashboard-page .dash-toggle {
+        min-width: 0;
+        height: 44px;
+    }
+
+    body.dashboard-page .traveler-stats,
+    body.dashboard-page .cargo-stats {
+        gap: 8px;
+    }
+
+    /* Sur mobile la page defile : les listes ne defilent pas dans la liste. */
+    body.dashboard-page .offer-preview-shell,
+    body.dashboard-page .traveler-request-list,
+    body.dashboard-page .client-request-list,
+    body.dashboard-page .client-discussion-list,
+    body.dashboard-page .cargo-file-list {
+        max-height: none;
+        overflow: visible;
+        min-height: 0;
+    }
+
+    body.dashboard-page .traveler-stat-card,
+    body.dashboard-page .cargo-stat-card,
+    body.dashboard-page .cargo-stat-card.card {
+        height: 74px;
+        min-height: 74px;
+        padding: 12px 14px;
+    }
+
+    body.dashboard-page .traveler-stat-card strong,
+    body.dashboard-page .cargo-stat-card strong {
+        font-size: 24px;
+    }
+
+    body.dashboard-page .view .dashboard-panel,
+    body.dashboard-page .view .cargo-middle .card {
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    body.dashboard-page .view .dashboard-panel.is-open,
+    body.dashboard-page .view .traveler-offer-panel {
+        min-height: 0;
+    }
+
+    body.dashboard-page .panel-head {
+        flex-wrap: wrap;
+        min-height: 0;
+    }
+
+    body.dashboard-page .panel-title,
+    body.dashboard-page .panel-heading {
+        font-size: 16px;
+    }
+
+    body.dashboard-page .panel-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    body.dashboard-page .panel-actions .btn {
+        flex: 1;
+        min-width: 140px;
+    }
+
+    /* Tactile : 44 x 44 minimum a 360 (D-04). */
+    body.dashboard-page .btn.compact,
+    body.dashboard-page .btn.btn-sm {
+        height: 44px;
+        min-height: 44px;
+    }
+
+    body.dashboard-page .cc-acc-toggle {
+        min-height: 44px;
+        padding: 0 12px;
+        font-size: 15px;
+    }
+
+    body.dashboard-page .cc-acc-title {
+        white-space: normal;
+    }
+
+    /* Tableau cargo -> cartes */
+    body.dashboard-page .cargo-ops-table {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    body.dashboard-page .cargo-ops-header {
+        display: none;
+    }
+
+    body.dashboard-page .cargo-ops-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "ligne statut"
+            "mode mode"
+            "actions actions";
+        gap: 4px 12px;
+        padding: 12px;
+        border: 1px solid var(--cc-border);
+        border-radius: var(--cc-radius-md);
+        background: var(--cc-surface-1);
+    }
+
+    body.dashboard-page .cargo-ops-row > div {
+        min-height: 0;
+        padding: 0;
+        border: 0;
+    }
+
+    body.dashboard-page .cargo-ops-row > .col-ligne {
+        grid-area: ligne;
+        white-space: normal;
+    }
+
+    body.dashboard-page .cargo-ops-row > .col-mode {
+        grid-area: mode;
+    }
+
+    body.dashboard-page .cargo-ops-row > .col-statut {
+        grid-area: statut;
+        justify-content: flex-end;
+    }
+
+    body.dashboard-page .cargo-ops-row > .col-actions {
+        grid-area: actions;
+        margin-top: 8px;
+    }
+
+    body.dashboard-page .cargo-ops-row > .col-actions .cargo-ops-btn {
+        flex: 1;
+        height: 44px;
+        min-height: 44px;
+    }
+
+    /* Lignes de liste -> actions pleine largeur */
+    body.dashboard-page .traveler-request-item,
+    body.dashboard-page .client-discussion-item,
+    body.dashboard-page .cargo-file-item {
+        grid-template-columns: 40px minmax(0, 1fr);
+        row-gap: 8px;
+    }
+
+    body.dashboard-page .traveler-request-action,
+    body.dashboard-page .client-discussion-item > .client-item-btn,
+    body.dashboard-page .cargo-file-item > .cargo-file-btn,
+    body.dashboard-page .dash-row-inline {
+        grid-column: 1 / -1;
+        width: 100%;
+        height: 44px;
+        min-height: 44px;
+    }
+
+    body.dashboard-page .dash-row-inline .client-item-btn {
+        flex: 1;
+        height: 44px;
+    }
+
+    body.dashboard-page .traveler-request-action {
+        height: 44px;
+    }
+
+    /* Modales */
+    body.dashboard-page #offer-details-modal,
+    body.dashboard-page #voir-tous-modal,
+    body.dashboard-page #dashboard-demande-modal,
+    body.dashboard-page #edit-parcel-modal,
+    body.dashboard-page #cc-confirm-modal,
+    body.dashboard-page #avatar-menu-modal {
+        padding: 12px;
+    }
+
+    body.dashboard-page .modal-card {
+        width: calc(100vw - 24px);
+        max-width: none;
+        padding: 16px !important;
+        max-height: calc(100dvh - 24px);
+    }
+
+    body.dashboard-page #offer-details-modal .modal-card,
+    body.dashboard-page #cc-confirm-modal .modal-card {
+        width: calc(100vw - 24px);
+    }
+
+    body.dashboard-page .form-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.dashboard-page .traveler-modal-actions {
+        position: sticky;
+        bottom: 0;
+        flex-direction: column-reverse;
+        gap: 8px;
+        padding-top: 12px;
+        background: var(--cc-surface-0);
+        border-top: 1px solid var(--cc-border);
+    }
+
+    body.dashboard-page .traveler-modal-actions .btn {
+        width: 100%;
+    }
+
+    body.dashboard-page .cc-confirm-actions {
+        flex-direction: column-reverse;
+    }
+
+    body.dashboard-page .cc-confirm-actions .btn {
+        width: 100%;
+    }
+
+    body.dashboard-page .theme-toggle {
+        bottom: 80px;
+    }
+
+    body.dashboard-page .dashboard-feedback {
+        bottom: 152px;
+    }
+}
+
+/* ---------- Bureau : >= 1280 ---------- */
+@media (min-width: 1280px) {
+    body.dashboard-page .dashboard-shell.app-shell {
+        padding: 24px;
+    }
+
+    body.dashboard-page .traveler-grid,
+    body.dashboard-page .client-grid,
+    body.dashboard-page .cargo-middle {
+        grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    }
+
+    body.dashboard-page .traveler-welcome,
+    body.dashboard-page .cargo-hero {
+        flex: 0 0 55%;
+    }
+
+    body.dashboard-page .form-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.dashboard-page .traveler-modal-actions {
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+    }
+
+    body.dashboard-page .traveler-modal-actions .btn {
+        width: auto;
+        min-width: 180px;
+    }
+}
+
+/* ---------- Carte d'offre partagee en theme clair sur le dashboard (BUG-003 / D-08) ---------- */
+body.dashboard-page.light .cc3-card {
+    border-color: rgba(20, 20, 20, 0.105);
+    background:
+        radial-gradient(circle at 85% 28%, rgba(210, 154, 34, 0.12), transparent 22%),
+        linear-gradient(135deg, #ffffff 0%, #fbfaf7 56%, #f7f3eb 100%);
+    box-shadow: 0 18px 40px rgba(65, 55, 38, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+body.dashboard-page.light .cc3-logo-txt { color: #151515; }
+body.dashboard-page.light .cc3-logo-txt span { color: #d29a22; }
+body.dashboard-page.light .cc3-date {
+    color: #272522;
+    border-color: rgba(20, 20, 20, 0.08);
+    background: rgba(244, 240, 232, 0.92);
+    box-shadow: 0 8px 18px rgba(64, 54, 37, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+body.dashboard-page.light .cc3-date svg { stroke: #d29a22; }
+body.dashboard-page.light .cc3-flag-shell {
+    border-color: rgba(20, 20, 20, 0.08);
+    background: rgba(255, 255, 255, 0.72);
+    box-shadow: 0 10px 18px rgba(62, 54, 40, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+body.dashboard-page.light .cc3-label,
+body.dashboard-page.light .cc3-d-label { color: #5f5b55; }
+body.dashboard-page.light .cc3-city { color: #8a857c; }
+body.dashboard-page.light .cc3-country,
+body.dashboard-page.light .cc3-value,
+body.dashboard-page.light .cc3-price,
+body.dashboard-page.light .cc3-name { color: #131313; }
+body.dashboard-page.light .cc3-flight path { stroke: rgba(45, 45, 45, 0.5); }
+body.dashboard-page.light .cc3-flight .cc3-plane { fill: #d29a22; filter: drop-shadow(0 3px 7px rgba(210, 154, 34, 0.25)); }
+body.dashboard-page.light .cc3-rule { background: rgba(23, 23, 23, 0.09); }
+body.dashboard-page.light .cc3-detail + .cc3-detail { border-left-color: rgba(23, 23, 23, 0.11); }
+body.dashboard-page.light .cc3-icon {
+    color: #c89422 !important;
+    border-color: rgba(210, 154, 34, 0.13);
+    background: rgba(210, 154, 34, 0.075);
+    box-shadow: 0 7px 14px rgba(68, 53, 21, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+body.dashboard-page.light .cc3-inclusive { color: #c89422; }
+body.dashboard-page.light .cc3-meta { color: #5e5a53; }
+body.dashboard-page.light .cc3-cta {
+    color: #fff;
+    box-shadow: 0 12px 24px rgba(171, 120, 25, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.34);
+}
+body.dashboard-page.light .cc3-cta svg { fill: #fff; }
+body.dashboard-page.light .cc3-shield { color: #d29a22; }
+body.dashboard-page.light .water-lens {
+    border-color: rgba(140, 100, 30, 0.35);
+    background:
+        radial-gradient(circle at 29% 18%, rgba(255, 255, 255, 0.95) 0 3%, rgba(255, 255, 255, 0.4) 7%, transparent 28%),
+        radial-gradient(circle at 71% 82%, rgba(212, 160, 23, 0.18), transparent 33%),
+        linear-gradient(140deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.4) 42%, rgba(255, 240, 210, 0.5));
+    box-shadow:
+        0 14px 34px rgba(120, 95, 45, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.6),
+        inset 8px 10px 14px rgba(255, 255, 255, 0.5),
+        inset -12px -14px 22px rgba(140, 110, 60, 0.18);
+}
+body.dashboard-page.light .water-lens .cc3-d-label { color: rgba(60, 50, 30, 0.75); }
+body.dashboard-page.light .water-lens .cc3-price { color: #1d1b17; }
+body.dashboard-page.light .cc3-demand-phrase-txt { color: #131313; }
+body.dashboard-page.light .cc3-demand-phrase-txt .cc3-demand-hl { color: #c89422; }
+body.dashboard-page.light .cc3-demand-desc { color: #7d776e; }
+
+/* ============================================================================
+   REFONTE POST-TRIP — 2026-11-02
+   Direction artistique : REGISTRE/design/post_trip.md (02-designer-uiux)
+   Ticket : REFONTE-POST-TRIP
+   Tous les composants sont scopes sur body.post-trip-page. Les valeurs
+   hexadecimales des tokens sont contractuelles. Aucune couleur litterale
+   dans les composants de post_trip.html.
+   ============================================================================ */
+
+/* ---------------------------------------------------------------------------
+   1. TOKENS — thème sombre Obsidian Luxe
+   --------------------------------------------------------------------------- */
+body.post-trip-page {
+    --cc-bg: #050505;
+    --cc-surface-0: #0B0C0E;
+    --cc-surface-1: #141516;
+    --cc-surface-2: #1A1B1C;
+    --cc-surface-3: #1F1F21;
+    --cc-border: #302517;
+    --cc-border-strong: #BB8437;
+    --cc-input-border: #7A6E5A;
+    --cc-text: #F2ECE1;
+    --cc-text-soft: #B1ADA6;
+    --cc-muted: #B0A795;
+    --cc-accent: #FFB347;
+    --cc-accent-text: #FFB347;
+    --cc-accent-strong: #D99A0E;
+    --cc-accent-fill: #FFB347;
+    --cc-accent-fill-end: #D99A0E;
+    --cc-on-accent: #050709;
+    --cc-danger: #FF7D7D;
+    --cc-success: #4ADE80;
+    --cc-warn: #FFC864;
+    --cc-focus: rgba(255, 179, 71, 0.45);
+    --cc-focus-danger: rgba(255, 125, 125, 0.35);
+    --cc-overlay: rgba(5, 5, 5, 0.82);
+
+    /* Dérivés — une seule famille d'or (S-09) */
+    --cc-accent-06: rgba(255, 179, 71, 0.06);
+    --cc-accent-08: rgba(255, 179, 71, 0.08);
+    --cc-accent-10: rgba(255, 179, 71, 0.10);
+    --cc-accent-12: rgba(255, 179, 71, 0.12);
+    --cc-accent-16: rgba(255, 179, 71, 0.16);
+    --cc-accent-18: rgba(255, 179, 71, 0.18);
+    --cc-accent-22: rgba(255, 179, 71, 0.22);
+    --cc-accent-30: rgba(255, 179, 71, 0.30);
+    --cc-accent-35: rgba(255, 179, 71, 0.35);
+    --cc-accent-45: rgba(255, 179, 71, 0.45);
+    --cc-danger-10: rgba(255, 125, 125, 0.10);
+    --cc-danger-35: rgba(255, 125, 125, 0.35);
+    --cc-danger-45: rgba(255, 125, 125, 0.45);
+    --cc-success-12: rgba(74, 222, 128, 0.12);
+    --cc-success-45: rgba(74, 222, 128, 0.45);
+    --cc-surface-0-84: rgba(11, 12, 14, 0.84);
+    --cc-surface-0-96: rgba(11, 12, 14, 0.96);
+    --cc-skeleton-shine: rgba(255, 255, 255, 0.06);
+    --cc-shadow-btn: 0 8px 20px rgba(0, 0, 0, 0.30);
+    --cc-shadow-btn-hover: 0 10px 24px rgba(0, 0, 0, 0.36);
+    --cc-shadow-1: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    --cc-shadow-2: 0 18px 40px rgba(0, 0, 0, 0.45);
+    --cc-shadow-3: 0 32px 80px rgba(0, 0, 0, 0.55);
+
+    /* Typographie — 360 par défaut, surchargée aux seuils 481 et 1080 */
+    --cc-text-h1: 28px;
+    --cc-text-h2: 18px;
+    --cc-text-h3: 15px;
+    --cc-text-body: 16px;
+    --cc-text-strong: 15px;
+    --cc-text-label: 13px;
+    --cc-text-small: 12px;
+    --cc-text-error: 13px;
+    --cc-text-kicker: 11px;
+    --cc-text-button: 15px;
+    --cc-text-mono: 14px;
+    --cc-text-otp: 20px;
+    --cc-text-step: 11px;
+
+    /* Espacement — base 4 px */
+    --cc-space-1: 4px;
+    --cc-space-2: 8px;
+    --cc-space-3: 12px;
+    --cc-space-4: 16px;
+    --cc-space-5: 20px;
+    --cc-space-6: 24px;
+    --cc-space-8: 32px;
+    --cc-space-10: 40px;
+    --cc-space-12: 48px;
+    --cc-space-16: 64px;
+
+    /* Rayons */
+    --cc-radius-xs: 8px;
+    --cc-radius-sm: 10px;
+    --cc-radius-md: 12px;
+    --cc-radius-lg: 16px;
+    --cc-radius-xl: 20px;
+    --cc-radius-pill: 999px;
+
+    /* Alias historiques : les composants partagés (header, nav, devise)
+       résolvent désormais dans la même famille de tokens. */
+    --emerald-bright: var(--cc-accent);
+    --emerald-glow: var(--cc-accent-10);
+    --emerald-deep: var(--cc-accent-strong);
+    --line: var(--cc-border);
+    --line-glow: var(--cc-accent-30);
+    --primary: var(--cc-accent);
+    --secondary: var(--cc-accent-strong);
+    --accent: var(--cc-accent);
+    --px-focus: 0 0 0 3px var(--cc-focus);
+    --px-glow: 0 0 30px var(--cc-accent-10);
+    --deep-glass-border: var(--cc-border);
+    --muted: var(--cc-muted);
+    --text: var(--cc-text);
+    --surface: var(--cc-surface-0);
+    --radius: 20px;
+    --nexus-shadow: var(--cc-shadow-1);
+    --font-title: 'Hanken Grotesk', system-ui, sans-serif;
+    --font-body: 'Hanken Grotesk', system-ui, sans-serif;
+
+    font-family: 'Hanken Grotesk', system-ui, sans-serif;
+    color: var(--cc-text);
+    background-color: var(--cc-bg);
+    background-image:
+        radial-gradient(circle at 12% 8%, var(--cc-accent-08) 0%, transparent 45%),
+        radial-gradient(circle at 88% 92%, var(--cc-accent-06) 0%, transparent 42%),
+        linear-gradient(180deg, var(--cc-bg) 0%, var(--cc-surface-0) 55%, var(--cc-surface-1) 100%);
+    background-attachment: fixed;
+}
+
+@media (min-width: 481px) {
+    body.post-trip-page {
+        --cc-text-h1: 32px;
+        --cc-text-h2: 19px;
+        --cc-text-kicker: 12px;
+    }
+}
+
+@media (min-width: 1081px) {
+    body.post-trip-page {
+        --cc-text-h1: 40px;
+        --cc-text-h2: 20px;
+        --cc-text-h3: 16px;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   2. TOKENS — thème clair Gold Light
+   --------------------------------------------------------------------------- */
+body.post-trip-page.light {
+    --cc-bg: #F7F2E9;
+    --cc-surface-0: #FFFDF8;
+    --cc-surface-1: #F7F1E6;
+    --cc-surface-2: #EFE6D6;
+    --cc-surface-3: #E7DBC5;
+    --cc-border: #EEE0C1;
+    --cc-border-strong: #B8860B;
+    --cc-input-border: #B8860B;
+    --cc-text: #3A2F1E;
+    --cc-text-soft: #6D6252;
+    --cc-muted: #6D6252;
+    --cc-accent: #8A5A00;
+    --cc-accent-text: #7A5200;
+    --cc-accent-strong: #7A5200;
+    --cc-brand: #B8860B;
+    --cc-accent-fill: #C9971A;
+    --cc-accent-fill-end: #B8860B;
+    --cc-on-accent: #2A2110;
+    --cc-danger: #B42318;
+    --cc-on-danger: #FFFDF8;
+    --cc-success: #1E6F3E;
+    --cc-warn: #8A5A00;
+    --cc-focus: rgba(138, 90, 0, 0.35);
+    --cc-focus-danger: rgba(180, 35, 24, 0.30);
+    --cc-overlay: rgba(58, 47, 30, 0.45);
+
+    --cc-accent-06: rgba(138, 90, 0, 0.06);
+    --cc-accent-08: rgba(138, 90, 0, 0.08);
+    --cc-accent-10: rgba(138, 90, 0, 0.10);
+    --cc-accent-12: rgba(138, 90, 0, 0.12);
+    --cc-accent-16: rgba(138, 90, 0, 0.16);
+    --cc-accent-18: rgba(138, 90, 0, 0.18);
+    --cc-accent-22: rgba(138, 90, 0, 0.22);
+    --cc-accent-30: rgba(138, 90, 0, 0.30);
+    --cc-accent-35: rgba(138, 90, 0, 0.35);
+    --cc-accent-45: rgba(138, 90, 0, 0.45);
+    --cc-danger-10: rgba(180, 35, 24, 0.10);
+    --cc-danger-35: rgba(180, 35, 24, 0.35);
+    --cc-danger-45: rgba(180, 35, 24, 0.45);
+    --cc-success-12: rgba(30, 111, 62, 0.12);
+    --cc-success-45: rgba(30, 111, 62, 0.45);
+    --cc-surface-0-84: rgba(255, 253, 248, 0.84);
+    --cc-surface-0-96: rgba(255, 253, 248, 0.96);
+    --cc-skeleton-shine: rgba(255, 255, 255, 0.55);
+    --cc-shadow-btn: 0 8px 20px rgba(65, 55, 38, 0.14);
+    --cc-shadow-btn-hover: 0 10px 24px rgba(65, 55, 38, 0.18);
+    --cc-shadow-1: 0 8px 24px rgba(65, 55, 38, 0.10);
+    --cc-shadow-2: 0 18px 40px rgba(65, 55, 38, 0.14);
+    --cc-shadow-3: 0 32px 80px rgba(65, 55, 38, 0.20);
+
+    background-color: var(--cc-bg);
+    background-image:
+        radial-gradient(circle at 12% 8%, var(--cc-accent-10) 0%, transparent 45%),
+        radial-gradient(circle at 88% 92%, var(--cc-accent-06) 0%, transparent 42%),
+        linear-gradient(180deg, var(--cc-surface-0) 0%, var(--cc-bg) 45%, var(--cc-surface-2) 100%);
+}
+
+/* ---------------------------------------------------------------------------
+   3. Cadre : conteneur, page, en-tête de page, bascule de thème
+   --------------------------------------------------------------------------- */
+body.post-trip-page .container {
+    width: min(1208px, 100%);
+    margin-inline: auto;
+    padding-inline: 12px;
+    box-sizing: border-box;
+    max-width: none;
+}
+
+body.post-trip-page .page-main {
+    padding: 16px 0 128px;
+    min-width: 0;
+}
+
+body.post-trip-page .page-header {
+    margin-bottom: 16px;
+}
+
+body.post-trip-page .page-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+body.post-trip-page .section-kicker {
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: var(--cc-radius-pill);
+    background: var(--cc-accent-10);
+    border: 1px solid var(--cc-accent-30);
+    color: var(--cc-accent-text);
+    font-size: var(--cc-text-kicker);
+    font-weight: 700;
+    line-height: 1.33;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+body.post-trip-page .page-header h1 {
+    margin: 8px 0 12px;
+    font-size: var(--cc-text-h1);
+    font-weight: 800;
+    line-height: 1.10;
+    letter-spacing: -0.02em;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .page-header .page-intro {
+    margin: 0;
+    max-width: 62ch;
+    font-size: var(--cc-text-body);
+    font-weight: 400;
+    line-height: 1.50;
+    color: var(--cc-text-soft);
+}
+
+/* Bascule de thème : dans le page-header, plus jamais fixe (S-16) */
+body.post-trip-page .theme-toggle {
+    position: static;
+    left: auto;
+    bottom: auto;
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text-soft);
+    box-shadow: none;
+    font-size: inherit;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        border-color 120ms cubic-bezier(.4, 0, .2, 1),
+        color 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .theme-toggle:hover {
+    transform: none;
+    background: var(--cc-surface-2);
+    border-color: var(--cc-border-strong);
+}
+
+body.post-trip-page .theme-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .theme-toggle[aria-pressed="true"] {
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .theme-toggle-icon {
+    display: inline-flex;
+    line-height: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   4. En-tête partagé et nav basse — suppression de la surcharge qui éclaircit
+      l'en-tête (S-22) et alignement des couleurs actives sur le token accent.
+   --------------------------------------------------------------------------- */
+body.post-trip-page .site-header {
+    background: var(--cc-surface-0-84) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+    border-bottom: 1px solid var(--cc-border) !important;
+    box-shadow: none !important;
+}
+
+body.post-trip-page .site-header .nav-link.is-active {
+    color: var(--cc-accent) !important;
+    background: transparent !important;
+    box-shadow: inset 0 -3px 0 var(--cc-accent) !important;
+}
+
+body.post-trip-page .mobile-bottom-nav {
+    background: var(--cc-surface-0-96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--cc-border);
+}
+
+body.post-trip-page .mob-nav-item.active {
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .mob-nav-item .plus-btn {
+    background: var(--cc-accent);
+    color: var(--cc-on-accent);
+    box-shadow: 0 0 20px var(--cc-accent-18);
+}
+
+/* ---------------------------------------------------------------------------
+   5. Grille bénéfices / formulaire
+   --------------------------------------------------------------------------- */
+body.post-trip-page .post-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+    min-width: 0;
+}
+
+html.mobile-mode body.post-trip-page .post-shell {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+}
+
+/* Carte de bénéfices / accordéon (C-05) */
+body.post-trip-page .trip-benefits {
+    background: var(--cc-surface-0);
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-lg);
+    padding: 24px;
+    box-shadow: var(--cc-shadow-1);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    min-width: 0;
+}
+
+body.post-trip-page .benefits-trigger {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: default;
+}
+
+body.post-trip-page .benefits-trigger h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.30;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .benefits-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+    border-radius: var(--cc-radius-xs);
+}
+
+body.post-trip-page .benefits-chevron {
+    display: none;
+    color: var(--cc-accent);
+    flex: 0 0 auto;
+    transition: transform 200ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .benefits-body {
+    display: block;
+}
+
+body.post-trip-page .benefits-body ul {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 12px;
+}
+
+body.post-trip-page .benefits-body li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.50;
+    color: var(--cc-text-soft);
+    overflow-wrap: anywhere;
+}
+
+body.post-trip-page .benefits-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--cc-accent);
+    margin-top: 2px;
+}
+
+body.post-trip-page .benefits-icon-warn {
+    color: var(--cc-warn);
+    margin-top: 0;
+}
+
+body.post-trip-page .benefits-limit {
+    margin: 16px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    line-height: 1.38;
+    color: var(--cc-muted);
+}
+
+/* Carte de formulaire (C-07) — aucune épaisseur de verre (S-10/S-14) */
+body.post-trip-page .trip-form-card {
+    background: var(--cc-surface-0);
+    border: 1px solid var(--cc-border);
+    border-radius: var(--cc-radius-xl);
+    padding: 12px;
+    box-shadow: var(--cc-shadow-1);
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    min-width: 0;
+}
+
+html.mobile-mode body.post-trip-page .trip-form-card {
+    display: block !important;
+}
+
+body.post-trip-page .trip-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-width: 0;
+}
+
+/* Les panneaux imbriqués disparaissent : la carte est la seule surface. */
+body.post-trip-page .trip-section {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+   6. Stepper (C-08)
+   --------------------------------------------------------------------------- */
+body.post-trip-page .wizard-progress {
+    display: flex;
+    min-width: 0;
+    min-height: 72px;
+    padding: 14px 8px 12px;
+    margin-bottom: 8px;
+    border-radius: 14px;
+    background: var(--cc-surface-1);
+    border: 1px solid var(--cc-border);
+}
+
+body.post-trip-page .wp-step {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+    opacity: 1;
+}
+
+body.post-trip-page .wp-step + .wp-step::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: calc(-50% + 15px);
+    width: calc(100% - 30px);
+    border-top: 2px dashed var(--cc-border);
+}
+
+body.post-trip-page .wp-step.done + .wp-step::before {
+    border-top-color: var(--cc-border-strong);
+}
+
+body.post-trip-page .wp-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    background: var(--cc-surface-2);
+    color: var(--cc-muted);
+    position: relative;
+    z-index: 1;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        color 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .wp-step.active .wp-dot {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end));
+    color: var(--cc-on-accent);
+    box-shadow: 0 0 0 4px var(--cc-accent-16);
+}
+
+body.post-trip-page .wp-step.done .wp-dot {
+    background: var(--cc-accent-18);
+    color: var(--cc-accent);
+    font-size: 0;
+}
+
+body.post-trip-page .wp-step.done .wp-dot::after {
+    content: "✓";
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+body.post-trip-page .wp-label {
+    font-size: var(--cc-text-step);
+    font-weight: 700;
+    line-height: 1.20;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--cc-muted);
+    text-align: center;
+    overflow-wrap: anywhere;
+}
+
+body.post-trip-page .wp-step.active .wp-label {
+    color: var(--cc-accent);
+}
+
+/* Une seule étape visible ; CSS plus spécifique que l'ancien bloc. */
+body.post-trip-page .trip-form .wizard-step {
+    display: none !important;
+}
+
+body.post-trip-page .trip-form .wizard-step.active {
+    display: grid !important;
+    min-width: 0;
+    animation: cc-step-in 200ms cubic-bezier(.4, 0, .2, 1);
+}
+
+/* Opacité seule : un transform sur l'étape créerait un bloc conteneur et
+   rendrait la barre d'action « fixed » relative à l'étape. */
+@keyframes cc-step-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* ---------------------------------------------------------------------------
+   7. En-tête d'étape, libellés, messages d'erreur (C-09 / C-30 / C-36)
+   --------------------------------------------------------------------------- */
+body.post-trip-page .trip-section-head {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    min-width: 0;
+}
+
+body.post-trip-page .tsh-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--cc-radius-sm);
+    display: grid;
+    place-items: center;
+    background: var(--cc-accent-10);
+    border: 1px solid var(--cc-accent-30);
+    color: var(--cc-accent);
+    flex: 0 0 auto;
+}
+
+body.post-trip-page .tsh-text {
+    min-width: 0;
+}
+
+body.post-trip-page .trip-section-title {
+    margin: 0;
+    font-size: var(--cc-text-h2);
+    font-weight: 700;
+    line-height: 1.30;
+    letter-spacing: normal;
+    text-transform: none;
+    opacity: 1;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .trip-section-sub {
+    margin: 2px 0 0;
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.50;
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+body.post-trip-page .form-group label,
+body.post-trip-page .cc-label,
+body.post-trip-page .phone-label,
+body.post-trip-page .otp-label {
+    display: block;
+    margin: 0;
+    font-family: inherit;
+    font-size: var(--cc-text-label);
+    font-weight: 700;
+    line-height: 1.38;
+    color: var(--cc-muted);
+}
+
+body.post-trip-page .label-optional {
+    font-weight: 400;
+    color: var(--cc-muted);
+}
+
+body.post-trip-page .step-errors {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 4px;
+    padding: 12px 16px;
+    border: 0;
+    border-left: 3px solid var(--cc-danger);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-0);
+    color: var(--cc-danger);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.40;
+    min-width: 0;
+}
+
+body.post-trip-page .step-errors .step-errors-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-top: 2px;
+    color: var(--cc-danger);
+}
+
+body.post-trip-page .step-errors span {
+    overflow-wrap: anywhere;
+}
+
+body.post-trip-page .field-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin: 0;
+    font-size: var(--cc-text-error);
+    font-weight: 600;
+    line-height: 1.38;
+    color: var(--cc-danger);
+}
+
+body.post-trip-page .field-error-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: var(--cc-danger);
+}
+
+/* Erreur champ : bordure persistante, halo bref (JS retire .input-error) */
+body.post-trip-page .input-error {
+    border-color: var(--cc-danger) !important;
+    box-shadow: 0 0 0 3px var(--cc-focus-danger) !important;
+}
+
+body.post-trip-page .form-input[aria-invalid="true"] {
+    border-color: var(--cc-danger) !important;
+}
+
+/* Halo de groupe statique — l'animation gold-pulse est supprimée (S-19) */
+body.post-trip-page .gold-pulse {
+    outline: 2px solid var(--cc-accent) !important;
+    outline-offset: 3px;
+    border-color: var(--cc-accent) !important;
+    animation: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   8. Champs (C-10, C-12), dates, lignes de champs
+   --------------------------------------------------------------------------- */
+body.post-trip-page .form-input,
+body.post-trip-page .trip-form .form-input,
+body.post-trip-page .trip-form .cc-autocomplete-input {
+    width: 100%;
+    height: 48px;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-input-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.3;
+    outline: none;
+    transition: border-color 120ms cubic-bezier(.4, 0, .2, 1),
+        box-shadow 120ms cubic-bezier(.4, 0, .2, 1),
+        background 120ms cubic-bezier(.4, 0, .2, 1);
+    min-width: 0;
+}
+
+body.post-trip-page .form-input::placeholder,
+body.post-trip-page .trip-form .form-input::placeholder {
+    color: var(--cc-muted);
+    opacity: 1;
+}
+
+body.post-trip-page .form-input:hover {
+    border-color: var(--cc-border-strong);
+}
+
+body.post-trip-page .form-input:focus,
+body.post-trip-page .trip-form .form-input:focus,
+body.post-trip-page .trip-form .cc-autocomplete-input:focus {
+    border-color: var(--cc-accent) !important;
+    box-shadow: 0 0 0 3px var(--cc-focus) !important;
+}
+
+body.post-trip-page .form-input:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: var(--cc-surface-0);
+}
+
+body.post-trip-page .form-input[readonly] {
+    background: var(--cc-surface-0);
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page .form-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-width: 0;
+}
+
+body.post-trip-page .location-group {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-width: 0;
+}
+
+body.post-trip-page .location-group .form-group,
+body.post-trip-page .cc-autocomplete-ctn,
+body.post-trip-page .cc-input-wrapper {
+    min-width: 0;
+}
+
+body.post-trip-page .input-with-suffix {
+    position: relative;
+    min-width: 0;
+}
+
+body.post-trip-page .input-suffix {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cc-muted);
+    pointer-events: none;
+}
+
+body.post-trip-page .input-with-suffix .form-input {
+    padding-right: 52px;
+}
+
+body.post-trip-page .form-group-date {
+    max-width: none;
+}
+
+body.post-trip-page #date-depart {
+    width: 100% !important;
+    max-width: none !important;
+}
+
+/* Prix + devise (C-13 / C-14) */
+body.post-trip-page .price-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+body.post-trip-page .trip-form .price-input {
+    flex: 1 1 140px;
+    width: auto;
+    min-width: 0;
+}
+
+body.post-trip-page .price-unit-back {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+}
+
+body.post-trip-page .cc-cur {
+    padding-left: 0;
+    border-left: 0;
+}
+
+body.post-trip-page .cc-cur-btn {
+    height: 44px;
+    border-radius: var(--cc-radius-pill);
+    background: var(--cc-accent-10);
+    border: 1px solid var(--cc-accent-35);
+    color: var(--cc-accent);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 0 14px;
+}
+
+body.post-trip-page .cc-cur-btn:hover {
+    background: var(--cc-accent-18);
+    border-color: var(--cc-accent-45);
+}
+
+body.post-trip-page .cc-cur-btn[aria-expanded="true"] {
+    background: var(--cc-accent-22);
+    border-color: var(--cc-accent-45);
+}
+
+body.post-trip-page .cc-cur-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+    border-color: var(--cc-border-strong);
+}
+
+body.post-trip-page .cc-cur-pop {
+    width: 180px;
+    padding: 8px;
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-0);
+    border: 1px solid var(--cc-accent-30);
+    box-shadow: var(--cc-shadow-2);
+}
+
+body.post-trip-page .cc-cur-opt {
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: var(--cc-radius-xs);
+    color: var(--cc-text);
+    font-family: inherit;
+    font-size: 15px;
+}
+
+body.post-trip-page .cc-cur-opt:hover {
+    background: var(--cc-surface-2);
+}
+
+body.post-trip-page .cc-cur-opt[aria-selected="true"] {
+    background: var(--cc-accent-12);
+    color: var(--cc-accent-text);
+}
+
+body.post-trip-page .cc-cur-opt:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+    background: var(--cc-accent-12);
+}
+
+body.post-trip-page .cc-cur-opt-sym {
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .cc-cur-opt-lbl {
+    color: inherit;
+    font-size: 13px;
+}
+
+body.post-trip-page .cc-cur-empty {
+    color: var(--cc-muted);
+    font-size: 13px;
+}
+
+/* Autocomplétion pays/ville (C-11) */
+body.post-trip-page .cc-autocomplete-ctn {
+    position: relative;
+}
+
+body.post-trip-page .cc-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.post-trip-page .cc-input-wrapper .form-input {
+    flex: 1 1 auto;
+    padding-right: 36px;
+}
+
+body.post-trip-page .cc-custom-arrow {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: 0;
+    color: var(--cc-accent);
+    font-size: 10px;
+    line-height: 1;
+    opacity: 0.85;
+    pointer-events: none;
+    user-select: none;
+}
+
+body.post-trip-page .cc-suggestions-list {
+    position: absolute;
+    z-index: 2147483647;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: none;
+    background: var(--cc-surface-0);
+    border: 1px solid var(--cc-accent-30);
+    border-radius: var(--cc-radius-md);
+    box-shadow: var(--cc-shadow-2);
+}
+
+body.post-trip-page .cc-suggestions-list li {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 12px;
+    color: var(--cc-text);
+    font-size: 15px;
+    font-weight: 400;
+    cursor: pointer;
+    border-bottom: 1px solid var(--cc-border);
+}
+
+body.post-trip-page .cc-suggestions-list li:last-child {
+    border-bottom: 0;
+}
+
+body.post-trip-page .cc-suggestions-list li:hover,
+body.post-trip-page .cc-suggestions-list li.active {
+    background: var(--cc-accent-12);
+    color: var(--cc-accent-text);
+    padding-left: 12px;
+}
+
+body.post-trip-page .cc-suggestions-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+body.post-trip-page .cc-suggestions-list::-webkit-scrollbar-thumb {
+    background: var(--cc-accent-35);
+    border-radius: 10px;
+}
+
+body.post-trip-page .cc-country-invalid {
+    border-color: var(--cc-danger) !important;
+    box-shadow: 0 0 0 2px var(--cc-focus-danger) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   9. Cartes de profil (C-15)
+   --------------------------------------------------------------------------- */
+body.post-trip-page .profile-select-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-width: 0;
+}
+
+body.post-trip-page .profile-select-btn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 72px;
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-input-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        border-color 120ms cubic-bezier(.4, 0, .2, 1),
+        box-shadow 120ms cubic-bezier(.4, 0, .2, 1);
+    min-width: 0;
+    white-space: normal;
+}
+
+body.post-trip-page .profile-select-btn:hover {
+    background: var(--cc-surface-2);
+    border-color: var(--cc-border-strong);
+}
+
+body.post-trip-page .profile-select-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+    border-color: var(--cc-accent);
+}
+
+body.post-trip-page .profile-select-btn.selected {
+    background: var(--cc-accent-12);
+    border-color: var(--cc-accent);
+    box-shadow: inset 0 0 0 1px var(--cc-accent);
+}
+
+body.post-trip-page .ps-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--cc-surface-2);
+    border: 1px solid var(--cc-border);
+    color: var(--cc-accent);
+    flex: 0 0 auto;
+}
+
+body.post-trip-page .profile-select-btn.selected .ps-icon {
+    background: var(--cc-accent-18);
+    border-color: var(--cc-accent-45);
+}
+
+body.post-trip-page .ps-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+body.post-trip-page .ps-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.30;
+    color: var(--cc-text);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+body.post-trip-page .ps-sub {
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.40;
+    color: var(--cc-text-soft);
+    overflow-wrap: anywhere;
+}
+
+body.post-trip-page .ps-check {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--cc-accent-fill);
+    color: var(--cc-on-accent);
+    opacity: 0;
+    transform: scale(0.6);
+    transition: opacity 120ms cubic-bezier(.4, 0, .2, 1),
+        transform 120ms cubic-bezier(.4, 0, .2, 1);
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+body.post-trip-page .profile-select-btn.selected .ps-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ---------------------------------------------------------------------------
+   10. Segments, Oui/Non, boutons
+   --------------------------------------------------------------------------- */
+body.post-trip-page .segment {
+    display: inline-flex;
+    width: 100%;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-2);
+    min-width: 0;
+}
+
+body.post-trip-page .segment-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 48px;
+    padding: 0 16px;
+    border: 0;
+    border-radius: var(--cc-radius-sm);
+    background: transparent;
+    color: var(--cc-muted);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        color 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .segment-btn:hover {
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .segment-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .segment-btn.selected {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end));
+    color: var(--cc-on-accent);
+    box-shadow: var(--cc-shadow-1);
+}
+
+body.post-trip-page .segment-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+body.post-trip-page .quiz-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    background: var(--cc-surface-1);
+    border: 1px solid var(--cc-border);
+}
+
+body.post-trip-page .wizard-question {
+    margin: 0;
+    font-size: var(--cc-text-strong);
+    font-weight: 500;
+    line-height: 1.50;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .wizard-yesno {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+body.post-trip-page .pill-btn {
+    min-width: 96px;
+    height: 44px;
+    padding: 0 24px;
+    border-radius: var(--cc-radius-pill);
+    border: 1px solid var(--cc-input-border);
+    background: transparent;
+    color: var(--cc-muted);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        border-color 120ms cubic-bezier(.4, 0, .2, 1),
+        color 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .pill-btn:hover {
+    border-color: var(--cc-accent);
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .pill-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .pill-btn.selected {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end));
+    color: var(--cc-on-accent);
+    border-color: transparent;
+}
+
+/* États désactivés des contrôles qui ne passent pas par .cc-btn (C-14, C-15,
+   C-17, C-21, C-26). Même rendu partout : opacité 0.45, curseur interdit. */
+body.post-trip-page .profile-select-btn:disabled,
+body.post-trip-page .pill-btn:disabled,
+body.post-trip-page .cc-cur-btn:disabled,
+body.post-trip-page .contact-row-btn:disabled,
+body.post-trip-page .cc-btn-icon:disabled,
+body.post-trip-page .refused-trigger:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Déclencheur « types refusés » ouvert (C-24). */
+body.post-trip-page .refused-trigger[aria-expanded="true"] {
+    border-color: var(--cc-accent);
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+/* Erreur de groupe : le conteneur de segments prend la bordure danger sans
+   décaler la grille (inset), et le halo de focus (C-16). */
+body.post-trip-page .segment.is-error {
+    box-shadow: inset 0 0 0 1px var(--cc-danger), 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .cc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 24px;
+    border: 1px solid transparent;
+    border-radius: var(--cc-radius-md);
+    font-family: inherit;
+    font-size: var(--cc-text-button);
+    font-weight: 700;
+    line-height: 1.33;
+    text-align: center;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        border-color 120ms cubic-bezier(.4, 0, .2, 1),
+        filter 120ms cubic-bezier(.4, 0, .2, 1),
+        transform 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .cc-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .cc-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+body.post-trip-page .cc-btn-primary {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end));
+    color: var(--cc-on-accent);
+    box-shadow: var(--cc-shadow-btn);
+}
+
+body.post-trip-page .cc-btn-primary:hover:not(:disabled) {
+    filter: brightness(1.05);
+    box-shadow: var(--cc-shadow-btn-hover);
+}
+
+body.post-trip-page .cc-btn-primary:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+body.post-trip-page .cc-btn-secondary {
+    background: transparent;
+    border-color: var(--cc-accent-45);
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .cc-btn-secondary:hover:not(:disabled) {
+    background: var(--cc-accent-08);
+}
+
+body.post-trip-page .cc-btn-ghost {
+    height: 44px;
+    padding: 0 12px;
+    background: none;
+    border: 0;
+    color: var(--cc-muted);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* C-29 : « Modifier le numero » est un lien texte 13/600 accent, pas le
+   bouton fantome generique de C-20 (14/600 muted, ex. « Annuler »). */
+body.post-trip-page #pm-change-number-btn {
+    color: var(--cc-accent);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+body.post-trip-page .cc-btn-ghost:hover:not(:disabled) {
+    color: var(--cc-text);
+    background: var(--cc-surface-1);
+}
+
+body.post-trip-page .cc-btn-block {
+    width: 100%;
+}
+
+body.post-trip-page .cc-btn-sm {
+    height: 44px;
+    padding: 0 16px;
+    /* C-18 / C-19 : un petit bouton garde le texte 15/700 du composant. */
+    font-size: 15px;
+}
+
+body.post-trip-page .cc-btn-icon {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text-soft);
+    cursor: pointer;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        border-color 120ms cubic-bezier(.4, 0, .2, 1),
+        color 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .cc-btn-icon:hover {
+    background: var(--cc-surface-2);
+}
+
+body.post-trip-page .cc-btn-icon:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .cc-btn-icon.danger:hover {
+    color: var(--cc-danger);
+    border-color: var(--cc-danger-45);
+    background: var(--cc-danger-10);
+}
+
+body.post-trip-page .cc-btn-add {
+    width: 100%;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px dashed var(--cc-accent-45);
+    border-radius: var(--cc-radius-md);
+    background: transparent;
+    color: var(--cc-accent);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        border-color 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .cc-btn-add:hover:not(:disabled) {
+    background: var(--cc-accent-08);
+    border-style: solid;
+}
+
+body.post-trip-page .cc-btn-add:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .cc-btn-add:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Pied d'étape / barre d'action (C-18, C-19) */
+body.post-trip-page .wizard-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+body.post-trip-page .wizard-nav {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+body.post-trip-page .wizard-nav-end {
+    justify-content: flex-end;
+}
+
+body.post-trip-page .wizard-nav .cc-btn {
+    min-width: 112px;
+}
+
+body.post-trip-page .wizard-step-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+body.post-trip-page .wsi-text {
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    line-height: 1.38;
+    color: var(--cc-muted);
+}
+
+body.post-trip-page .wsi-gauge {
+    flex: 1;
+    max-width: 180px;
+    height: 6px;
+    border-radius: var(--cc-radius-pill);
+    background: var(--cc-surface-3);
+    overflow: hidden;
+}
+
+body.post-trip-page .wsi-fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--cc-radius-pill);
+    background: linear-gradient(90deg, var(--cc-accent-fill), var(--cc-accent-fill-end));
+    transition: width 200ms cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   11. Prix spéciaux — lignes, modes, badge devise (C-21, C-23)
+   --------------------------------------------------------------------------- */
+body.post-trip-page #colis-detail-rows,
+body.post-trip-page .colis-detail-row {
+    min-width: 0;
+}
+
+body.post-trip-page #colis-detail-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.post-trip-page .colis-detail-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-1);
+    border: 1px solid var(--cc-border);
+}
+
+body.post-trip-page .colis-detail-row:hover {
+    border-color: var(--cc-border-strong);
+}
+
+/* Ligne de prix spécial fautive (C-23) : la bordure reste jusqu'à correction. */
+body.post-trip-page .colis-detail-row.has-error {
+    border-color: var(--cc-danger);
+}
+
+body.post-trip-page .colis-name-btn {
+    order: 1;
+    flex: 1 1 220px;
+    min-width: 0;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 0 12px;
+    border-radius: var(--cc-radius-xs);
+    border: 1px solid var(--cc-input-border);
+    background: var(--cc-surface-2);
+    color: var(--cc-text);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+body.post-trip-page .colis-name-btn:hover {
+    border-color: var(--cc-border-strong);
+}
+
+body.post-trip-page .colis-name-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .colis-name-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+body.post-trip-page .colis-name-chevron {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .colis-name-input,
+body.post-trip-page .trip-form .colis-name-input {
+    order: 1;
+    flex: 1 1 220px;
+    min-width: 0;
+    height: 48px;
+    padding: 12px 14px;
+    border-radius: var(--cc-radius-xs);
+    border: 1px solid var(--cc-accent);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: inherit;
+    font-size: 16px;
+}
+
+body.post-trip-page .colis-name-input:focus {
+    border-color: var(--cc-accent) !important;
+    box-shadow: 0 0 0 3px var(--cc-focus) !important;
+}
+
+body.post-trip-page .colis-price-modes {
+    order: 2;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 100%;
+    min-width: 0;
+}
+
+body.post-trip-page .price-mode-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: var(--cc-radius-xs);
+    border: 1px solid var(--cc-accent-35);
+    background: var(--cc-accent-08);
+    color: var(--cc-accent);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 120ms cubic-bezier(.4, 0, .2, 1),
+        border-color 120ms cubic-bezier(.4, 0, .2, 1),
+        color 120ms cubic-bezier(.4, 0, .2, 1);
+}
+
+body.post-trip-page .price-mode-btn:hover {
+    background: var(--cc-accent-18);
+    border-color: var(--cc-accent-45);
+}
+
+body.post-trip-page .price-mode-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .price-mode-btn.active,
+body.post-trip-page .price-mode-btn.selected {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end)) !important;
+    border-color: transparent !important;
+    color: var(--cc-on-accent) !important;
+}
+
+body.post-trip-page .price-or {
+    flex: 0 0 auto;
+    color: var(--cc-muted);
+    font-size: 12px;
+}
+
+body.post-trip-page .colis-detail-row .colis-row-del {
+    order: 4;
+    margin-left: auto;
+}
+
+body.post-trip-page .special-price-line {
+    order: 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 100%;
+    min-width: 0;
+}
+
+body.post-trip-page .special-price-line .price-field,
+body.post-trip-page .price-field {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 48px !important;
+    padding: 12px 14px !important;
+    border-radius: var(--cc-radius-xs) !important;
+    border: 1px solid var(--cc-input-border) !important;
+    background: var(--cc-surface-1) !important;
+    color: var(--cc-text) !important;
+    font-family: inherit !important;
+    font-size: 16px !important;
+    font-weight: 400 !important;
+}
+
+body.post-trip-page .price-field::placeholder {
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page .price-field:focus {
+    border-color: var(--cc-accent) !important;
+    box-shadow: 0 0 0 3px var(--cc-focus) !important;
+}
+
+body.post-trip-page .special-price-currency {
+    flex: 0 0 auto;
+    min-height: 44px;
+    max-width: 50%;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    border-radius: var(--cc-radius-xs);
+    background: var(--cc-accent-12);
+    color: var(--cc-accent-text);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+body.post-trip-page .special-sep {
+    border: 0;
+    border-top: 1px solid var(--cc-border);
+    margin: 4px 0 8px;
+}
+
+/* Dates supplémentaires (cargo) */
+body.post-trip-page #trip-extra-dates-wrap {
+    margin-top: 8px;
+    min-width: 0;
+}
+
+body.post-trip-page .trip-extra-date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    min-width: 0;
+}
+
+body.post-trip-page .trip-extra-date-row .trip-extra-date {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+body.post-trip-page .trip-extra-dates-hint {
+    margin: 8px 0 0;
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    line-height: 1.50;
+    color: var(--cc-muted);
+}
+
+/* Déclencheur « types refusés » (C-24) */
+body.post-trip-page .refused-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-input-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 400;
+    text-align: left;
+    cursor: pointer;
+}
+
+body.post-trip-page .refused-trigger:hover {
+    border-color: var(--cc-border-strong);
+}
+
+body.post-trip-page .refused-trigger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .refused-chevron {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--cc-accent);
+}
+
+/* ---------------------------------------------------------------------------
+   12. Contact — lignes et modale (C-26, C-27, C-28, C-29)
+   --------------------------------------------------------------------------- */
+body.post-trip-page #payment-contact-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+body.post-trip-page .payment-contact-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+}
+
+body.post-trip-page .contact-row-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 16px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-accent-45);
+    background: transparent;
+    color: var(--cc-muted);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+body.post-trip-page .contact-row-btn:hover {
+    background: var(--cc-accent-08);
+    color: var(--cc-text);
+}
+
+body.post-trip-page .contact-row-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .contact-row-btn.verified {
+    border-color: var(--cc-success-45);
+    color: var(--cc-text);
+}
+
+body.post-trip-page .pm-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+body.post-trip-page .pm-label svg {
+    flex: 0 0 auto;
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .contact-row-btn.verified .pm-label svg {
+    color: var(--cc-success);
+}
+
+body.post-trip-page .pm-label strong {
+    color: var(--cc-text);
+    font-weight: 700;
+}
+
+body.post-trip-page .payment-contact-row .cc-btn-icon {
+    flex: 0 0 auto;
+}
+
+/* Ligne téléphone */
+body.post-trip-page .phone-section-container {
+    margin-top: 16px;
+}
+
+body.post-trip-page .phone-input-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+}
+
+body.post-trip-page .phone-prefix-select {
+    width: 104px;
+    height: 48px;
+    box-sizing: border-box;
+    padding: 0 8px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-input-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-family: inherit;
+    font-size: 15px;
+}
+
+body.post-trip-page .phone-prefix-select:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .phone-main-input {
+    flex: 1 1 140px;
+    min-width: 0;
+    height: 48px;
+}
+
+body.post-trip-page .phone-verify-btn {
+    height: 48px;
+    padding: 0 16px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-accent-45);
+    background: transparent;
+    color: var(--cc-accent);
+    font-family: inherit;
+    /* C-19 : « Verifier » est un bouton secondaire 15/700. */
+    font-size: 15px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+body.post-trip-page .phone-verify-btn:hover:not(:disabled) {
+    background: var(--cc-accent-08);
+}
+
+body.post-trip-page .phone-verify-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .phone-verify-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+body.post-trip-page .phone-help-text {
+    margin: 8px 0 0;
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    line-height: 1.38;
+    color: var(--cc-muted);
+}
+
+body.post-trip-page .pm-hint {
+    margin: 8px 0 0;
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    line-height: 1.50;
+    color: var(--cc-muted);
+}
+
+body.post-trip-page .demo-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-accent-35);
+    background: var(--cc-accent-10);
+    color: var(--cc-accent-text);
+    font-size: var(--cc-text-small);
+    font-weight: 500;
+    line-height: 1.40;
+}
+
+body.post-trip-page .demo-banner-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    margin-top: 1px;
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .pm-otp-box {
+    margin-top: 16px;
+    padding: 16px;
+    border-radius: var(--cc-radius-lg);
+    border: 1px solid var(--cc-border);
+    background: var(--cc-surface-1);
+}
+
+body.post-trip-page .otp-input-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 8px;
+}
+
+/* C-29 / §3.4 : le champ OTP occupe 56 px x toute la largeur du bloc ;
+   le bouton Valider passe sur la ligne suivante. */
+body.post-trip-page .otp-field {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    height: 56px !important;
+    padding-left: 0.5em !important;
+    text-align: center;
+    letter-spacing: 0.5em;
+    font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+    font-size: var(--cc-text-otp) !important;
+    font-weight: 800 !important;
+    font-variant-numeric: tabular-nums;
+}
+
+body.post-trip-page .pm-otp-success {
+    margin: 8px 0 0;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.38;
+    color: var(--cc-success);
+}
+
+body.post-trip-page #pm-otp-error {
+    margin: 8px 0 0;
+}
+
+body.post-trip-page #pm-change-number-btn {
+    margin-top: 8px;
+}
+
+body.post-trip-page .spinner-sm {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--cc-accent-30);
+    border-top-color: var(--cc-accent);
+    border-radius: 50%;
+    animation: cc-spin 800ms linear infinite;
+    vertical-align: middle;
+}
+
+/* ---------------------------------------------------------------------------
+   13. Modales (C-27) et popup types refusés (C-25)
+   --------------------------------------------------------------------------- */
+body.post-trip-page .popup-overlay,
+body.post-trip-page .pt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: var(--cc-overlay);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    overflow-y: auto;
+}
+
+body.post-trip-page .popup-overlay {
+    display: none;
+}
+
+body.post-trip-page .pt-modal-overlay.hidden {
+    display: none !important;
+}
+
+body.post-trip-page .popup-content,
+body.post-trip-page .pt-modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 32px;
+    border-radius: var(--cc-radius-xl);
+    border: 1px solid var(--cc-border);
+    background: var(--cc-surface-0);
+    color: var(--cc-text);
+    box-shadow: var(--cc-shadow-3);
+}
+
+body.post-trip-page .pt-modal-card {
+    max-width: 480px;
+}
+
+body.post-trip-page .success-card {
+    max-width: 420px;
+    text-align: center;
+}
+
+body.post-trip-page .confirm-card {
+    max-width: 440px;
+}
+
+body.post-trip-page .cc-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text-soft);
+    cursor: pointer;
+}
+
+body.post-trip-page .cc-modal-close:hover {
+    background: var(--cc-surface-2);
+}
+
+body.post-trip-page .cc-modal-close:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .popup-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 48px 8px 0;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.30;
+    text-align: left;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .popup-title-icon {
+    display: inline-flex;
+    color: var(--cc-accent);
+}
+
+body.post-trip-page .popup-subtitle {
+    margin: 0 0 16px;
+    font-size: 14px;
+    line-height: 1.50;
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page .options-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    margin: 0 0 16px;
+}
+
+body.post-trip-page .option-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: var(--cc-radius-sm);
+    border: 1px solid var(--cc-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+}
+
+body.post-trip-page .option-card:hover {
+    background: var(--cc-accent-06);
+    border-color: var(--cc-accent);
+}
+
+body.post-trip-page .option-card:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--cc-focus);
+}
+
+body.post-trip-page .option-card.selected {
+    background: var(--cc-accent-12);
+    border-color: var(--cc-accent);
+    color: var(--cc-text);
+}
+
+body.post-trip-page .option-circle {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 2px solid var(--cc-input-border);
+    color: transparent;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+body.post-trip-page .option-card.selected .option-circle {
+    background: var(--cc-accent-fill);
+    border-color: var(--cc-accent-fill);
+    color: var(--cc-on-accent);
+}
+
+body.post-trip-page .option-card.selected .option-circle::after {
+    content: "✓";
+}
+
+body.post-trip-page .option-text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .add-custom-section {
+    margin-bottom: 16px;
+}
+
+body.post-trip-page .custom-input-group {
+    display: none;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+body.post-trip-page .custom-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+body.post-trip-page .pm-title {
+    margin: 0 0 6px;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.30;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .pm-subtitle {
+    margin: 0 0 16px;
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.50;
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page .modal-actions {
+    margin-top: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.post-trip-page .publish-success-icon {
+    width: 72px;
+    height: 72px;
+    margin: 8px auto 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--cc-success-12);
+    border: 2px solid var(--cc-success);
+    color: var(--cc-success);
+}
+
+body.post-trip-page .success-card .pm-title {
+    margin-bottom: 8px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .success-card .pm-subtitle {
+    margin: 0;
+    font-size: 15px;
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page .confirm-title {
+    margin: 0 48px 8px 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.40;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .confirm-text {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.50;
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page .confirm-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 24px;
+}
+
+/* ---------------------------------------------------------------------------
+   14. États transverses : chargement, erreur bloquante, notices, squelette
+   --------------------------------------------------------------------------- */
+body.post-trip-page .edit-loading {
+    padding: 0 0 8px;
+}
+
+body.post-trip-page .edit-loading-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    height: 48px;
+    padding: 0 12px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-border);
+    background: var(--cc-surface-1);
+    color: var(--cc-text-soft);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+body.post-trip-page .cc-spinner {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--cc-accent-30);
+    border-top-color: var(--cc-accent);
+    border-radius: 50%;
+    animation: cc-spin 800ms linear infinite;
+}
+
+@keyframes cc-spin {
+    to { transform: rotate(360deg); }
+}
+
+body.post-trip-page .cc-skeleton {
+    position: relative;
+    overflow: hidden;
+    height: 14px;
+    margin-top: 12px;
+    border-radius: var(--cc-radius-xs);
+    background: var(--cc-surface-2);
+}
+
+body.post-trip-page .cc-skeleton-60 { width: 60%; }
+body.post-trip-page .cc-skeleton-80 { width: 80%; }
+body.post-trip-page .cc-skeleton-40 { width: 40%; }
+body.post-trip-page .cc-skeleton-48 { width: 100%; height: 48px; }
+
+body.post-trip-page .cc-skeleton-blocks {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+body.post-trip-page .cc-skeleton::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, var(--cc-skeleton-shine), transparent);
+    animation: cc-sweep 1.2s ease-in-out infinite;
+    transform: translateX(-100%);
+}
+
+@keyframes cc-sweep {
+    to { transform: translateX(100%); }
+}
+
+body.post-trip-page .edit-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 320px;
+    padding: 32px;
+    border-radius: var(--cc-radius-xl);
+    border: 1px solid var(--cc-danger-35);
+    background: var(--cc-surface-0);
+    text-align: center;
+}
+
+body.post-trip-page .edit-error-icon {
+    display: inline-flex;
+    color: var(--cc-danger);
+}
+
+body.post-trip-page .edit-error h2 {
+    margin: 4px 0 0;
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.30;
+    color: var(--cc-text);
+}
+
+body.post-trip-page .edit-error p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.50;
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page .edit-error-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+body.post-trip-page .notice-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 12px 16px;
+    border-left: 3px solid var(--cc-warn);
+    border-radius: var(--cc-radius-md);
+    background: var(--cc-surface-0);
+    color: var(--cc-text);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.40;
+}
+
+body.post-trip-page .notice-bar.is-danger {
+    border-left-color: var(--cc-danger);
+}
+
+body.post-trip-page .notice-bar.is-warn {
+    border-left-color: var(--cc-warn);
+}
+
+body.post-trip-page .notice-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--cc-warn);
+}
+
+body.post-trip-page .notice-bar.is-danger .notice-icon {
+    color: var(--cc-danger);
+}
+
+body.post-trip-page .notice-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+body.post-trip-page .edit-notice {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    padding: 10px 12px;
+    border-radius: var(--cc-radius-md);
+    border: 1px solid var(--cc-accent-35);
+    background: var(--cc-accent-10);
+    color: var(--cc-accent-text);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.50;
+}
+
+body.post-trip-page .edit-notice-icon {
+    display: inline-flex;
+    flex: 0 0 auto;
+    color: var(--cc-accent);
+}
+
+/* S-18 : jamais de contenu invisible en attente de JS */
+body.post-trip-page [data-animate] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   15. Seuils 481 / 768 / 1080 / 360
+   --------------------------------------------------------------------------- */
+@media (min-width: 481px) {
+    body.post-trip-page .container {
+        padding-inline: 16px;
+    }
+
+    body.post-trip-page .page-main {
+        padding: 24px 0 48px;
+    }
+
+    body.post-trip-page .page-header {
+        margin-bottom: 20px;
+    }
+
+    body.post-trip-page .trip-form-card {
+        padding: 20px;
+    }
+
+    body.post-trip-page .trip-benefits {
+        padding: 20px;
+    }
+
+    body.post-trip-page .form-row,
+    body.post-trip-page .location-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    body.post-trip-page .profile-select-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    body.post-trip-page .trip-form {
+        gap: 16px;
+    }
+
+    body.post-trip-page .benefits-trigger {
+        cursor: pointer;
+        min-height: 48px;
+    }
+
+    body.post-trip-page .benefits-chevron {
+        display: inline-flex;
+    }
+
+    body.post-trip-page .benefits-body {
+        display: none;
+    }
+
+    body.post-trip-page .benefits-body.is-open {
+        display: block;
+        margin-top: 12px;
+    }
+
+    body.post-trip-page .benefits-body.is-open ul {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        display: grid;
+        gap: 12px 16px;
+    }
+
+    body.post-trip-page .benefits-trigger[aria-expanded="true"] .benefits-chevron {
+        transform: rotate(180deg);
+    }
+
+    /* À 768 le mode « mobile » du site masquait les bénéfices : la DA demande
+       un accordéon fermé, pas une disparition (TBD bénéfices §8). */
+    html.mobile-mode body.post-trip-page .trip-benefits {
+        display: block !important;
+    }
+
+    body.post-trip-page .edit-error h2 {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    body.post-trip-page .trip-benefits {
+        display: none !important;
+    }
+
+    body.post-trip-page .trip-form-card {
+        padding: 12px;
+        border-radius: 14px;
+    }
+
+    body.post-trip-page .page-header {
+        margin-bottom: 16px;
+    }
+
+    /* Barre d'action au-dessus de la nav basse (64 px). `position: sticky` ne
+       s'active pas dans cette page (ancêtres en overflow) ; une barre fixe
+       calée sur la carte donne le même résultat et ne recouvre jamais la nav. */
+    body.post-trip-page .wizard-footer {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: 64px;
+        z-index: 900;
+        margin: 0;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        background: var(--cc-surface-0-96);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid var(--cc-border);
+        border-bottom: 0;
+        border-radius: 14px 14px 0 0;
+    }
+
+    /* Réserve sous le dernier champ pour que la barre fixe ne le recouvre pas. */
+    body.post-trip-page .trip-section {
+        padding-bottom: 104px;
+    }
+
+    body.post-trip-page .wizard-nav .cc-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        height: 44px;
+        padding: 0 8px;
+        font-size: 13px;
+        line-height: 1.15;
+        white-space: normal;
+    }
+
+    body.post-trip-page .wizard-step-info {
+        margin-top: 2px;
+    }
+
+    body.post-trip-page .wizard-progress {
+        min-height: 68px;
+    }
+
+    body.post-trip-page .wp-dot {
+        width: 26px;
+        height: 26px;
+    }
+
+    body.post-trip-page .segment-btn {
+        height: 44px;
+        padding: 0 8px;
+        font-size: 13px;
+    }
+
+    body.post-trip-page .wizard-yesno {
+        gap: 8px;
+    }
+
+    body.post-trip-page .pill-btn {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    body.post-trip-page .popup-overlay,
+    body.post-trip-page .pt-modal-overlay {
+        padding: 12px;
+    }
+
+    body.post-trip-page .popup-content,
+    body.post-trip-page .pt-modal-card {
+        width: calc(100vw - 24px);
+        max-width: calc(100vw - 24px);
+        padding: 20px;
+        max-height: calc(100dvh - 24px);
+    }
+
+    body.post-trip-page .popup-title {
+        margin-right: 44px;
+    }
+
+    body.post-trip-page .modal-actions,
+    body.post-trip-page .confirm-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    body.post-trip-page .modal-actions .cc-btn,
+    body.post-trip-page .confirm-actions .cc-btn {
+        width: 100%;
+        height: 44px;
+    }
+
+    body.post-trip-page .notice-bar {
+        flex-wrap: wrap;
+    }
+
+    body.post-trip-page .notice-bar .cc-btn {
+        width: 100%;
+        margin-top: 4px;
+    }
+
+    body.post-trip-page .options-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    body.post-trip-page .phone-verify-btn {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    body.post-trip-page .edit-error {
+        min-height: 280px;
+        padding: 20px;
+    }
+}
+
+/* Nav basse visible jusqu'à 800 px (responsive.js) : réserve de page. */
+@media (max-width: 800px) {
+    body.post-trip-page .page-main {
+        padding-bottom: 128px;
+    }
+}
+
+@media (min-width: 768px) {
+    body.post-trip-page #date-depart {
+        max-width: 280px !important;
+    }
+
+    body.post-trip-page .trip-form .price-input {
+        flex: 0 0 140px;
+        width: 140px;
+    }
+
+    body.post-trip-page .phone-verify-btn {
+        flex: 0 0 120px;
+        width: 120px;
+    }
+
+    body.post-trip-page .colis-name-btn,
+    body.post-trip-page .colis-name-input {
+        flex: 1 1 40%;
+    }
+
+    body.post-trip-page .colis-price-modes {
+        flex: 1 1 40%;
+    }
+
+    body.post-trip-page .colis-detail-row .colis-row-del {
+        order: 3;
+        margin-left: 0;
+    }
+
+    body.post-trip-page .special-price-line {
+        order: 4;
+    }
+
+    body.post-trip-page .options-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1081px) {
+    body.post-trip-page .container {
+        padding-inline: 24px;
+    }
+
+    body.post-trip-page .page-main {
+        padding: 32px 0 48px;
+    }
+
+    /* Sur bureau la carte est ouverte : pas de chevron, liste sur une colonne. */
+    body.post-trip-page .benefits-chevron {
+        display: none;
+    }
+
+    body.post-trip-page .benefits-body,
+    body.post-trip-page .benefits-body.is-open {
+        display: block;
+    }
+
+    body.post-trip-page .benefits-body ul,
+    body.post-trip-page .benefits-body.is-open ul {
+        grid-template-columns: minmax(0, 1fr);
+        display: grid;
+    }
+
+    body.post-trip-page .page-header {
+        margin-bottom: 24px;
+    }
+
+    body.post-trip-page .post-shell {
+        grid-template-columns: minmax(300px, 0.36fr) minmax(0, 0.64fr);
+        gap: 20px;
+    }
+
+    body.post-trip-page .trip-form-card {
+        padding: 24px;
+    }
+
+    body.post-trip-page .trip-benefits {
+        padding: 24px;
+    }
+
+    body.post-trip-page .trip-form {
+        gap: 20px;
+    }
+}
+
+/* ---------------------------------------------------------------------------
+   16. Thème clair : neutralisation des valeurs en dur historiques (!important)
+   --------------------------------------------------------------------------- */
+body.post-trip-page.light .section-kicker,
+body.post-trip-page.light .page-header .section-kicker {
+    color: var(--cc-accent-text) !important;
+    background: var(--cc-accent-10) !important;
+    border-color: var(--cc-accent-30) !important;
+}
+
+body.post-trip-page.light .page-header h1 {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .page-header .page-intro {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .trip-benefits,
+body.post-trip-page.light .trip-form-card {
+    background: var(--cc-surface-0) !important;
+    border-color: var(--cc-border) !important;
+    box-shadow: var(--cc-shadow-1) !important;
+}
+
+body.post-trip-page.light .trip-benefits h2 {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .trip-benefits li {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .trip-section {
+    background: transparent !important;
+    border-color: transparent !important;
+}
+
+body.post-trip-page.light .trip-section-title {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .tsh-icon {
+    background: var(--cc-accent-10) !important;
+    border-color: var(--cc-accent-30) !important;
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .wizard-progress {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-border) !important;
+}
+
+body.post-trip-page.light .wp-dot {
+    background: var(--cc-surface-2) !important;
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .wp-step.active .wp-dot {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end)) !important;
+    color: var(--cc-on-accent) !important;
+}
+
+body.post-trip-page.light .wp-step.done .wp-dot {
+    background: var(--cc-accent-18) !important;
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .wp-label {
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .wp-step.active .wp-label {
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .wsi-text {
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .wsi-gauge {
+    background: var(--cc-surface-3) !important;
+}
+
+body.post-trip-page.light .wsi-fill {
+    background: linear-gradient(90deg, var(--cc-accent-fill), var(--cc-accent-fill-end)) !important;
+}
+
+body.post-trip-page.light .trip-section-sub,
+body.post-trip-page.light .form-group label,
+body.post-trip-page.light .cc-label,
+body.post-trip-page.light .phone-label,
+body.post-trip-page.light .otp-label {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .form-group label,
+body.post-trip-page.light .cc-label,
+body.post-trip-page.light .phone-label,
+body.post-trip-page.light .otp-label {
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .trip-form .form-input,
+body.post-trip-page.light .trip-form .cc-autocomplete-input,
+body.post-trip-page.light .phone-main-input,
+body.post-trip-page.light .phone-prefix-select,
+body.post-trip-page.light .custom-input,
+body.post-trip-page.light .colis-name-input,
+body.post-trip-page.light .price-field {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-input-border) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .trip-form .form-input::placeholder,
+body.post-trip-page.light .price-field::placeholder,
+body.post-trip-page.light .colis-name-input::placeholder {
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .input-suffix {
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .profile-select-btn {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-input-border) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .profile-select-btn:hover {
+    background: var(--cc-surface-2) !important;
+    border-color: var(--cc-border-strong) !important;
+}
+
+body.post-trip-page.light .profile-select-btn.selected {
+    background: var(--cc-accent-12) !important;
+    border-color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .ps-icon {
+    background: var(--cc-surface-2) !important;
+    border-color: var(--cc-border) !important;
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .profile-select-btn.selected .ps-icon {
+    background: var(--cc-accent-18) !important;
+    border-color: var(--cc-accent-45) !important;
+}
+
+body.post-trip-page.light .ps-title {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .ps-sub {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .ps-check {
+    background: var(--cc-accent-fill) !important;
+    color: var(--cc-on-accent) !important;
+}
+
+body.post-trip-page.light .wizard-question {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .quiz-box {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-border) !important;
+}
+
+body.post-trip-page.light .transport-mode-btn,
+body.post-trip-page.light .segment-btn {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .transport-mode-btn.selected,
+body.post-trip-page.light .segment-btn.selected {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end)) !important;
+    border-color: transparent !important;
+    color: var(--cc-on-accent) !important;
+}
+
+body.post-trip-page.light .price-mode-btn {
+    background: var(--cc-accent-08) !important;
+    border-color: var(--cc-accent-35) !important;
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .price-mode-btn.active,
+body.post-trip-page.light .price-mode-btn.selected,
+body.post-trip-page.light .price-mode-btn:focus {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end)) !important;
+    border-color: transparent !important;
+    color: var(--cc-on-accent) !important;
+}
+
+body.post-trip-page.light .price-or {
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .colis-row-del {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-border) !important;
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .colis-row-del:hover {
+    background: var(--cc-danger-10) !important;
+    border-color: var(--cc-danger-45) !important;
+    color: var(--cc-danger) !important;
+}
+
+body.post-trip-page.light .colis-name-btn {
+    background: var(--cc-surface-2) !important;
+    border-color: var(--cc-input-border) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .refused-trigger {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-input-border) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .contact-row-btn {
+    background: transparent !important;
+    border-color: var(--cc-accent-45) !important;
+    color: var(--cc-muted) !important;
+}
+
+body.post-trip-page.light .contact-row-btn.verified {
+    border-color: var(--cc-success-45) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .phone-verify-btn {
+    background: transparent !important;
+    border-color: var(--cc-accent-45) !important;
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .step-errors {
+    background: var(--cc-surface-0) !important;
+    border-color: transparent !important;
+    border-left-color: var(--cc-danger) !important;
+    color: var(--cc-danger) !important;
+}
+
+body.post-trip-page.light .special-sep {
+    border-top-color: var(--cc-border) !important;
+}
+
+body.post-trip-page.light .cc-suggestions-list {
+    background: var(--cc-surface-0) !important;
+    border-color: var(--cc-accent-30) !important;
+    box-shadow: var(--cc-shadow-2) !important;
+}
+
+body.post-trip-page.light .cc-suggestions-list li {
+    color: var(--cc-text) !important;
+    border-bottom-color: var(--cc-border) !important;
+}
+
+body.post-trip-page.light .cc-suggestions-list li:hover,
+body.post-trip-page.light .cc-suggestions-list li.active {
+    background: var(--cc-accent-12) !important;
+    color: var(--cc-accent-text) !important;
+}
+
+body.post-trip-page.light .cc-suggestions-list::-webkit-scrollbar-thumb {
+    background: var(--cc-accent-35) !important;
+}
+
+body.post-trip-page.light .popup-content,
+body.post-trip-page.light .pt-modal-card {
+    background: var(--cc-surface-0) !important;
+    border-color: var(--cc-border) !important;
+    box-shadow: var(--cc-shadow-3) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .popup-title,
+body.post-trip-page.light .pm-title,
+body.post-trip-page.light .pm-subtitle,
+body.post-trip-page.light .success-card .pm-title,
+body.post-trip-page.light .success-card .pm-subtitle,
+body.post-trip-page.light .confirm-title,
+body.post-trip-page.light .confirm-text {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .popup-subtitle,
+body.post-trip-page.light .pm-subtitle,
+body.post-trip-page.light .confirm-text {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .option-card {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-border) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .option-text {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .option-card.selected .option-text {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .option-card.selected .option-circle {
+    background: var(--cc-accent-fill) !important;
+    border-color: var(--cc-accent-fill) !important;
+    color: var(--cc-on-accent) !important;
+}
+
+body.post-trip-page.light .cc-modal-close {
+    background: var(--cc-surface-1) !important;
+    border-color: var(--cc-border) !important;
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .cc-cur-btn {
+    background: var(--cc-accent-10) !important;
+    border-color: var(--cc-accent-35) !important;
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .cc-cur-pop {
+    background: var(--cc-surface-0) !important;
+    border-color: var(--cc-accent-30) !important;
+    box-shadow: var(--cc-shadow-2) !important;
+}
+
+body.post-trip-page.light .cc-cur-opt {
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .cc-cur-opt:hover {
+    background: var(--cc-surface-2) !important;
+}
+
+body.post-trip-page.light .cc-cur-opt[aria-selected="true"] {
+    background: var(--cc-accent-12) !important;
+    color: var(--cc-accent-text) !important;
+}
+
+body.post-trip-page.light .cc-cur-opt-sym {
+    color: var(--cc-accent) !important;
+}
+
+body.post-trip-page.light .theme-toggle {
+    background: var(--cc-surface-1);
+    border-color: var(--cc-border);
+    color: var(--cc-text-soft);
+}
+
+body.post-trip-page.light .site-header .nav-link {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .site-header .nav-link.is-active {
+    color: var(--cc-accent) !important;
+    background: transparent !important;
+    box-shadow: inset 0 -3px 0 var(--cc-accent) !important;
+}
+
+/* Le nom de marque du header partagé est en dégradé blanc : illisible sur
+   le fond clair. On rétablit le token de texte sur cette page seulement. */
+body.post-trip-page.light .brand-name {
+    background: none !important;
+    -webkit-text-fill-color: var(--cc-text) !important;
+    color: var(--cc-text) !important;
+}
+
+body.post-trip-page.light .brand-sub {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .mob-nav-item {
+    color: var(--cc-text-soft) !important;
+}
+
+body.post-trip-page.light .mob-nav-item.active {
+    color: var(--cc-accent) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   17. Mouvement réduit (CA-07 / D-15)
+   --------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    body.post-trip-page *,
+    body.post-trip-page *::before,
+    body.post-trip-page *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    body.post-trip-page .cc-skeleton::after {
+        animation: none;
+        display: none;
+    }
+}

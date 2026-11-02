@@ -35,17 +35,17 @@
         // Europe (Euro)
         "Allemagne": "EUR", "Andorre": "EUR", "Autriche": "EUR", "Belgique": "EUR", "Chypre": "EUR", "Croatie": "EUR", "Espagne": "EUR", "Estonie": "EUR", "Finlande": "EUR", "France": "EUR", "Grèce": "EUR", "Irlande": "EUR", "Italie": "EUR", "Lettonie": "EUR", "Lituanie": "EUR", "Luxembourg": "EUR", "Malte": "EUR", "Monaco": "EUR", "Monténégro": "EUR", "Pays-Bas": "EUR", "Portugal": "EUR", "Saint-Marin": "EUR", "Slovaquie": "EUR", "Slovénie": "EUR", "Vatican": "EUR",
         // Reste de l'Europe
-        "Albanie": "ALL", "Arménie": "AMD", "Azerbaïdjan": "AZN", "Biélorussie": "BYN", "Bosnie-Herzégovine": "BAM", "Bulgarie": "BGN", "Danemark": "DKK", "Géorgie": "GEL", "Hongrie": "HUF", "Islande": "ISK", "Kazakhstan": "KZT", "Liechtenstein": "CHF", "Macédoine du Nord": "MKD", "Moldavie": "MDL", "Norvège": "NOK", "Pologne": "PLN", "Roumanie": "RON", "Royaume-Uni": "GBP", "Russie": "RUB", "Serbie": "RSD", "Suède": "SEK", "Suisse": "CHF", "République tchèque": "CZK", "Turquie": "TRY", "Ukraine": "UAH",
+        "Albanie": "ALL", "Arménie": "AMD", "Azerbaïdjan": "AZN", "Biélorussie": "BYN", "Bosnie-Herzégovine": "BAM", "Bulgarie": "BGN", "Danemark": "DKK", "Géorgie": "GEL", "Hongrie": "HUF", "Islande": "ISK", "Kazakhstan": "KZT", "Kosovo": "EUR", "Liechtenstein": "CHF", "Macédoine du Nord": "MKD", "Moldavie": "MDL", "Norvège": "NOK", "Pologne": "PLN", "Roumanie": "RON", "Royaume-Uni": "GBP", "Russie": "RUB", "Serbie": "RSD", "Suède": "SEK", "Suisse": "CHF", "République tchèque": "CZK", "Turquie": "TRY", "Ukraine": "UAH",
         // Moyen-Orient
         "Arabie Saoudite": "SAR", "Bahreïn": "BHD", "Émirats Arabes Unis": "AED", "Irak": "IQD", "Iran": "IRR", "Israël": "ILS", "Jordanie": "JOD", "Koweït": "KWD", "Liban": "LBP", "Oman": "OMR", "Palestine": "ILS", "Qatar": "QAR", "Syrie": "SYP", "Yémen": "YER",
         // Asie
         "Afghanistan": "AFN", "Bangladesh": "BDT", "Bhoutan": "BTN", "Birmanie": "MMK", "Brunei": "BND", "Cambodge": "KHR", "Chine": "CNY", "Chili": "CLP", "Corée du Nord": "KPW", "Corée du Sud": "KRW", "Hong Kong": "HKD", "Inde": "INR", "Indonésie": "IDR", "Japon": "JPY", "Kirghizistan": "KGS", "Laos": "LAK", "Macao": "MOP", "Malaisie": "MYR", "Maldives": "MVR", "Mongolie": "MNT", "Népal": "NPR", "Ouzbékistan": "UZS", "Pakistan": "PKR", "Philippines": "PHP", "Singapour": "SGD", "Sri Lanka": "LKR", "Tadjikistan": "TJS", "Taïwan": "TWD", "Thaïlande": "THB", "Timor oriental": "USD", "Turkménistan": "TMT", "Vietnam": "VND",
         // Amériques (Nord & Central)
-        "Bahamas": "BSD", "Barbade": "BBD", "Belize": "BZD", "Canada": "CAD", "Costa Rica": "CRC", "Cuba": "CUP", "Dominique": "XCD", "États-Unis": "USD", "Grenade": "XCD", "Guatemala": "GTQ", "Haïti": "HTG", "Honduras": "HNL", "Jamaïque": "JMD", "Mexique": "MXN", "Nicaragua": "NIO", "Panama": "USD", "République dominicaine": "DOP", "Saint-Kitts-et-Nevis": "XCD", "Sainte-Lucie": "XCD", "Saint-Vincent-et-les Grenadines": "XCD", "Salvador": "USD", "Trinité-et-Tobago": "TTD",
+        "Antigua-et-Barbuda": "XCD", "Bahamas": "BSD", "Barbade": "BBD", "Belize": "BZD", "Canada": "CAD", "Costa Rica": "CRC", "Cuba": "CUP", "Dominique": "XCD", "États-Unis": "USD", "Grenade": "XCD", "Guatemala": "GTQ", "Haïti": "HTG", "Honduras": "HNL", "Jamaïque": "JMD", "Mexique": "MXN", "Nicaragua": "NIO", "Panama": "USD", "République dominicaine": "DOP", "Saint-Kitts-et-Nevis": "XCD", "Sainte-Lucie": "XCD", "Saint-Vincent-et-les Grenadines": "XCD", "Salvador": "USD", "Trinité-et-Tobago": "TTD",
         // Amérique du Sud
         "Argentine": "ARS", "Bolivie": "BOB", "Brésil": "BRL", "Chili": "CLP", "Colombie": "COP", "Équateur": "USD", "Guyana": "GYD", "Paraguay": "PYG", "Pérou": "PEN", "Suriname": "SRD", "Uruguay": "UYU", "Venezuela": "VES",
         // Océanie
-        "Australie": "AUD", "Fidji": "FJD", "Kiribati": "AUD", "Nauru": "AUD", "Nouvelle-Zélande": "NZD", "Palaos": "USD", "Papouasie-Nouvelle-Guinée": "PGK", "Salomon": "SBD", "Samoa": "WST", "Tonga": "TOP", "Tuvalu": "AUD", "Vanuatu": "VUV"
+        "Australie": "AUD", "Fidji": "FJD", "Îles Marshall": "USD", "Kiribati": "AUD", "Micronésie": "USD", "Nauru": "AUD", "Nouvelle-Zélande": "NZD", "Palaos": "USD", "Papouasie-Nouvelle-Guinée": "PGK", "Salomon": "SBD", "Samoa": "WST", "Tonga": "TOP", "Tuvalu": "AUD", "Vanuatu": "VUV"
     };
 
     const COUNTRY_CALLING_CODES = {
@@ -59,16 +59,16 @@
         "Afrique du Sud": "+27", "Angola": "+244", "Botswana": "+267", "Burundi": "+257", "Cap-Vert": "+238", "Comores": "+269", "Djibouti": "+253", "Érythrée": "+291", "Éthiopie": "+251", "Gambie": "+220", "Ghana": "+233", "Guinée": "+224", "Kenya": "+254", "Lesotho": "+266", "Liberia": "+231", "Madagascar": "+261", "Malawi": "+265", "Maurice": "+230", "Mauritanie": "+222", "Mozambique": "+258", "Namibie": "+264", "Nigeria": "+234", "Ouganda": "+256", "Rwanda": "+250", "Sao Tomé-et-Principe": "+239", "Seychelles": "+248", "Sierra Leone": "+232", "Somalie": "+252", "Soudan": "+249", "Soudan du Sud": "+211", "Eswatini": "+268", "Tanzanie": "+255", "Zambie": "+260", "Zimbabwe": "+263", "République démocratique du Congo": "+243",
         // Europe
         "Allemagne": "+49", "Andorre": "+376", "Autriche": "+43", "Belgique": "+32", "Chypre": "+357", "Croatie": "+385", "Espagne": "+34", "Estonie": "+372", "Finlande": "+358", "France": "+33", "Grèce": "+30", "Irlande": "+353", "Italie": "+39", "Lettonie": "+371", "Lituanie": "+370", "Luxembourg": "+352", "Malte": "+356", "Monaco": "+377", "Monténégro": "+382", "Pays-Bas": "+31", "Portugal": "+351", "Saint-Marin": "+378", "Slovaquie": "+421", "Slovénie": "+386", "Vatican": "+379",
-        "Albanie": "+355", "Arménie": "+374", "Azerbaïdjan": "+994", "Biélorussie": "+375", "Bosnie-Herzégovine": "+387", "Bulgarie": "+359", "Danemark": "+45", "Géorgie": "+995", "Hongrie": "+36", "Islande": "+354", "Kazakhstan": "+7", "Liechtenstein": "+423", "Macédoine du Nord": "+389", "Moldavie": "+373", "Norvège": "+47", "Pologne": "+48", "Roumanie": "+40", "Royaume-Uni": "+44", "Russie": "+7", "Serbie": "+381", "Suède": "+46", "Suisse": "+41", "République tchèque": "+420", "Turquie": "+90", "Ukraine": "+380",
+        "Albanie": "+355", "Arménie": "+374", "Azerbaïdjan": "+994", "Biélorussie": "+375", "Bosnie-Herzégovine": "+387", "Bulgarie": "+359", "Danemark": "+45", "Géorgie": "+995", "Hongrie": "+36", "Islande": "+354", "Kazakhstan": "+7", "Kosovo": "+383", "Liechtenstein": "+423", "Macédoine du Nord": "+389", "Moldavie": "+373", "Norvège": "+47", "Pologne": "+48", "Roumanie": "+40", "Royaume-Uni": "+44", "Russie": "+7", "Serbie": "+381", "Suède": "+46", "Suisse": "+41", "République tchèque": "+420", "Turquie": "+90", "Ukraine": "+380",
         // Moyen-Orient
         "Arabie Saoudite": "+966", "Bahreïn": "+973", "Émirats Arabes Unis": "+971", "Irak": "+964", "Iran": "+98", "Israël": "+972", "Jordanie": "+962", "Koweït": "+965", "Liban": "+961", "Oman": "+968", "Palestine": "+970", "Qatar": "+974", "Syrie": "+963", "Yémen": "+967",
         // Asie
         "Afghanistan": "+93", "Bangladesh": "+880", "Bhoutan": "+975", "Birmanie": "+95", "Brunei": "+673", "Cambodge": "+855", "Chine": "+86", "Corée du Nord": "+850", "Corée du Sud": "+82", "Hong Kong": "+852", "Inde": "+91", "Indonésie": "+62", "Japon": "+81", "Kirghizistan": "+996", "Laos": "+856", "Macao": "+853", "Malaisie": "+60", "Maldives": "+960", "Mongolie": "+976", "Népal": "+977", "Ouzbékistan": "+998", "Pakistan": "+92", "Philippines": "+63", "Singapour": "+65", "Sri Lanka": "+94", "Tadjikistan": "+992", "Taïwan": "+886", "Thaïlande": "+66", "Timor oriental": "+670", "Turkménistan": "+993", "Vietnam": "+84",
         // Amériques
-        "Bahamas": "+1-242", "Barbade": "+1-246", "Belize": "+501", "Canada": "+1", "Costa Rica": "+506", "Cuba": "+53", "Dominique": "+1-767", "États-Unis": "+1", "Grenade": "+1-473", "Guatemala": "+502", "Haïti": "+509", "Honduras": "+504", "Jamaïque": "+1-876", "Mexique": "+52", "Nicaragua": "+505", "Panama": "+507", "République dominicaine": "+1-809", "Saint-Kitts-et-Nevis": "+1-869", "Sainte-Lucie": "+1-758", "Saint-Vincent-et-les Grenadines": "+1-784", "Salvador": "+503", "Trinité-et-Tobago": "+1-868",
+        "Antigua-et-Barbuda": "+1-268", "Bahamas": "+1-242", "Barbade": "+1-246", "Belize": "+501", "Canada": "+1", "Costa Rica": "+506", "Cuba": "+53", "Dominique": "+1-767", "États-Unis": "+1", "Grenade": "+1-473", "Guatemala": "+502", "Haïti": "+509", "Honduras": "+504", "Jamaïque": "+1-876", "Mexique": "+52", "Nicaragua": "+505", "Panama": "+507", "République dominicaine": "+1-809", "Saint-Kitts-et-Nevis": "+1-869", "Sainte-Lucie": "+1-758", "Saint-Vincent-et-les Grenadines": "+1-784", "Salvador": "+503", "Trinité-et-Tobago": "+1-868",
         "Argentine": "+54", "Bolivie": "+591", "Brésil": "+55", "Chili": "+56", "Colombie": "+57", "Équateur": "+593", "Guyana": "+592", "Paraguay": "+595", "Pérou": "+51", "Suriname": "+597", "Uruguay": "+598", "Venezuela": "+58",
         // Océanie
-        "Australie": "+61", "Fidji": "+679", "Kiribati": "+686", "Nauru": "+674", "Nouvelle-Zélande": "+64", "Palaos": "+680", "Papouasie-Nouvelle-Guinée": "+675", "Salomon": "+677", "Samoa": "+685", "Tonga": "+676", "Tuvalu": "+688", "Vanuatu": "+678"
+        "Australie": "+61", "Fidji": "+679", "Îles Marshall": "+692", "Kiribati": "+686", "Micronésie": "+691", "Nauru": "+674", "Nouvelle-Zélande": "+64", "Palaos": "+680", "Papouasie-Nouvelle-Guinée": "+675", "Salomon": "+677", "Samoa": "+685", "Tonga": "+676", "Tuvalu": "+688", "Vanuatu": "+678"
     };
 
     const COUNTRY_OPTIONS = Object.keys(COUNTRY_CURRENCIES).sort((a, b) => a.localeCompare(b, "fr"));
@@ -695,6 +695,28 @@
         }
     }
 
+    // Mise en forme des offres pour la console admin (colonnes camelCase attendues).
+    async function mapAdminOffers(list) {
+        const rows = Array.isArray(list) ? list : [];
+        const ownerIds = [...new Set(rows.map(o => o.user_id).filter(Boolean))];
+        const owners = {};
+        if (ownerIds.length) {
+            const { data } = await window.ccSupabase.from('profiles')
+                .select('id, full_name, is_verified').in('id', ownerIds);
+            (data || []).forEach(p => { owners[p.id] = p; });
+        }
+        return rows.map(o => ({
+            ...o,
+            ownerName: owners[o.user_id]?.full_name || "Voyageur",
+            origin: o.origin || "",
+            destination: o.destination || "",
+            departureDate: o.departure_date,
+            pricePerKg: o.price_per_kg,
+            baseCurrency: o.base_currency,
+            isVerified: Boolean(owners[o.user_id]?.is_verified)
+        }));
+    }
+
     async function api(path, options = {}) {
         // [SUPABASE BRIDGE UNIVERSEL V4 - FULL CLOUD]
         if (window.ccSupabase) {
@@ -704,6 +726,19 @@
             if (p.includes("/auth/login")) {
                 const { data, error } = await window.ccSupabase.auth.signInWithPassword({ email: options.body.email, password: options.body.password });
                 if (error) throw error;
+
+                // [SECURITE] Un compte suspendu (profiles.is_active = false) ne doit
+                // plus pouvoir se connecter. Sans ce controle, le bouton « Suspendre »
+                // de l'admin ne bloquait rien du tout.
+                const { data: profile } = await window.ccSupabase
+                    .from('profiles').select('*').eq('id', data.user?.id).maybeSingle();
+                if (profile && profile.is_active === false) {
+                    await window.ccSupabase.auth.signOut();
+                    localStorage.removeItem("cc_auth_token");
+                    localStorage.removeItem("cc_refresh_token");
+                    throw new Error("Compte suspendu. Contactez l'administration ColisConnect.");
+                }
+
                 // On memorise aussi le refresh_token : il permet de RESTAURER la session
                 // au chargement des pages (voir supabase-init.js). Sans lui, apres une
                 // heure la session expire et la base refuse toute ecriture (suppression,
@@ -712,7 +747,18 @@
                     if (data?.session?.refresh_token) localStorage.setItem("cc_refresh_token", data.session.refresh_token);
                     if (data?.session?.access_token) localStorage.setItem("cc_auth_token", data.session.access_token);
                 } catch (e) { /* stockage indisponible */ }
-                return { token: data.session.access_token, user: { ...data.user, ...data.user.user_metadata } };
+
+                const u = { ...data.user, ...data.user.user_metadata, ...(profile || {}) };
+                if (u.phone_number !== undefined) u.phoneNumber = u.phone_number;
+                if (u.phone_number_2 !== undefined) u.phoneNumber2 = u.phone_number_2;
+                if (u.full_name !== undefined) u.fullName = u.full_name;
+                if (u.profile_photo !== undefined) u.profilePhoto = u.profile_photo;
+                if (u.identity_document !== undefined) u.identityDocument = u.identity_document;
+                if (u.profile_type !== undefined) u.profileType = u.profile_type;
+                if (u.kyc_status !== undefined) u.kycStatus = u.kyc_status;
+                if (u.is_verified !== undefined) u.isVerified = u.is_verified;
+                if (u.referral_code !== undefined) u.referralCode = u.referral_code;
+                return { token: data.session.access_token, user: u };
             }
             if (p.includes("/auth/register")) {
                 const { data, error } = await window.ccSupabase.auth.signUp({
@@ -728,7 +774,11 @@
                 });
                 if (error) throw error;
 
-                // Creer le profil avec profile_type = 'client' par defaut
+                const session = data.session || null;
+                // Creer le profil avec profile_type = 'client' par defaut.
+                // Si la confirmation d'e-mail est active, signUp ne renvoie AUCUNE
+                // session : l'insertion est alors refusee par la RLS (auth.uid() vide).
+                // On ne fait donc echouer l'inscription que si l'utilisateur est connecte.
                 const userId = data.user?.id;
                 if (userId) {
                     const { error: profileError } = await window.ccSupabase.from('profiles').upsert({
@@ -739,10 +789,25 @@
                         profile_type: options.body.profile_type || "client",
                         created_at: new Date().toISOString()
                     }, { onConflict: 'id' });
-                    if (profileError) throw profileError;
+                    if (profileError) {
+                        if (session) throw profileError;
+                        console.warn("Profil cree par le trigger Supabase (confirmation e-mail requise):", profileError.message);
+                    }
                 }
 
-                return { message: "Inscription réussie", user: data.user };
+                if (session) {
+                    try {
+                        if (session.access_token) localStorage.setItem("cc_auth_token", session.access_token);
+                        if (session.refresh_token) localStorage.setItem("cc_refresh_token", session.refresh_token);
+                    } catch (e) { /* stockage indisponible */ }
+                }
+
+                return {
+                    message: "Inscription réussie",
+                    user: data.user,
+                    token: session?.access_token || "",
+                    refreshToken: session?.refresh_token || ""
+                };
             }
             if (p.includes("/auth/me")) {
                 const { data: { user }, error: authErr } = await window.ccSupabase.auth.getUser();
@@ -760,6 +825,7 @@
                 if (u.profile_photo !== undefined) u.profilePhoto = u.profile_photo;
                 if (u.profile_type !== undefined) u.profileType = u.profile_type;
                 if (u.kyc_status !== undefined) u.kycStatus = u.kyc_status;
+                if (u.referral_code !== undefined) u.referralCode = u.referral_code;
                 return { user: u };
             }
 
@@ -807,8 +873,89 @@
                 }
 
                 const updatedRow = (data && data[0]) ? data[0] : {};
-                state.user = { ...state.user, ...updatedRow };
+                // [FIX] La reponse renvoyait les colonnes brutes (phone_number, ...)
+                // alors que l'UI lit phoneNumber/phoneNumber2. La progression du profil
+                // restait donc bloquee apres l'enregistrement d'un premier numero.
+                const mappedUser = { ...state.user, ...updatedRow };
+                if (updatedRow.phone_number !== undefined) mappedUser.phoneNumber = updatedRow.phone_number;
+                if (updatedRow.phone_number_2 !== undefined) mappedUser.phoneNumber2 = updatedRow.phone_number_2;
+                if (updatedRow.full_name !== undefined) mappedUser.fullName = updatedRow.full_name;
+                if (updatedRow.profile_photo !== undefined) mappedUser.profilePhoto = updatedRow.profile_photo;
+                if (updatedRow.identity_document !== undefined) mappedUser.identityDocument = updatedRow.identity_document;
+                if (updatedRow.profile_type !== undefined) mappedUser.profileType = updatedRow.profile_type;
+                if (updatedRow.kyc_status !== undefined) mappedUser.kycStatus = updatedRow.kyc_status;
+                if (updatedRow.is_verified !== undefined) mappedUser.isVerified = updatedRow.is_verified;
+                state.user = mappedUser;
                 return { success: true, user: state.user };
+            }
+
+            // 2a. PARTENAIRE (parrainage) — routes absentes du bridge cloud :
+            // la page partenaire echouait silencieusement (stats jamais chargees,
+            // activation -> 404 du serveur statique).
+            if (p.includes("/partner/activate")) {
+                const role = String(state.user?.role || "").toLowerCase();
+                if (role !== "partner" && role !== "admin") {
+                    throw new Error("Acces reserve aux partenaires.");
+                }
+                if (state.user?.referralCode || state.user?.referral_code) {
+                    return { success: true, referralCode: state.user.referralCode || state.user.referral_code };
+                }
+                const code = "PART-" + Math.random().toString(36).slice(2, 10).toUpperCase();
+                const { data, error } = await window.ccSupabase.from('profiles')
+                    .update({ referral_code: code }).eq('id', state.user?.id).select('id, referral_code').single();
+                if (error) throw error;
+                state.user = { ...state.user, referral_code: data.referral_code, referralCode: data.referral_code };
+                return { success: true, referralCode: data.referral_code };
+            }
+            if (p.includes("/partner/stats")) {
+                const role = String(state.user?.role || "").toLowerCase();
+                if (role !== "partner" && role !== "admin") {
+                    throw new Error("Acces reserve aux partenaires.");
+                }
+                const code = state.user?.referralCode || state.user?.referral_code;
+                if (!code) throw new Error("Compte partenaire non active.");
+                const { data: offers, error: oErr } = await window.ccSupabase.from('offers')
+                    .select('id, title, status, created_at').eq('referral_code', code);
+                if (oErr) throw oErr;
+                const list = offers || [];
+                const ids = list.map(o => o.id);
+                let activity = [];
+                let totalEarnings = 0;
+                if (ids.length) {
+                    const { data: reservations, error: rErr } = await window.ccSupabase.from('reservations')
+                        .select('id, status, proposed_price_per_kg, total_amount, created_at, user_id, offer_id')
+                        .in('offer_id', ids).order('created_at', { ascending: false }).limit(200);
+                    if (rErr) throw rErr;
+                    const clientIds = [...new Set((reservations || []).map(r => r.user_id).filter(Boolean))];
+                    const names = {};
+                    if (clientIds.length) {
+                        const { data: profs } = await window.ccSupabase.from('profiles')
+                            .select('id, full_name').in('id', clientIds);
+                        (profs || []).forEach(pr => { names[pr.id] = pr.full_name; });
+                    }
+                    const offerById = {};
+                    list.forEach(o => { offerById[o.id] = o; });
+                    activity = (reservations || []).map(r => {
+                        const commission = String(r.status || "").toLowerCase() === "colisconnect_paye"
+                            ? (Number(r.total_amount || r.proposed_price_per_kg || 0) * 0.10)
+                            : 0;
+                        totalEarnings += commission;
+                        return {
+                            date: r.created_at,
+                            clientName: names[r.user_id] || "Client",
+                            offerTitle: offerById[r.offer_id]?.title || "Trajet",
+                            status: r.status,
+                            commission: commission.toFixed(2)
+                        };
+                    });
+                }
+                return {
+                    referralCode: code,
+                    tripsCount: list.length,
+                    conversionsCount: activity.length,
+                    totalEarnings: totalEarnings.toFixed(2),
+                    activity
+                };
             }
 
             // 2b. PAYMENT QRS
@@ -927,7 +1074,9 @@
                     destCountryCode: o.destination_country_code,
                     colisTypes: o.colis_types,
                     refusedColisTypes: o.refused_colis_types,
-                    ownerName: o.profiles?.full_name || "Voyageur",
+                    // Vide si la jointure n'est pas faite (scope=mine) : la carte
+                    // utilisera alors le fallback du proprietaire connecte.
+                    ownerName: o.profiles?.full_name || "",
                     ownerIsVerified: o.profiles?.is_verified,
                     ownerProfileType: o.profiles?.profile_type,
                     ownerProfilePhoto: o.profiles?.profile_photo
@@ -1065,41 +1214,86 @@
                     return { success: true };
                 }
 
-                // LIST CONVS with status and traveler profile info
+                // LIST CONVS with status and traveler profile info.
+                // [SECURITE] On ne joint QUE les colonnes publiques du profil : l'ancien
+                // `profiles(*)` exposait au contact le telephone, la piece d'identite et
+                // l'adresse de l'autre participant avant tout paiement.
                 const { data, error } = await window.ccSupabase.from('chat_threads')
-                    .select('*, reservations(id, status), offer_owner:profiles!chat_threads_offer_owner_id_fkey(*), user:profiles!chat_threads_user_id_fkey(*)')
+                    .select('*, reservations(id, status, kg, proposed_price_per_kg, total_amount, payment_tx_id, updated_at), offers(id, title, origin, destination, available_kg, price_per_kg, price_unit, base_currency, status, departure_date, payment_qr, payment_qr_2, payment_method, payment_method_2, user_id), offer_owner:profiles!chat_threads_offer_owner_id_fkey(id, full_name, profile_photo, is_verified, alipay_qr, wechat_qr), user:profiles!chat_threads_user_id_fkey(id, full_name, profile_photo, is_verified, alipay_qr, wechat_qr)')
                     .or(`user_id.eq.${state.user?.id},offer_owner_id.eq.${state.user?.id}`);
 
                 if (error) throw error;
+
+                // Apercu du dernier message : une seule requete pour tous les fils.
+                const threadIds = (data || []).map((t) => t.id).filter(Boolean);
+                const lastByThread = {};
+                if (threadIds.length) {
+                    const { data: msgs } = await window.ccSupabase
+                        .from('chat_messages')
+                        .select('thread_id,text,created_at')
+                        .in('thread_id', threadIds)
+                        .order('created_at', { ascending: false })
+                        .limit(300);
+                    (msgs || []).forEach((m) => {
+                        if (!lastByThread[m.thread_id]) lastByThread[m.thread_id] = m;
+                    });
+                }
 
                 return (data || []).map(t => {
                     const isOwner = t.offer_owner_id === state.user?.id;
                     const otherPerson = isOwner ? t.user : t.offer_owner;
 
                     const resObj = Array.isArray(t.reservations) ? t.reservations[0] : t.reservations;
+                    const offerObj = Array.isArray(t.offers) ? t.offers[0] : t.offers;
+                    const lastMsg = lastByThread[t.id] || null;
+                    const route = offerObj && (offerObj.origin || offerObj.destination)
+                        ? `${offerObj.origin || "?"} → ${offerObj.destination || "?"}`
+                        : "";
                     return {
                         ...t,
-                        reservation: resObj ? { id: resObj.id, status: resObj.status } : null,
+                        reservation: resObj || null,
                         status: resObj?.status || "pending",
                         reservation_id: t.reservation_id || resObj?.id,
+                        offer: offerObj || null,
+                        offerTitle: offerObj?.title || route || "Détails de l'offre",
+                        offerPrice: Number(offerObj?.price_per_kg || 0),
+                        offerOwnerId: t.offer_owner_id,
+                        kind: offerObj ? "offer" : (resObj ? "reservation" : "request"),
+                        preview: String(lastMsg?.text || "").slice(0, 140),
+                        lastMessageAt: lastMsg?.created_at || t.last_message_at || t.created_at,
                         isOfferOwner: isOwner,
                         travelerName: otherPerson?.full_name || (isOwner ? "Client" : "Voyageur"),
+                        travelerPhoto: otherPerson?.profile_photo || "",
+                        travelerVerified: Boolean(otherPerson?.is_verified),
                         travelerAlipayQr: otherPerson?.alipay_qr,
                         travelerWechatQr: otherPerson?.wechat_qr
                     };
                 });
             }
             if (p.includes("/admin/overview")) {
-                const [u, o, c] = await Promise.all([
+                const [u, active, suspended, pending, o, activeOffers, c, flags, reservations] = await Promise.all([
                     window.ccSupabase.from('profiles').select('id', { count: 'exact', head: true }),
+                    window.ccSupabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_active', true),
+                    window.ccSupabase.from('profiles').select('id', { count: 'exact', head: true }).eq('is_active', false),
+                    window.ccSupabase.from('profiles').select('id', { count: 'exact', head: true }).eq('kyc_status', 'pending'),
                     window.ccSupabase.from('offers').select('id', { count: 'exact', head: true }),
-                    window.ccSupabase.from('chat_threads').select('id', { count: 'exact', head: true })
+                    window.ccSupabase.from('offers').select('id', { count: 'exact', head: true }).eq('status', 'active'),
+                    window.ccSupabase.from('chat_threads').select('id', { count: 'exact', head: true }),
+                    window.ccSupabase.from('ai_moderation_logs').select('id', { count: 'exact', head: true }).eq('is_dismissed', false),
+                    window.ccSupabase.from('reservations').select('total_amount').limit(5000)
                 ]);
+                const volume = (reservations.data || []).reduce((sum, r) => sum + (Number(r.total_amount) || 0), 0);
                 return {
-                    users: u.count || 0, activeUsers: u.count || 0, suspendedUsers: 0,
-                    offers: o.count || 0, activeOffers: o.count || 0,
+                    users: u.count || 0,
+                    activeUsers: active.count || 0,
+                    suspendedUsers: suspended.count || 0,
+                    pendingApprovals: pending.count || 0,
+                    offers: o.count || 0,
+                    activeOffers: activeOffers.count || 0,
                     conversations: c.count || 0,
-                    totalCommission: 0, volumeP2P: 0, openFlags: 0
+                    openFlags: flags.count || 0,
+                    totalCommission: 0,
+                    volumeP2P: volume
                 };
             }
 
@@ -1119,13 +1313,19 @@
             if (p.includes("/admin/users")) {
                 const idMatch = path.match(/\/admin\/users\/([^\/\?]+)\/review-section/);
                 if (idMatch && options.method === "PATCH") {
-                    const { section, decision, reason } = options.body;
-                    const update = {};
-                    if (section === "identityDocument") update.identity_document_approved = (decision === "approve");
-                    if (section === "profilePhoto") update.profile_photo_approved = (decision === "approve");
-                    if (decision === "reject") update.identity_rejection_reason = reason;
-                    const { data, error } = await window.ccSupabase.from('profiles').update(update).eq('id', idMatch[1]).select();
+                    const { decision, reason } = options.body;
+                    // [FIX] Les colonnes identity_document_approved / profile_photo_approved
+                    // n'existent pas dans le schema Supabase : toute approbation echouait.
+                    // On utilise les colonnes reelles (kyc_status / is_verified).
+                    const approved = decision === "approve";
+                    const update = {
+                        kyc_status: approved ? "approved" : "rejected",
+                        is_verified: approved,
+                        identity_rejection_reason: approved ? null : (reason || "Document refuse")
+                    };
+                    const { data, error } = await window.ccSupabase.from('profiles').update(update).eq('id', idMatch[1]).select('id');
                     if (error) throw error;
+                    if (!data || !data.length) throw new Error("Profil introuvable ou modification refusee.");
                     return { success: true };
                 }
                 const idVerifyMatch = path.match(/\/admin\/users\/([^\/\?]+)\/verify/);
@@ -1153,7 +1353,12 @@
                     return { success: true };
                 }
                 const idSessionsMatch = path.match(/\/admin\/users\/([^\/\?]+)\/sessions/);
-                if (idSessionsMatch && options.method === "DELETE") return { success: true };
+                if (idSessionsMatch && options.method === "DELETE") {
+                    // Avec la cle anon, l'API Admin Supabase (revocation des sessions)
+                    // est inaccessible. On renvoie une erreur explicite au lieu d'un
+                    // faux « Sessions utilisateur supprimees ».
+                    throw new Error("Revocation des sessions non disponible en mode cloud : utilisez le tableau de bord Supabase (Authentication > Users).");
+                }
 
                 const idDeleteMatch = path.match(/\/admin\/users\/([^\/\?]+)$/);
                 if (idDeleteMatch && options.method === "DELETE") {
@@ -1185,12 +1390,40 @@
                     phoneNumber: u.phone_number,
                     email: u.email || "Utilisateur Supabase",
                     profileType: u.profile_type,
+                    lastSeenAt: u.updated_at || null,
                     profileCompletionPercent: 50,
                     profileCompletionMissing: ""
                 }));
                 return { items };
             }
-            if (p.includes("/admin/analytics/daily")) return { points: [] };
+            if (p.includes("/admin/analytics/daily")) {
+                const params = new URLSearchParams(path.split('?')[1] || "");
+                const days = Math.max(7, Math.min(60, Number(params.get("days") || 14)));
+                const since = new Date();
+                since.setDate(since.getDate() - (days - 1));
+                since.setHours(0, 0, 0, 0);
+                const sinceIso = since.toISOString();
+                const [profs, offs, threads] = await Promise.all([
+                    window.ccSupabase.from('profiles').select('created_at').gte('created_at', sinceIso),
+                    window.ccSupabase.from('offers').select('created_at').gte('created_at', sinceIso),
+                    window.ccSupabase.from('chat_threads').select('created_at').gte('created_at', sinceIso)
+                ]);
+                const byDay = {};
+                for (let i = 0; i < days; i++) {
+                    const d = new Date(since);
+                    d.setDate(since.getDate() + i);
+                    const key = d.toISOString().slice(0, 10);
+                    byDay[key] = { day: key, users: 0, offers: 0, conversations: 0, agreements: 0 };
+                }
+                const bump = (rows, field) => (rows || []).forEach((r) => {
+                    const key = String(r.created_at || "").slice(0, 10);
+                    if (byDay[key]) byDay[key][field] += 1;
+                });
+                if (!profs.error) bump(profs.data, "users");
+                if (!offs.error) bump(offs.data, "offers");
+                if (!threads.error) bump(threads.data, "conversations");
+                return { points: Object.values(byDay) };
+            }
             const aiLogDismissMatch = path.match(/\/api\/admin\/ai-moderation\/logs\/([^\/\?]+)/);
             if (aiLogDismissMatch && options.method === "PATCH") {
                 const { error } = await window.ccSupabase
@@ -1214,19 +1447,302 @@
                     return [];
                 }
             }
-            if (p.includes("/admin/reservations") || p.includes("/admin/flags") || p.includes("/admin/security/blocks") || p.includes("/admin/audit-log")) return [];
-            if (p.includes("/admin/financials/stats")) return { monthly: [], recent: [] };
-            if (p.includes("/settings/platform-qr")) return { qrCode: "" };
+            // ── PAIEMENTS MANUELS (preuve de virement) ────────────────────────
+            // Les routes /pay-commission et /pay-traveler n'existaient nulle part
+            // dans le bridge : la modale manuelle ne pouvait donc jamais aboutir.
+            const payManualMatch = path.match(/\/api\/reservations\/([^\/\?]+)\/(pay-commission|pay-traveler)/);
+            if (payManualMatch && String(options.method || "GET").toUpperCase() === "POST") {
+                const reservationId = payManualMatch[1];
+                const kind = payManualMatch[2];
+                const receipt = String(options.body?.receiptData || "");
+                if (!receipt.startsWith("data:image/")) throw new Error("Capture de paiement invalide.");
+                const { data: reservation, error: rErr } = await window.ccSupabase.from('reservations')
+                    .select('id, user_id, offer_id, status, offers(user_id)').eq('id', reservationId).maybeSingle();
+                if (rErr) throw rErr;
+                if (!reservation) throw new Error("Reservation introuvable.");
+                const offerRel = Array.isArray(reservation.offers) ? reservation.offers[0] : reservation.offers;
+                const offerOwnerId = offerRel?.user_id || null;
+                const uid = state.user?.id;
+                if (uid !== reservation.user_id && uid !== offerOwnerId) {
+                    throw new Error("Vous ne participez pas a cette reservation.");
+                }
+                const nextStatus = kind === "pay-commission" ? "commission_payee" : "voyageur_paye";
+                const { error: upErr } = await window.ccSupabase.from('reservations')
+                    .update({ status: nextStatus, updated_at: new Date().toISOString() })
+                    .eq('id', reservationId);
+                if (upErr) throw upErr;
+
+                const { data: thread } = await window.ccSupabase.from('chat_threads')
+                    .select('id').eq('reservation_id', reservationId).maybeSingle();
+                if (thread?.id) {
+                    const { error: imgErr } = await window.ccSupabase.from('chat_messages').insert({
+                        thread_id: thread.id,
+                        sender_user_id: uid,
+                        sender_type: "user",
+                        message_type: "payment_receipt",
+                        text: receipt
+                    });
+                    if (imgErr) throw imgErr;
+                    const label = kind === "pay-commission"
+                        ? "Commission plateforme : preuve de paiement envoyee."
+                        : "Paiement au voyageur : preuve de paiement envoyee.";
+                    const { error: sysErr } = await window.ccSupabase.from('chat_messages').insert({
+                        thread_id: thread.id,
+                        sender_type: "system",
+                        message_type: "text",
+                        text: label
+                    });
+                    if (sysErr) throw sysErr;
+                }
+                return { success: true, status: nextStatus };
+            }
+
+            // Reversement de commission confirme par le voyageur (bouton « J'ai reverse »).
+            const reversalMatch = path.match(/\/api\/reservations\/([^\/\?]+)\/reversal-done/);
+            if (reversalMatch && String(options.method || "GET").toUpperCase() === "POST") {
+                const reservationId = reversalMatch[1];
+                const { data: reservation, error: rErr } = await window.ccSupabase.from('reservations')
+                    .select('id, status, offers(user_id)').eq('id', reservationId).maybeSingle();
+                if (rErr) throw rErr;
+                if (!reservation) throw new Error("Reservation introuvable.");
+                const offerRel = Array.isArray(reservation.offers) ? reservation.offers[0] : reservation.offers;
+                if (offerRel?.user_id && offerRel.user_id !== state.user?.id) {
+                    throw new Error("Seul le voyageur peut confirmer ce reversement.");
+                }
+                const { error } = await window.ccSupabase.from('reservations')
+                    .update({ status: "colisconnect_paye", updated_at: new Date().toISOString() })
+                    .eq('id', reservationId);
+                if (error) throw error;
+                const { data: thread } = await window.ccSupabase.from('chat_threads')
+                    .select('id').eq('reservation_id', reservationId).maybeSingle();
+                if (thread?.id) {
+                    await window.ccSupabase.from('chat_messages').insert({
+                        thread_id: thread.id,
+                        sender_type: "system",
+                        message_type: "text",
+                        text: "Reversement de commission confirme par le voyageur."
+                    });
+                }
+                return { success: true, status: "colisconnect_paye" };
+            }
+
+            // ── ADMIN : OFFRES ────────────────────────────────────────────────
+            if (p.includes("/admin/offers")) {
+                const m = String(options.method || "GET").toUpperCase();
+                const idStatus = path.match(/\/admin\/offers\/([^\/\?]+)\/status/);
+                if (idStatus && m === "PATCH") {
+                    const { error } = await window.ccSupabase.from('offers')
+                        .update({ status: options.body?.status, updated_at: new Date().toISOString() })
+                        .eq('id', idStatus[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                const idVerify = path.match(/\/admin\/offers\/([^\/\?]+)\/verify/);
+                if (idVerify && m === "PATCH") {
+                    // La table offers n'a pas de colonne de verification : on verifie
+                    // le proprietaire, ce que l'UI admin attend reellement.
+                    const { data: offer, error: oErr } = await window.ccSupabase.from('offers')
+                        .select('user_id').eq('id', idVerify[1]).maybeSingle();
+                    if (oErr) throw oErr;
+                    if (!offer?.user_id) throw new Error("Offre introuvable.");
+                    const { error } = await window.ccSupabase.from('profiles')
+                        .update({ is_verified: true }).eq('id', offer.user_id);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                const idDelete = path.match(/\/admin\/offers\/([^\/\?]+)$/);
+                if (idDelete && m === "DELETE") {
+                    const { error } = await window.ccSupabase.from('offers').delete().eq('id', idDelete[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                if (p.includes("/pending-verification")) {
+                    const { data, error } = await window.ccSupabase.from('offers')
+                        .select('*').eq('status', 'unverified').order('created_at', { ascending: false }).limit(200);
+                    if (error) throw error;
+                    return { items: await mapAdminOffers(data || []) };
+                }
+                const params = new URLSearchParams(path.split('?')[1] || "");
+                const q = params.get("q");
+                let query = window.ccSupabase.from('offers').select('*').order('created_at', { ascending: false }).limit(300);
+                if (q) query = query.or(`title.ilike.%${q}%,origin.ilike.%${q}%,destination.ilike.%${q}%`);
+                const { data, error } = await query;
+                if (error) throw error;
+                return { items: await mapAdminOffers(data || []) };
+            }
+
+            // ── ADMIN : RÉSERVATIONS ──────────────────────────────────────────
+            if (p.includes("/admin/reservations")) {
+                const m = String(options.method || "GET").toUpperCase();
+                const idStatus = path.match(/\/admin\/reservations\/([^\/\?]+)\/status/);
+                if (idStatus && m === "PATCH") {
+                    const { error } = await window.ccSupabase.from('reservations')
+                        .update({ status: options.body?.status, updated_at: new Date().toISOString() })
+                        .eq('id', idStatus[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                const idChat = path.match(/\/admin\/reservations\/([^\/\?]+)\/chat$/);
+                if (idChat && m === "DELETE") {
+                    const { error } = await window.ccSupabase.from('chat_threads').delete().eq('reservation_id', idChat[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                if (m !== "GET") {
+                    throw new Error("Suspension d'accord/chat non disponible en mode cloud (aucune colonne d'etat sur chat_threads).");
+                }
+                const { data, error } = await window.ccSupabase.from('reservations')
+                    .select('*, offers(title, origin, destination, user_id)')
+                    .order('created_at', { ascending: false }).limit(300);
+                if (error) throw error;
+                const rows = data || [];
+                const userIds = [...new Set(rows.flatMap(r => [r.user_id, r.offers?.user_id]).filter(Boolean))];
+                const nameById = {};
+                if (userIds.length) {
+                    const { data: profs } = await window.ccSupabase.from('profiles').select('id, full_name').in('id', userIds);
+                    (profs || []).forEach(pr => { nameById[pr.id] = pr.full_name; });
+                }
+                const resIds = rows.map(r => r.id);
+                const threadByRes = {};
+                if (resIds.length) {
+                    const { data: threads } = await window.ccSupabase.from('chat_threads').select('id, reservation_id').in('reservation_id', resIds);
+                    (threads || []).forEach(th => { threadByRes[th.reservation_id] = th.id; });
+                }
+                return rows.map(r => ({
+                    id: r.id,
+                    requesterName: nameById[r.user_id] || "Client",
+                    offerOwnerName: nameById[r.offers?.user_id] || "Voyageur",
+                    destination: r.offers?.destination || "-",
+                    status: r.status,
+                    chatThreadId: threadByRes[r.id] || null,
+                    chatSuspended: 0,
+                    createdAt: r.created_at
+                }));
+            }
+
+            // ── ADMIN : CONVERSATIONS ─────────────────────────────────────────
+            if (p.includes("/admin/conversations")) {
+                const m = String(options.method || "GET").toUpperCase();
+                const idDelete = path.match(/\/admin\/conversations\/([^\/\?]+)$/);
+                if (idDelete && m === "DELETE") {
+                    const { error: msgErr } = await window.ccSupabase.from('chat_messages').delete().eq('thread_id', idDelete[1]);
+                    if (msgErr) throw msgErr;
+                    const { error } = await window.ccSupabase.from('chat_threads').delete().eq('id', idDelete[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                if (m !== "GET") {
+                    throw new Error("Suspension de conversation non disponible en mode cloud (aucune colonne d'etat sur chat_threads).");
+                }
+                const { data, error } = await window.ccSupabase.from('chat_threads')
+                    .select('*').order('last_message_at', { ascending: false, nullsFirst: false }).limit(300);
+                if (error) throw error;
+                const rows = data || [];
+                const ids = [...new Set(rows.flatMap(t => [t.user_id, t.offer_owner_id]).filter(Boolean))];
+                const names = {};
+                if (ids.length) {
+                    const { data: profs } = await window.ccSupabase.from('profiles').select('id, full_name').in('id', ids);
+                    (profs || []).forEach(pr => { names[pr.id] = pr.full_name; });
+                }
+                return rows.map(t => ({
+                    id: t.id,
+                    reservationId: t.reservation_id,
+                    requesterName: names[t.user_id] || "Client",
+                    offerOwnerName: names[t.offer_owner_id] || "Voyageur",
+                    isSuspended: 0,
+                    messageCount: 0,
+                    preview: "",
+                    lastMessageAt: t.last_message_at
+                }));
+            }
+
+            // ── ADMIN : FLAGS (issus des alertes IA) ──────────────────────────
+            if (p.includes("/admin/flags")) {
+                const m = String(options.method || "GET").toUpperCase();
+                const idResolve = path.match(/\/admin\/flags\/([^\/\?]+)\/resolve/);
+                if (idResolve && m === "PATCH") {
+                    const { error } = await window.ccSupabase.from('ai_moderation_logs')
+                        .update({ is_dismissed: true }).eq('id', idResolve[1]);
+                    if (error) throw error;
+                    return { success: true };
+                }
+                if (m !== "GET") throw new Error("Creation manuelle de flag non disponible en mode cloud.");
+                const { data, error } = await window.ccSupabase.from('ai_moderation_logs')
+                    .select('*').eq('is_dismissed', false).order('created_at', { ascending: false }).limit(200);
+                if (error) throw error;
+                return (data || []).map(log => ({
+                    id: log.id,
+                    entityType: "thread",
+                    entityId: log.thread_id || "-",
+                    reason: log.summary || log.risk_level || "Alerte anti-contact",
+                    status: "open",
+                    createdAt: log.created_at
+                }));
+            }
+
+            // ── ADMIN : SÉCURITÉ / AUDIT (pas de table dédiée en cloud) ───────
+            if (p.includes("/admin/security/blocks")) {
+                if (String(options.method || "GET").toUpperCase() !== "GET") {
+                    throw new Error("Blocage IP/email non disponible en mode cloud (aucune table security_blocks).");
+                }
+                return [];
+            }
+            if (p.includes("/admin/security/login-rate")) return {};
+            if (p.includes("/admin/audit-log")) {
+                if (String(options.method || "GET").toUpperCase() !== "GET") {
+                    throw new Error("Journal d'audit non disponible en mode cloud (aucune table admin_audit_log).");
+                }
+                return [];
+            }
+
+            // ── ADMIN : FINANCES (calculées sur les réservations) ─────────────
+            if (p.includes("/admin/financials/stats")) {
+                const { data, error } = await window.ccSupabase.from('reservations')
+                    .select('id, user_id, total_amount, status, created_at')
+                    .order('created_at', { ascending: false }).limit(1000);
+                if (error) throw error;
+                const rows = data || [];
+                const months = {};
+                const paidStatuses = new Set(["paid", "voyageur_paye", "colisconnect_paye", "agreed", "delivered"]);
+                rows.forEach(r => {
+                    const d = new Date(r.created_at);
+                    if (isNaN(d.getTime())) return;
+                    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                    if (!months[key]) months[key] = { month: key, volume: 0, commission: 0 };
+                    const amount = Number(r.total_amount) || 0;
+                    months[key].volume += amount;
+                    if (paidStatuses.has(String(r.status || "").toLowerCase())) months[key].commission += amount * 0.10;
+                });
+                const monthly = Object.values(months).sort((a, b) => a.month.localeCompare(b.month)).slice(-6);
+                const recent = rows.slice(0, 30).map(r => ({
+                    created_at: r.created_at,
+                    type: "P2P",
+                    requesterName: r.user_id ? String(r.user_id).slice(0, 8) : "Client",
+                    amount: (Number(r.total_amount) || 0).toFixed(2)
+                }));
+                return { monthly, recent };
+            }
+            if (p.includes("/settings/platform-qr")) {
+                if (String(options.method || "GET").toUpperCase() !== "GET") {
+                    throw new Error("QR plateforme non disponible en mode cloud (aucune table platform_settings).");
+                }
+                return { qrCode: "" };
+            }
 
             // 6. GENERAL ADMIN & NOTIFS
             if (p.includes("/admin/inbox") || p.includes("/notification-counts")) {
                 return { chatUnread: 0, adminUnread: 0, items: [] };
             }
 
-            // [BRIDGE SAFETY] Catch-all for other admin routes to avoid 404 on GitHub Pages
+            // [BRIDGE SAFETY] Route admin inconnue : on ne fait plus semblant de réussir.
+            // Avant, un POST/PATCH/DELETE non géré renvoyait [] et l'UI affichait
+            // « Blocage enregistre », « Flag cree », etc. alors que rien n'était écrit.
             if (p.includes("/admin/")) {
+                const m = String(options.method || "GET").toUpperCase();
+                if (m !== "GET" && m !== "HEAD") {
+                    throw new Error("Action admin non disponible en mode cloud : " + path);
+                }
                 console.warn("Route admin non gérée par le bridge:", path);
-                if (p.includes("/stats") || p.includes("/overview")) return {};
                 return [];
             }
 
@@ -1316,6 +1832,9 @@
             localStorage.setItem("cc_auth_token", state.token);
         } else {
             localStorage.removeItem("cc_auth_token");
+            // Sans ça, supabase-init.js restaure la session au rechargement suivant
+            // et l'utilisateur semble ne jamais pouvoir se deconnecter.
+            localStorage.removeItem("cc_refresh_token");
         }
     }
 
@@ -1406,6 +1925,35 @@
             }
         }
 
+        // [FIX] supabase-init.js restaure la session dans une IIFE asynchrone :
+        // restoreSession() pouvait lui passer devant et /auth/me repondait « no user »,
+        // ce qui deconnectait l'utilisateur malgre un refresh_token valide.
+        if (state.token && window.ccSupabase) {
+            try {
+                const { data: { session } } = await window.ccSupabase.auth.getSession();
+                if (!session) {
+                    const refresh = localStorage.getItem("cc_refresh_token");
+                    if (refresh) {
+                        const { data: restored } = await window.ccSupabase.auth.setSession({
+                            access_token: state.token,
+                            refresh_token: refresh
+                        });
+                        // setSession peut renvoyer un access_token rafraichi : on garde
+                        // la copie locale alignee sur la session reellement active.
+                        if (restored?.session?.access_token) {
+                            state.token = restored.session.access_token;
+                            localStorage.setItem("cc_auth_token", state.token);
+                            if (restored.session.refresh_token) {
+                                localStorage.setItem("cc_refresh_token", restored.session.refresh_token);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Restauration explicite de session impossible:", e && e.message);
+            }
+        }
+
         if (!state.token) {
             state.user = null;
             return null;
@@ -1429,12 +1977,27 @@
     }
 
     async function logout() {
+        // [FIX 2026-10-28] Deconnecter Supabase ET oublier le refresh_token.
+        // Avant, seule la copie locale du jeton etait effacee : la session Supabase
+        // restait valide et supabase-init.js reconnectait l'utilisateur au rechargement.
+        try {
+            if (window.ccSupabase && window.ccSupabase.auth) {
+                await window.ccSupabase.auth.signOut();
+            }
+        } catch {
+            // on continue : la deconnexion locale doit toujours aboutir
+        }
         try {
             if (state.token) {
                 await api("/api/auth/logout", { method: "POST" });
             }
         } catch {
             // continue local logout
+        }
+        try {
+            localStorage.removeItem("cc_refresh_token");
+        } catch {
+            // stockage indisponible
         }
         setSession("", null);
     }
@@ -1701,7 +2264,25 @@
     }
 
     function onModalAuthSuccess(payload) {
-        setSession(payload.token, payload.user);
+        // Pas de jeton = compte cree mais confirmation d'e-mail requise par Supabase
+        // (ou reponse OTP mal transmise). Continuer redirigerait vers une page
+        // protegee sans session, puis renverrait sur l'accueil.
+        if (!payload || !payload.token) {
+            openAuthForms("login");
+            if (ui.feedbackDetails) {
+                ui.feedbackDetails.textContent = "Compte cree. Confirmez votre adresse e-mail (lien recu par mail), puis connectez-vous.";
+                ui.feedbackDetails.style.color = "#aef6d2";
+            }
+            return;
+        }
+        const baseUser = payload.user || {};
+        const mergedUser = baseUser.user_metadata
+            ? { ...baseUser, ...baseUser.user_metadata }
+            : baseUser;
+        setSession(payload.token, mergedUser);
+        try {
+            if (payload.refreshToken) localStorage.setItem("cc_refresh_token", payload.refreshToken);
+        } catch (e) { /* stockage indisponible */ }
         updateHeaderUi();
         closeAuthModal(false);
 
@@ -1927,6 +2508,9 @@
         ui.detailsForm = document.getElementById("cc-auth-details-form");
         ui.feedbackHub = document.getElementById("cc-auth-hub-feedback");
         ui.feedbackDetails = document.getElementById("cc-auth-details-feedback");
+        // setModalFeedback() ecrivait dans ui.feedback, jamais affecte : tous ses
+        // messages (dont les erreurs de porte d'authentification) etaient perdus.
+        ui.feedback = ui.feedbackHub;
         ui.profileModal = document.getElementById("cc-profile-modal");
 
         let currentMode = "login";
@@ -2096,7 +2680,14 @@
             try {
                 const { error, data } = await window.ccSupabase.auth.verifyOtp({ phone, token, type: "sms" });
                 if (error) throw error;
-                onModalAuthSuccess({ user: data.user, session: data.session });
+                // onModalAuthSuccess attend { token, refreshToken, user } :
+                // l'ancien appel passait { session } et laissait donc l'utilisateur
+                // sans jeton -> redirection vers une page protegee puis retour accueil.
+                onModalAuthSuccess({
+                    token: data.session?.access_token || "",
+                    refreshToken: data.session?.refresh_token || "",
+                    user: data.user
+                });
             } catch (err) {
                 document.getElementById("cc-auth-phone-feedback").textContent = err.message;
             }
@@ -2571,10 +3162,52 @@
         return _paysAvecVilles[code];
     }
 
+    // [FIX 2026-10-28] Codes ISO des pays presents dans la liste du formulaire
+    // mais ABSENTS de la table `countries` (donc sans drapeau ni code stocke sur
+    // l'annonce). Resolution 100 % locale : aucune ecriture en base, aucune
+    // dependance reseau. Cle = nom normalise (accents/ponctuation ignores).
+    const COUNTRY_ISO_FALLBACK = {
+        "ouganda": "UG",
+        "chypre": "CY",
+        "luxembourg": "LU",
+        "islande": "IS",
+        "palestine": "PS",
+        "birmanie": "MM",
+        "cambodge": "KH",
+        "coreedunord": "KP",
+        "hongkong": "HK",
+        "kirghizistan": "KG",
+        "laos": "LA",
+        "macao": "MO",
+        "tadjikistan": "TJ",
+        "taiwan": "TW",
+        "turkmenistan": "TM",
+        "jamaique": "JM",
+        "kosovo": "XK",
+        "antiguaetbarbuda": "AG",
+        "micronesie": "FM",
+        "ilesmarshall": "MH"
+    };
+
+    function _codeIsoLocal(paysName) {
+        // normalize("NFD") decompose les accents ; [^a-z0-9] retire ensuite les
+        // marques combinantes, les espaces et la ponctuation (une seule passe).
+        const norm = (v) => String(v || "").toLowerCase().normalize("NFD")
+            .replace(/[^a-z0-9]/g, "");
+        return COUNTRY_ISO_FALLBACK[norm(paysName)] || null;
+    }
+
     async function _getCountryCode(paysName) {
         if (!_countryCodeMap) _countryCodeMap = {};
         if (!paysName) return null;
         if (_countryCodeMap[paysName]) return _countryCodeMap[paysName];
+        // Pays connus localement mais absents de la table : reponse immediate,
+        // meme hors connexion (le drapeau s'affiche au lieu de rester vide).
+        const codeLocal = _codeIsoLocal(paysName);
+        if (codeLocal) {
+            _countryCodeMap[paysName] = codeLocal;
+            return codeLocal;
+        }
         if (!window.ccSupabase) return null;
         try {
             // Normaliser pour la recherche (ignorer accents, casses)
@@ -2680,6 +3313,27 @@
         if (!window.ccSupabase) return { ok: true, ville: brut };
         const code = await _getCountryCode(pays);
         if (!code) return { ok: true, ville: brut };    // pays inconnu de la base : rien a verifier
+
+        // [PERF 2026-10-30] Cas normal (l'utilisateur a choisi une suggestion) :
+        // une seule requete d'egalite insensible a la casse suffit. La recherche
+        // complete ci-dessous (plusieurs requetes) coutait plusieurs secondes
+        // avant de valider « Paris ». On ne l'utilise plus qu'en cas d'echec
+        // (accents non saisis, faute de frappe, ville inconnue).
+        try {
+            const colonne = langueVilles() === "en" ? "name" : "name_fr";
+            const cible = _ccNormaliserVille(brut);
+            const { data: exacts, error: exactErr } = await window.ccSupabase
+                .from("cities").select("name,name_fr")
+                .eq("country_code", code)
+                .ilike(colonne, brut.replace(/[%_]/g, ""))
+                .limit(5);
+            if (!exactErr && Array.isArray(exacts)) {
+                const row = exacts.find((r) => _ccNormaliserVille(nomVille(r)) === cible)
+                    || exacts.find((r) => _ccNormaliserVille(r.name) === cible);
+                if (row) return { ok: true, ville: nomVille(row) };
+            }
+        } catch (e) { /* on retombe sur la recherche complete */ }
+
         const liste = await _ccChercherVilles(code, brut);
         if (liste === null) return { ok: true, ville: brut };   // base injoignable : on ne bloque pas
         const cible = _ccNormaliserVille(brut);
@@ -2759,14 +3413,21 @@
             // ne connait pas ce filtre. On interroge la colonne francaise ET la colonne
             // internationale, mais on n'AFFICHE jamais que le nom francais.
             const lancer = async (colonne, filtre, debut) => {
+                // [FIX 2026-10-28] ORDER BY + limite plus large. Sans tri, la base
+                // renvoyait 20 lignes arbitraires : pour « Par », les arrondissements
+                // (« Paris 09 Opera »...) saturaient la limite et « Paris » n'etait
+                // jamais proposee. L'ordre alphabetique place « Paris » avant
+                // « Paris 09 ... » (chaine plus courte = triee en premier).
                 try {
                     const r = await window.ccSupabase.from('cities').select('name,name_fr')
-                        .eq('country_code', code).filter(colonne, 'imatch', filtre).limit(20);
+                        .eq('country_code', code).filter(colonne, 'imatch', filtre)
+                        .order(colonne, { ascending: true }).limit(50);
                     if (!r.error && r.data) return r.data;
                 } catch (e) { /* filtre imatch indisponible */ }
                 try {
                     const r2 = await window.ccSupabase.from('cities').select('name,name_fr')
-                        .eq('country_code', code).ilike(colonne, debut ? `${brut}%` : `%${brut}%`).limit(20);
+                        .eq('country_code', code).ilike(colonne, debut ? `${brut}%` : `%${brut}%`)
+                        .order(colonne, { ascending: true }).limit(50);
                     if (r2 && r2.error) return null;
                     return (r2 && r2.data) || [];
                 } catch (e) { return null; }   // base injoignable : signal distinct (null)
@@ -2783,6 +3444,14 @@
                 lancer(colonnes[1], `^${motif}`, true),
                 lancer(colonnes[1], `.*${motif}.*`, false)
             ]);
+            // [FIX 2026-10-28] Correspondance EXACTE, en plus des 4 recherches.
+            // Les requetes sont limitees a 20 lignes sans tri : pour « Paris »,
+            // les arrondissements (« Paris 09 Opera »...) saturaient la limite et
+            // la ville « Paris » elle-meme n'apparaissait pas. validerVille ne
+            // trouvait alors aucun exact et EFFACAIT la saisie.
+            const exacts = await Promise.all(
+                colonnes.map((col) => lancer(col, `^${motif}$`, true))
+            );
 
             // Base injoignable (les requetes ont echoue) : on ne peut RIEN verifier.
             // On le signale par null pour ne pas effacer une ville valide hors connexion.
@@ -2790,6 +3459,17 @@
 
             const noms = [];
             const vus = {};
+            // Les correspondances exactes passent en premier (elles ne doivent
+            // jamais etre coupees par la limite d'affichage).
+            (exacts || []).forEach(liste => {
+                (liste || []).forEach(ligne => {
+                    const nom = nomVille(ligne);
+                    if (nom && !vus[nom]) {
+                        vus[nom] = 1;
+                        noms.push(nom);
+                    }
+                });
+            });
             resultats.forEach(liste => {
                 (liste || []).forEach(ligne => {
                     const nom = nomVille(ligne);
@@ -3090,7 +3770,14 @@
         // --- LOGIQUE MOTEUR DE RECHERCHE ---
 
         function normaliser(t) {
-            return String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            // [FIX 2026-10-28] Ponctuation, apostrophes, tirets et espaces ignores :
+            // "cote divoire", "cote d'ivoire" et "Cote-d'Ivoire" designent le meme
+            // pays. Avant, taper un espace au lieu de l'apostrophe (ou du tiret)
+            // ne proposait AUCUN pays : "etats unis", "royaume uni" et
+            // "guinee bissau" etaient introuvables.
+            return String(t || "").toLowerCase().normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^a-z0-9]/g, "");
         }
 
         function filtrerPays(texte) {
@@ -3139,7 +3826,9 @@
         });
 
         // Au focus → montrer la liste si déjà du texte
+        let valeurAuFocus = "";
         $input.addEventListener("focus", function () {
+            valeurAuFocus = this.value;
             this.classList.remove("cc-country-invalid");
             if (this.value.trim()) {
                 const pays = filtrerPays(this.value);
@@ -3152,14 +3841,31 @@
         // donc une valeur libre serait soumise si on attendait 200ms.
         $input.addEventListener("blur", function () {
             const val = this.value.trim();
-            const isValid = val ? (COUNTRY_OPTIONS || []).some(c => normaliser(c) === normaliser(val)) : true;
+            const cible = normaliser(val);
+            // Saisie exacte OU prefixe qui ne correspond qu'a UN seul pays : on
+            // complete (auparavant « sen » etait efface alors que « Senegal »
+            // etait la seule suggestion visible). Un prefixe ambigu (« guin »)
+            // reste refuse : la regle « pas de saisie libre » est conservee.
+            const correspondances = val
+                ? (COUNTRY_OPTIONS || []).filter(c => normaliser(c).includes(cible))
+                : [];
+            const exact = correspondances.find(c => normaliser(c) === cible);
+            const unique = correspondances.length === 1 ? correspondances[0] : null;
+            const match = exact || unique;
+            const isValid = val ? !!match : true;
             if (!isValid) {
                 this.value = "";
                 this.classList.add("cc-country-invalid");
             } else if (val) {
-                const match = (COUNTRY_OPTIONS || []).find(c => normaliser(c) === normaliser(val));
-                if (match) this.value = match;
+                this.value = match;
                 this.classList.remove("cc-country-invalid");
+            }
+            // Saisie au clavier (sans clic sur une suggestion) : la valeur a change,
+            // on previent les composants dependants (devise, villes...) exactement
+            // comme un choix dans la liste. Sans ca, la monnaie restait celle de
+            // l'ancien pays tant que l'utilisateur ne rouvrait pas la liste.
+            if (this.value !== valeurAuFocus) {
+                $input.dispatchEvent(new Event("change", { bubbles: true }));
             }
             setTimeout(() => { list.style.display = "none"; }, 200);
         });

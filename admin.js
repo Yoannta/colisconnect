@@ -151,8 +151,14 @@
     function setSession(token, user) {
         state.token = token || "";
         state.user = user || null;
-        if (state.token) localStorage.setItem("cc_token", state.token);
-        else localStorage.removeItem("cc_token");
+        // [FIX] La cle reelle du site est cc_auth_token, pas cc_token : la
+        // deconnexion admin laissait donc le jeton actif et la session revenait.
+        if (state.token) {
+            localStorage.setItem("cc_auth_token", state.token);
+        } else {
+            localStorage.removeItem("cc_auth_token");
+            localStorage.removeItem("cc_refresh_token");
+        }
         updateAuthUi();
     }
 
@@ -266,17 +272,30 @@
         if (!els.usersBody) return;
         const users = Array.isArray(resp?.items) ? resp.items : [];
         if (!users.length) {
-            els.usersBody.innerHTML = '<tr><td colspan="8">Aucun utilisateur.</td></tr>';
+            els.usersBody.innerHTML = '<tr><td colspan="9">Aucun utilisateur.</td></tr>';
             return;
         }
         const currentAdminEmail = String(state.user?.email || "").toLowerCase();
         const isSpecialApprover = currentAdminEmail === "yoann.tato@gmail.com";
         els.usersBody.innerHTML = users.map((u) => {
-            const active = Number(u.isActive) === 1;
+            // is_active peut etre null/absent : on ne doit pas afficher « suspendu »
+            // pour un compte simplement non renseigne.
+            const active = !(u.isActive === false || u.isActive === 0 || u.isActive === "false");
             const role = String(u.role || "user").toLowerCase();
-            const completion = Number(u.profileCompletionPercent || 25);
+            // Progression reelle (meme ponderation que CCCommon.getProfileCompletion)
+            // au lieu du 50 % code en dur.
+            const completion = Math.min(100,
+                (u.full_name || u.fullName ? 15 : 0) +
+                (u.country ? 15 : 0) +
+                (String(u.phone_number || u.phoneNumber || "").trim().length >= 8 ? 35 : 0) +
+                (u.identity_document || u.identityDocument ? 35 : 0));
             const isVerified = Boolean(u.isVerified);
-            const missing = formatMissingFields(u.profileCompletionMissing);
+            const missingFields = [];
+            if (!(u.full_name || u.fullName)) missingFields.push("fullName");
+            if (!u.country) missingFields.push("country");
+            if (String(u.phone_number || u.phoneNumber || "").trim().length < 8) missingFields.push("phoneNumber");
+            if (!(u.identity_document || u.identityDocument)) missingFields.push("identityDocument");
+            const missing = formatMissingFields(missingFields);
             const activity = `Offres:${u.offersCount || 0} | Reserv:${u.reservationsCount || 0} | Chats:${u.conversationsCount || 0} | Last:${fmtDateTime(u.lastSeenAt)}`;
 
             const verifyBtn = isVerified
@@ -396,13 +415,14 @@ ${agreementBtn}
 
     function renderBlocks(rows, rate) {
         if (els.loginRateNote) {
-            const keys = Number(rate?.keys || 0);
-            els.loginRateNote.textContent = `Rate limiter actif: ${keys} cle(s) suivies.`;
+            // Aucune table de blocages en mode cloud : on l'affiche clairement au
+            // lieu de laisser croire que la liste est simplement vide.
+            els.loginRateNote.textContent = "Gestion des blocages IP/email non disponible en mode cloud (aucune table dédiée). Les suspensions de comptes se font dans l'onglet Utilisateurs.";
         }
         if (!els.blocksBody) return;
         const items = Array.isArray(rows) ? rows : [];
         if (!items.length) {
-            els.blocksBody.innerHTML = '<tr><td colspan="6">Aucun blocage actif.</td></tr>';
+            els.blocksBody.innerHTML = '<tr><td colspan="6">Aucun blocage enregistre (fonction indisponible en mode cloud).</td></tr>';
             return;
         }
         els.blocksBody.innerHTML = items.map((b) => `<tr>
@@ -439,7 +459,7 @@ ${agreementBtn}
         if (!els.auditBody) return;
         const items = Array.isArray(rows) ? rows : [];
         if (!items.length) {
-            els.auditBody.innerHTML = '<tr><td colspan="5">Aucune action admin.</td></tr>';
+            els.auditBody.innerHTML = '<tr><td colspan="5">Journal d\'audit indisponible en mode cloud (aucune table dediee).</td></tr>';
             return;
         }
         els.auditBody.innerHTML = items.map((item) => `<tr>
@@ -526,29 +546,56 @@ ${agreementBtn}
         }
         if (state.loading) return;
         state.loading = true;
+        showToast("Chargement des données admin...");
 
         try {
             setGuardMode(false);
             const days = Math.max(7, Math.min(60, Number(els.daysInput?.value || 14)));
             const usersParams = new URLSearchParams({ q: state.usersQuery, page: "1", pageSize: "120" });
-            const offersData = state.offersPendingOnly
-                ? await api("/api/admin/offers/pending-verification")
-                : await api(`/api/admin/offers?${new URLSearchParams({ q: state.offersQuery, page: "1", pageSize: "160" }).toString()}`);
+            let offersData = { items: [] };
+            try {
+                offersData = state.offersPendingOnly
+                    ? await api("/api/admin/offers/pending-verification")
+                    : await api(`/api/admin/offers?${new URLSearchParams({ q: state.offersQuery, page: "1", pageSize: "160" }).toString()}`);
+            } catch (offersError) {
+                showToast("Offres indisponibles : " + (offersError.message || "erreur reseau"));
+            }
 
-            const [overview, analytics, users, reservations, conversations, blocks, rate, flags, audit, platformQrData, financeData, aiLogs] = await Promise.all([
-                api("/api/admin/overview"),
-                api(`/api/admin/analytics/daily?days=${encodeURIComponent(days)}`),
-                api(`/api/admin/users?${usersParams.toString()}`),
-                api("/api/admin/reservations"),
-                api("/api/admin/conversations"),
-                api("/api/admin/security/blocks"),
-                api("/api/admin/security/login-rate"),
-                api("/api/admin/flags"),
-                api("/api/admin/audit-log?limit=160"),
-                api("/api/settings/platform-qr"),
-                api("/api/admin/financials/stats"),
-                api("/api/admin/ai-moderation/logs")
-            ]);
+            // allSettled : avant, une seule requete en echec (RLS, reseau) vidait
+            // TOUTE la console admin et laissait les anciennes donnees a l'ecran.
+            const calls = [
+                ["Vue d'ensemble", () => api("/api/admin/overview")],
+                ["Analytics", () => api(`/api/admin/analytics/daily?days=${encodeURIComponent(days)}`)],
+                ["Utilisateurs", () => api(`/api/admin/users?${usersParams.toString()}`)],
+                ["Reservations", () => api("/api/admin/reservations")],
+                ["Conversations", () => api("/api/admin/conversations")],
+                ["Blocages", () => api("/api/admin/security/blocks")],
+                ["Rate limit", () => api("/api/admin/security/login-rate")],
+                ["Flags", () => api("/api/admin/flags")],
+                ["Audit", () => api("/api/admin/audit-log?limit=160")],
+                ["QR plateforme", () => api("/api/settings/platform-qr")],
+                ["Finances", () => api("/api/admin/financials/stats")],
+                ["Moderation IA", () => api("/api/admin/ai-moderation/logs")]
+            ];
+            const results = await Promise.allSettled(calls.map(([, fn]) => fn()));
+            const value = (i, fallback) => results[i].status === "fulfilled" ? results[i].value : fallback;
+            const failed = results.map((r, i) => r.status === "rejected" ? calls[i][0] : null).filter(Boolean);
+            if (failed.length) {
+                showToast(`Sections indisponibles : ${failed.join(", ")}.`);
+            }
+
+            const overview = value(0, {});
+            const analytics = value(1, {});
+            const users = value(2, { items: [] });
+            const reservations = value(3, []);
+            const conversations = value(4, []);
+            const blocks = value(5, []);
+            const rate = value(6, {});
+            const flags = value(7, []);
+            const audit = value(8, []);
+            const platformQrData = value(9, {});
+            const financeData = value(10, { monthly: [], recent: [] });
+            const aiLogs = value(11, []);
 
             renderOverview(overview || {});
             renderAnalytics(analytics || {});
@@ -565,6 +612,7 @@ ${agreementBtn}
             if (platformQrData?.qrCode && els.platformQrPreview) {
                 els.platformQrPreview.innerHTML = `<img src="${platformQrData.qrCode}" alt="QR Code ColisConnect">`;
             }
+            if (!failed.length) showToast("Données admin à jour.");
         } catch (error) {
             if (error?.status === 401 || error?.status === 403) setGuardMode(true);
             showToast(error.message || "Erreur chargement admin.");
@@ -608,7 +656,8 @@ ${agreementBtn}
                 flags = [];
             }
             const threadLabel = log.thread_id ? `#${String(log.thread_id).slice(0, 8)}` : "-";
-            const chatHref = log.reservation_id ? `chat.html?reservationId=${encodeURIComponent(log.reservation_id)}` : "chat.html";
+            // chat.js ne lit pas ?reservationId : le lien n'ouvrait pas le bon fil.
+            const chatHref = log.thread_id ? `chat.html?id=${encodeURIComponent(log.thread_id)}` : "chat.html";
 
             return `
                 <tr style="${log.is_dismissed ? 'opacity: 0.6;' : ''}">
@@ -701,7 +750,23 @@ ${agreementBtn}
             window.location.href = "auth.html";
         });
 
+        // La page approvals.html a ete supprimee : le lien menait a un 404.
+        // On renvoie vers la section Utilisateurs, ou se font les approbations.
+        document.getElementById("admin-approvals-open")?.addEventListener("click", () => {
+            updateSection("users");
+            const q = document.getElementById("admin-users-q");
+            if (q) {
+                q.value = "";
+                state.usersQuery = "";
+            }
+        });
+
         els.logoutBtn?.addEventListener("click", async () => {
+            try {
+                if (window.ccSupabase?.auth) await window.ccSupabase.auth.signOut();
+            } catch {
+                // Continue local cleanup.
+            }
             try {
                 if (state.token) await api("/api/auth/logout", { method: "POST" });
             } catch {
@@ -798,6 +863,10 @@ ${agreementBtn}
             if (toggle) {
                 const id = toggle.getAttribute("data-user-toggle");
                 const isActive = Number(toggle.getAttribute("data-target-active"));
+                const ask = isActive
+                    ? "Reactiver ce compte ? L'utilisateur pourra se reconnecter."
+                    : "Suspendre ce compte ? Il ne pourra plus se connecter tant qu'il reste suspendu.";
+                if (!window.confirm(ask)) return;
                 refreshAfterAction(() => api(`/api/admin/users/${id}/status`, { method: "PATCH", body: { isActive } }), "Statut utilisateur mis a jour.");
                 return;
             }
@@ -806,6 +875,7 @@ ${agreementBtn}
             if (role) {
                 const id = role.getAttribute("data-user-role");
                 const nextRole = String(role.getAttribute("data-target-role") || "user");
+                if (!window.confirm(`Donner le role « ${nextRole} » a cet utilisateur ?`)) return;
                 refreshAfterAction(() => api(`/api/admin/users/${id}/role`, { method: "PATCH", body: { role: nextRole } }), "Role utilisateur mis a jour.");
                 return;
             }
@@ -813,6 +883,7 @@ ${agreementBtn}
             const logout = target.closest("[data-user-logout]");
             if (logout) {
                 const id = logout.getAttribute("data-user-logout");
+                if (!window.confirm("Forcer la deconnexion de cet utilisateur sur tous ses appareils ?")) return;
                 refreshAfterAction(() => api(`/api/admin/users/${id}/sessions`, { method: "DELETE" }), "Sessions utilisateur supprimees.");
                 return;
             }
@@ -820,8 +891,8 @@ ${agreementBtn}
             const remove = target.closest("[data-user-delete]");
             if (remove) {
                 const id = remove.getAttribute("data-user-delete");
-                if (!window.confirm("Supprimer cet utilisateur ?")) return;
-                refreshAfterAction(() => api(`/api/admin/users/${id}`, { method: "DELETE" }), "Utilisateur supprime.");
+                if (!window.confirm("Supprimer le profil de cet utilisateur ? Le compte de connexion Supabase devra etre supprime separement depuis le tableau de bord Supabase.")) return;
+                refreshAfterAction(() => api(`/api/admin/users/${id}`, { method: "DELETE" }), "Profil supprime. Pensez a supprimer aussi le compte Auth dans Supabase.");
             }
         });
 
@@ -844,22 +915,24 @@ ${agreementBtn}
 
             const verify = target.closest("[data-offer-verify]");
             if (verify) {
-                const id = Number(verify.getAttribute("data-offer-verify"));
+                const id = String(verify.getAttribute("data-offer-verify") || "");
                 refreshAfterAction(() => api(`/api/admin/offers/${id}/verify`, { method: "PATCH" }), "Offre verifiee.");
                 return;
             }
 
             const status = target.closest("[data-offer-status]");
             if (status) {
-                const id = Number(status.getAttribute("data-offer-status"));
+                const id = String(status.getAttribute("data-offer-status") || "");
                 const targetStatus = String(status.getAttribute("data-target-status") || "active");
+                const label = targetStatus === "canceled" ? "annuler cette offre" : (targetStatus === "hidden" ? "cacher cette offre" : "activer cette offre");
+                if (!window.confirm(`Voulez-vous vraiment ${label} ?`)) return;
                 refreshAfterAction(() => api(`/api/admin/offers/${id}/status`, { method: "PATCH", body: { status: targetStatus } }), "Statut offre mis a jour.");
                 return;
             }
 
             const remove = target.closest("[data-offer-delete]");
             if (remove) {
-                const id = Number(remove.getAttribute("data-offer-delete"));
+                const id = String(remove.getAttribute("data-offer-delete") || "");
                 if (!window.confirm("Supprimer cette offre ?")) return;
                 refreshAfterAction(() => api(`/api/admin/offers/${id}`, { method: "DELETE" }), "Offre supprimee.");
             }
@@ -871,7 +944,7 @@ ${agreementBtn}
 
             const forceStatus = target.closest("[data-res-force-status]");
             if (forceStatus) {
-                const id = Number(forceStatus.getAttribute("data-res-force-status"));
+                const id = String(forceStatus.getAttribute("data-res-force-status") || "");
                 const targetStatus = String(window.prompt("Nouveau statut (pending|accepted|refused|canceled|in_transit|delivered|agreed):", "pending") || "").trim();
                 if (!targetStatus) return;
                 const reason = String(window.prompt("Motif admin:", "Mise a jour admin") || "").trim() || "Mise a jour admin";
@@ -881,7 +954,7 @@ ${agreementBtn}
 
             const chatSuspend = target.closest("[data-res-chat-suspend]");
             if (chatSuspend) {
-                const id = Number(chatSuspend.getAttribute("data-res-chat-suspend"));
+                const id = String(chatSuspend.getAttribute("data-res-chat-suspend") || "");
                 const reason = String(window.prompt("Raison suspension chat:", "verification admin en cours") || "").trim() || "verification admin en cours";
                 refreshAfterAction(() => api(`/api/admin/reservations/${id}/chat/suspend`, { method: "PATCH", body: { reason } }), "Chat suspendu.");
                 return;
@@ -889,14 +962,14 @@ ${agreementBtn}
 
             const chatResume = target.closest("[data-res-chat-resume]");
             if (chatResume) {
-                const id = Number(chatResume.getAttribute("data-res-chat-resume"));
+                const id = String(chatResume.getAttribute("data-res-chat-resume") || "");
                 refreshAfterAction(() => api(`/api/admin/reservations/${id}/chat/resume`, { method: "PATCH" }), "Chat reactive.");
                 return;
             }
 
             const chatDelete = target.closest("[data-res-chat-delete]");
             if (chatDelete) {
-                const id = Number(chatDelete.getAttribute("data-res-chat-delete"));
+                const id = String(chatDelete.getAttribute("data-res-chat-delete") || "");
                 if (!window.confirm("Supprimer le chat de cette reservation ?")) return;
                 refreshAfterAction(() => api(`/api/admin/reservations/${id}/chat`, { method: "DELETE" }), "Chat supprime.");
                 return;
@@ -904,7 +977,7 @@ ${agreementBtn}
 
             const agreement = target.closest("[data-res-agreement-suspend]");
             if (agreement) {
-                const id = Number(agreement.getAttribute("data-res-agreement-suspend"));
+                const id = String(agreement.getAttribute("data-res-agreement-suspend") || "");
                 refreshAfterAction(() => api(`/api/admin/reservations/${id}/agreement/suspend`, { method: "PATCH" }), "Accord suspendu.");
             }
         });
@@ -941,7 +1014,7 @@ ${agreementBtn}
 
             const remove = target.closest("[data-block-delete]");
             if (!remove) return;
-            const id = Number(remove.getAttribute("data-block-delete"));
+            const id = String(remove.getAttribute("data-block-delete") || "");
             refreshAfterAction(() => api(`/api/admin/security/blocks/${id}`, { method: "DELETE" }), "Blocage retire.");
         });
 
@@ -950,7 +1023,7 @@ ${agreementBtn}
 
             const resolve = target.closest("[data-flag-resolve]");
             if (!resolve) return;
-            const id = Number(resolve.getAttribute("data-flag-resolve"));
+            const id = String(resolve.getAttribute("data-flag-resolve") || "");
             refreshAfterAction(() => api(`/api/admin/flags/${id}/resolve`, { method: "PATCH" }), "Flag resolu.");
         });
 

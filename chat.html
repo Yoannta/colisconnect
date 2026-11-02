@@ -10,7 +10,9 @@
             document.documentElement.classList.add(isMobile ? 'mobile-mode' : 'desktop-mode');
         })();
     </script>
+    
     <title>Messages | ColisConnect</title>
+    <link rel="icon" type="image/png" href="logo_final.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -22,7 +24,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet">
     <!-- Design « Obsidian Luxe / Gold Light » : même feuille de style que results.html -->
-    <link rel="stylesheet" href="style.css?v=20261019j">
+    <link rel="stylesheet" href="style.css?v=20261028a">
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -34,12 +36,12 @@
     <script defer src="anti-contact-ia.js?v=3"></script>
     <script defer src="shared-header.js?v=59"></script>
 
-    <script defer src="standalone-common.js?v=20261026a"></script>
+    <script defer src="standalone-common.js?v=20261028a"></script>
     <script defer src="pinceau.js?v=20261015b"></script>
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script defer src="chat.js?v=20261017"></script>
+    <script defer src="chat.js?v=20261028"></script>
 </head>
 
 <body class="chat-page">
@@ -161,6 +163,22 @@
             <button id="split-payment-close" class="close-modal" aria-label="Fermer"
                 onclick="document.getElementById('split-payment-modal').classList.add('hidden')">x</button>
             <div id="payment-modal-container"></div>
+            <!-- Paiement manuel (preuve de virement / capture) : ce panneau etait
+                 reference par chat.js mais absent du HTML -> modale vide. -->
+            <div id="manual-payment-panel" style="display:none; padding: 4px 4px 8px;">
+                <h3 id="manual-payment-title" style="margin: 0 0 8px; font-weight: 700;">Preuve de paiement</h3>
+                <p id="manual-payment-hint" style="margin: 0 0 16px; color: var(--muted, #9ca3af); font-size: 0.88rem; line-height: 1.5;">
+                    Televersez une capture du virement ou du paiement mobile effectue.
+                </p>
+                <label for="split-payment-receipt" style="display:block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: #cbd5e1;">Capture du paiement</label>
+                <input type="file" id="split-payment-receipt" accept="image/png,image/jpeg,image/webp"
+                    style="width:100%; padding: 12px; border-radius: 10px; border: 1px dashed rgba(255,255,255,0.25); background: rgba(255,255,255,0.04); color: #e5e7eb;">
+                <p id="manual-payment-error" style="display:none; margin: 10px 0 0; color: #f87171; font-size: 0.82rem;"></p>
+                <button type="button" id="split-payment-submit" class="btn primary"
+                    style="width:100%; margin-top: 16px;">Confirmer le paiement</button>
+                <button type="button" id="split-payment-cancel" class="btn ghost"
+                    style="width:100%; margin-top: 10px;">Annuler</button>
+            </div>
         </div>
     </div>
 

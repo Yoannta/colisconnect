@@ -66,11 +66,16 @@
         return true;
     }
 
+    // Jeton de séquence : deux recherches rapprochées ne peuvent plus s'écraser
+    // (la réponse la plus lente gagnait et affichait des résultats perimes).
+    let offersLoadSeq = 0;
+
     async function loadOffers() {
         if (!els.offersList) return;
         // ANTI-RACE : si l'utilisateur a basculé sur l'onglet « Voir les demandes »
         // pendant le chargement, on n'écrase ni le placeholder ni la liste des demandes.
         if (state.mobilePrimaryMode !== "traveler") return;
+        const seq = ++offersLoadSeq;
         els.offersList.innerHTML = '<div class="loading-state">Actualisation des offres...</div>';
 
         const filters = queryOfferFilters();
@@ -81,12 +86,25 @@
         if (filters.destination) params.set("destination", filters.destination);
         if (filters.origin) params.set("origin", filters.origin);
 
-        const payload = await window.CCCommon.api(`/api/offers?${params.toString()}`, { auth: false });
-        state.offers = Array.isArray(payload?.items) ? payload.items : [];
-        // ANTI-RACE : une réponse réseau tardive ne doit JAMAIS écraser l'onglet
-        // actif (sinon : contenu « offres » sous un bouton « demandes », ou inverse).
-        if (state.mobilePrimaryMode !== "traveler") return;
-        renderOffers();
+        try {
+            const payload = await window.CCCommon.api(`/api/offers?${params.toString()}`, { auth: false });
+            if (seq !== offersLoadSeq) return; // une recherche plus recente a pris le relais
+            state.offers = Array.isArray(payload?.items) ? payload.items : [];
+            // ANTI-RACE : une réponse réseau tardive ne doit JAMAIS écraser l'onglet
+            // actif (sinon : contenu « offres » sous un bouton « demandes », ou inverse).
+            if (state.mobilePrimaryMode !== "traveler") return;
+            renderOffers();
+        } catch (error) {
+            if (seq !== offersLoadSeq || state.mobilePrimaryMode !== "traveler") return;
+            console.error("Chargement des offres impossible:", error);
+            els.offersList.innerHTML = `<div class="empty-state" role="alert">
+                Impossible de charger les offres.<br><small>${window.CCCommon.escapeHtml(error.message || "Erreur reseau")}</small><br>
+                <button type="button" class="btn secondary btn-sm" id="offers-retry-btn" style="margin-top:12px;">Reessayer</button>
+            </div>`;
+            document.getElementById("offers-retry-btn")?.addEventListener("click", () => {
+                loadOffers().catch((err) => console.warn(err));
+            });
+        }
     }
 
     function syncProfileTypeButtons() {
@@ -152,6 +170,11 @@
         // La liste change : offres (voyageur) ou demandes (voyageur qui cherche des clients)
         if (mode === "demand") {
             renderDemands();
+        } else if (!Array.isArray(state.offers) || !state.offers.length) {
+            // Si l'utilisateur est arrive directement sur « Demandes » pendant
+            // l'initialisation, les offres n'ont jamais ete chargees : renderOffers()
+            // affichait a tort « Aucune offre ».
+            loadOffers().catch((err) => console.warn(err));
         } else {
             renderOffers();
         }
@@ -163,6 +186,7 @@
         // « Chercher un voyageur », on n'écrase pas la liste des offres.
         if (state.mobilePrimaryMode !== "demand") return;
         els.offersList.innerHTML = '<div class="loading-state">Chargement des demandes...</div>';
+        state.demandsError = "";
         let items = [];
         try {
             if (window.ccSupabase) {
@@ -183,6 +207,7 @@
             }
         } catch (err) {
             console.warn("Impossible de charger les demandes:", err);
+            state.demandsError = err.message || "Erreur reseau";
             items = [];
         }
         state.demands = items;
@@ -311,6 +336,16 @@
     function renderDemands() {
         if (!els.offersList) return;
         const toutes = state.demands || [];
+        if (state.demandsError) {
+            els.offersList.innerHTML = `<div class="empty-state" role="alert">
+                Impossible de charger les demandes.<br><small>${window.CCCommon.escapeHtml(state.demandsError)}</small><br>
+                <button type="button" class="btn secondary btn-sm" id="demands-retry-btn" style="margin-top:12px;">Reessayer</button>
+            </div>`;
+            document.getElementById("demands-retry-btn")?.addEventListener("click", () => {
+                loadDemands().catch((err) => console.warn(err));
+            });
+            return;
+        }
         // [Yoyo] Mes demandes en premier, PUIS les critères de recherche.
         let items = ownFirst(demandesFiltrees(toutes));
         if (!items.length) {
@@ -1005,7 +1040,7 @@
 
         // Close on click outside
         document.addEventListener("click", (e) => {
-            if (!e.target.closest("#custom-currency-dropdown")) {
+            if (!e.target.closest("#custom-currency-dropdown") && !e.target.closest(".currency-wrap")) {
                 menuEl.classList.add("hidden");
             }
         });
@@ -1286,6 +1321,22 @@
             });
         }
 
+        // [FIX] Les liens de l'estimateur d'accueil (results.html?origin=...&destination=...)
+        // n'etaient jamais lus : l'utilisateur arrivait sur une recherche vide.
+        const urlFilters = new URLSearchParams(window.location.search);
+        const prefill = [
+            ["origin", "res-origin"], ["destination", "res-dest"],
+            ["date", "res-date"], ["weight", "res-weight"], ["minKg", "res-weight"]
+        ];
+        prefill.forEach(([param, id]) => {
+            const value = urlFilters.get(param);
+            const field = document.getElementById(id);
+            if (value && field && !field.value) field.value = value;
+        });
+        const prefWeight = urlFilters.get("weight") || urlFilters.get("minKg");
+        const mfWeight = document.getElementById("mf-weight-display");
+        if (prefWeight && mfWeight) mfWeight.value = `${prefWeight} kg`;
+
         // Setup autocomplete ville pour les champs ville déjà présents dans le HTML
         if (window.CCCommon.setupAllCountryInputs) {
             // Les champs ville sont déjà dans le HTML, on configure leur autocomplete
@@ -1447,6 +1498,7 @@
             if (!first || !colisZone) return;
             const clone = first.cloneNode(true);
             clone.querySelectorAll("input").forEach((inp) => { inp.value = ""; });
+            clone.querySelectorAll(".dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
             clone.querySelectorAll(".dmd-price-mode-btn").forEach((b) => b.classList.toggle("active", b.dataset.mode === "per_kg"));
             colisZone.appendChild(clone);
             renumberColisBoxes();
@@ -1625,6 +1677,7 @@
                 if (e.target.classList.contains("dmd-colis-nom") ||
                     e.target.classList.contains("dmd-kg-input") ||
                     e.target.classList.contains("dmd-qty-input")) {
+                    e.target.classList.remove("dmd-invalid");
                     refreshBoxUi(box);
                 }
             });
@@ -1711,6 +1764,9 @@
         // Validation de l'etape 2 (colis + montants) : reutilisee par « Faire la demande »,
         // le bouton « Continuer » n'existant plus sur la derniere etape.
         const validateColisStep = () => {
+            // Nettoyage des bordures rouges de la validation precedente : elles
+            // restaient apres correction et se clonaient sur les nouveaux cadres.
+            document.querySelectorAll("#demande-colis-rows .dmd-invalid").forEach((el) => el.classList.remove("dmd-invalid"));
             const boxes = getColisBoxes();
             if (!boxes.length) { dmdShowError("Ajoutez au moins un colis."); return false; }
             for (let i = 0; i < boxes.length; i++) {
@@ -1817,13 +1873,18 @@
                         if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Faire la demande"; }
                         return;
                     }
-                    // Champs IDENTIQUES a la publication (formulaire unique)
+                    // Champs IDENTIQUES a la publication (formulaire unique).
+                    // Les champs racine sont un RESUME de tous les colis : avant, ils
+                    // ne reprenaient que le premier (un 2e colis de 30 kg etait invisible
+                    // dans les filtres de recherche).
+                    const totalWeight = items.reduce((sum, it) => sum + (Number(it.weight_kg) || 0), 0);
+                    const totalQuantity = items.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0);
                     const payload = {
                         title: `Demande ${origin} -> ${destination}`,
                         origin,
                         destination,
-                        weight_kg: first.weight_kg ?? null,
-                        quantity: first.quantity ?? null,
+                        weight_kg: totalWeight > 0 ? totalWeight : null,
+                        quantity: totalQuantity > 0 ? totalQuantity : null,
                         needed_by_date: dateLimite || null,
                         currency: first.currency || state.userCurrency || window.CCCommon.getUserCurrency?.(),
                         origin_city: villeDepart || null,
@@ -1921,6 +1982,10 @@
                 document.getElementById("mf-origin").value = document.getElementById("res-origin")?.value || "";
                 document.getElementById("mf-dest").value = document.getElementById("res-dest")?.value || "";
                 document.getElementById("mf-date").value = document.getElementById("res-date")?.value || "";
+                const desktopWeight = String(document.getElementById("res-weight")?.value || "").trim();
+                const weightDisplay = document.getElementById("mf-weight-display");
+                if (weightDisplay) weightDisplay.value = desktopWeight ? `${desktopWeight} kg` : "";
+                if (desktopWeight) this.active.weight = Number(desktopWeight);
             };
             const origOpen = this.open.bind(this);
             this.open = () => { syncFromDesktop(); origOpen(); };
@@ -1928,24 +1993,25 @@
             document.getElementById("mf-apply")?.addEventListener("click", () => {
                 this.syncToDesktop();
                 this.close();
-                if (typeof loadOffers === "function") loadOffers();
+                // Relance la SECTION ACTIVE (offres ou demandes). loadOffers() sortait
+                // immediatement en mode demandes : « Appliquer » ne faisait rien.
+                Promise.resolve(relancerRecherche()).catch((err) => console.warn(err));
             });
 
-            // « Effacer tout » : vide les filtres actifs + les champs du sheet ET leurs
-            // miroirs desktop, puis recharge les offres (le sheet reste ouvert)
+            // « Effacer tout » : passe par la remise a zero complete (poids + pastilles
+            // + champs desktop/mobile) puis relance la section active.
             document.getElementById("mf-clear-all")?.addEventListener("click", () => {
                 this.active = {};
                 this.renderActiveTags();
-                ["mf-origin", "mf-dest", "mf-date"].forEach((id) => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = "";
-                });
-                ["res-origin", "res-dest", "res-date"].forEach((id) => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = "";
-                });
-                if (typeof loadOffers === "function") loadOffers();
+                const weightDisplay = document.getElementById("mf-weight-display");
+                if (weightDisplay) weightDisplay.value = "";
+                Promise.resolve(effacerRecherche()).catch((err) => console.warn(err));
             });
+
+            // Déclencheur du panneau poids (il n'en existait aucun sur mobile).
+            const openWeight = () => this.openWeightSlider();
+            document.getElementById("mf-weight-display")?.addEventListener("click", openWeight);
+            document.getElementById("mf-weight-display")?.addEventListener("focus", openWeight);
 
             const weightInput = document.getElementById("slider-weight-input");
             weightInput?.addEventListener("input", () => {
@@ -1953,7 +2019,11 @@
             });
             document.getElementById("slider-weight-ok")?.addEventListener("click", () => {
                 this.active.weight = Number(weightInput.value);
-                document.getElementById("mf-chip-weight").classList.add("is-active");
+                // Le chip mobile n'existe pas dans le HTML : sans garde, cette ligne
+                // levait un TypeError et empêchait la fermeture du panneau poids.
+                document.getElementById("mf-chip-weight")?.classList.add("is-active");
+                const weightDisplay = document.getElementById("mf-weight-display");
+                if (weightDisplay) weightDisplay.value = `${Number(weightInput.value)} kg`;
                 this.renderActiveTags();
                 this.closeWeightSlider();
             });
@@ -1985,6 +2055,12 @@
             container.querySelectorAll("button[data-remove]").forEach((btn) => {
                 btn.addEventListener("click", () => {
                     delete this.active[btn.dataset.remove];
+                    if (btn.dataset.remove === "weight") {
+                        const weightDisplay = document.getElementById("mf-weight-display");
+                        if (weightDisplay) weightDisplay.value = "";
+                        const desktopWeight = document.getElementById("res-weight");
+                        if (desktopWeight) desktopWeight.value = "";
+                    }
                     document.querySelector(`.mf-chip[data-chip="${btn.dataset.remove}"]`)?.classList.remove("is-active");
                     this.renderActiveTags();
                 });

@@ -26,17 +26,13 @@
         paymentMethodInput: document.getElementById("payment-method"),
         paymentQrInput: document.getElementById("payment-qr"),
         paymentMethodLabel: document.getElementById("payment-method-label"),
-        countryList: document.querySelector("datalist[data-country-list]"),
         animatedNodes: Array.from(document.querySelectorAll("[data-animate]")),
         // Modal
         openBtn: document.getElementById("open-payment-method-btn"),
         addContactBtn: document.getElementById("addContactBtn"),
         modal: document.getElementById("payment-method-modal"),
         closeBtn: document.getElementById("close-payment-modal-btn"),
-        stepChoose: document.getElementById("pm-step-choose"),
         stepUpload: document.getElementById("pm-step-upload"),
-        choicesContainer: document.getElementById("pm-choices-container"),
-        backBtn: document.getElementById("pm-back-btn"),
         uploadTitle: document.getElementById("pm-upload-title"),
         indicatifInput: document.getElementById("phonePrefix"),
         localNumberInput: document.getElementById("phoneMainNumber"),
@@ -52,14 +48,6 @@
         publishMsg: document.getElementById("publish-success-msg"),
         // Note "deja valide / code demande" (mode modification)
         contactNote: document.getElementById("pm-contact-note"),
-        // profile_type modal
-        profileTypeModal: document.getElementById("profile-type-modal"),
-        choiceTraveler: document.getElementById("profile-choice-traveler"),
-        choiceCargo: document.getElementById("profile-choice-cargo"),
-        confirmProfileTypeBtn: document.getElementById("profile-type-confirm-btn"),
-        // Transport mode (dans la modale)
-        modalTransportMode: document.getElementById("modal-transport-mode"),
-        modalTransportBtns: document.querySelectorAll(".modal-transport-btn"),
     };
 
     // ---- Payment method state ----
@@ -70,39 +58,228 @@
         // Mode modification : contact deja enregistre sur l'annonce (deja valide a
         // la creation) -> reaffiche sans redemander de code tant qu'il ne change pas.
         storedContact: null,
-        storedMethod: null
+        storedMethod: null,
+        // Numeros verifies pendant cette session (OTP reussi) ou herites de
+        // l'annonce : rouvrir une ligne de contact ne doit ni vider le champ
+        // ni redemander un code pour un numero deja valide.
+        verifiedNumbers: []
     };
 
     let selectedProfileTypeChoice = null;
     let selectedTransportMode = null;
     let selectedPriceUnit = "kg";  // "kg" ou "cbm" (cargo)
+    let choixUniteFait = false;    // l'utilisateur cargo a-t-il choisi kilo/CBM ?
     // Bouton qui a ouvert la modale paiement ("Mon numero de contact" ou "Autre numero")
     let paymentTrigger = null;
 
-    // Ne fait plus rien immédiatement — le profil est mis à jour APRÈS publication
-    async function updateProfileType(type) {
-        // Inutilisé : la mise à jour se fait dans proceedSubmitTrip()
+    // ═══════════════════════════════════════════════════════════════════════
+    // Messages en page, focus et dialogues accessibles (S-02, CA-43, CA-51)
+    // Aucun alert() / confirm() natif ne subsiste dans ce fichier.
+    // ═══════════════════════════════════════════════════════════════════════
+    const STEP_ERROR_IDS = ["step1-errors", "step2-errors", "step3-errors", "step4-errors"];
+    const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    const ERROR_ICON = '<span class="step-errors-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span>';
+    const PHONE_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>';
+    const CROSS_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+    function escapeHtml(value) {
+        return String(value == null ? "" : value).replace(/[&<>"']/g, (c) => (
+            { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+        ));
     }
 
-    // Initialisation dynamique des réseaux via API
-    async function fetchAvailableMethods(country) {
-        try {
-            const data = await window.CCCommon.api(`/api/payments/methods?country=${encodeURIComponent(country)}`);
-            return data;
-        } catch (err) {
-            console.error("Erreur découverte réseaux:", err);
-            return { status: "fallback", methods: [{ id: "bank", name: "Virement" }] };
+    function scrollToElement(el) {
+        if (!el || !el.getBoundingClientRect) return;
+        const top = window.scrollY + el.getBoundingClientRect().top - 96;
+        window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }
+
+    function pulseGroup(el) {
+        if (!el || !el.classList) return;
+        el.classList.remove("gold-pulse");
+        void el.offsetWidth;
+        el.classList.add("gold-pulse");
+        setTimeout(() => el.classList.remove("gold-pulse"), 1500);
+    }
+
+    function markFieldError(el) {
+        if (!el || !el.classList) return;
+        el.classList.add("input-error");
+        if (el.matches && el.matches("input,select,textarea")) {
+            el.setAttribute("aria-invalid", "true");
+            const step = el.closest(".wizard-step");
+            const box = step ? step.querySelector(".step-errors") : null;
+            if (box && box.id) el.setAttribute("aria-describedby", box.id);
+            const clear = () => {
+                el.classList.remove("input-error");
+                el.removeAttribute("aria-invalid");
+                el.removeAttribute("aria-describedby");
+            };
+            el.addEventListener("input", clear, { once: true });
+            el.addEventListener("change", clear, { once: true });
+        }
+        setTimeout(() => el.classList.remove("input-error"), 1400);
+    }
+
+    function clearStepError(index) {
+        const box = document.getElementById(STEP_ERROR_IDS[index]);
+        if (box) box.classList.add("hidden");
+    }
+
+    function showStepError(index, message, target, groupEl) {
+        STEP_ERROR_IDS.forEach((id, i) => {
+            if (i !== index) document.getElementById(id)?.classList.add("hidden");
+        });
+        const box = document.getElementById(STEP_ERROR_IDS[index]);
+        if (box) {
+            box.innerHTML = ERROR_ICON + "<span>" + escapeHtml(message) + "</span>";
+            box.classList.remove("hidden");
+        }
+        if (target) {
+            scrollToElement(groupEl || target);
+            setTimeout(() => {
+                try { target.focus({ preventScroll: true }); } catch (e) { try { target.focus(); } catch (e2) { } }
+                if (groupEl) pulseGroup(groupEl);
+            }, 120);
+        } else {
+            scrollToElement(document.querySelector("#trip-form .wizard-step.active"));
         }
     }
 
-    // ---- Logos SVG ---- (Optionnel mais pour le Wow Effect)
-    const LOGOS = {
-        mtn: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#FFCC00"/><path d="M25 40 L35 70 L45 40 L55 70 L65 40" stroke="#003366" stroke-width="8" fill="none" stroke-linecap="round"/></svg>`,
-        orange: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#FF6600"/><path d="M30 30 L70 30 L70 70 L30 70 Z" fill="white"/></svg>`,
-        wave: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#1CD4FF"/><circle cx="50" cy="45" r="15" fill="white"/><path d="M35 70 Q50 60 65 70" stroke="white" stroke-width="5" fill="none"/></svg>`,
-        moov: `<svg viewBox="0 0 100 100"><rect width="100" height="100" rx="20" fill="#0055A4"/><path d="M30 40 Q50 20 70 40 Q50 60 30 40" fill="white"/></svg>`,
-        bank: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 10h18M5 10v11M19 10v11M12 10v11M12 3l9 7H3l9-7z"/></svg>`
-    };
+    function activeStepIndex() {
+        const steps = Array.from(document.querySelectorAll("#trip-form .wizard-step"));
+        return steps.indexOf(document.querySelector("#trip-form .wizard-step.active"));
+    }
+
+    function placeNotice(index) {
+        const bar = document.getElementById("trip-notice");
+        if (!bar) return;
+        const steps = document.querySelectorAll("#trip-form .wizard-step");
+        const step = steps[index >= 0 ? index : 0];
+        const footer = step ? step.querySelector(".wizard-footer") : null;
+        // C-35 / §6 : le bandeau reste dans le flux du contenu, juste au-dessus de
+        // la barre d'action. A 360 la barre est fixe : l'inserer dedans la rendait
+        // fixe et lui faisait absorber le bandeau (BUG-019).
+        if (footer && footer.parentNode) {
+            footer.parentNode.insertBefore(bar, footer);
+        } else if (step) {
+            step.appendChild(bar);
+        }
+    }
+
+    function showNotice(message, tone, withRetry) {
+        const bar = document.getElementById("trip-notice");
+        const text = document.getElementById("trip-notice-text");
+        const retry = document.getElementById("trip-notice-retry");
+        if (!bar || !text) return;
+        text.textContent = message;
+        bar.classList.remove("hidden", "is-warn", "is-danger");
+        bar.classList.add(tone === "danger" ? "is-danger" : "is-warn");
+        bar.setAttribute("role", tone === "danger" ? "alert" : "status");
+        if (retry) retry.classList.toggle("hidden", !withRetry);
+        placeNotice(activeStepIndex());
+        scrollToElement(bar);
+    }
+
+    function clearNotice() {
+        document.getElementById("trip-notice")?.classList.add("hidden");
+    }
+
+    function revealStepError(index, message, target, groupEl) {
+        clearNotice();
+        if (window.ccGoToWizardStep) window.ccGoToWizardStep(index);
+        showStepError(index, message, target, groupEl);
+    }
+
+    // ---- Dialogues : focus piégé, Échap, retour du focus ----
+    let ccLastFocus = null;
+    let ccOpenDialog = null;
+
+    function dialogFocusables(root) {
+        return Array.from(root.querySelectorAll(FOCUSABLE))
+            .filter((el) => el.offsetParent !== null || el === document.activeElement);
+    }
+
+    function openDialog(dialog, initialFocus) {
+        if (!dialog) return;
+        ccLastFocus = document.activeElement;
+        dialog.classList.remove("hidden");
+        if (dialog.classList.contains("popup-overlay")) dialog.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        ccOpenDialog = dialog;
+        setTimeout(() => {
+            const target = initialFocus || dialogFocusables(dialog)[0] || dialog;
+            try { target.focus({ preventScroll: true }); } catch (e) { try { target.focus(); } catch (e2) { } }
+        }, 60);
+    }
+
+    function closeDialog(dialog) {
+        if (!dialog) return;
+        dialog.classList.add("hidden");
+        if (dialog.classList.contains("popup-overlay")) dialog.style.display = "none";
+        document.body.style.overflow = "";
+        if (ccOpenDialog === dialog) ccOpenDialog = null;
+        const previous = ccLastFocus;
+        ccLastFocus = null;
+        if (previous && previous.focus) {
+            setTimeout(() => { try { previous.focus({ preventScroll: true }); } catch (e) { try { previous.focus(); } catch (e2) { } } }, 30);
+        }
+        dialog.dispatchEvent(new CustomEvent("cc-dialog-closed"));
+    }
+
+    function initDialogA11y() {
+        document.addEventListener("keydown", (e) => {
+            if (!ccOpenDialog) return;
+            if (e.key === "Escape") {
+                e.preventDefault();
+                closeDialog(ccOpenDialog);
+                return;
+            }
+            if (e.key !== "Tab") return;
+            const list = dialogFocusables(ccOpenDialog);
+            if (!list.length) return;
+            const first = list[0];
+            const last = list[list.length - 1];
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault();
+                last.focus();
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault();
+                first.focus();
+            }
+        });
+        ["payment-method-modal", "publish-success-modal", "cc-confirm-modal", "refusedPopupOverlay"].forEach((id) => {
+            const dialog = document.getElementById(id);
+            if (!dialog) return;
+            dialog.addEventListener("click", (e) => {
+                if (e.target === dialog) closeDialog(dialog);
+            });
+        });
+    }
+
+    function ccConfirmDuplicate() {
+        return new Promise((resolve) => {
+            const dialog = document.getElementById("cc-confirm-modal");
+            const okBtn = document.getElementById("cc-confirm-ok");
+            const cancelBtn = document.getElementById("cc-confirm-cancel");
+            if (!dialog || !okBtn || !cancelBtn) { resolve(false); return; }
+            let settled = false;
+            const finish = (value) => {
+                if (settled) return;
+                settled = true;
+                okBtn.removeEventListener("click", onOk);
+                cancelBtn.removeEventListener("click", onCancel);
+                closeDialog(dialog);
+                resolve(value);
+            };
+            const onOk = () => finish(true);
+            const onCancel = () => finish(false);
+            okBtn.addEventListener("click", onOk);
+            cancelBtn.addEventListener("click", onCancel);
+            dialog.addEventListener("cc-dialog-closed", () => finish(false), { once: true });
+            openDialog(dialog, cancelBtn);
+        });
+    }
 
     // ---- Country Datalist ----
     function normalizeCountry(value) {
@@ -143,22 +320,22 @@
         if (!picker) return;
         const dep = String(els.departure?.value || "").trim();
         const dst = String(els.destination?.value || "").trim();
-        picker.setOptions(window.CCDevise.optionsForCountries(dep, dst, { fallback: "EUR" }));
+        const opts = window.CCDevise.optionsForCountries(dep, dst, { fallback: "EUR" });
+        // [FIX 2026-10-28] Ne JAMAIS remplacer en silence la monnaie deja choisie.
+        // Avant, vider ou re-taper un pays retirait sa devise de la liste et le
+        // selecteur basculait tout seul sur la 1re devise (XOF -> EUR), sans que
+        // l'utilisateur le voie. On garde son choix en tete de liste.
+        const choix = String(picker.get() || "").toUpperCase();
+        if (choix && !opts.some((o) => o.value === choix)) {
+            opts.unshift({ value: choix, label: "Monnaie choisie" });
+        }
+        picker.setOptions(opts);
     }
 
     function isValidCountry(value) {
         if (!value) return false;
         const target = normalizeCountry(value);
         return COUNTRY_OPTIONS.some((item) => normalizeCountry(item) === target);
-    }
-
-    function initCountryDatalist() {
-        if (!els.countryList) return;
-        // Correction: ne PAS échapper HTML les valeurs des options, sinon 
-        // les apostrophes deviennent des &#39; et cassent la recherche intelligente du navigateur.
-        els.countryList.innerHTML = COUNTRY_OPTIONS
-            .map((country) => `<option value="${country}"></option>`)
-            .join("\n");
     }
 
     function initDateMin() {
@@ -182,7 +359,9 @@
         const btn = els.addTripDateBtn;
         if (!btn) return;
         const count = els.tripExtraDates?.querySelectorAll(".trip-extra-date-row").length || 0;
+        // À la limite, le bouton est retiré plutôt que grisé (C-22).
         btn.disabled = count >= MAX_EXTRA_DATES;
+        btn.classList.toggle("hidden", count >= MAX_EXTRA_DATES);
     }
 
     function setExtraTripDatesVisible(visible) {
@@ -206,13 +385,18 @@
     }
 
     function afficherChoixUnitePrix() {
+        choixUniteFait = false;
         document.getElementById("cargo-unit-choice")?.classList.remove("hidden");
         document.getElementById("price-group")?.classList.add("hidden");
         document.getElementById("price-unit-back")?.classList.add("hidden");
-        document.querySelectorAll(".cargo-unit-btn").forEach((b) => b.classList.remove("selected"));
+        document.querySelectorAll(".cargo-unit-btn").forEach((b) => {
+            b.classList.remove("selected");
+            b.setAttribute("aria-pressed", "false");
+        });
     }
 
     function choisirUnitePrix(unit) {
+        choixUniteFait = true;
         selectedPriceUnit = unit === "cbm" ? "cbm" : "kg";
         document.getElementById("cargo-unit-choice")?.classList.add("hidden");
         document.getElementById("price-group")?.classList.remove("hidden");
@@ -221,7 +405,9 @@
         const back = document.getElementById("price-unit-back");
         if (back) back.classList.toggle("hidden", selectedProfileTypeChoice !== "cargo");
         document.querySelectorAll(".cargo-unit-btn").forEach((b) => {
-            b.classList.toggle("selected", b.dataset.unit === selectedPriceUnit);
+            const actif = b.dataset.unit === selectedPriceUnit;
+            b.classList.toggle("selected", actif);
+            b.setAttribute("aria-pressed", actif ? "true" : "false");
         });
         document.getElementById("price")?.focus();
     }
@@ -230,10 +416,21 @@
         const cargo = choice === "cargo";
         selectedProfileTypeChoice = cargo ? "cargo" : "traveler";
         document.getElementById("step1-errors")?.classList.add("hidden");
-        document.getElementById("btn-traveler-choice")?.classList.toggle("selected", !cargo);
-        document.getElementById("btn-cargo-choice")?.classList.toggle("selected", cargo);
-        document.getElementById("trip-extra-fields")?.classList.remove("hidden");
+        const btnTraveler = document.getElementById("btn-traveler-choice");
+        const btnCargo = document.getElementById("btn-cargo-choice");
+        if (btnTraveler) {
+            btnTraveler.classList.toggle("selected", !cargo);
+            btnTraveler.setAttribute("aria-pressed", cargo ? "false" : "true");
+        }
+        if (btnCargo) {
+            btnCargo.classList.toggle("selected", cargo);
+            btnCargo.setAttribute("aria-pressed", cargo ? "true" : "false");
+        }
         document.getElementById("kilos-group")?.classList.toggle("hidden", cargo);
+        // [BUG-020] Le sous-titre « Vos kilos disponibles et votre prix par kilo. » ne vaut
+        // que pour le voyageur : en cargo, l'etape 2 n'a aucun sous-titre (DA §3.2, D-22).
+        const sousTitreEtape2 = document.querySelector("#step-colis .trip-section-sub");
+        if (sousTitreEtape2) sousTitreEtape2.hidden = cargo;
         // Le champ kilos n'a de sens que pour un voyageur : en cargo on le desactive
         // pour qu'il ne puisse jamais invalider le formulaire (max = 69 kg).
         const champKilos = document.getElementById("kilos");
@@ -263,7 +460,8 @@
         }
         if (!cargo) {
             selectedTransportMode = null;
-            document.querySelectorAll(".transport-mode-btn").forEach((b) => b.classList.remove("selected"));
+            choixUniteFait = true;
+            document.querySelectorAll("#transport-mode-section .transport-mode-btn").forEach((b) => b.classList.remove("selected"));
         }
     }
 
@@ -279,9 +477,9 @@
         if (els.dateDepart?.min) input.min = els.dateDepart.min;
         const del = document.createElement("button");
         del.type = "button";
-        del.className = "colis-row-del";
+        del.className = "cc-btn-icon danger colis-row-del";
         del.setAttribute("aria-label", "Supprimer cette date");
-        del.textContent = "✕";
+        del.innerHTML = CROSS_ICON;
         row.appendChild(input);
         row.appendChild(del);
         box.appendChild(row);
@@ -348,24 +546,26 @@
     function openModal() {
         const dep = _getDeparture();
         if (!dep?.value) {
-            alert("Veuillez d'abord choisir un pays de départ.");
+            showStepError(0, "Indiquez le pays de départ", dep);
+            if (window.ccGoToWizardStep) window.ccGoToWizardStep(0);
             return;
         }
-        els.modal?.classList.remove("hidden");
-        document.body.style.overflow = "hidden";
-
         // Aller directement à la saisie du numéro
         selectPaymentProvider("direct_contact", "Contact Direct");
+        openDialog(els.modal, els.localNumberInput);
     }
 
     function closeModal() {
-        els.modal?.classList.add("hidden");
-        document.body.style.overflow = "";
+        closeDialog(els.modal);
     }
 
     // Popup de succès du site (remplace l'alerte navigateur "yoannta.github.io says")
     // isEdit = true en mode modification -> on parle d'un enregistrement, pas d'une publication.
     function showPublishSuccess(destination, count, isEdit) {
+        const title = document.getElementById("publish-success-title");
+        if (title) {
+            title.textContent = isEdit ? "Modifications enregistrées" : "Offre publiée avec succès !";
+        }
         if (els.publishMsg) {
             const n = Number(count) || 1;
             if (isEdit) {
@@ -376,22 +576,8 @@
                     : `Votre trajet vers ${destination} a bien été publié.`;
             }
         }
-        els.publishModal?.classList.remove("hidden");
-    }
-
-    function showStep(step) {
-        if (step === "choose") {
-            els.stepChoose?.classList.remove("hidden");
-            els.stepUpload?.classList.add("hidden");
-        } else {
-            els.stepChoose?.classList.add("hidden");
-            els.stepUpload?.classList.remove("hidden");
-        }
-    }
-
-    // Plus besoin de charger les réseaux, on va directement au numéro
-    async function renderDynamicPaymentChoices() {
-        return;
+        const okBtn = document.getElementById("publish-success-ok-btn");
+        openDialog(els.publishModal, okBtn);
     }
 
     // Restaure la section OTP à son état initial (contrôles visibles, message retiré)
@@ -400,7 +586,13 @@
         const wrap = els.otpSection.querySelector(".otp-input-wrap");
         if (wrap) wrap.style.display = "";
         els.otpSection.querySelector(".pm-otp-success")?.remove();
-        if (els.otpInput) els.otpInput.value = "";
+        if (els.otpInput) {
+            els.otpInput.value = "";
+            els.otpInput.removeAttribute("aria-invalid");
+            els.otpInput.removeAttribute("aria-describedby");
+        }
+        const err = document.getElementById("pm-otp-error");
+        if (err) err.classList.add("hidden");
         els.otpSection.classList.add("hidden");
     }
 
@@ -416,6 +608,16 @@
         }
         if (!best) return { code: "", local: num };
         return { code: best, local: num.slice(best.length) };
+    }
+
+    // Affichage lisible d'un numéro local : premier chiffre puis groupes de 2.
+    // Ex. 612345678 -> « 6 12 34 56 78 » (DA §3.4).
+    function formatPhoneLocal(local) {
+        const digits = String(local || "").replace(/\D/g, "");
+        if (digits.length < 6) return String(local || "");
+        const groups = [digits.slice(0, 1)];
+        for (let i = 1; i < digits.length; i += 2) groups.push(digits.slice(i, i + 2));
+        return groups.join(" ");
     }
 
     // Note sous le champ : deja valide (annonce existante) ou code a saisir.
@@ -435,13 +637,19 @@
         return `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`.replace(/\s+/g, "");
     }
 
-    // Le numero saisi est-il deja valide ? (contact de l'annonce, ou numero valide
-    // dans cette session) -> aucun nouveau code a demander.
-    function isAlreadyValidatedNumber() {
-        if (!editingOfferId) return false;
-        const cur = currentEnteredNumber();
+    // Ce numero est-il deja valide ? (contact de l'annonce, 1er contact enregistre,
+    // ou numero verifie par OTP dans cette session) -> aucun nouveau code a demander.
+    function numeroDejaValide(numero) {
+        const cur = String(numero || "").replace(/\s+/g, "");
         if (!cur) return false;
-        return [paymentState.storedContact, paymentState.accountNumber].filter(Boolean).some((n) => n === cur);
+        return [paymentState.storedContact, paymentState.accountNumber]
+            .concat(paymentState.verifiedNumbers || [])
+            .filter(Boolean)
+            .some((n) => String(n).replace(/\s+/g, "") === cur);
+    }
+
+    function isAlreadyValidatedNumber() {
+        return numeroDejaValide(currentEnteredNumber());
     }
 
     // Note affichee quand le numero visible est deja valide.
@@ -449,7 +657,7 @@
         if (paymentState.storedContact && currentEnteredNumber() === paymentState.storedContact) {
             return "Numéro déjà enregistré et validé avec cette annonce : aucune vérification nécessaire. Si vous le modifiez, un code sera demandé.";
         }
-        return "Numéro vérifié à l'instant : aucune nouvelle vérification nécessaire. Si vous le modifiez, un code sera demandé.";
+        return "Numéro déjà vérifié : aucune nouvelle vérification nécessaire. Si vous le modifiez, un code sera demandé.";
     }
 
     // Le bouton ouvert est-il la 1re ligne de contact (celle de l'annonce) ?
@@ -478,7 +686,7 @@
         if (els.verifySmsBtn) {
             els.verifySmsBtn.disabled = true;
             els.verifySmsBtn.innerHTML = "Vérifier";
-            els.verifySmsBtn.style.color = "";
+            els.verifySmsBtn.removeAttribute("aria-busy");
         }
 
         if (els.indicatifInput) {
@@ -490,66 +698,94 @@
             els.localNumberInput.value = "";
         }
 
+        // [FIX 2026-10-28] Rouvrir une ligne de contact reaffiche le numero deja
+        // enregistre. Avant, la modale s'ouvrait vide alors que le bouton affichait
+        // un numero : impossible de savoir quel contact on modifiait, et il fallait
+        // refaire toute la verification SMS pour le meme numero.
+        const triggeredRow = (paymentTrigger && paymentTrigger.closest)
+            ? paymentTrigger.closest(".payment-contact-row")
+            : null;
+        const prefill = String(
+            (triggeredRow && triggeredRow.dataset.contactNumber)
+            || (isStoredContactRow(paymentTrigger) ? (paymentState.accountNumber || paymentState.storedContact || "") : "")
+        ).trim();
+        const parts = splitPhoneNumber(prefill);
+        if (els.indicatifInput && parts.code) els.indicatifInput.value = parts.code;
+        if (els.localNumberInput && prefill) els.localNumberInput.value = parts.local;
+
         setTimeout(() => els.localNumberInput?.focus(), 100);
 
         if (els.confirmBtn) {
             els.confirmBtn.disabled = true;
         }
 
-        // [CONTACT MODIF] Ligne du contact de l'annonce : on reaffiche le numero deja
-        // enregistre (valide a la creation) -> enregistrable SANS nouveau code.
-        // Toute autre ligne (nouveau numero ajoute) reste soumise a la verification.
-        if (editingOfferId && paymentState.storedContact && isStoredContactRow(paymentTrigger)) {
-            // On reaffiche le contact courant : celui enregistre a la creation (deja valide)
-            // ou celui que l'utilisateur vient de valider dans cette session.
-            const parts = splitPhoneNumber(paymentState.accountNumber || paymentState.storedContact);
-            if (els.indicatifInput && parts.code) els.indicatifInput.value = parts.code;
-            if (els.indicatifInput && !parts.code) els.indicatifInput.selectedIndex = 0;
-            if (els.localNumberInput) els.localNumberInput.value = parts.local;
-            paymentState.selectedMethod = paymentState.storedMethod || "direct_contact";
-            paymentState.selectedMethodName = "Contact Direct";
+        // Numero deja valide (annonce existante, 1er contact enregistre, ou verifie
+        // dans cette session) -> enregistrable tel quel. Toute modification du numero
+        // redemande un code (voir resetVerificationIfNeeded).
+        if (prefill && numeroDejaValide(prefill)) {
+            if (editingOfferId && paymentState.storedContact && isStoredContactRow(paymentTrigger)) {
+                paymentState.selectedMethod = paymentState.storedMethod || "direct_contact";
+                paymentState.selectedMethodName = "Contact Direct";
+            }
             paymentState.isVerified = true;
             if (els.confirmBtn) els.confirmBtn.disabled = false;
             setContactNote(noteIfAlreadyValidated());
         } else if (editingOfferId) {
             setContactNote("Nouveau numéro : un code de vérification sera demandé.");
+        } else if (prefill) {
+            setContactNote("Numéro non vérifié : saisissez le code reçu par SMS.");
         } else {
             setContactNote("");
         }
-
-        showStep("upload");
     }
 
     function confirmPaymentMethod() {
         const fullNumber = `${els.indicatifInput?.value || ""}${els.localNumberInput?.value || ""}`;
-        paymentState.accountNumber = fullNumber;
-        if (!paymentState.selectedMethod || !paymentState.accountNumber) return;
+        if (!paymentState.selectedMethod || !fullNumber) return;
 
-        // Store in hidden fields
-        if (els.paymentMethodInput) els.paymentMethodInput.value = paymentState.selectedMethod;
-        if (els.paymentQrInput) els.paymentQrInput.value = paymentState.accountNumber;
+        const box = document.getElementById("payment-contact-rows");
+        const firstRow = box ? box.querySelector(".payment-contact-row") : null;
+        // [FIX] Quand la modale s'ouvre automatiquement a la publication, paymentTrigger
+        // vaut null : on confirme alors la 1re ligne. Sans ca, la 1re ligne n'etait
+        // jamais marquee et le 1er contact restait vide.
+        const confirmedRow = (paymentTrigger && paymentTrigger.closest)
+            ? paymentTrigger.closest(".payment-contact-row")
+            : firstRow;
+        const isSecond = Boolean(confirmedRow && firstRow && confirmedRow !== firstRow);
+        const method = paymentState.selectedMethod || "";
+
+        // Marque TOUJOURS la ligne concernee.
+        if (confirmedRow) {
+            confirmedRow.dataset.contactMethod = method;
+            confirmedRow.dataset.contactNumber = fullNumber;
+        }
+
+        // [FIX] Le 1er contact vient de la 1re ligne (ou de l'etat global a la
+        // publication). Confirmer le 2e numero ne doit PLUS ecraser le 1er :
+        // avant, les deux contacts envoyes devenaient identiques (le 2e).
+        if (!isSecond) {
+            paymentState.accountNumber = fullNumber;
+            if (els.paymentMethodInput) els.paymentMethodInput.value = method;
+            if (els.paymentQrInput) els.paymentQrInput.value = fullNumber;
+        }
 
         // Met à jour le label du bouton qui a ouvert la modale (1er ou 2e)
-        const labelEl = paymentTrigger
-            ? paymentTrigger.querySelector(".pm-label")
+        const labelEl = confirmedRow
+            ? confirmedRow.querySelector(".pm-label")
             : els.paymentMethodLabel;
         if (labelEl) {
             const displayCode = els.indicatifInput?.value || "";
             const displayLocal = els.localNumberInput?.value || "";
-            const box = document.getElementById("payment-contact-rows");
-            const firstRow = box ? box.querySelector(".payment-contact-row") : null;
-            const isSecond = !!paymentTrigger && !!firstRow
-                && paymentTrigger.closest(".payment-contact-row") !== firstRow;
-            labelEl.innerHTML = `📞 ${isSecond ? "2e contact" : "Contact"} : <strong>${displayCode}</strong> ${displayLocal}`;
+            labelEl.innerHTML = `${PHONE_ICON}<span>${isSecond ? "2e contact" : "Contact"} : <strong>${escapeHtml(displayCode)}</strong> ${escapeHtml(formatPhoneLocal(displayLocal))}</span>`;
         }
-        // [2e CONTACT] On marque la ligne du contact qui vient d'etre confirme (1re ou 2e).
-        // C'est ce marquage qui permet d'envoyer le 2e numero dans l'annonce.
-        const confirmedRow = (paymentTrigger && paymentTrigger.closest)
-            ? paymentTrigger.closest(".payment-contact-row")
-            : null;
+        // C-26 : une ligne dont le numero est verifie prend le style `verified`
+        // (texte --cc-text, bordure --cc-success 45 %). BUG-017.
         if (confirmedRow) {
-            confirmedRow.dataset.contactMethod = paymentState.selectedMethod || "";
-            confirmedRow.dataset.contactNumber = paymentState.accountNumber || "";
+            const rowBtn = confirmedRow.querySelector(".contact-row-btn");
+            if (rowBtn) rowBtn.classList.toggle("verified", Boolean(paymentState.isVerified && fullNumber));
+        }
+        if (paymentState.isVerified && fullNumber && !paymentState.verifiedNumbers.includes(fullNumber)) {
+            paymentState.verifiedNumbers.push(fullNumber);
         }
         closeModal();
     }
@@ -578,19 +814,20 @@
         row.dataset.contactNumber = number || "";
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "btn secondary payment-method-btn contact-row-btn";
+        // Ligne recreee depuis un contact enregistre : deja verifie (C-26).
+        btn.className = "contact-row-btn" + (number ? " verified" : "");
         btn.innerHTML = '<span class="pm-label">Mon numero de contact</span>';
         const del = document.createElement("button");
         del.type = "button";
-        del.className = "colis-row-del contact-row-del";
+        del.className = "cc-btn-icon danger colis-row-del contact-row-del";
         del.setAttribute("aria-label", "Supprimer cette ligne");
-        del.textContent = "✕";
+        del.innerHTML = CROSS_ICON;
         row.appendChild(btn);
         row.appendChild(del);
         box.appendChild(row);
         const parts = splitPhoneNumber(number || "");
         const label = btn.querySelector(".pm-label");
-        if (label) label.innerHTML = `📞 2e contact : <strong>${parts.code}</strong> ${parts.local}`;
+        if (label) label.innerHTML = `${PHONE_ICON}<span>2e contact : <strong>${escapeHtml(parts.code)}</strong> ${escapeHtml(formatPhoneLocal(parts.local))}</span>`;
         syncAddContactBtn();
     }
 
@@ -624,21 +861,17 @@
             const row = document.createElement("div");
             row.className = "payment-contact-row";
             row.innerHTML = `
-                <button type="button" class="btn secondary payment-method-btn contact-row-btn">
+                <button type="button" class="contact-row-btn">
                     <span class="pm-label">
                         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                         <span>Mon numero de contact</span>
                     </span>
                 </button>
-                <button type="button" class="colis-row-del contact-row-del" aria-label="Supprimer cette ligne" title="Supprimer cette ligne">✕</button>`;
+                <button type="button" class="cc-btn-icon danger colis-row-del contact-row-del" aria-label="Supprimer cette ligne" title="Supprimer cette ligne">${CROSS_ICON}</button>`;
             rowsBox.appendChild(row);
             syncAddContactBtn();
         });
         els.closeBtn?.addEventListener("click", closeModal);
-        els.modal?.addEventListener("click", (e) => {
-            if (e.target === els.modal) closeModal();
-        });
-        els.backBtn?.addEventListener("click", () => showStep("choose"));
 
         // Validation combinée : sélection indicatif + numéro local
         const updateVerifyButton = () => {
@@ -660,7 +893,8 @@
                 setContactNote(noteIfAlreadyValidated());
                 return;
             }
-            if (editingOfferId && paymentState.storedContact && isStoredContactRow(paymentTrigger)) {
+            if (paymentState.storedContact || paymentState.accountNumber
+                || (paymentState.verifiedNumbers && paymentState.verifiedNumbers.length)) {
                 setContactNote("Numéro modifié : un code de vérification est nécessaire.");
             }
             if (!paymentState.isVerified) return;
@@ -678,24 +912,44 @@
             resetVerificationIfNeeded();
         });
 
-        // Click "Vérifier" (SMS)
+        // Click "Vérifier" (SMS) — S-13 : le code n'est jamais affiché.
+        // La modale porte un bandeau « Démonstration » explicite.
         els.verifySmsBtn?.addEventListener("click", async () => {
-            const fullPhone = `${els.indicatifInput.value.trim()}${els.localNumberInput.value.trim()}`;
             els.verifySmsBtn.disabled = true;
-            els.verifySmsBtn.innerHTML = '<span class="spinner-sm"></span>';
+            els.verifySmsBtn.setAttribute("aria-busy", "true");
+            els.verifySmsBtn.innerHTML = '<span class="spinner-sm" aria-hidden="true"></span><span>Envoi…</span>';
 
             // Simulation envoi SMS
             setTimeout(() => {
                 els.verifySmsBtn.innerHTML = "Envoyé ✓";
-                els.verifySmsBtn.style.color = "#ffb347";
+                els.verifySmsBtn.removeAttribute("aria-busy");
                 els.otpSection?.classList.remove("hidden");
 
                 els.indicatifInput.disabled = true;
                 els.localNumberInput.disabled = true;
 
+                const otpError = document.getElementById("pm-otp-error");
+                if (otpError) otpError.classList.add("hidden");
                 els.otpInput.focus();
-                alert(`SIMULATION : Code SMS envoyé au ${fullPhone}\nCode : 123456`);
             }, 1200);
+        });
+
+        // Après l'envoi du code, le numero est verrouille (le SMS est parti vers
+        // CE numero). Sans issue, une faute de frappe obligeait a fermer la modale.
+        // Ce bouton rend la saisie, remet la verification a zero et laisse
+        // l'utilisateur corriger puis redemander un code.
+        document.getElementById("pm-change-number-btn")?.addEventListener("click", () => {
+            paymentState.isVerified = false;
+            if (els.confirmBtn) els.confirmBtn.disabled = true;
+            resetOtpControls();
+            if (els.indicatifInput) els.indicatifInput.disabled = false;
+            if (els.localNumberInput) els.localNumberInput.disabled = false;
+            if (els.verifySmsBtn) {
+                els.verifySmsBtn.innerHTML = "Vérifier";
+                els.verifySmsBtn.removeAttribute("aria-busy");
+            }
+            updateVerifyButton();
+            els.localNumberInput?.focus();
         });
 
         // Click "Valider" (OTP)
@@ -703,24 +957,41 @@
             const code = els.otpInput.value.trim();
             if (code === "123456") {
                 paymentState.isVerified = true;
+                // Memorise le numero verifie : rouvrir cette ligne plus tard ne
+                // redemandera pas un nouveau code (numero inchange).
+                const numVerifie = currentEnteredNumber();
+                if (numVerifie && !paymentState.verifiedNumbers.includes(numVerifie)) {
+                    paymentState.verifiedNumbers.push(numVerifie);
+                }
                 // Message de succès SANS détruire le champ + bouton OTP.
-                // (L'ancien innerHTML supprimait les contrôles de la section →
-                // pour un 2e numéro, plus aucun champ de code ne s'affichait
-                // et "Enregistrer" restait bloqué.)
                 let status = els.otpSection.querySelector(".pm-otp-success");
                 if (!status) {
                     status = document.createElement("p");
                     status.className = "pm-otp-success";
-                    status.style.cssText = "color: #ffb347; font-weight: 700; margin: 0;";
                     els.otpSection.appendChild(status);
                 }
                 status.textContent = "✓ Numéro vérifié avec succès";
                 const wrap = els.otpSection.querySelector(".otp-input-wrap");
                 if (wrap) wrap.style.display = "none";
+                const otpError = document.getElementById("pm-otp-error");
+                if (otpError) otpError.classList.add("hidden");
+                els.otpInput.removeAttribute("aria-invalid");
+                els.otpInput.removeAttribute("aria-describedby");
                 if (els.confirmBtn) els.confirmBtn.disabled = false;
             } else {
-                alert("Code invalide. Réessayez avec 123456.");
+                const otpError = document.getElementById("pm-otp-error");
+                if (otpError) otpError.classList.remove("hidden");
+                els.otpInput.setAttribute("aria-invalid", "true");
+                els.otpInput.setAttribute("aria-describedby", "pm-otp-error");
+                els.otpInput.focus();
             }
+        });
+
+        els.otpInput?.addEventListener("input", () => {
+            const otpError = document.getElementById("pm-otp-error");
+            if (otpError) otpError.classList.add("hidden");
+            els.otpInput.removeAttribute("aria-invalid");
+            els.otpInput.removeAttribute("aria-describedby");
         });
 
         // Empêcher de placer le curseur avant le '+' au clic
@@ -738,6 +1009,9 @@
         // Popup succès : le bouton de confirmation redirige vers les résultats
         els.publishOkBtn?.addEventListener("click", () => {
             window.location.href = "results.html";
+        });
+        document.getElementById("close-publish-success-btn")?.addEventListener("click", () => {
+            closeDialog(els.publishModal);
         });
     }
 
@@ -802,22 +1076,28 @@
         const initialBtnText = submitBtnEarly?.textContent || "Publier mon trajet";
         if (submitBtnEarly) {
             submitBtnEarly.disabled = true;
+            submitBtnEarly.setAttribute("aria-busy", "true");
             submitBtnEarly.textContent = "Publication...";
         }
 
         try {
+        clearNotice();
         if (!window.CCCommon.requireCompletedProfile("post_trip.html")) return;
 
         const departureCountry = String(els.departure?.value || "").trim();
         const destinationCountry = String(els.destination?.value || "").trim();
 
-        if (!isValidCountry(departureCountry) || !isValidCountry(destinationCountry)) {
-            alert("Choisissez le pays de depart et d'arrivee depuis la liste.");
+        if (!isValidCountry(departureCountry)) {
+            revealStepError(0, "Indiquez le pays de départ", els.departure);
+            return;
+        }
+        if (!isValidCountry(destinationCountry)) {
+            revealStepError(0, "Indiquez le pays d'arrivée", els.destination);
             return;
         }
 
         if (normalizeCountry(departureCountry) === normalizeCountry(destinationCountry)) {
-            alert("Le pays de depart et d'arrivee ne peuvent pas etre identiques.");
+            revealStepError(0, "Le pays de départ et le pays d'arrivée doivent être différents.", els.destination);
             return;
         }
 
@@ -834,7 +1114,9 @@
 
         // Choix de profil obligatoire — pas de fallback profil compte (Yoyo 2026-09, strict)
         if (!selectedProfileTypeChoice) {
-            alert("Veuillez d'abord choisir votre type de profil (Voyageur simple ou Entreprise cargo).");
+            revealStepError(0, "Choisissez votre profil : Voyageur simple ou Entreprise / Cargo",
+                document.getElementById("btn-traveler-choice"),
+                document.querySelector("#profile-choice-section .profile-select-grid"));
             return;
         }
 
@@ -851,6 +1133,7 @@
                 const b = els.form?.querySelector("button[type='submit']");
                 if (b) {
                     b.disabled = false;
+                    b.removeAttribute("aria-busy");
                     b.textContent = initialBtnText;
                 }
             }, 2000);
@@ -872,8 +1155,19 @@
         // bouton du formulaire ET la modale de type de profil sont couverts.
         if (!(await verifierVillesAnnonce())) return;
         publishing = true;
+        // Backstop (l'etape 3 le verifie deja) : aucun envoi avec une ligne de prix
+        // special incomplete, sinon elle serait ignoree en silence.
+        if (typeof window.ccSpecialPricesError === "function") {
+            const problemePrix = window.ccSpecialPricesError();
+            if (problemePrix) {
+                publishing = false;
+                revealStepError(2, problemePrix.message, problemePrix.el);
+                return;
+            }
+        }
         // Anti-doublon : meme annonce renvoyee coup sur coup (typiquement apres une
-        // erreur reseau alors que l'envoi avait en fait abouti) -> confirmation.
+        // erreur reseau alors que l'envoi avait en fait abouti) -> confirmation
+        // dans la page (S-02 / CA-48), jamais confirm() natif.
         const _sigAnim = [
             els.departure?.value?.trim(), els.destination?.value?.trim(),
             els.cityDeparture?.value?.trim(), els.cityDestination?.value?.trim(),
@@ -882,7 +1176,8 @@
         try {
             const _last = JSON.parse(localStorage.getItem("cc_last_publish") || "null");
             if (_last && _last.sig === _sigAnim && (Date.now() - (_last.at || 0)) < 180000) {
-                if (!window.confirm("Vous venez de publier cette meme annonce il y a moins de 3 minutes.\n\nLa publier une deuxieme fois ?")) {
+                const poursuivre = await ccConfirmDuplicate();
+                if (!poursuivre) {
                     publishing = false;
                     return;
                 }
@@ -894,7 +1189,8 @@
         // [ENTREPRISE / CARGO] Dates multiples : collecte de la date principale + dates ajoutées
         const tripDates = collectTripDates();
         if (!tripDates.length) {
-            alert("Veuillez choisir une date de voyage.");
+            publishing = false;
+            revealStepError(0, "Indiquez la date du voyage", els.dateDepart);
             return;
         }
 
@@ -906,18 +1202,30 @@
             const isCargo = selectedProfileTypeChoice === "cargo";
             try {
                 const myOffers = await window.CCCommon.api("/api/offers?scope=mine&pageSize=20");
-                const activeOffers = (myOffers?.items || []).filter(o => String(o.status || "").toLowerCase() === "active");
-                // Filtrer par mode : voyageur = mode vide, cargo = mode non vide
-                const offersOfType = activeOffers.filter(o => {
-                    const m = String(o.mode || "").trim();
-                    return isCargo ? m !== "" : m === "";
+                const todayIso = new Date().toISOString().slice(0, 10);
+                // Memes regles que le bridge : une offre expiree n'est pas "active",
+                // et les anciens modes traveler/voyageur/simple sont des offres voyageur.
+                const activeOffers = (myOffers?.items || []).filter((o) => {
+                    if (String(o.status || "").toLowerCase() !== "active") return false;
+                    const date = String(o.departure_date || o.departureDate || "").slice(0, 10);
+                    return !date || date >= todayIso;
                 });
+                const isCargoOffer = (o) => {
+                    const m = String(o.mode || "").trim().toLowerCase();
+                    if (!m || ["traveler", "voyageur", "simple"].includes(m)) return false;
+                    return true;
+                };
+                const offersOfType = activeOffers.filter(o => isCargoOffer(o) === isCargo);
                 const activeCount = offersOfType.length;
                 const limit = isCargo ? 5 : 1;
 
                 if (activeCount >= limit) {
-                    const label = isCargo ? "entreprise cargo" : "voyageur simple";
-                    alert(`Limite de trajet depassee : En tant que ${label}, vous ne pouvez publier que ${limit} trajet${limit > 1 ? 's' : ''} actif${limit > 1 ? 's' : ''} à la fois.`);
+                    // Bandeau d'avertissement, pas de modale (C-35).
+                    showNotice(isCargo
+                        ? "En tant qu'entreprise / cargo, vous ne pouvez publier que 5 trajets actifs à la fois."
+                        : "En tant que voyageur simple, vous ne pouvez publier que 1 trajet actif à la fois.",
+                        "warn", false);
+                    publishing = false;
                     return;
                 }
             } catch (e) {
@@ -927,45 +1235,67 @@
 
         const isCargoMode = selectedProfileTypeChoice === "cargo";
         const availableKg = isCargoMode ? 99999 : Number(els.kilos?.value || 0);
-        const pricePerKg = Number(els.price?.value || 0);
+        const prixSaisi = parseFloat(String(els.price?.value || "").replace(",", "."));
+        const pricePerKg = Number.isFinite(prixSaisi) ? prixSaisi : 0;
 
-        // Validation : si cargo, le mode de transport est requis
-        if (isCargoMode && !selectedTransportMode) {
-            alert("Veuillez choisir un mode de transport (Avion, Bateau ou Les deux).");
-            return;
-        }
-
+        // Validation dans l'ordre du formulaire (kilos -> unité -> prix -> devise
+        // -> transport), avec retour sur l'étape fautive et focus (CA-29).
         if (!isCargoMode && availableKg < 1) {
-            alert("Veuillez saisir les kilos disponibles.");
+            publishing = false;
+            revealStepError(1, "Indiquez le nombre de kilos disponibles", els.kilos);
             return;
         }
         if (!isCargoMode && availableKg > KILOS_MAX) {
-            alert("Maximum " + KILOS_MAX + " kg par offre.");
+            publishing = false;
+            revealStepError(1, "Maximum " + KILOS_MAX + " kg par offre", els.kilos);
             return;
         }
-        // [FIX 2026-10-19] Le cargo ne se vend pas forcement au kilo (CBM) : on n'exige
-        // le prix au kilo que hors cargo. En cargo, on exige un prix tout court.
-        const prixSaisi = parseFloat(String(els.price?.value || "").replace(",", "."));
-        if (isCargoMode) {
-            if (!(prixSaisi >= 1)) {
-                alert("Veuillez saisir votre prix.");
-                return;
-            }
-        } else if (pricePerKg < 1) {
-            alert("Veuillez saisir un prix par kilo valide.");
+        if (isCargoMode && !choixUniteFait) {
+            publishing = false;
+            document.querySelector("#cargo-unit-choice .segment")?.classList.add("is-error");
+            revealStepError(1, "Choisissez prix au kilo ou prix au CBM",
+                document.querySelector("#cargo-unit-choice .cargo-unit-btn"),
+                document.getElementById("cargo-unit-choice"));
+            return;
+        }
+        if (!(pricePerKg >= 1)) {
+            publishing = false;
+            revealStepError(1, "Indiquez un prix d'au moins 1", els.price);
+            return;
+        }
+        const deviseChoisie = String(els.priceCurrencyInput?.value || "").trim();
+        if (!deviseChoisie) {
+            publishing = false;
+            revealStepError(1, "Choisissez votre monnaie", document.getElementById("currency-toggle-btn"));
+            return;
+        }
+        if (isCargoMode && !selectedTransportMode) {
+            publishing = false;
+            document.querySelector("#transport-mode-section .segment")?.classList.add("is-error");
+            revealStepError(1, "Choisissez le moyen de transport",
+                document.querySelector("#transport-mode-section .transport-mode-btn"),
+                document.querySelector("#transport-mode-section .segment"));
             return;
         }
 
-        // Collecte des prix spéciaux (lignes de l'étape 3 — script inline du HTML)
+        // Collecte des prix spéciaux (lignes de l'étape 3 — script inline du HTML).
+        // [FIX] « Non » ne faisait que masquer le panneau : les lignes restaient dans
+        // le DOM et etaient quand meme envoyees. On ne collecte que si « Oui » est actif.
         const specialPrices = [];
-        document.querySelectorAll("#colis-detail-rows .colis-detail-row").forEach((row) => {
-            const type = row.querySelector(".colis-name-label")?.textContent?.trim();
-            const mode = row.getAttribute("data-mode");
-            const price = parseFloat(row.querySelector(".price-field")?.value);
-            if (type && type !== "Nom du colis" && mode && !isNaN(price) && price > 0) {
-                specialPrices.push({ type, mode, price });
-            }
-        });
+        const specialPanel = document.getElementById("special-prices-panel");
+        const specialYes = document.getElementById("special-yes");
+        const specialEnabled = Boolean(specialPanel && !specialPanel.classList.contains("hidden"))
+            && Boolean(specialYes && specialYes.classList.contains("selected"));
+        if (specialEnabled) {
+            document.querySelectorAll("#colis-detail-rows .colis-detail-row").forEach((row) => {
+                const type = row.querySelector(".colis-name-label")?.textContent?.trim();
+                const mode = row.getAttribute("data-mode");
+                const price = parseFloat(row.querySelector(".price-field")?.value);
+                if (type && type !== "Nom du colis" && mode && !isNaN(price) && price > 0) {
+                    specialPrices.push({ type, mode, price });
+                }
+            });
+        }
 
         // [CODES ISO] Résolution nom de pays -> code ISO (table countries, cache CCCommon)
         // pour afficher les vrais drapeaux (option B robuste) sur les cartes d'offres.
@@ -977,6 +1307,12 @@
                 ? window.CCCommon._getCountryCode(destinationCountry).catch(() => null)
                 : Promise.resolve(null)
         ]);
+
+        // Le 1er contact vient de la 1re ligne (source unique). L'etat global
+        // paymentState est conserve en secours pour la publication classique.
+        const firstContactRow = document.querySelector("#payment-contact-rows .payment-contact-row");
+        const firstContactMethod = firstContactRow?.dataset.contactMethod || paymentState.selectedMethod;
+        const firstContactNumber = firstContactRow?.dataset.contactNumber || paymentState.accountNumber;
 
         const payload = {
             title: `Trajet ${departureCountry} -> ${destinationCountry}`,
@@ -992,12 +1328,17 @@
             pricePerKg: pricePerKg,
             priceUnit: isCargoMode ? (selectedPriceUnit || "kg") : "kg",
             baseCurrency: els.priceCurrencyInput?.value || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR"),  // [MULTI-CURRENCY]
-            paymentMethod: paymentState.selectedMethod,
-            paymentQr: paymentState.accountNumber, // Re-purpose paymentQr as accountNumber
+            paymentMethod: firstContactMethod,
+            paymentQr: firstContactNumber, // Re-purpose paymentQr as accountNumber
             mode: isCargoMode ? (selectedTransportMode || "") : "",
-            colis_types: window.colisSelections ? window.colisSelections.join(", ") : "",
             refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : ""
         };
+        // colis_types : la section « types acceptes » a ete retiree de la page.
+        //   - CREATION : on envoie "" (comportement historique, compatible avec
+        //     une eventuelle colonne NOT NULL) ;
+        //   - MODIFICATION : on n'envoie PAS la cle -> la valeur deja en base
+        //     est conservee au lieu d'etre ecrasee.
+        if (!editingOfferId) payload.colis_types = "";
 
         // [2e CONTACT] Facultatif (plafond de 2 contacts par annonce). La 2e ligne est
         // marquee au moment ou le numero est confirme dans la modale.
@@ -1028,6 +1369,7 @@
 
         if (submitBtn) {
             submitBtn.disabled = true;
+            submitBtn.setAttribute("aria-busy", "true");
             submitBtn.textContent = "Publication...";
         }
 
@@ -1095,11 +1437,14 @@
             paymentState.selectedMethod = null;
             paymentState.selectedMethodName = null;
             paymentState.accountNumber = null;
-            if (els.paymentMethodLabel) els.paymentMethodLabel.innerHTML = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Choisir mon moyen de paiement`;
+            if (els.paymentMethodLabel) {
+                els.paymentMethodLabel.innerHTML = `${PHONE_ICON}<span>Mon numero de contact</span>`;
+            }
             document.querySelectorAll(".pm-label").forEach((l) => {
-                if (l !== els.paymentMethodLabel) l.innerHTML = els.paymentMethodLabel.innerHTML;
+                if (l !== els.paymentMethodLabel) l.innerHTML = `${PHONE_ICON}<span>Mon numero de contact</span>`;
             });
-            // Popup de succès du site (remplace l'alerte navigateur) — redirection au clic
+            clearNotice();
+            // Popup de succès du site — titre dynamique (S-17)
             showPublishSuccess(created?.destination || payload.destination, 1, !!editingOfferId);
         } catch (error) {
             if (error?.status === 401) {
@@ -1110,11 +1455,14 @@
                 window.CCCommon.openProfileCompletionGate("post_trip.html");
                 return;
             }
-            alert(error.message || "Erreur publication.");
+            console.error("[publication] échec :", error);
+            // Message lisible, valeurs conservées, bouton réactivé (CA-50).
+            showNotice("Impossible de publier pour le moment. Vérifiez votre connexion, puis réessayez.", "danger", true);
         } finally {
             publishing = false;
             if (submitBtn) {
                 submitBtn.disabled = false;
+                submitBtn.removeAttribute("aria-busy");
                 submitBtn.textContent = initialText;
             }
         }
@@ -1128,8 +1476,33 @@
     const EDIT_OFFER_ID = new URLSearchParams(window.location.search).get("editOffer");
     let editingOfferId = null;
 
+    // Mode modification : squelette de chargement et erreur bloquante (CA-53).
+    function showEditLoading() {
+        document.getElementById("edit-loading")?.classList.remove("hidden");
+        document.getElementById("edit-error")?.classList.add("hidden");
+        els.form?.classList.add("hidden");
+    }
+
+    function showEditError(title, cause) {
+        document.getElementById("edit-loading")?.classList.add("hidden");
+        els.form?.classList.add("hidden");
+        const box = document.getElementById("edit-error");
+        if (!box) return;
+        const titleEl = document.getElementById("edit-error-title");
+        const causeEl = document.getElementById("edit-error-cause");
+        if (titleEl) titleEl.textContent = title || "Impossible de charger l'annonce.";
+        if (causeEl) causeEl.textContent = cause || "Vérifiez votre connexion, puis réessayez.";
+        box.classList.remove("hidden");
+    }
+
     async function initEditMode() {
         if (!EDIT_OFFER_ID) return;
+
+        document.getElementById("edit-retry-btn")?.addEventListener("click", () => window.location.reload());
+        document.getElementById("edit-back-btn")?.addEventListener("click", () => {
+            window.location.href = "dashboard.html";
+        });
+        showEditLoading();
 
         let offer = null;
         try {
@@ -1140,7 +1513,7 @@
             }
             if (!window.ccSupabase) {
                 console.warn("[modif] Supabase indisponible");
-                alert("Connexion indisponible : impossible de charger l'annonce a modifier.");
+                showEditError("Impossible de charger l'annonce.", "Vérifiez votre connexion, puis réessayez.");
                 return;
             }
             const res = await window.ccSupabase.from("offers").select("*").eq("id", Number(EDIT_OFFER_ID)).maybeSingle();
@@ -1148,14 +1521,26 @@
             offer = res.data;
         } catch (e) {
             console.error("[modif] chargement impossible:", e);
-            alert("Impossible de charger l'annonce a modifier : " + (e && e.message ? e.message : e));
+            showEditError("Impossible de charger l'annonce.", "Vérifiez votre connexion, puis réessayez.");
             return;
         }
         if (!offer) {
-            alert("Annonce introuvable (#" + EDIT_OFFER_ID + ").");
+            showEditError("Annonce introuvable : " + EDIT_OFFER_ID, "Retournez au dashboard pour choisir une autre annonce.");
             return;
         }
         editingOfferId = offer.id;
+        document.getElementById("edit-loading")?.classList.add("hidden");
+        document.getElementById("edit-error")?.classList.add("hidden");
+        els.form?.classList.remove("hidden");
+
+        // Types de colis acceptes/refuses : restaures AVANT l'enregistrement,
+        // sinon l'edition les remplacait par des chaines vides.
+        if (typeof window.ccSetRefusedColisSelections === "function") {
+            const splitTypes = (v) => String(v || "").split(",").map((s) => s.trim()).filter(Boolean);
+            try {
+                window.ccSetRefusedColisSelections(splitTypes(offer.refused_colis_types));
+            } catch (e) { console.warn("types de colis refuses non restaures:", e); }
+        }
 
         // [CONTACT] On reaffiche le numero de contact enregistre a la creation de l'annonce.
         // Il a deja ete valide a ce moment-la -> aucun code redemande tant qu'il n'est pas
@@ -1169,11 +1554,20 @@
             paymentState.selectedMethodName = "Contact Direct";
             paymentState.accountNumber = storedContact;
             paymentState.isVerified = true;
+            if (!paymentState.verifiedNumbers.includes(storedContact)) paymentState.verifiedNumbers.push(storedContact);
             if (els.paymentMethodInput) els.paymentMethodInput.value = paymentState.storedMethod;
             if (els.paymentQrInput) els.paymentQrInput.value = storedContact;
             const parts = splitPhoneNumber(storedContact);
+            const firstRow = document.querySelector("#payment-contact-rows .payment-contact-row");
+            if (firstRow) {
+                firstRow.dataset.contactMethod = paymentState.storedMethod;
+                firstRow.dataset.contactNumber = storedContact;
+            }
             const rowLabel = document.querySelector("#payment-contact-rows .contact-row-btn .pm-label");
-            if (rowLabel) rowLabel.innerHTML = `📞 Contact : <strong>${parts.code}</strong> ${parts.local}`;
+            if (rowLabel) rowLabel.innerHTML = `${PHONE_ICON}<span>Contact : <strong>${escapeHtml(parts.code)}</strong> ${escapeHtml(formatPhoneLocal(parts.local))}</span>`;
+            // Contact enregistre = verifie : style C-26 des le chargement. BUG-017.
+            const firstRowBtn = document.querySelector("#payment-contact-rows .contact-row-btn");
+            if (firstRowBtn) firstRowBtn.classList.add("verified");
         }
 
         // [2e CONTACT] Si l'annonce a un 2e numero enregistre, on recree la 2e ligne de
@@ -1182,6 +1576,8 @@
         const storedContact2 = String(offer.payment_qr_2 || "").trim();
         if (storedContact2) {
             addSecondContactRow(String(offer.payment_method_2 || "direct_contact").trim(), storedContact2);
+            // Valide a la creation de l'annonce : pas de nouveau code a demander.
+            if (!paymentState.verifiedNumbers.includes(storedContact2)) paymentState.verifiedNumbers.push(storedContact2);
         }
 
         // Remplissage du formulaire avec l'annonce existante (l'utilisateur ne modifie
@@ -1215,7 +1611,6 @@
             set("kilos", numeroKilosSaisissable(kiloOffre));
             set("price", offer.price_per_kg ?? "");
             set("price-currency", offer.base_currency || "");
-            if (els.notes) els.notes.value = offer.description || "";
 
             // DEVISE : on reprend la devise de l'annonce, même si elle ne figure pas
             // dans la liste des devises des pays (l'utilisateur peut en changer).
@@ -1244,15 +1639,22 @@
 
         // Les champs pays/villes sont construits (puis parfois reconstruits) par le
         // composant partage : on reapplique les valeurs plusieurs fois pour etre sur
-        // qu'elles tiennent.
-        [0, 300, 800, 1600, 2600, 4000].forEach((d) => setTimeout(remplir, d));
+        // qu'elles tiennent. MAIS on arrete des la premiere interaction : avant, les
+        // rappels jusqu'a 4 s ecrasaient les champs que l'utilisateur venait de modifier.
+        const prefillTimers = [0, 300, 800, 1600, 2600, 4000].map((d) => setTimeout(remplir, d));
+        const stopPrefill = () => prefillTimers.forEach((t) => clearTimeout(t));
+        els.form?.addEventListener("pointerdown", stopPrefill, { once: true });
+        els.form?.addEventListener("keydown", stopPrefill, { once: true });
 
         // Type d'annonce (voyageur / cargo) deduit du mode enregistre : meme logique que le
         // clic utilisateur (bouton surligne + champs coherents), sinon le type repartait vide.
         // Une annonce est cargo si elle a un mode de transport, OU un volume symbolique
         // (> 69 kg), OU si le compte est un compte cargo : sinon le champ kilos reapparaissait
         // rempli de 99999 et bloquait l'enregistrement.
-        const estCargoOffre = Boolean(offer.mode) || Number(offer.available_kg || 0) > KILOS_MAX;
+        // Ancien bug : mode="traveler"/"voyageur"/"simple" etait classe cargo.
+        const modeOffre = String(offer.mode || "").trim().toLowerCase();
+        const modeVoyageurHerite = !modeOffre || ["traveler", "voyageur", "simple"].includes(modeOffre);
+        const estCargoOffre = !modeVoyageurHerite || Number(offer.available_kg || 0) > KILOS_MAX;
         applyProfileTypeUI(estCargoOffre ? "cargo" : "traveler");
         // unite de prix enregistree (kg ou CBM) : on remet le client sur son choix
         if (estCargoOffre) {
@@ -1264,9 +1666,9 @@
         if (prixSpeciaux.length && typeof window.ccSetSpecialPrices === "function") {
             try { window.ccSetSpecialPrices(prixSpeciaux); } catch (e) { console.warn("prix speciaux non restaures:", e); }
         }
-        if (offer.mode) {
+        if (estCargoOffre && offer.mode) {
             selectedTransportMode = offer.mode;
-            document.querySelectorAll(".modal-transport-btn, .transport-mode-btn, .mode-btn").forEach((btn) => {
+            document.querySelectorAll(".modal-transport-btn, #transport-mode-section .transport-mode-btn, .mode-btn").forEach((btn) => {
                 const val = btn.dataset.mode || btn.dataset.value || "";
                 if (val && String(val) === String(offer.mode)) btn.classList.add("selected");
             });
@@ -1285,70 +1687,23 @@
     // Clics du choix d'unite de prix (cargo) — delegation unique
     document.addEventListener("click", (ev) => {
         const btnUnite = ev.target.closest(".cargo-unit-btn");
-        if (btnUnite) { ev.preventDefault(); choisirUnitePrix(btnUnite.dataset.unit); return; }
+        if (btnUnite) {
+            ev.preventDefault();
+            btnUnite.closest(".segment")?.classList.remove("is-error");
+            const nouvelleUnite = btnUnite.dataset.unit === "cbm" ? "cbm" : "kg";
+            // Changer d'unite change le SENS du montant : on ne garde pas
+            // « 99 » saisi au CBM comme s'il valait 99 par kilo.
+            if (nouvelleUnite !== selectedPriceUnit) {
+                const champPrix = document.getElementById("price");
+                if (champPrix) champPrix.value = "";
+            }
+            choisirUnitePrix(nouvelleUnite);
+            return;
+        }
         if (ev.target.closest("#price-unit-back")) { ev.preventDefault(); afficherChoixUnitePrix(); }
     });
 
     function bindEvents() {
-        // ===== POPUP TYPES DE COLIS =====
-        const colisOverlay = document.getElementById("colisPopupOverlay");
-        const colisGrid = document.getElementById("colisOptionsGrid");
-        const colisText = document.getElementById("selectedColisText");
-        const validateColisBtn = document.getElementById("validateColisBtn");
-        const toggleCustomBtn = document.getElementById("toggleCustomColisBtn");
-        const customGroup = document.getElementById("customColisGroup");
-        const newTypeInput = document.getElementById("newColisTypeInput");
-        const saveCustomBtn = document.getElementById("saveCustomColisBtn");
-        let colisSelections = [];
-        window.colisSelections = colisSelections; // expose for payload
-
-        document.getElementById("openColisPopupBtn")?.addEventListener("click", () => {
-            if (colisOverlay) colisOverlay.style.display = "flex";
-        });
-
-        colisGrid?.addEventListener("click", (e) => {
-            const card = e.target.closest(".option-card");
-            if (!card) return;
-            const value = card.getAttribute("data-value");
-            card.classList.toggle("selected");
-            if (card.classList.contains("selected")) {
-                colisSelections.push(value);
-            } else {
-                colisSelections = colisSelections.filter(item => item !== value);
-            }
-        });
-
-        toggleCustomBtn?.addEventListener("click", () => {
-            if (customGroup) {
-                customGroup.style.display = customGroup.style.display === "flex" ? "none" : "flex";
-                newTypeInput?.focus();
-            }
-        });
-
-        saveCustomBtn?.addEventListener("click", () => {
-            const val = newTypeInput?.value?.trim();
-            if (!val) return;
-            const newCard = document.createElement("div");
-            newCard.className = "option-card selected";
-            newCard.setAttribute("data-value", val);
-            newCard.innerHTML = `<span class="option-circle"></span><span class="option-text">${val}</span>`;
-            colisGrid?.appendChild(newCard);
-            colisSelections.push(val);
-            if (newTypeInput) newTypeInput.value = "";
-            if (customGroup) customGroup.style.display = "none";
-        });
-
-        validateColisBtn?.addEventListener("click", () => {
-            if (colisOverlay) colisOverlay.style.display = "none";
-            if (colisText) {
-                colisText.textContent = colisSelections.length > 0 ? colisSelections.join(", ") : "Choisir les types de colis";
-            }
-        });
-
-        colisOverlay?.addEventListener("click", (e) => {
-            if (e.target === colisOverlay) colisOverlay.style.display = "none";
-        });
-
         // ===== POPUP TYPES DE COLIS REFUSÉS =====
         const refusedOverlay = document.getElementById("refusedPopupOverlay");
         const refusedGrid = document.getElementById("refusedOptionsGrid");
@@ -1361,20 +1716,43 @@
         let refusedSelections = [];
         window.refusedSelections = refusedSelections;
 
-        document.getElementById("openRefusedColisBtn")?.addEventListener("click", () => {
-            if (refusedOverlay) refusedOverlay.style.display = "flex";
+        const refusedTrigger = document.getElementById("openRefusedColisBtn");
+        refusedTrigger?.addEventListener("click", () => {
+            refusedTrigger.setAttribute("aria-expanded", "true");
+            openDialog(refusedOverlay, document.getElementById("close-refused-modal"));
         });
+        // Échap, croix, fond et « Valider » passent tous par closeDialog :
+        // l'état ouvert du déclencheur suit la fermeture réelle (C-24).
+        refusedOverlay?.addEventListener("cc-dialog-closed", () => {
+            refusedTrigger?.setAttribute("aria-expanded", "false");
+        });
+
+        const toggleRefusedCard = (card) => {
+            if (!card) return;
+            const value = card.getAttribute("data-value");
+            card.classList.toggle("selected");
+            const actif = card.classList.contains("selected");
+            card.setAttribute("aria-checked", actif ? "true" : "false");
+            if (actif) {
+                if (!refusedSelections.includes(value)) refusedSelections.push(value);
+            } else {
+                const i = refusedSelections.indexOf(value);
+                if (i >= 0) refusedSelections.splice(i, 1);
+            }
+        };
 
         refusedGrid?.addEventListener("click", (e) => {
             const card = e.target.closest(".option-card");
             if (!card) return;
-            const value = card.getAttribute("data-value");
-            card.classList.toggle("selected");
-            if (card.classList.contains("selected")) {
-                refusedSelections.push(value);
-            } else {
-                refusedSelections = refusedSelections.filter(item => item !== value);
-            }
+            toggleRefusedCard(card);
+        });
+
+        refusedGrid?.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" && e.key !== " ") return;
+            const card = e.target.closest(".option-card");
+            if (!card) return;
+            e.preventDefault();
+            toggleRefusedCard(card);
         });
 
         toggleRefusedBtn?.addEventListener("click", () => {
@@ -1385,39 +1763,132 @@
         });
 
         saveRefusedBtn?.addEventListener("click", () => {
-            const val = newRefusedInput?.value?.trim();
+            // La virgule est le SEPARATEUR des types enregistres : un type saisi
+            // « Vêtements, chaussures » serait relu comme deux types et affiche
+            // en double sur la carte d'offre. On la remplace par une espace.
+            const val = String(newRefusedInput?.value || "")
+                .replace(/[,\r\n]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
             if (!val) return;
-            const newCard = document.createElement("div");
-            newCard.className = "option-card selected";
-            newCard.setAttribute("data-value", val);
-            newCard.innerHTML = `<span class="option-circle"></span><span class="option-text">${val}</span>`;
-            refusedGrid?.appendChild(newCard);
-            refusedSelections.push(val);
+            // Un type deja present ne doit pas etre ajoute une 2e fois (deux
+            // cartes identiques = doublon dans le libelle et dans l'envoi).
+            const existante = Array.from(refusedGrid?.querySelectorAll(".option-card") || [])
+                .find((c) => String(c.getAttribute("data-value") || "").trim().toLowerCase() === val.toLowerCase());
+            if (existante) {
+                existante.classList.add("selected");
+                existante.setAttribute("aria-checked", "true");
+                const valeur = String(existante.getAttribute("data-value") || val);
+                if (!refusedSelections.includes(valeur)) refusedSelections.push(valeur);
+            } else {
+                const newCard = document.createElement("div");
+                newCard.className = "option-card selected";
+                newCard.setAttribute("data-value", val);
+                newCard.setAttribute("role", "checkbox");
+                newCard.setAttribute("aria-checked", "true");
+                newCard.setAttribute("tabindex", "0");
+                const circle = document.createElement("span");
+                circle.className = "option-circle";
+                const label = document.createElement("span");
+                label.className = "option-text";
+                label.textContent = val;
+                newCard.append(circle, label);
+                refusedGrid?.appendChild(newCard);
+                refusedSelections.push(val);
+            }
             if (newRefusedInput) newRefusedInput.value = "";
             if (refusedGroup) refusedGroup.style.display = "none";
         });
 
-        validateRefusedBtn?.addEventListener("click", () => {
-            if (refusedOverlay) refusedOverlay.style.display = "none";
+        const syncRefusedText = () => {
             if (refusedText) {
                 refusedText.textContent = refusedSelections.length > 0 ? refusedSelections.join(", ") : "Choisir les types refusés";
             }
-        });
+        };
 
-        refusedOverlay?.addEventListener("click", (e) => {
-            if (e.target === refusedOverlay) refusedOverlay.style.display = "none";
+        validateRefusedBtn?.addEventListener("click", () => {
+            closeDialog(refusedOverlay);
+            syncRefusedText();
         });
+        document.getElementById("close-refused-modal")?.addEventListener("click", () => {
+            closeDialog(refusedOverlay);
+            syncRefusedText();
+        });
+        refusedOverlay?.addEventListener("cc-dialog-closed", syncRefusedText);
+
+        // [FIX MODIFICATION] Recharge les types REFUSES enregistres.
+        // Sans cette restauration, un simple enregistrement ecrasait
+        // refused_colis_types par une chaine vide (la section disparaissait).
+        // (Les types ACCEPTES ne sont plus proposes sur cette page : leur champ a
+        // ete retire ; une annonce existante garde sa valeur, jamais reecrite.)
+        window.ccSetRefusedColisSelections = function (refused) {
+            if (!refusedGrid) return;
+            refusedSelections.length = 0;
+            refusedGrid.querySelectorAll(".option-card").forEach((c) => {
+                c.classList.remove("selected");
+                c.setAttribute("aria-checked", "false");
+            });
+            (refused || []).forEach((value) => {
+                const clean = String(value || "").trim();
+                if (!clean) return;
+                let card = Array.from(refusedGrid.querySelectorAll(".option-card"))
+                    .find((c) => String(c.getAttribute("data-value")) === clean);
+                if (!card) {
+                    card = document.createElement("div");
+                    card.className = "option-card";
+                    card.setAttribute("data-value", clean);
+                    card.setAttribute("role", "checkbox");
+                    card.setAttribute("aria-checked", "false");
+                    card.setAttribute("tabindex", "0");
+                    const circle = document.createElement("span");
+                    circle.className = "option-circle";
+                    const label = document.createElement("span");
+                    label.className = "option-text";
+                    label.textContent = clean;
+                    card.append(circle, label);
+                    refusedGrid.appendChild(card);
+                }
+                card.classList.add("selected");
+                card.setAttribute("aria-checked", "true");
+                if (!refusedSelections.includes(clean)) refusedSelections.push(clean);
+            });
+            if (refusedText) {
+                refusedText.textContent = refusedSelections.length
+                    ? refusedSelections.join(", ")
+                    : "Choisir les types refusés";
+            }
+        };
 
         els.form?.addEventListener("submit", (event) => {
             submitTrip(event).catch((error) => {
-                alert(error.message || "Erreur publication.");
+                console.error("[publication] erreur non gérée :", error);
+                showNotice("Impossible de publier pour le moment. Vérifiez votre connexion, puis réessayez.", "danger", true);
             });
         });
-        // [MULTI-CURRENCY] Mise à jour du sélecteur de monnaie à chaque changement de pays
+
+        document.getElementById("trip-notice-retry")?.addEventListener("click", () => {
+            clearNotice();
+            if (els.form?.requestSubmit) els.form.requestSubmit();
+            else els.form?.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+        });
+        // [MULTI-CURRENCY] Mise à jour du sélecteur de monnaie quand un pays est
+        // reellement choisi (evenement "change"), pas a chaque touche tapee : une
+        // saisie partielle ("S") ne correspondait a aucun pays et faisait retomber
+        // la liste sur les devises par defaut, donc changeait la monnaie en cours.
         els.departure?.addEventListener("change", updateCurrencySelector);
-        els.departure?.addEventListener("input", updateCurrencySelector);
         els.destination?.addEventListener("change", updateCurrencySelector);
-        els.destination?.addEventListener("input", updateCurrencySelector);
+
+        // Alerte immediate depart == arrivee, des que les deux pays sont choisis.
+        const syncSameCountryHint = () => {
+            const dep = String(els.departure?.value || "").trim();
+            const dst = String(els.destination?.value || "").trim();
+            const identiques = !!dep && !!dst
+                && isValidCountry(dep) && isValidCountry(dst)
+                && normalizeCountry(dep) === normalizeCountry(dst);
+            document.getElementById("same-country-hint")?.classList.toggle("hidden", !identiques);
+        };
+        els.departure?.addEventListener("change", syncSameCountryHint);
+        els.destination?.addEventListener("change", syncSameCountryHint);
 
         // Initial load of currency options
         updateCurrencySelector();
@@ -1441,38 +1912,20 @@
             updateExtraDatesAddBtn();
         });
 
-        els.choiceCargo?.addEventListener("click", () => {
-            selectedProfileTypeChoice = "cargo";
-            els.choiceCargo.classList.add("selected");
-            els.choiceTraveler?.classList.remove("selected");
-            if (els.confirmProfileTypeBtn) els.confirmProfileTypeBtn.disabled = false;
-            // Afficher le choix transport si on choisit cargo
-            els.modalTransportMode?.classList.remove("hidden");
-        });
-
-        // Sélection du mode de transport (dans la modale)
-        els.modalTransportBtns?.forEach(btn => {
+        // Sélection du mode de transport (inline dans le formulaire).
+        // Selecteur limite a la section transport : les boutons « Prix au kilo / CBM »
+        // portent aussi .transport-mode-btn et mettaient selectedTransportMode a undefined.
+        document.querySelectorAll("#transport-mode-section .transport-mode-btn").forEach(btn => {
             btn.addEventListener("click", () => {
-                els.modalTransportBtns.forEach(b => b.classList.remove("selected"));
+                btn.closest(".segment")?.classList.remove("is-error");
+                document.querySelectorAll("#transport-mode-section .transport-mode-btn").forEach(b => {
+                    b.classList.remove("selected");
+                    b.setAttribute("aria-pressed", "false");
+                });
                 btn.classList.add("selected");
+                btn.setAttribute("aria-pressed", "true");
                 selectedTransportMode = btn.dataset.mode;
             });
-        });
-
-        // Sélection du mode de transport (inline dans le formulaire)
-        document.querySelectorAll(".transport-mode-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                document.querySelectorAll(".transport-mode-btn").forEach(b => b.classList.remove("selected"));
-                btn.classList.add("selected");
-                selectedTransportMode = btn.dataset.mode;
-            });
-        });
-
-        els.confirmProfileTypeBtn?.addEventListener("click", async () => {
-            if (!selectedProfileTypeChoice) return;
-            els.profileTypeModal?.classList.add("hidden");
-            // Plus de mise à jour immédiate du profil — se fait après publication
-            await proceedSubmitTrip();
         });
     }
 
@@ -1492,16 +1945,22 @@
             dots.forEach((d, i) => {
                 d.classList.toggle("active", i === idx);
                 d.classList.toggle("done", i < idx);
+                if (i === idx) d.setAttribute("aria-current", "step");
+                else d.removeAttribute("aria-current");
             });
             // Remonte au début du formulaire (sous le header sticky)
             const t = form.getBoundingClientRect();
             window.scrollTo({ top: window.scrollY + t.top - 80, behavior: "smooth" });
         }
 
+        function showErr(box, message) {
+            if (!box) return;
+            box.innerHTML = ERROR_ICON + "<span>" + escapeHtml(message) + "</span>";
+            box.classList.remove("hidden");
+        }
+
         function markError(el) {
-            if (!el) return;
-            el.classList.add("input-error");
-            setTimeout(() => el.classList.remove("input-error"), 1400);
+            markFieldError(el);
         }
 
         // Fait défiler la page jusqu'à un élément en tenant compte du header fixe
@@ -1543,10 +2002,7 @@
 
                 // 1) Choix de profil (en tête de l'étape) — groupe de boutons.
                 if (!selectedProfileTypeChoice) {
-                    if (errBox1) {
-                        errBox1.innerHTML = "<div>• Choisissez votre profil : Voyageur simple ou Entreprise / Cargo</div>";
-                        errBox1.classList.remove("hidden");
-                    }
+                    showErr(errBox1, "Choisissez votre profil : Voyageur simple ou Entreprise / Cargo");
                     const grid = document.querySelector("#profile-choice-section .profile-select-grid");
                     const firstChoice = document.getElementById("btn-traveler-choice");
                     focusField(firstChoice, grid);
@@ -1562,14 +2018,36 @@
                 for (const it of req) {
                     const el = document.getElementById(it.id);
                     if (el && !el.value.trim()) {
-                        if (errBox1) {
-                            errBox1.innerHTML = "<div>• " + it.msg + "</div>";
-                            errBox1.classList.remove("hidden");
-                        }
+                        showErr(errBox1, it.msg);
                         markError(el);
                         focusField(el);
                         return;
                     }
+                }
+
+                // 2 ter) Depart et arrivee identiques : la regle etait deja connue
+                // mais n'etait signalee qu'a l'envoi final, apres toutes les etapes.
+                // On bloque des l'etape 1 (et l'alerte s'affiche aussi en direct).
+                const paysDep = String(document.getElementById("departure")?.value || "").trim();
+                const paysDst = String(document.getElementById("destination")?.value || "").trim();
+                if (paysDep && paysDst && isValidCountry(paysDep) && isValidCountry(paysDst)
+                    && normalizeCountry(paysDep) === normalizeCountry(paysDst)) {
+                    showErr(errBox1, "Le pays de départ et le pays d'arrivée doivent être différents.");
+                    markError(document.getElementById("destination"));
+                    focusField(document.getElementById("destination"));
+                    return;
+                }
+
+                // 2 bis) Date passee. Le champ porte min=aujourd'hui, mais un
+                // type=date accepte une date tapee a la main : le wizard laissait
+                // passer une date passee jusqu'a l'envoi, ou le navigateur bloquait
+                // alors la soumission sans message (champ dans une etape masquee).
+                const dateVoyage = document.getElementById("date-depart");
+                if (dateVoyage && dateVoyage.value && dateVoyage.min && dateVoyage.value < dateVoyage.min) {
+                    showErr(errBox1, "La date du voyage doit être aujourd'hui ou plus tard.");
+                    markError(dateVoyage);
+                    focusField(dateVoyage);
+                    return;
                 }
 
                 // 3) [ENTREPRISE / CARGO] Dates multiples : chaque ligne ajoutée doit être
@@ -1603,10 +2081,7 @@
                             seen.add(v);
                         }
                         if (invalidInput) {
-                            if (errBox1) {
-                                errBox1.innerHTML = "<div>• " + invalidMsg + "</div>";
-                                errBox1.classList.remove("hidden");
-                            }
+                            showErr(errBox1, invalidMsg);
                             markError(invalidInput);
                             focusField(invalidInput);
                             return;
@@ -1622,6 +2097,8 @@
                 const currencyBtn = document.getElementById("currency-toggle-btn");
                 const kilosGroup = document.getElementById("kilos-group");
                 const transportSection = document.getElementById("transport-mode-section");
+                const priceGroup = document.getElementById("price-group");
+                const unitChoice = document.getElementById("cargo-unit-choice");
                 const errBox = document.getElementById("step2-errors");
                 const k = parseFloat(kilos.value);
                 const p = parseFloat(price.value);
@@ -1629,27 +2106,39 @@
 
                 const kilosVisible = kilosGroup && !kilosGroup.classList.contains("hidden");
                 const transportVisible = transportSection && transportSection.style.display !== "none";
+                const priceVisible = priceGroup && !priceGroup.classList.contains("hidden");
+                const unitVisible = unitChoice && !unitChoice.classList.contains("hidden");
                 const kilosManque = kilosVisible && (isNaN(k) || k <= 0);
                 const kilosTrop = kilosVisible && !isNaN(k) && k > KILOS_MAX;
-                const priceManque = isNaN(p) || p <= 0;
-                const deviseManque = !c;
-                const transportManque = transportVisible && !document.querySelector(".transport-mode-btn.selected");
+                // Cargo : le prix n'est exige qu'une fois l'unite choisie (le champ est
+                // cache avant). Avant, un champ invisible bloquait l'etape 2.
+                const unitManque = unitVisible && !choixUniteFait;
+                // Prix : meme regle qu'a l'envoi (au moins 1 unite). Avant, 0,5
+                // passait l'etape 2 puis etait refuse a la toute fin.
+                const priceManque = priceVisible && !(p >= 1);
+                const deviseManque = priceVisible && !c;
+                const transportManque = transportVisible
+                    && !transportSection.querySelector(".transport-mode-btn.selected");
 
                 // UN SEUL champ à la fois, dans l'ordre du formulaire.
+                const unitSegment = unitChoice ? unitChoice.querySelector(".segment") : null;
+                const transportSegment = transportSection ? transportSection.querySelector(".segment") : null;
+                unitSegment?.classList.remove("is-error");
+                transportSegment?.classList.remove("is-error");
                 let target = null;
                 let group = null;
                 let msg = "";
                 if (kilosManque) { target = kilos; msg = "Indiquez le nombre de kilos disponibles"; }
                 else if (kilosTrop) { target = kilos; msg = "Maximum " + KILOS_MAX + " kg par offre"; }
-                else if (priceManque) { target = price; msg = "Indiquez le prix par kilo"; }
+                else if (unitManque) { target = unitChoice.querySelector(".cargo-unit-btn"); group = unitChoice; msg = "Choisissez prix au kilo ou prix au CBM"; }
+                else if (priceManque) { target = price; msg = "Indiquez un prix d'au moins 1"; }
                 else if (deviseManque) { target = currencyBtn; msg = "Choisissez votre monnaie"; }
-                else if (transportManque) { target = document.querySelector(".transport-mode-btn"); group = document.querySelector(".transport-mode-grid"); msg = "Choisissez le moyen de transport"; }
+                else if (transportManque) { target = transportSection.querySelector(".transport-mode-btn"); group = transportSection.querySelector(".segment"); msg = "Choisissez le moyen de transport"; }
 
                 if (target) {
-                    if (errBox) {
-                        errBox.innerHTML = "<div>• " + msg + "</div>";
-                        errBox.classList.remove("hidden");
-                    }
+                    if (unitManque && unitSegment) unitSegment.classList.add("is-error");
+                    if (transportManque && transportSegment) transportSegment.classList.add("is-error");
+                    showErr(errBox, msg);
                     if (transportManque) {
                         focusField(target, group);
                     } else if (target === currencyBtn) {
@@ -1661,6 +2150,24 @@
                     return;
                 }
                 if (errBox) errBox.classList.add("hidden");
+            }
+            // Étape 3 (Prix spéciaux) — une ligne COMMENCÉE doit être complète.
+            // Avant, une ligne sans mode ou sans prix était ignorée en silence à
+            // l'envoi : le voyageur croyait avoir ajouté son prix, il n'était
+            // jamais enregistré.
+            if (current === 2) {
+                const errBox3 = document.getElementById("step3-errors");
+                const probleme = (typeof window.ccSpecialPricesError === "function")
+                    ? window.ccSpecialPricesError() : null;
+                if (probleme) {
+                    showErr(errBox3, probleme.message);
+                    if (probleme.el) {
+                        markError(probleme.el);
+                        focusField(probleme.el);
+                    }
+                    return;
+                }
+                if (errBox3) errBox3.classList.add("hidden");
             }
             showStep(current + 1);
         }
@@ -1674,6 +2181,41 @@
             else if (e.target.closest(".wizard-prev")) goPrev();
         });
 
+        // Entree dans un champ : le formulaire n'a qu'UN bouton submit (etape 4),
+        // donc le navigateur soumettait TOUT depuis n'importe quelle etape — et
+        // ouvrait la fenetre de contact alors que le voyage n'etait pas rempli.
+        // On fait avancer l'etape courante (les suggestions pays/ville gardent la
+        // priorite : elles appellent preventDefault avant nous, en phase bulle).
+        form.addEventListener("keydown", (e) => {
+            if (e.key !== "Enter" || e.defaultPrevented) return;
+            const cible = e.target;
+            if (!cible || /^(TEXTAREA|BUTTON)$/.test(cible.tagName)) return;
+            const section = cible.closest(".wizard-step");
+            if (!section) return;
+            const idx = steps.indexOf(section);
+            if (idx < 0 || idx >= total - 1) return;
+            e.preventDefault();
+            section.querySelector(".wizard-next")?.click();
+        });
+
+        // Filet de securite : une valeur invalide (date passee, champ requis vide)
+        // situee dans une etape masquee ne peut pas etre pointee par le navigateur
+        // -> la soumission echouait sans AUCUN message. On affiche l'etape concernee
+        // avant que le navigateur ne tente de focaliser le champ.
+        form.addEventListener("invalid", (e) => {
+            const section = e.target.closest && e.target.closest(".wizard-step");
+            if (!section) return;
+            const idx = steps.indexOf(section);
+            // On compare a l'etape REELLEMENT affichee (pas a `current`) : les deux
+            // peuvent diverger (navigation programmatique), et c'est la visibilite
+            // du champ qui permet au navigateur de le pointer.
+            const affichee = steps.findIndex((s) => s.classList.contains("active"));
+            if (idx >= 0 && idx !== affichee) showStep(idx);
+        }, true);
+
+        // Acces externe (envoi) : revenir sur une etape precise en cas d'erreur.
+        window.ccGoToWizardStep = (idx) => showStep(idx);
+
         // Étape 3 — question « prix spéciaux ? » : Oui → panneau, Non → masqué
         const yesBtn = document.getElementById("special-yes");
         const noBtn = document.getElementById("special-no");
@@ -1686,16 +2228,50 @@
                 if (typeof window.ccEnsureSpecialRow === "function") window.ccEnsureSpecialRow();
                 panel.classList.remove("hidden");
                 yesBtn.classList.add("selected");
+                yesBtn.setAttribute("aria-pressed", "true");
                 noBtn.classList.remove("selected");
+                noBtn.setAttribute("aria-pressed", "false");
             });
             noBtn.addEventListener("click", () => {
                 panel.classList.add("hidden");
                 noBtn.classList.add("selected");
+                noBtn.setAttribute("aria-pressed", "true");
                 yesBtn.classList.remove("selected");
+                yesBtn.setAttribute("aria-pressed", "false");
             });
         }
 
         showStep(0);
+    }
+
+    // Accordéon des bénéfices : ouvert sur bureau, replié à 768, masqué à 360.
+    function initBenefitsAccordion() {
+        const btn = document.getElementById("benefits-trigger");
+        const body = document.getElementById("benefits-body");
+        if (!btn || !body) return;
+        const mq = window.matchMedia("(max-width: 1080px)");
+        let userOpen = false;
+        const sync = () => {
+            if (!mq.matches) {
+                btn.setAttribute("aria-expanded", "true");
+                body.classList.add("is-open");
+                return;
+            }
+            btn.setAttribute("aria-expanded", userOpen ? "true" : "false");
+            body.classList.toggle("is-open", userOpen);
+        };
+        btn.addEventListener("click", () => {
+            if (!mq.matches) return;
+            userOpen = !userOpen;
+            sync();
+        });
+        if (mq.addEventListener) {
+            mq.addEventListener("change", () => {
+                userOpen = false;
+                sync();
+            });
+        }
+        sync();
     }
 
     async function bootstrap() {
@@ -1705,9 +2281,10 @@
         try { localStorage.removeItem("cc_trip_draft"); } catch (e) { }
         await window.CCCommon.init("post_trip");
 
-        initCountryDatalist();
         initDateMin();
         initReveal();
+        initBenefitsAccordion();
+        initDialogA11y();
         // Génère les champs pays+ville depuis les conteneurs .location-group
         if (window.CCCommon.initLocationFields) {
             window.CCCommon.initLocationFields("#trip-form");
@@ -1728,6 +2305,7 @@
     }
 
     bootstrap().catch((error) => {
-        alert(error.message || "Initialisation impossible.");
+        console.error("[post_trip] initialisation impossible :", error);
+        showNotice("La page n'a pas pu s'initialiser. Vérifiez votre connexion, puis rechargez la page.", "danger", false);
     });
 })();

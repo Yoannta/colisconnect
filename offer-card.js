@@ -127,6 +127,11 @@
 
         const priceDisplay = window.CCCommon.formatAmount(convertedPrice, userCur);
         const offerMode = String(offer.mode || "").trim();
+        // Offre cargo vendue au CBM : le libelle ne doit pas annoncer « / kg ».
+        const priceUnitRaw = String(offer.price_unit || offer.priceUnit || "kg").toLowerCase();
+        const isCbmPrice = priceUnitRaw === "cbm";
+        const priceUnitLabel = isCbmPrice ? "CBM" : "kg";
+        const priceAriaLabel = isCbmPrice ? "Prix par CBM" : "Prix par kilogramme";
 
         // [CARGO] Dates supplémentaires (jsonb) : triées puis formatées en chips courtes
         let extraDateValues = [];
@@ -285,14 +290,14 @@
       </div>` : ""}
       <div class="cc3-detail cc3-detail-price">
         <div class="cc3-price-source" aria-hidden="true">
-          <span class="cc3-d-label">Prix / kg</span>
+          <span class="cc3-d-label">Prix / ${priceUnitLabel}</span>
           <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
           <span class="cc3-inclusive">all inclusive</span>
         </div>
-        <div class="water-lens" aria-label="Prix par kilogramme: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
+        <div class="water-lens" aria-label="${priceAriaLabel}: ${window.CCCommon.escapeHtml(priceDisplay)} all inclusive">
           <div class="water-lens__content">
             <div class="cc3-detail-txt">
-              <span class="cc3-d-label">Prix / kg</span>
+              <span class="cc3-d-label">Prix / ${priceUnitLabel}</span>
               <span class="cc3-price">${window.CCCommon.escapeHtml(priceDisplay)}</span>
               <span class="cc3-inclusive">all inclusive</span>
             </div>
@@ -344,11 +349,31 @@
         // Corbeille : suppression de ma propre publication (avec confirmation)
         deleteAttr: isOwnOffer ? `${deleteAttrName}="${String(offer.id ?? "")}"` : "",
         deleteLabel: opts.deleteLabel || "Supprimer mon trajet",
-        dataAttr: isOwnOffer ? "" : `data-reserve-offer="${String(offer.id ?? "")}"`,
-        ariaLabel: `Contacter ${ownerName}`
+        // opts.dataAttr : permet a la page profil d'utiliser data-contacter-offre.
+        // L'ancien code l'ignorait, donc le bouton « Contacter » de la carte profil
+        // ne correspondait a aucun handler (seul le bouton du bas fonctionnait).
+        dataAttr: isOwnOffer ? "" : (opts.dataAttr || `data-reserve-offer="${String(offer.id ?? "")}"`),
+        ariaLabel: opts.ariaLabel || `Contacter ${ownerName}`
     })}
   </article>
 </div>`;
+    }
+
+    // Accordéon « Prix spéciaux / articles refusés » : results.js a son propre
+    // gestionnaire, mais dashboard.html et profil.html n'en avaient aucun, donc le
+    // bouton s'affichait sans deplier le contenu. Délégation globale, une seule fois.
+    if (!window.__ccExpandBound) {
+        window.__ccExpandBound = true;
+        document.addEventListener("click", (event) => {
+            const toggle = event.target.closest("[data-cc-expand]");
+            if (!toggle) return;
+            const col = toggle.closest(".cc3-special-grid");
+            if (!col) return;
+            event.preventDefault();
+            const expanded = col.classList.toggle("expanded");
+            toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+            toggle.classList.toggle("is-expanded", expanded);
+        });
     }
 
     window.CCOfferCard = { html: html, footer: cc3CardFooter, getInitials: getInitials };

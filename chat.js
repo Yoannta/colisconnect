@@ -154,7 +154,9 @@
     function showNotification(message, type = "info") {
         const toast = document.createElement("div");
         toast.className = `cc-toast ${type}`;
-        toast.innerHTML = message;
+        // [FIX XSS] Le message peut contenir une reference venue de l'URL
+        // (chat.html?payment=success&reference=...) : textContent, jamais innerHTML.
+        toast.textContent = String(message == null ? "" : message);
         document.body.appendChild(toast);
         setTimeout(() => toast.classList.add("visible"), 100);
         setTimeout(() => { toast.classList.remove("visible"); setTimeout(() => toast.remove(), 500); }, 5000);
@@ -291,9 +293,12 @@
             const isValidation = (msg.text || "").includes("PAIEMENT VALIDÉ");
             let html = `<div class="chat-msg-row chat-msg-system"><span class="chat-bubble-system">${window.CCCommon.escapeHtml(msg.text || "")}`;
             if (isValidation) {
-                const txIdMatch = (msg.text || "").match(/TX_[\w\d]+/);
-                const txId = txIdMatch ? txIdMatch[0] : ("TX_" + Date.now());
-                html += `<br><button style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.viewReceipt('${txId}')">🧾 Voir mon Bon de Mise en Relation</button>`;
+                // Le webhook peut produire GENIUS_... : l'ancien motif TX_ seulement
+                // fabriquait une fausse reference horodatee quand elle manquait.
+                const txIdMatch = (msg.text || "").match(/\b(?:TX|GENIUS)_[A-Za-z0-9]+\b/);
+                if (txIdMatch) {
+                    html += `<br><button style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.viewReceipt('${txIdMatch[0]}')">🧾 Voir mon Bon de Mise en Relation</button>`;
+                }
             }
             html += `</span></div>`;
             return html;
@@ -404,9 +409,33 @@
         modal.classList.remove("hidden");
     };
 
-    // ---- Legacy Wrapper ----
+    // ---- Téléchargement réel du Bon (PDF) ----
+    // Avant, ce bouton se contentait de rouvrir la modale : aucun fichier n'était
+    // produit alors que html2pdf est chargé sur la page.
     window.generateReceiptPDF = async function (txId) {
-        window.viewReceipt(txId);
+        const template = document.getElementById("receipt-pdf-template");
+        if (!template || typeof window.html2pdf === "undefined") {
+            window.viewReceipt(txId);
+            return;
+        }
+        let host = null;
+        try {
+            const capture = createReceiptCaptureNode(template, txId);
+            host = capture.host;
+            await waitForReceiptPaint();
+            await window.html2pdf().set({
+                margin: 0,
+                filename: `bon-colisconnect-${String(txId || "recu").replace(/[^\w-]+/g, "_")}.pdf`,
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+            }).from(capture.clone).save();
+        } catch (error) {
+            console.warn("Generation PDF impossible:", error);
+            window.viewReceipt(txId);
+        } finally {
+            host?.remove();
+        }
     };
 
     // ---- Payment UI ----
@@ -422,7 +451,12 @@
             return;
         }
         const payableStatuses = ["pending", "commission_payee", "agreed"];
-        const isClientSide = !thread.isOfferOwner && payableStatuses.includes(String(thread.status || ""));
+        // Un fil ne issu d'aucune reservation (discussion ouverte depuis une demande)
+        // n'a rien a payer : sans cette garde, le bouton « Valider ma reservation »
+        // s'affichait puis echouait avec « Identifiant reservation manquant ».
+        const hasReservation = Boolean(thread.reservation?.id || thread.reservation_id);
+        const isClientSide = !thread.isOfferOwner && hasReservation
+            && payableStatuses.includes(String(thread.status || ""));
         if (els.chatPayBtn) {
             els.chatPayBtn.classList.toggle("hidden", !isClientSide);
             if (isClientSide) els.chatPayBtn.innerHTML = "✅ Valider ma réservation";
@@ -466,8 +500,13 @@
 
         if (isPaid && !thread.isOfferOwner) {
             const travelerId = thread.offerOwnerId || thread.offer_owner_id;
+            const threadIdAtRender = thread.id;
             fetchTravelerContact(travelerId).then(profile => {
                 if (!profile) return;
+                // [FIX] La reponse asynchrone pouvait arriver apres un changement de
+                // fil et injecter le contact precedent dans le nouveau contexte.
+                if (String(state.activeThreadId) !== String(threadIdAtRender)) return;
+                if (!contactBox.isConnected) return;
                 contactBox.innerHTML = `
                     <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); border: 1px solid var(--emerald-bright); padding: 15px; border-radius: 12px; margin: 10px 20px; animation: slideDown 0.4s ease;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -489,8 +528,9 @@
                         </div>
                     </div>
                 `;
-                document.getElementById("btn-show-receipt").onclick = () => showPaymentReceipt(thread, profile);
-            });
+                const receiptBtn = document.getElementById("btn-show-receipt");
+                if (receiptBtn) receiptBtn.onclick = () => showPaymentReceipt(thread, profile);
+            }).catch(() => { });
         } else {
             contactBox.innerHTML = "";
         }
@@ -560,12 +600,26 @@
         renderConversations();
         showChatView();
         document.body.classList.add("thread-open");
-        const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
-        if (String(state.activeThreadId) !== String(threadId)) return; // le fil a change entre-temps
-        renderMessages(messages);
         renderConversationMeta(selected);
         state.isTutorialAccepted = isThreadTutorialAccepted(threadId);
         updatePaymentButtonVisibility();
+
+        // Etat de chargement explicite : avant, les messages de l'ancien fil
+        // restaient affiches sous le nouvel en-tete pendant la requete.
+        if (els.messagesList) {
+            els.messagesList.innerHTML = '<div class="chat-no-messages"><span>⏳</span>Chargement des messages...</div>';
+        }
+        try {
+            const messages = await window.CCCommon.api(`/api/conversations/${encodeURIComponent(threadId)}/messages`);
+            if (String(state.activeThreadId) !== String(threadId)) return; // le fil a change entre-temps
+            renderMessages(messages);
+        } catch (error) {
+            if (String(state.activeThreadId) !== String(threadId)) return;
+            if (els.messagesList) {
+                els.messagesList.innerHTML = `<div class="chat-no-messages"><span>⚠️</span>Impossible de charger cette conversation.<br><small>${window.CCCommon.escapeHtml(error.message || "Erreur reseau")}</small><br><button type="button" id="chat-retry-thread" class="btn ghost sm" style="margin-top:10px;">Reessayer</button></div>`;
+                document.getElementById("chat-retry-thread")?.addEventListener("click", () => openThread(threadId));
+            }
+        }
     }
 
     function isThreadTutorialAccepted(threadId) {
@@ -728,7 +782,12 @@
         } catch (error) {
             if (els.messageInput && !els.messageInput.value) els.messageInput.value = text;
             if (error?.payload?.code === "CONTACT_INFO_BLOCKED") {
-                if (/ia_fraude/i.test(String(error.message || ""))) {
+                // Le code IA vit dans payload.code_ia (le message est generique) :
+                // tester le texte ne declenchait jamais la fenetre de fraude.
+                const iaBlocked = String(error?.payload?.code_ia || "").includes("fraude")
+                    || (Array.isArray(error?.payload?.raisons) && error.payload.raisons.some(r => String(r).includes("fraude")))
+                    || /ia_fraude/i.test(String(error.message || ""));
+                if (iaBlocked) {
                     if (window.CCFraudeIA) {
                         window.CCFraudeIA.etat.fraude = true;
                         window.CCFraudeIA.etat.raison = "filtre serveur";
@@ -756,10 +815,16 @@
     }
 
     async function openSplitPaymentModal(type = "commission", totalAmount = null) {
-        if (totalAmount) PAYMENT_STATE.totalAmount = totalAmount;
-        PAYMENT_STATE.step = type;
         const thread = state.activeThreadData;
         if (!thread) return alert("Données de réservation introuvables.");
+
+        // Montant total = prix/kg x kilos choisis, ou total_amount enregistre.
+        const resTotal = Number(thread.reservation?.total_amount || 0);
+        if (totalAmount != null) PAYMENT_STATE.totalAmount = Number(totalAmount) || 0;
+        if (!PAYMENT_STATE.totalAmount && resTotal) PAYMENT_STATE.totalAmount = resTotal;
+        const total = Number(PAYMENT_STATE.totalAmount) || 0;
+
+        PAYMENT_STATE.step = type;
         const modal = document.getElementById("split-payment-modal");
         const hubContainer = document.getElementById("payment-modal-container");
         const manualPanel = document.getElementById("manual-payment-panel");
@@ -767,18 +832,32 @@
         if (manualPanel) manualPanel.style.display = "none";
         if (hubContainer) hubContainer.style.display = "block";
 
+        const manualTitle = document.getElementById("manual-payment-title");
+        const manualHint = document.getElementById("manual-payment-hint");
+        const manualError = document.getElementById("manual-payment-error");
+        if (manualError) manualError.style.display = "none";
+
         if (thread.status === "commission_payee") {
+            // Le client a deja paye : le voyageur doit reverser la commission puis
+            // le client regle le voyageur. On laisse la preuve manuelle disponible
+            // meme sans QR configure (les coordonnees peuvent etre donnees au chat).
             const qr = thread.travelerAlipayQr || thread.travelerWechatQr;
-            if (!qr) return alert("Le voyageur n'a pas encore configuré ses moyens de paiement.");
             PAYMENT_STATE.step = "traveler";
-            PAYMENT_STATE.amount = 200;
+            PAYMENT_STATE.amount = Math.round(total * 0.90 * 100) / 100;
+            if (manualTitle) manualTitle.textContent = "Paiement au voyageur";
+            if (manualHint) {
+                manualHint.textContent = qr
+                    ? `Montant a regler : ${window.CCCommon.formatAmount(PAYMENT_STATE.amount, window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR")}. Televersez la capture du paiement effectue au voyageur.`
+                    : "Le voyageur n'a pas configure de QR : demandez-lui ses coordonnees dans le chat, puis televersez la capture du paiement.";
+            }
             if (manualPanel) manualPanel.style.display = "block";
             if (hubContainer) hubContainer.style.display = "none";
             modal.classList.remove("hidden");
             return;
         }
 
-        PAYMENT_STATE.amount = 200;
+        // Commission plateforme : 10 % du montant total.
+        PAYMENT_STATE.amount = Math.round(total * 0.10 * 100) / 100;
         modal.classList.remove("hidden");
         hubContainer.innerHTML = `
             <div class="payment-selection">
@@ -835,7 +914,14 @@
     async function submitSplitPayment() {
         const receiptInput = document.getElementById("split-payment-receipt");
         const file = receiptInput?.files?.[0];
-        if (!file) return alert("Veuillez uploader la capture d'écran du paiement.");
+        const errBox = document.getElementById("manual-payment-error");
+        const showErr = (msg) => {
+            if (errBox) { errBox.textContent = msg; errBox.style.display = "block"; }
+            else alert(msg);
+        };
+        if (!file) return showErr("Veuillez televerser la capture d'ecran du paiement.");
+        if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) return showErr("Format accepte : PNG, JPG ou WEBP.");
+        if (file.size > 3_000_000) return showErr("Capture trop lourde (maximum 3 Mo).");
         const submitBtn = document.getElementById("split-payment-submit");
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<span class="spinner"></span> Envoi...';
@@ -847,16 +933,16 @@
             const endpoint = isCommission ? `/api/reservations/${reservationId}/pay-commission` : `/api/reservations/${reservationId}/pay-traveler`;
             await window.CCCommon.api(endpoint, { method: "POST", body: { receiptData: base64, amount: PAYMENT_STATE.amount } });
             document.getElementById("split-payment-modal").classList.add("hidden");
-            if (isCommission) {
-                alert("Paiement plateforme reçu ! Vous pouvez maintenant payer le voyageur directement.");
-                await loadConversations();
-                if (PAYMENT_STATE.totalAmount > 0) await openSplitPaymentModal("traveler", PAYMENT_STATE.totalAmount);
-            } else {
-                alert("Preuve de paiement envoyée au voyageur avec succès !");
-                await openThread(state.activeThreadId);
-            }
-        } catch (err) { alert(err.message || "Erreur lors de l'envoi."); }
-        finally { submitBtn.disabled = false; submitBtn.innerHTML = "Confirmer le paiement"; }
+            if (receiptInput) receiptInput.value = "";
+            showNotification("Preuve de paiement envoyée.", "success");
+            await loadConversations().catch(() => { });
+            if (state.activeThreadId) await openThread(state.activeThreadId);
+        } catch (err) {
+            showErr(err.message || "Erreur lors de l'envoi.");
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = "Confirmer le paiement";
+        }
     }
 
     async function handleHubPayment(type, provider = null, phoneNum = null, country = null) {
@@ -914,6 +1000,13 @@
 
         els.chatPayBtn?.addEventListener("click", () => {
             const thread = state.activeThreadData;
+            // Commission deja payee : on passe directement a la preuve de paiement
+            // au voyageur (l'ancien flux redemandait les kilos et rouvrait un choix
+            // de carte/mobile inadapte).
+            if (String(thread?.status || "") === "commission_payee") {
+                openSplitPaymentModal("traveler", thread?.reservation?.total_amount || 0);
+                return;
+            }
             const availableKg = thread?.offer?.available_kg || thread?.offer?.availableKg || 0;
             // Ouvrir la modale kg avant le paiement
             const kgModal = document.getElementById("kg-modal");
@@ -951,19 +1044,35 @@
             // Sauvegarder les kg choisis
             PAYMENT_STATE.chosenKg = kg;
 
-            // Mettre à jour la reservation avec les kg
+            // Mettre a jour la reservation avec les kg (PostgREST renvoie { error },
+            // il ne leve pas d'exception : l'ancien code pouvait afficher le paiement
+            // alors que les kilos n'avaient pas ete enregistres).
             const resId = thread?.reservation?.id || thread?.reservation_id || thread?.reservationId;
             if (resId && window.ccSupabase) {
-                try {
-                    await window.ccSupabase.from("reservations").update({ kg: kg, updated_at: new Date().toISOString() }).eq("id", resId);
-                } catch (e) { console.warn("Impossible de mettre a jour les kg de la reservation:", e); }
+                const { error } = await window.ccSupabase.from("reservations")
+                    .update({ kg: kg, updated_at: new Date().toISOString() })
+                    .eq("id", resId).select("id");
+                if (error) {
+                    if (kgError) {
+                        kgError.style.display = "block";
+                        kgError.textContent = "Impossible d'enregistrer les kilos : " + (error.message || "erreur reseau");
+                    }
+                    return;
+                }
+                if (thread.reservation) thread.reservation.kg = kg;
             }
 
             document.getElementById("kg-modal")?.classList.add("hidden");
 
-            // Ouvrir le paiement
-            const price = thread?.offerPrice || thread?.offer?.price || 0;
-            openSplitPaymentModal("commission", price);
+            // Montant total = prix au kilo x kilos choisis (l'ancien code passait le
+            // prix au kilo comme montant total). A defaut : total_amount enregistre.
+            const pricePerKg = Number(thread?.offerPrice || thread?.offer?.price_per_kg || thread?.offer?.price || 0);
+            const total = pricePerKg > 0 ? pricePerKg * kg : Number(thread?.reservation?.total_amount || 0);
+            if (!(total > 0)) {
+                alert("Montant indisponible : demandez le prix au voyageur dans la conversation avant de payer.");
+                return;
+            }
+            openSplitPaymentModal("commission", total);
         });
 
         // Fermer la modale kg au clic sur close
@@ -978,6 +1087,28 @@
             document.getElementById("payment-hub-modal").classList.add("hidden");
         });
         document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
+        document.getElementById("split-payment-cancel")?.addEventListener("click", () => {
+            document.getElementById("split-payment-modal")?.classList.add("hidden");
+        });
+
+        // « J'ai reverse » : le bouton etait genere mais aucun handler n'existait.
+        els.messagesList?.addEventListener("click", async (event) => {
+            const btn = event.target.closest(".reversal-done-btn");
+            if (!btn) return;
+            const reservationId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id;
+            if (!reservationId) return alert("Reservation introuvable.");
+            if (!window.confirm("Confirmer avoir reverse la commission a ColisConnect ?")) return;
+            btn.disabled = true;
+            try {
+                await window.CCCommon.api(`/api/reservations/${encodeURIComponent(reservationId)}/reversal-done`, { method: "POST" });
+                showNotification("Reversement confirme.", "success");
+                await loadConversations();
+                await openThread(state.activeThreadId);
+            } catch (error) {
+                btn.disabled = false;
+                alert(error.message || "Confirmation impossible.");
+            }
+        });
 
         els.comprisBtn?.addEventListener("click", () => {
             state.isTutorialAccepted = true;
@@ -1009,78 +1140,36 @@
             const urlParams = new URLSearchParams(window.location.search);
             const isPaymentSuccess = urlParams.get('payment') === 'success' || urlParams.get('status') === 'success';
             if (isPaymentSuccess) {
-                const ref = urlParams.get('reference') || urlParams.get('transaction_id') || "OK";
+                // [FIX CRITIQUE 2026-10-28] Ce bloc ecrivait autrefois status=paid et
+                // deduisait les kilos depuis un simple parametre d'URL : n'importe qui
+                // pouvait rejouer chat.html?payment=success&id=<reservation> pour
+                // valider un paiement sans payer. Seul le webhook (service role) est
+                // autoritaire. Ici on se contente de LIRE l'etat reel.
                 const resId = urlParams.get('id');
-
-                // Déduire les kg de l'offre après paiement réussi
                 if (resId && window.ccSupabase) {
                     try {
-                        // Marquer la réservation comme payée
-                        await window.ccSupabase
+                        const { data: reservation, error } = await window.ccSupabase
                             .from("reservations")
-                            .update({ status: "paid", updated_at: new Date().toISOString() })
-                            .eq("id", resId);
-
-                        const { data: reservation } = await window.ccSupabase
-                            .from("reservations")
-                            .select("kg, offer_id")
+                            .select("status, payment_tx_id")
                             .eq("id", resId)
                             .maybeSingle();
-
-                        if (reservation?.kg > 0 && reservation?.offer_id) {
-                            const { data: offer } = await window.ccSupabase
-                                .from("offers")
-                                .select("available_kg")
-                                .eq("id", reservation.offer_id)
-                                .maybeSingle();
-
-                            const currentKg = offer?.available_kg || 0;
-                            const newKg = Math.max(0, currentKg - reservation.kg);
-
-                            await window.ccSupabase
-                                .from("offers")
-                                .update({ available_kg: newKg })
-                                .eq("id", reservation.offer_id);
-
-                            console.log(`✅ ${reservation.kg} kg déduits de l'offre ${reservation.offer_id}. Restant: ${newKg} kg`);
+                        if (error) throw error;
+                        const status = String(reservation?.status || "").toLowerCase();
+                        const paid = ["paid", "voyageur_paye", "colisconnect_paye"].includes(status);
+                        if (paid) {
+                            showNotification("Paiement confirmé. Vos kilos sont réservés.", "success");
+                        } else {
+                            showNotification("Paiement en cours de vérification. La réservation sera mise à jour dès confirmation.", "info");
                         }
                     } catch (e) {
-                        console.warn("Impossible de déduire les kg:", e);
+                        console.warn("Verification du retour de paiement impossible:", e);
+                        showNotification("Impossible de vérifier le paiement pour le moment. Rechargez la page dans quelques instants.", "info");
                     }
+                } else {
+                    showNotification("Retour de paiement détecté. Vérification en cours.", "info");
                 }
 
-                showNotification(`✅ Paiement validé (${ref}) ! Vos kg ont été réservés.`, "success");
-
-                // Envoyer un message de reçu dans le chat
-                if (resId && window.ccSupabase) {
-                    try {
-                        const { data: thread } = await window.ccSupabase
-                            .from("chat_threads")
-                            .select("id")
-                            .eq("reservation_id", resId)
-                            .maybeSingle();
-                        if (thread) {
-                            const { data: reservation } = await window.ccSupabase
-                                .from("reservations")
-                                .select("kg, total_amount, offers(base_currency)")
-                                .eq("id", resId)
-                                .maybeSingle();
-                            const kgInfo = reservation?.kg > 0 ? `\nKilos réservés : ${reservation.kg} kg` : "";
-                            const amtCurrency = reservation?.offers?.base_currency
-                                || (window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "XOF");
-                            const amountInfo = reservation?.total_amount > 0
-                                ? `\nMontant : ${window.CCCommon.formatAmount(reservation.total_amount, amtCurrency)}` : "";
-                            await window.ccSupabase.from("chat_messages").insert({
-                                thread_id: thread.id,
-                                text: `✅ PAIEMENT VALIDÉ !\nRéférence : ${ref}${kgInfo}${amountInfo}\n\nLe paiement a été reçu avec succès.`,
-                                sender_type: "system",
-                                message_type: "text"
-                            });
-                        }
-                    } catch (e) { console.warn("Impossible d envoyer le recu chat:", e); }
-                }
-
-                if (window.CCCommon.state.user) setTimeout(() => loadConversations(), 1000);
+                if (window.CCCommon.state.user) setTimeout(() => loadConversations().catch(() => { }), 1000);
             }
         } catch (e) { console.error("Payment return handling error:", e); }
 

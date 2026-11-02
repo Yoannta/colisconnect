@@ -152,13 +152,6 @@
           "doigt": true
         },
         {
-          "cible": "parcel-types",
-          "page": "post_trip.html",
-          "mode": "walk",
-          "bulle": "Ce que tu acceptes de transporter.",
-          "doigt": true
-        },
-        {
           "cible": "special-price-yes",
           "page": "post_trip.html",
           "mode": "walk",

@@ -11,6 +11,7 @@
         })();
     </script>
     <title>ColisConnect - Transport de colis entre voyageurs</title>
+    <link rel="icon" type="image/png" href="logo_final.png">
     <meta name="description"
         content="ColisConnect met en relation expedition et voyageurs pour transporter des colis de facon simple et securisee.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +24,7 @@
         href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=20261019j" />
+    <link rel="stylesheet" href="style.css?v=20261028a" />
     <!-- Supabase Core & Init -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -31,7 +32,7 @@
     <!-- Header unifié (source unique) -->
     <script defer src="shared-header.js?v=59"></script>
 
-    <script defer src="standalone-common.js?v=20261026a"></script>
+    <script defer src="standalone-common.js?v=20261028a"></script>
     <script defer src="pinceau.js?v=20261015b"></script>
     <script defer src="devise.js?v=2"></script>
     <!-- datalist-helper.js retire (2026-09) : remplace par CCCommon.setupCountryInput
@@ -668,6 +669,12 @@
                     const origin = document.getElementById("est-pays-depart").value.trim();
                     const dest = document.getElementById("est-pays-arrivee").value.trim();
                     const kg = parseInt(document.getElementById("est-kg").value, 10) || 1;
+                    // Les pays viennent de champs libres : on les echappe avant toute
+                    // insertion dans innerHTML (sinon XSS reflechie).
+                    const esc = (s) => (window.CCCommon && window.CCCommon.escapeHtml)
+                        ? window.CCCommon.escapeHtml(String(s || ""))
+                        : String(s || "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+                    const safeDest = esc(dest);
 
                     if (!origin || !dest) {
                         alert("Veuillez indiquer un pays de départ et d'arrivée.");
@@ -702,7 +709,7 @@
                                 resText.innerHTML = `
                                     <div style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">Félicitations !</div>
                                     <div style="font-size: 1rem; opacity: 0.9; line-height: 1.6; color: var(--text);">
-                                        Plusieurs transporteurs vont vers <strong>${dest}</strong> avec une fourchette de <strong>${ratesText} par kilo</strong>.
+                                        Plusieurs transporteurs vont vers <strong>${safeDest}</strong> avec une fourchette de <strong>${ratesText} par kilo</strong>.
                                     </div>
                                 `;
                                 resLink.href = `results.html?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&wait=false`;
@@ -711,7 +718,7 @@
                             } else {
                                 resText.innerHTML = `
                                     <div style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">Félicitations !</div>
-                                    <div style="font-size: 1rem; color: var(--text);">Plusieurs voyageurs sont disponibles vers <strong>${dest}</strong>. Découvrez leurs tarifs maintenant.</div>
+                                    <div style="font-size: 1rem; color: var(--text);">Plusieurs voyageurs sont disponibles vers <strong>${safeDest}</strong>. Découvrez leurs tarifs maintenant.</div>
                                 `;
                                 resLink.href = `results.html?destination=${encodeURIComponent(dest)}`;
                                 resLink.textContent = "Voir les voyageurs";
@@ -721,7 +728,7 @@
                             resText.innerHTML = `
                                 <div style="padding: 10px;">
                                     <div style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px; color: #fff;">Besoin d'un transporteur ?</div>
-                                    <p style="font-size: 0.95rem; opacity: 0.9; margin: 0; color: var(--text);">Soyez le premier à publier votre demande vers <strong>${dest}</strong> pour attirer un voyageur certifié !</p>
+                                    <p style="font-size: 0.95rem; opacity: 0.9; margin: 0; color: var(--text);">Soyez le premier à publier votre demande vers <strong>${safeDest}</strong> pour attirer un voyageur certifié !</p>
                                 </div>
                             `;
                             resLink.href = `post_trip.html`;
@@ -730,19 +737,20 @@
                         }
                     } catch (e) {
                         console.error("Estimator technical error:", e);
-                        // Transparent fallback for debug - we want real data!
-                        const errType = e.message || "NETWORK_ERROR";
+                        // [FIX] L'ancien fallback inventait des tarifs « 10€ à 15€ »
+                        // presentes comme reels. On affiche une erreur honnete.
+                        const errType = esc(e.message || "reseau indisponible");
                         resText.innerHTML = `
                             <div style="padding: 10px;">
-                                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">Félicitations !</div>
+                                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 10px;">Estimation indisponible</div>
                                 <div style="font-size: 1rem; opacity: 0.9; line-height: 1.6; color: var(--text);">
-                                    De nombreux voyageurs desservent <strong>${dest}</strong>. Les tarifs habituels sont compris entre <strong>10€ à 15€ par kilo</strong>.<br>
-                                    <small style="opacity: 0.5;">Note : Connexion au direct indisponible (${errType})</small>
+                                    Impossible de contacter le service pour le moment. Reessayez dans quelques instants ou consultez directement les offres vers <strong>${safeDest}</strong>.
+                                    <br><small style="opacity: 0.55;">Detail : ${errType}</small>
                                 </div>
                             </div>
                         `;
                         resLink.href = `results.html?destination=${encodeURIComponent(dest)}`;
-                        resLink.textContent = "Explorer les voyageurs";
+                        resLink.textContent = "Voir les offres";
                         resLink.style.display = "inline-flex";
                     } finally {
                         btn.disabled = false;

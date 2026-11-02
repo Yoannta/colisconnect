@@ -42,7 +42,7 @@ const NAV = ['home', 'search', 'publish', 'messages', 'dashboard'];
 const ATTENDUES = {
   'index.html':        [],
   'results.html':      ['search-origin', 'search-destination', 'search-start', 'filter-traveler', 'filter-cargo'],
-  'post_trip.html':    ['trip-type', 'trip-date', 'parcel-types', 'special-price-yes', 'special-price-no',
+  'post_trip.html':    ['trip-type', 'trip-date', 'special-price-yes', 'special-price-no',
                         'special-price-mode', 'contacts', 'submit'],
   'verification.html': ['profile-phone', 'profile-save', 'profile-otp'],
   'shared-header.js':  NAV,
