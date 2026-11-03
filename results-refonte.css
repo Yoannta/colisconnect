@@ -807,6 +807,30 @@ body.results-page .cc-card-grid--inner {
     width: 100%;
 }
 
+/* ── Carte d'offre : famille cc3 (celle du dashboard voyageur) ──────────────
+   La grille, les groupes et les états restent ceux de la refonte ; seule la
+   carte d'offre change de famille. `.cards-list` est l'ancêtre exigé par les
+   règles « .cards-list .cc3-card » de style.css. Les cartes de demande
+   conservent .cc-card (results-card.js). */
+body.results-page .cards-list--cc3 {
+    align-items: start;
+}
+
+body.results-page .cards-list--cc3 > .offer-wrap {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+@media (max-width: 480px) {
+    body.results-page .cards-list--cc3 {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 body.results-page .cc-group {
     display: flex;
     flex-direction: column;

@@ -19842,28 +19842,24 @@ body.post-trip-page [data-animate] {
         margin-bottom: 16px;
     }
 
-    /* Barre d'action au-dessus de la nav basse (64 px). `position: sticky` ne
-       s'active pas dans cette page (ancêtres en overflow) ; une barre fixe
-       calée sur la carte donne le même résultat et ne recouvre jamais la nav. */
+    /* Barre d'action STATIQUE : elle ferme le formulaire au lieu de flotter.
+       Une barre fixe suivait le scroll (bouton « Continuer » qui « monte et
+       descend » avec la page) et venait se coller au-dessus du clavier en
+       masquant le champ en cours de saisie. Elle reprend donc sa place dans
+       le flux, en bas de l'étape. */
     body.post-trip-page .wizard-footer {
-        position: fixed;
-        left: 12px;
-        right: 12px;
-        bottom: 64px;
-        z-index: 900;
-        margin: 0;
-        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        position: static;
+        margin: 14px 0 0;
+        padding: 12px;
         background: var(--cc-surface-0-96);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
         border: 1px solid var(--cc-border);
-        border-bottom: 0;
-        border-radius: 14px 14px 0 0;
+        border-radius: 14px;
     }
 
-    /* Réserve sous le dernier champ pour que la barre fixe ne le recouvre pas. */
+    /* Plus de barre flottante : la réserve de 104 px sous le dernier champ
+       n'a plus de raison d'être. */
     body.post-trip-page .trip-section {
-        padding-bottom: 104px;
+        padding-bottom: 8px;
     }
 
     body.post-trip-page .wizard-nav .cc-btn {
@@ -20460,4 +20456,22 @@ body.post-trip-page.light .mob-nav-item.active {
         animation: none;
         display: none;
     }
+}
+
+/* ---------------------------------------------------------------------------
+   18. Clavier mobile ouvert (classe `cc-kb-open`, posee par shared-header.js)
+   ---------------------------------------------------------------------------
+   Le clavier virtuel reduit la zone visible : toute barre fixe (navigation
+   basse, barre d'action) se retrouvait collee au-dessus du clavier et masquait
+   le champ en cours de saisie. Elle descend hors de l'ecran pendant la saisie
+   et revient des que le clavier se referme. */
+.mobile-bottom-nav {
+    transform: translateY(0);
+    transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+html.cc-kb-open .mobile-bottom-nav {
+    transform: translateY(110%) !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }

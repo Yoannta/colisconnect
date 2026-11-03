@@ -611,22 +611,46 @@
         return { own, others };
     }
 
-    function groupHtml(own, others, renderCard, ownLabel, otherLabel) {
+    function groupHtml(own, others, renderCard, ownLabel, otherLabel, innerClass) {
+        const gridClass = innerClass || "cc-card-grid cc-card-grid--inner";
         const groups = [];
         if (own.length) {
             groups.push(`<section class="cc-group" aria-label="${esc(ownLabel)}">
               <h2 class="cc-group-head">${esc(ownLabel)}</h2>
-              <div class="cc-card-grid cc-card-grid--inner">${own.map(renderCard).join("")}</div>
+              <div class="${gridClass}">${own.map(renderCard).join("")}</div>
             </section>`);
         }
         if (others.length) {
             const label = own.length ? otherLabel : (state.section === "demand" ? "Toutes les demandes" : "Toutes les offres");
             groups.push(`<section class="cc-group" aria-label="${esc(label)}">
               <h2 class="cc-group-head">${esc(label)}</h2>
-              <div class="cc-card-grid cc-card-grid--inner">${others.map(renderCard).join("")}</div>
+              <div class="${gridClass}">${others.map(renderCard).join("")}</div>
             </section>`);
         }
         return groups.join("");
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // Carte d'offre : format historique cc3 (offer-card.js)
+    // ─────────────────────────────────────────────────────────────
+    // La refonte avait remplacé la carte d'offre par .cc-card. La carte
+    // revient au format cc3 — le même que celui du dashboard voyageur — et
+    // garde tout le reste de la refonte (groupes, filtres, pagination).
+    // Les cartes de DEMANDE restent en .cc-card (results-card.js).
+    const OFFER_GRID_CLASS = "cc-card-grid cc-card-grid--inner cards-list cards-list--cc3";
+
+    function renderOfferCard(offer) {
+        if (window.CCOfferCard && typeof window.CCOfferCard.html === "function") {
+            return window.CCOfferCard.html(offer, {
+                userCurrency: userCurrency(),
+                currentUserId: currentUserId()
+            });
+        }
+        // Repli : la carte de la refonte, si offer-card.js n'est pas chargé.
+        return window.CCResultsCard.offer(offer, {
+            currency: userCurrency(),
+            userId: currentUserId()
+        });
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -645,6 +669,27 @@
                     }
                 })
                 .catch(() => { /* pays inconnu : drapeau laissé vide */ });
+        });
+        // Carte cc3 : le drapeau est déjà posé quand l'offre porte son code pays.
+        // Sinon on le résout ici à partir du nom du pays affiché (même source
+        // que la carte de la refonte), pour ne pas perdre les drapeaux.
+        els.list.querySelectorAll(".cc3-route").forEach((route) => {
+            const places = route.querySelectorAll(".cc3-place");
+            const flags = route.querySelectorAll(".cc3-flag");
+            places.forEach((place, index) => {
+                const flag = flags[index];
+                if (!flag || flag.classList.contains("fi")) return;
+                const countryEl = place.querySelector(".cc3-country");
+                const country = countryEl ? countryEl.textContent.trim() : "";
+                if (!country) return;
+                CC._getCountryCode(country)
+                    .then((code) => {
+                        if (flag.isConnected && /^[A-Za-z]{2}$/.test(String(code || ""))) {
+                            flag.classList.add("fi", "fis", `fi-${String(code).toLowerCase()}`);
+                        }
+                    })
+                    .catch(() => { /* pays inconnu : drapeau laissé vide */ });
+            });
         });
     }
 
@@ -757,9 +802,10 @@
         els.list.innerHTML = groupHtml(
             own,
             others,
-            (offer) => window.CCResultsCard.offer(offer, { currency: userCurrency(), userId: currentUserId() }),
+            renderOfferCard,
             "Mes publications",
-            "Toutes les offres"
+            "Toutes les offres",
+            OFFER_GRID_CLASS
         );
         flagsAfterRender();
         renderActiveChips();

@@ -170,4 +170,44 @@
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', poserCiblesGuide);
   }
+
+  /* ---------------------------------------------------------------------------
+     CLAVIER MOBILE — la navigation ne monte plus avec le clavier
+     ---------------------------------------------------------------------------
+     Quand un champ recoit le focus, le clavier virtuel reduit la zone visible.
+     Les barres fixes (nav basse, barre d'action d'un formulaire) restent alors
+     collees au-dessus du clavier et masquent le champ en cours de saisie.
+     On mesure la perte de hauteur via visualViewport et on pose `cc-kb-open`
+     sur <html> : le CSS fait alors descendre les barres fixes hors de l'ecran,
+     ce qui laisse toute la place au champ. Aucun JS a ajouter par page. */
+  (function surveillerClavier() {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var racine = document.documentElement;
+    var SEUIL = 140; // px : en dessous, c'est un rebond de barre d'URL
+    var etat = false;
+    var hauteurRef = 0; // plus grande hauteur vue connue (sans clavier)
+
+    function appliquer() {
+      var actuelle = Math.max(racine.clientHeight || 0, window.innerHeight || 0);
+      if (actuelle > hauteurRef) hauteurRef = actuelle;
+      // iOS: la vue visuelle retrecit ; Android (resizes-content): la mise en
+      // page retrecit aussi -> on compare toujours a la plus grande vue connue.
+      var perte = hauteurRef - vv.height - (vv.offsetTop || 0);
+      var ouvert = perte > SEUIL;
+      if (ouvert === etat) return;
+      etat = ouvert;
+      racine.classList.toggle('cc-kb-open', ouvert);
+    }
+
+    vv.addEventListener('resize', appliquer);
+    vv.addEventListener('scroll', appliquer);
+    window.addEventListener('resize', appliquer);
+    window.addEventListener('orientationchange', function () {
+      hauteurRef = 0;
+      etat = false;
+      setTimeout(appliquer, 300);
+    });
+    appliquer();
+  })();
 })();
