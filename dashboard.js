@@ -1030,37 +1030,25 @@
         if (!els.cargoOpsTable) return;
         const list = state.cargoActiveOffers;
         if (!list.length) {
-            els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests cargo-ops-empty"><p>Aucune offre.</p></div>`;
+            els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div></div><div></div></div><div class="traveler-empty-requests cargo-ops-empty"><p>Aucune offre.</p></div>`;
             refreshCargoSeeAllLabel();
             return;
         }
         const expanded = state.cargoOffersExpanded === true;
         const visible = expanded ? list : list.slice(0, 1);
         const rows = visible.map((o) => {
-            const kg = Number(o.availableKg || o.available_kg || 0);
             const mode = o.mode || "Avion";
-            const realStatus = String(o.status || "active").toLowerCase();
-            const isFull = realStatus === "active" && kg > 0 && kg < 5;
-            // La colonne STATUT existait mais restait vide (pastille retiree sans
-            // remplacement) : la ligne ne disait pas si l'offre etait active,
-            // en pause ou presque pleine.
-            let statusLabel = CARGO_STATUS_LABELS[realStatus]
-                || (realStatus.charAt(0).toUpperCase() + realStatus.slice(1));
-            let statusClass = "status-off";
-            if (realStatus === "active") { statusClass = "status-active"; statusLabel = "Active"; }
-            else if (["paused", "draft", "expired"].includes(realStatus)) { statusClass = "status-warn"; }
-            if (isFull) { statusClass = "status-warn"; statusLabel = "Presque plein"; }
             return `<div class="cargo-ops-row">
                 <div class="col-ligne">${window.CCCommon.escapeHtml(o.origin || "")} &rarr; ${window.CCCommon.escapeHtml(o.destination || "")}</div>
                 <div class="col-mode">${window.CCCommon.escapeHtml(mode)}</div>
-                <div class="col-statut"><span class="cargo-status-text ${statusClass}">${window.CCCommon.escapeHtml(statusLabel)}</span></div>
+                <div class="col-statut"></div>
                 <div class="col-actions">
                     <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-edit-offer="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
                     <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
                 </div>
             </div>`;
         }).join("");
-        els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>${rows}`;
+        els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div></div><div></div></div>${rows}`;
         refreshCargoSeeAllLabel();
     }
 
