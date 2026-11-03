@@ -34,7 +34,7 @@
     <script defer src="admin-banner.js"></script>
     <!-- Carte d'offre partagée (identique à la page des offres) -->
     <script defer src="offer-card.js?v=20261101"></script>
-    <script defer src="dashboard.js?v=20261102a"></script>
+    <script defer src="dashboard.js?v=20261104c"></script>
 </head>
 
 <body class="dashboard-page">
@@ -210,7 +210,7 @@
                     <div class="panel-head">
                         <h3 class="panel-heading">
                             <button class="cc-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="client-discussions-body">
-                                <span class="cc-acc-title">Mes discussions en cours</span>
+                                <span class="cc-acc-title">Propositions reçues</span>
                                 <svg class="cc-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                             </button>
                         </h3>
@@ -283,7 +283,7 @@
                     <div class="panel-head">
                         <h3 class="panel-title">Mes offres</h3>
                         <div class="panel-actions">
-                            <button class="btn primary" type="button" title="Nouvelle offre cargo" onclick="window.location.href='post_trip.html'">
+                            <button class="btn primary" type="button" id="cargo-new-offer-btn" title="Nouvelle offre cargo" onclick="window.location.href='post_trip.html'">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                 <span>Nouvelle offre</span>
                             </button>
@@ -408,7 +408,6 @@
                     </p>
 
                     <div class="modal-actions traveler-modal-actions cc-form-footer">
-                        <button id="open-chat-from-modal-btn" type="button" class="btn secondary full-width">Ouvrir les messages</button>
                         <button id="save-offer-btn" type="submit" class="btn primary full-width">Enregistrer les modifications</button>
                     </div>
                     <p id="offer-save-feedback" class="error-text hidden" role="alert"></p>
@@ -451,7 +450,7 @@
                         <label>Date limite</label>
                         <div class="demande-date-row">
                             <input type="date" id="dash-demande-date" class="cc-input demande-input">
-                            <button type="button" class="demande-date-alt" id="dash-demande-no-date-btn">Pas de date limite</button>
+                            <button type="button" class="demande-date-alt" id="dash-demande-no-date-btn" aria-pressed="false">Pas de date limite</button>
                         </div>
                     </div>
                     <p id="dash-demande-date-hint" class="demande-hint hidden" role="alert">
@@ -465,7 +464,8 @@
                         <label for="dash-demande-budget">Votre budget par kilo</label>
                         <div class="demande-budget-row">
                             <input type="number" id="dash-demande-budget" class="cc-input demande-input" placeholder="Ex: 15" min="0" step="0.01">
-                            <span class="demande-currency-badge" id="dash-demande-currency-badge" aria-label="Devise : EUR">EUR</span>
+                            <div id="dash-demande-currency-picker"></div>
+                            <input type="hidden" id="dash-demande-currency" value="" />
                         </div>
                     </div>
                     <div class="demande-field">
@@ -514,7 +514,7 @@
                         <label>Date limite</label>
                         <div class="demande-date-row">
                             <input type="date" id="edit-parcel-date" class="cc-input demande-input">
-                            <button type="button" class="demande-date-alt" id="edit-parcel-no-date-btn">Pas de date limite</button>
+                            <button type="button" class="demande-date-alt" id="edit-parcel-no-date-btn" aria-pressed="false">Pas de date limite</button>
                         </div>
                     </div>
                     <p id="edit-parcel-date-hint" class="demande-hint hidden" role="alert">
@@ -528,12 +528,9 @@
                         <label for="edit-parcel-budget">Votre budget par kilo</label>
                         <div class="demande-budget-row">
                             <input type="number" id="edit-parcel-budget" class="cc-input demande-input" placeholder="Ex: 15" min="0" step="0.01">
-                            <span class="demande-currency-badge" id="edit-parcel-currency-badge" aria-label="Devise : EUR">EUR</span>
+                            <div id="edit-parcel-currency-picker"></div>
+                            <input type="hidden" id="edit-parcel-currency" value="" />
                         </div>
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-parcel-description">Decrivez le colis</label>
-                        <textarea id="edit-parcel-description" class="cc-input demande-input demande-textarea" rows="3" placeholder="Ex: Electronique, vetements..."></textarea>
                     </div>
                     <p id="edit-parcel-error" class="cc-field-error hidden" role="alert"></p>
                     <button type="button" class="demande-submit btn primary full-width" id="edit-parcel-save-btn">Enregistrer</button>
