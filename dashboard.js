@@ -114,7 +114,6 @@
         offerPricePerKg: document.getElementById("offer-price-per-kg"),
         offerBaseCurrency: document.getElementById("offer-base-currency"),
         saveOfferBtn: document.getElementById("save-offer-btn"),
-        openChatFromModalBtn: document.getElementById("open-chat-from-modal-btn"),
         offerSaveFeedback: document.getElementById("offer-save-feedback"),
         // Client dashboard elements
         travelerView: document.getElementById("traveler-dashboard-view"),
@@ -164,6 +163,75 @@
         offerCurrencyPicker.set(next);
     }
 
+
+    // [DEVISE] Sélecteur des demandes de trajet : mêmes règles que l'offre.
+    // Deux instances distinctes (création et modification) pour ne pas mélanger
+    // leurs listes quand les deux modales ont été ouvertes.
+    let dashDemandeCurrencyPicker = null;
+    let editParcelCurrencyPicker = null;
+
+    function requestCurrencyIds(kind) {
+        return kind === "edit"
+            ? {
+                host: "edit-parcel-currency-picker",
+                input: "edit-parcel-currency",
+                origin: "edit-parcel-origin",
+                destination: "edit-parcel-destination"
+            }
+            : {
+                host: "dash-demande-currency-picker",
+                input: "dash-demande-currency",
+                origin: "dash-demande-origin",
+                destination: "dash-demande-destination"
+            };
+    }
+
+    function mountRequestCurrencyPicker(kind) {
+        const ids = requestCurrencyIds(kind);
+        const existing = kind === "edit" ? editParcelCurrencyPicker : dashDemandeCurrencyPicker;
+        const host = document.getElementById(ids.host);
+        if (!host || !window.CCDevise || existing) return existing;
+        const picker = window.CCDevise.picker(host, {
+            inputId: ids.input,
+            placeholder: "Devise"
+        });
+        if (kind === "edit") editParcelCurrencyPicker = picker;
+        else dashDemandeCurrencyPicker = picker;
+        return picker;
+    }
+
+    // Propose la devise du pays de départ et celle du pays d'arrivée.
+    // La sélection reste valable tant qu'elle fait partie du nouvel itinéraire ;
+    // sinon on retombe sur la première devise proposée.
+    function refreshRequestCurrencyOptions(kind, preferred) {
+        const picker = mountRequestCurrencyPicker(kind);
+        if (!picker || !window.CCDevise) return;
+        const ids = requestCurrencyIds(kind);
+        const hidden = document.getElementById(ids.input);
+        const current = String(preferred || hidden?.value || "").toUpperCase();
+        const origin = String(document.getElementById(ids.origin)?.value || "").trim();
+        const destination = String(document.getElementById(ids.destination)?.value || "").trim();
+        const opts = window.CCDevise.optionsForCountries(origin, destination, { fallback: getUserCurrency() });
+        // Une demande existante peut avoir une devise qui n'est ni celle du
+        // départ ni celle de l'arrivée : on la garde proposée à l'ouverture,
+        // au lieu de la remplacer silencieusement par la première devise.
+        if (preferred && !opts.some((o) => o.value === current)) {
+            opts.unshift({ value: current, label: "Devise de l'annonce" });
+        }
+        picker.setOptions(opts);
+        const next = opts.some((o) => o.value === current) ? current : (opts[0]?.value || getUserCurrency());
+        picker.set(next);
+    }
+
+    function getRequestCurrency(kind) {
+        const picker = kind === "edit" ? editParcelCurrencyPicker : dashDemandeCurrencyPicker;
+        const ids = requestCurrencyIds(kind);
+        return String(
+            picker?.get()
+            || document.getElementById(ids.input)?.value
+            || getUserCurrency()
+        ).toUpperCase();
+    }
 
     function getUserCurrency() {
         return window.CCCommon.getUserCurrency ? window.CCCommon.getUserCurrency() : "EUR";
@@ -328,6 +396,15 @@
         const past = Boolean(value) && value < todayISO();
         hint.classList.toggle("hidden", !past);
         return past;
+    }
+
+    // « Pas de date limite » : état lumineux quand aucune date n'est choisie.
+    function setNoDateActive(dateId, buttonId) {
+        const button = document.getElementById(buttonId);
+        if (!button) return;
+        const empty = !String(document.getElementById(dateId)?.value || "");
+        button.classList.toggle("active", empty);
+        button.setAttribute("aria-pressed", empty ? "true" : "false");
     }
 
     function updateSameCountryHint(originId, destinationId, hintId) {
@@ -790,6 +867,34 @@
         setFeedback("");
     }
 
+    // Applique la modification dans l'état local et redessine la vue concernée.
+    // Évite un rechargement réseau complet après un enregistrement dont on
+    // connaît déjà toutes les valeurs enregistrées.
+    function applyOfferUpdateLocally(offerId, payload) {
+        const merged = { ...payload };
+        if (Object.prototype.hasOwnProperty.call(payload, "available_kg")) merged.availableKg = payload.available_kg;
+        if (Object.prototype.hasOwnProperty.call(payload, "price_per_kg")) merged.pricePerKg = payload.price_per_kg;
+        if (Object.prototype.hasOwnProperty.call(payload, "departure_date")) merged.departureDate = payload.departure_date;
+        if (Object.prototype.hasOwnProperty.call(payload, "base_currency")) merged.baseCurrency = payload.base_currency;
+        if (Object.prototype.hasOwnProperty.call(payload, "origin_country_code")) merged.originCountryCode = payload.origin_country_code;
+        if (Object.prototype.hasOwnProperty.call(payload, "destination_country_code")) merged.destCountryCode = payload.destination_country_code;
+
+        const mergeOne = (item) => String(item.id) === String(offerId) ? { ...item, ...merged } : item;
+        state.offers = (state.offers || []).map(mergeOne);
+        state.cargoActiveOffers = (state.cargoActiveOffers || []).map(mergeOne);
+        if (state.activeOffer && String(state.activeOffer.id) === String(offerId)) {
+            state.activeOffer = { ...state.activeOffer, ...merged };
+        }
+
+        if (state.currentView === "traveler" && state.activeOffer) {
+            const requests = getRequestsForOffer(state.activeOffer);
+            renderActiveOffer(state.activeOffer, requests);
+            renderStats(state.activeOffer, requests);
+        } else if (state.currentView === "cargo") {
+            renderCargoOffersTable(state.cargoActiveOffers || []);
+        }
+    }
+
     async function saveOfferEdits(event) {
         event.preventDefault();
         const offer = state.activeOffer;
@@ -905,9 +1010,9 @@
             if (!updated || !updated.length) {
                 throw new Error("Modification non enregistree (session expiree ou offre introuvable). Reconnectez-vous.");
             }
-            setFeedback("Offre mise a jour avec succes.");
-            await loadDashboard();
+            applyOfferUpdateLocally(offer.id, payload);
             closeOfferModal();
+            ccNotify("Offre mise à jour.");
         } catch (err) {
             setFeedback(err.message || "Impossible de modifier l'offre.", true);
         } finally {
@@ -925,13 +1030,12 @@
         if (!els.cargoOpsTable) return;
         const list = state.cargoActiveOffers;
         if (!list.length) {
-            els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests cargo-ops-empty"><p>Aucune offre.</p><a href="post_trip.html" class="btn primary btn-sm">Nouvelle offre</a></div>`;
+            els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div><div class="traveler-empty-requests cargo-ops-empty"><p>Aucune offre.</p></div>`;
             refreshCargoSeeAllLabel();
             return;
         }
         const expanded = state.cargoOffersExpanded === true;
         const visible = expanded ? list : list.slice(0, 1);
-        const rest = list.length - visible.length;
         const rows = visible.map((o) => {
             const kg = Number(o.availableKg || o.available_kg || 0);
             const mode = o.mode || "Avion";
@@ -956,10 +1060,7 @@
                 </div>
             </div>`;
         }).join("");
-        const more = rest > 0
-            ? `<div class="cargo-ops-more">+ ${rest} autre${rest > 1 ? "s" : ""} offre${rest > 1 ? "s" : ""}</div>`
-            : "";
-        els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>${rows}${more}`;
+        els.cargoOpsTable.innerHTML = `<div class="cargo-ops-header"><div>LIGNE</div><div>MODE</div><div>STATUT</div><div></div></div>${rows}`;
         refreshCargoSeeAllLabel();
     }
 
@@ -1014,9 +1115,19 @@
                 if (els.cargoLimitNote) {
                     const limiteAtteinte = activeCount >= 5;
                     els.cargoLimitNote.textContent = limiteAtteinte
-                        ? "Limite atteinte. Desactivez une offre pour en creer une nouvelle."
+                        ? "Limite atteinte. Supprimez une offre pour en créer une nouvelle."
                         : "";
                     els.cargoLimitNote.classList.toggle("hidden", !limiteAtteinte);
+                }
+                // À 5/5, le bouton « Nouvelle offre » est désactivé (grisé) :
+                // la publication serait de toute façon refusée par la limite.
+                const newOfferBtn = document.getElementById("cargo-new-offer-btn");
+                if (newOfferBtn) {
+                    const limiteAtteinte = activeCount >= 5;
+                    newOfferBtn.disabled = limiteAtteinte;
+                    newOfferBtn.title = limiteAtteinte
+                        ? "Limite de 5 offres actives atteinte"
+                        : "Nouvelle offre cargo";
                 }
                 // Memes offres que le tableau : une conversation rattachee a une
                 // offre archivee ne doit pas apparaitre dans « Personnes interessees ».
@@ -1024,6 +1135,11 @@
             } catch (error) {
                 if (els.cargoStatOffers) els.cargoStatOffers.textContent = "— / 5";
                 if (els.cargoProgressFill) els.cargoProgressFill.style.width = "0%";
+                const newOfferBtn = document.getElementById("cargo-new-offer-btn");
+                if (newOfferBtn) {
+                    newOfferBtn.disabled = false;
+                    newOfferBtn.title = "Nouvelle offre cargo";
+                }
                 renderPanelError(els.cargoOpsTable, error, loadDashboard);
                 return null;
             }
@@ -1224,17 +1340,37 @@
         });
 
         // Alerte immediate « date passee » sur les trois formulaires.
+        // Les deux demandes ont aussi un bouton « Pas de date limite » dont
+        // l'état lumineux suit la présence ou l'absence de date.
         [
-            ["offer-departure-date", "offer-date-hint"],
-            ["dash-demande-date", "dash-demande-date-hint"],
-            ["edit-parcel-date", "edit-parcel-date-hint"]
-        ].forEach(([inputId, hintId]) => {
+            ["offer-departure-date", "offer-date-hint", ""],
+            ["dash-demande-date", "dash-demande-date-hint", "dash-demande-no-date-btn"],
+            ["edit-parcel-date", "edit-parcel-date-hint", "edit-parcel-no-date-btn"]
+        ].forEach(([inputId, hintId, buttonId]) => {
             const input = document.getElementById(inputId);
             if (!input || input.dataset.dateHintBound === "true") return;
             input.dataset.dateHintBound = "true";
-            const refresh = () => updateDateHint(inputId, hintId);
+            const refresh = () => {
+                updateDateHint(inputId, hintId);
+                if (buttonId) setNoDateActive(inputId, buttonId);
+            };
             input.addEventListener("input", refresh);
             input.addEventListener("change", refresh);
+        });
+
+        // Devise des demandes : recalcul quand le pays de départ ou d'arrivée change.
+        [
+            ["dash-demande-origin", "dash-demande-destination", "dash"],
+            ["edit-parcel-origin", "edit-parcel-destination", "edit"]
+        ].forEach(([originId, destinationId, kind]) => {
+            [originId, destinationId].forEach((id) => {
+                const input = document.getElementById(id);
+                if (!input || input.dataset.ccRequestCurrencyBound === "true") return;
+                input.dataset.ccRequestCurrencyBound = "true";
+                const refresh = () => refreshRequestCurrencyOptions(kind);
+                input.addEventListener("input", refresh);
+                input.addEventListener("change", refresh);
+            });
         });
 
         // Dashboard toggles (Voyageur/Cargo)
@@ -1289,11 +1425,6 @@
         // rester affiche (il decrivait un probleme deja resolu).
         els.offerEditForm?.addEventListener("input", () => setFeedback(""));
         els.offerEditForm?.addEventListener("change", () => setFeedback(""));
-
-        els.openChatFromModalBtn?.addEventListener("click", () => {
-            if (!state.activeOffer) return;
-            openChatPage("", state.activeOffer.id);
-        });
 
         // Supprimer / Modifier l'offre active (voyageur)
         els.activeOfferCard?.addEventListener("click", async (event) => {
@@ -1387,16 +1518,10 @@
             document.getElementById("edit-parcel-kg").value = parcel.weight_kg || "";
             const editBudget = document.getElementById("edit-parcel-budget");
             if (editBudget) editBudget.value = parcel.max_price_per_kg ?? "";
-            const editBadge = document.getElementById("edit-parcel-currency-badge");
-            if (editBadge) {
-                const cur = parcel.currency
-                    || window.CCCommon.COUNTRY_CURRENCIES?.[window.CCCommon.state?.user?.country]
-                    || getUserCurrency();
-                editBadge.textContent = window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(cur) : cur;
-            }
-            document.getElementById("edit-parcel-description").value = parcel.description || "";
+            refreshRequestCurrencyOptions("edit", parcel.currency || "");
             updateSameCountryHint("edit-parcel-origin", "edit-parcel-destination", "edit-parcel-same-country-hint");
             updateDateHint("edit-parcel-date", "edit-parcel-date-hint");
+            setNoDateActive("edit-parcel-date", "edit-parcel-no-date-btn");
             const fb = document.getElementById("edit-parcel-feedback");
             if (fb) fb.classList.add("hidden");
             const saveBtn = document.getElementById("edit-parcel-save-btn");
@@ -1534,14 +1659,9 @@
                 submit.disabled = false;
                 submit.textContent = "Faire la demande";
             }
-            // Set the currency badge based on user's country of residence
-            const currencyBadge = document.getElementById("dash-demande-currency-badge");
-            if (currencyBadge) {
-                const user = window.CCCommon.state?.user;
-                const userCountry = user?.country || user?.user_metadata?.country || "";
-                const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || getUserCurrency();
-                currencyBadge.textContent = window.CCCommon.currencySymbol ? window.CCCommon.currencySymbol(currency) : currency;
-            }
+            // Devise proposée : pays de départ et pays d'arrivée (modèle unique).
+            refreshRequestCurrencyOptions("dash", "");
+            setNoDateActive("dash-demande-date", "dash-demande-no-date-btn");
         });
 
         // S-04 : la modale #cargo-requests-modal (inatteignable) a ete supprimee.
@@ -1579,45 +1699,53 @@
             }
         });
 
-        // Upload photo de profil -> Sauvegarde dans Supabase
+        // Upload photo de profil -> Sauvegarde dans Supabase.
+        // L'aperçu n'est appliqué QU'APRÈS la réussite de l'enregistrement :
+        // avant, une sauvegarde en échec laissait quand même la nouvelle photo
+        // affichée, comme si elle avait été enregistrée.
         document.querySelectorAll(".avatar-file-input").forEach(input => {
+            const inputEl = input;
             input.addEventListener("change", async function() {
-                const file = this.files?.[0];
+                const file = inputEl.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = async function(e) {
                     const dataUrl = e.target?.result;
-                    if (!dataUrl) return;
-                    // Appliquer a tous les cercles avatar (aperçu local)
-                    document.querySelectorAll(".avatar-circle").forEach(el => {
-                        el.style.backgroundImage = `url(${dataUrl})`;
-                        el.classList.add("has-image");
-                    });
-                    // Sauvegarder dans Supabase
                     const userId = window.CCCommon.state?.user?.id;
-                    if (userId && window.ccSupabase) {
-                        try {
-                            // [FIX] L'ancien code TRONQUAIT la data URL a 500 Ko :
-                            // l'image etait corrompue apres rechargement. On redimensionne
-                            // et compresse, et on refuse proprement si c'est impossible.
-                            const stored = await compressImageDataUrl(dataUrl, 500 * 1024);
-                            const { data: updated, error } = await window.ccSupabase.from("profiles").update({
-                                profile_photo: stored,
-                                updated_at: new Date().toISOString()
-                            }).eq("id", userId).select("id");
-                            if (error) throw error;
-                            if (!updated || !updated.length) {
-                                throw new Error("Session expiree : la photo n'a pas ete enregistree.");
-                            }
-                            if (window.CCCommon.state.user) {
-                                window.CCCommon.state.user.profilePhoto = stored;
-                                window.CCCommon.state.user.profile_photo = stored;
-                            }
-                            console.log("Photo de profil sauvegardee");
-                        } catch (err) {
-                            console.warn("Impossible de sauvegarder la photo:", err);
-                            ccNotify("Impossible d'enregistrer la photo de profil.", true);
+                    if (!dataUrl) { inputEl.value = ""; return; }
+                    if (!userId || !window.ccSupabase) {
+                        ccNotify("Impossible d'enregistrer la photo de profil.", true);
+                        inputEl.value = "";
+                        return;
+                    }
+                    try {
+                        // [FIX] L'ancien code TRONQUAIT la data URL a 500 Ko :
+                        // l'image etait corrompue apres rechargement. On redimensionne
+                        // et compresse, et on refuse proprement si c'est impossible.
+                        const stored = await compressImageDataUrl(dataUrl, 500 * 1024);
+                        const { data: updated, error } = await window.ccSupabase.from("profiles").update({
+                            profile_photo: stored,
+                            updated_at: new Date().toISOString()
+                        }).eq("id", userId).select("id");
+                        if (error) throw error;
+                        if (!updated || !updated.length) {
+                            throw new Error("Session expiree : la photo n'a pas ete enregistree.");
                         }
+                        // Enregistrement réussi : on peut maintenant montrer l'aperçu.
+                        document.querySelectorAll(".avatar-circle").forEach(el => {
+                            el.style.backgroundImage = `url(${stored})`;
+                            el.classList.add("has-image");
+                        });
+                        if (window.CCCommon.state.user) {
+                            window.CCCommon.state.user.profilePhoto = stored;
+                            window.CCCommon.state.user.profile_photo = stored;
+                        }
+                        ccNotify("Photo de profil mise à jour.");
+                    } catch (err) {
+                        console.warn("Impossible de sauvegarder la photo:", err);
+                        ccNotify("Impossible d'enregistrer la photo de profil.", true);
+                    } finally {
+                        inputEl.value = "";
                     }
                 };
                 reader.readAsDataURL(file);
@@ -1694,6 +1822,10 @@
 
         document.getElementById("close-avatar-menu")?.addEventListener("click", closeAvatarMenu);
         document.getElementById("close-avatar-lightbox")?.addEventListener("click", closeAvatarLightbox);
+        // Un clic sur le fond ferme aussi le menu (comme les autres modales).
+        avatarMenu?.addEventListener("click", (ev) => {
+            if (ev.target === avatarMenu) closeAvatarMenu();
+        });
         avatarLightbox?.addEventListener("click", (ev) => {
             if (ev.target === avatarLightbox) closeAvatarLightbox();
         });
@@ -1922,6 +2054,7 @@
         document.getElementById("dash-demande-no-date-btn")?.addEventListener("click", () => {
             document.getElementById("dash-demande-date").value = "";
             updateDateHint("dash-demande-date", "dash-demande-date-hint");
+            setNoDateActive("dash-demande-date", "dash-demande-no-date-btn");
         });
         document.getElementById("dash-demande-submit-btn")?.addEventListener("click", async () => {
             let origin = document.getElementById("dash-demande-origin")?.value?.trim();
@@ -1965,9 +2098,9 @@
                 document.getElementById("dash-demande-date-hint")?.classList.remove("hidden");
                 return;
             }
-            const user = window.CCCommon.state?.user;
-            const userCountry = user?.country || user?.user_metadata?.country || "";
-            const currency = window.CCCommon.COUNTRY_CURRENCIES[userCountry] || getUserCurrency();
+            // Devise choisie dans la liste (départ / arrivée), avec repli sur la
+            // devise du compte si le sélecteur n'a pas pu être monté.
+            const currency = getRequestCurrency("dash");
             const feedback = document.getElementById("dash-demande-feedback");
             const submitBtn = document.getElementById("dash-demande-submit-btn");
             try {
@@ -2026,6 +2159,8 @@
                     // Resynchroniser le suivi pays -> ville apres la remise a zero.
                     notifyCountryChanged(["dash-demande-origin", "dash-demande-destination"]);
                     updateDateHint("dash-demande-date", "dash-demande-date-hint");
+                    setNoDateActive("dash-demande-date", "dash-demande-no-date-btn");
+                    refreshRequestCurrencyOptions("dash", "");
                     // Recharger le dashboard pour afficher la nouvelle demande
                     await loadClientDashboard();
                 }, 1500);
@@ -2048,6 +2183,7 @@
         document.getElementById("edit-parcel-no-date-btn")?.addEventListener("click", () => {
             document.getElementById("edit-parcel-date").value = "";
             updateDateHint("edit-parcel-date", "edit-parcel-date-hint");
+            setNoDateActive("edit-parcel-date", "edit-parcel-no-date-btn");
         });
         // Remplir le datalist
         const editList = document.getElementById("edit-parcel-country-list");
@@ -2062,10 +2198,9 @@
             const destinationCity = document.getElementById("city-edit-parcel-destination")?.value?.trim() || "";
             const kg = Number(document.getElementById("edit-parcel-kg")?.value);
             const budget = parseFloat(document.getElementById("edit-parcel-budget")?.value) || 0;
-            const description = document.getElementById("edit-parcel-description")?.value?.trim();
             const dateLimite = document.getElementById("edit-parcel-date")?.value || null;
             setFormError("edit-parcel-error", "");
-            if (!origin || !destination || !description) {
+            if (!origin || !destination) {
                 setFormError("edit-parcel-error", "Veuillez remplir tous les champs.");
                 return;
             }
@@ -2115,7 +2250,7 @@
                     destination_city: destinationCityCheck.ville || null,
                     weight_kg: kg,
                     max_price_per_kg: budget > 0 ? budget : null,
-                    description,
+                    currency: getRequestCurrency("edit"),
                     needed_by_date: dateLimite || null,
                     updated_at: new Date().toISOString()
                 }).eq("id", editParcelId)
