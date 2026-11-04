@@ -12288,6 +12288,30 @@ body.results-page.light .cc3-special-toggle-gold {
     color: #b07f17;
 }
 
+/* Dashboard, theme clair : les noms des prix speciaux et des articles refuses
+   etaient en gris clair sur fond creme (illisibles). Meme traitement que la
+   page des offres. */
+body.dashboard-page.light .cc3-special-item,
+body.dashboard-page.light .cc3-refused-item {
+    border-color: rgba(23, 23, 23, 0.1);
+    background: rgba(255, 255, 255, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+}
+
+body.dashboard-page.light .cc3-special-type,
+body.dashboard-page.light .cc3-refused-name {
+    color: #131313;
+}
+
+body.dashboard-page.light .cc3-special-price {
+    color: #b0791b;
+}
+
+body.dashboard-page.light .cc3-special-unit,
+body.dashboard-page.light .cc3-refused-note {
+    color: #8a6410;
+}
+
 /* Overrides necessaires face au reset global .cards-list .cc3-card * */
 .cards-list .cc3-card .cc3-special-grid {
     padding: 8px 0 7px !important;
