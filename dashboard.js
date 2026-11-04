@@ -702,7 +702,7 @@
                         <div class="item-name">${name}${isVerified ? ' <span class="status-pill verified">Vérifié</span>' : ""}</div>
                         <div class="item-desc">${desc || "Demande en cours"}</div>
                     </div>
-                    <button class="client-item-btn client-item-btn-outline" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
+                    <button class="client-item-btn client-item-btn-outline" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Répondre</button>
                 </div>
             `;
         }).join("");
