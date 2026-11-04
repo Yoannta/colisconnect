@@ -8,6 +8,8 @@
         loading: false,
         cargoOffersExpanded: false,
         cargoActiveOffers: [],
+        // « Actives » ou « Archives » dans le panneau des demandes client.
+        clientRequestsFilter: "active",
     };
 
     // Identifiant de la demande de trajet en cours de modification.
@@ -135,6 +137,9 @@
 
     // [DEVISE] Sélecteur unique du site (voir devise.js)
     let offerCurrencyPicker = null;
+    // Unité de prix de l'offre en cours d'édition (cargo) + montants par unité.
+    let offerPriceUnit = "kg";
+    let offerPriceByUnit = { kg: "", cbm: "" };
     function mountOfferCurrencyPicker() {
         const host = document.getElementById("offer-currency-picker");
         if (!host || !window.CCDevise || offerCurrencyPicker) return offerCurrencyPicker;
@@ -590,24 +595,54 @@
         return PARCEL_STATUS_LABELS[key] || status;
     }
 
+    // Une demande livrée est archivée automatiquement dans l'interface : elle
+    // quitte la liste active et passe dans « Archives ». La ligne reste en base
+    // (aucune donnée n'est supprimée), ce qui permet de la republier ou de la
+    // supprimer explicitement.
+    function isArchivedParcel(item) {
+        const status = String(item?.status || "").toLowerCase();
+        return status === "delivered" || status === "archived";
+    }
+
+    function updateClientRequestFilter(allRequests) {
+        const rows = Array.isArray(allRequests) ? allRequests : [];
+        const activeCount = rows.filter((item) => !isArchivedParcel(item)).length;
+        const archivedCount = rows.filter(isArchivedParcel).length;
+        document.querySelectorAll("[data-client-requests-filter]").forEach((button) => {
+            const kind = button.dataset.clientRequestsFilter === "archived" ? "archived" : "active";
+            const isActive = kind === (state.clientRequestsFilter === "archived" ? "archived" : "active");
+            button.classList.toggle("active", isActive);
+            button.setAttribute("aria-pressed", isActive ? "true" : "false");
+            button.textContent = `${kind === "archived" ? "Archives" : "Actives"} (${kind === "archived" ? archivedCount : activeCount})`;
+        });
+    }
+
     function renderClientRequests(parcelRequests) {
         if (!els.clientRequestsList) return;
+        const all = Array.isArray(parcelRequests) ? parcelRequests : [];
+        updateClientRequestFilter(all);
 
-        if (!parcelRequests.length) {
-            els.clientRequestsList.innerHTML = `
-                <div class="traveler-empty-requests">
-                    <p>Aucune demande de trajet pour le moment.</p>
-                    <span>Publiez un appel si vous ne trouvez pas de voyageur.</span>
+        const filter = state.clientRequestsFilter === "archived" ? "archived" : "active";
+        const visible = all.filter((item) => filter === "archived" ? isArchivedParcel(item) : !isArchivedParcel(item));
+
+        if (!visible.length) {
+            els.clientRequestsList.innerHTML = filter === "archived"
+                ? `<div class="traveler-empty-requests"><p>Aucune demande archivée.</p></div>`
+                : `<div class="traveler-empty-requests">
+                    <p>Aucune demande active pour le moment.</p>
+                    <button type="button" class="btn primary btn-sm" data-open-demand-modal>Publier une demande</button>
                 </div>`;
             return;
         }
 
-        els.clientRequestsList.innerHTML = parcelRequests.map((item, i) => {
+        els.clientRequestsList.innerHTML = visible.map((item, i) => {
             const statusLabel = formatParcelStatus(item.status);
             // « En attente » est le cas courant : l'afficher sur chaque ligne
             // poussait l'echeance hors de la place disponible. On ne montre
             // le statut que lorsqu'il apporte une information (acceptee, livree…).
-            const showStatus = statusLabel && String(item.status || "").toLowerCase() !== "pending";
+            const rawStatus = String(item.status || "").toLowerCase();
+            const showStatus = statusLabel && rawStatus !== "pending";
+            const isArchived = isArchivedParcel(item);
             const deadline = item.needed_by_date ? `Avant le ${formatDateNumeric(item.needed_by_date)}` : "";
             const fullDetails = [
                 item.origin_city || item.destination_city
@@ -633,7 +668,9 @@
                     <div class="item-desc" title="${window.CCCommon.escapeHtml(fullDetails)}">${details}</div>
                 </div>
                 <div class="dash-row-inline">
-                    <button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>
+                    ${isArchived
+                        ? `<button class="client-item-btn" data-republish-parcel="${window.CCCommon.escapeHtml(item.id)}">Republier</button>`
+                        : `<button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>`}
                     <button class="client-item-btn client-item-btn-danger" data-delete-parcel="${window.CCCommon.escapeHtml(item.id)}">Supprimer</button>
                 </div>
             </div>`;
@@ -792,6 +829,73 @@
         window.location.href = "chat.html";
     }
 
+    // ---- Dates supplémentaires d'une offre cargo (même règle que post_trip) ----
+    const MAX_OFFER_EXTRA_DATES = 2;
+
+    function getOfferExtraDateInputs() {
+        return Array.from(document.querySelectorAll("#offer-extra-dates .offer-extra-date"));
+    }
+
+    function updateOfferExtraDatesAddBtn() {
+        const btn = document.getElementById("offer-add-date-btn");
+        if (!btn) return;
+        const count = getOfferExtraDateInputs().length;
+        btn.classList.toggle("hidden", count >= MAX_OFFER_EXTRA_DATES);
+        btn.disabled = count >= MAX_OFFER_EXTRA_DATES;
+    }
+
+    function addOfferExtraDateRow(value = "") {
+        const box = document.getElementById("offer-extra-dates");
+        if (!box || getOfferExtraDateInputs().length >= MAX_OFFER_EXTRA_DATES) return;
+        const row = document.createElement("div");
+        row.className = "dash-extra-date-row";
+        const input = document.createElement("input");
+        input.type = "date";
+        input.className = "cc-input estimator-input offer-extra-date";
+        input.min = todayISO();
+        input.value = value || "";
+        input.setAttribute("aria-label", "Date supplémentaire");
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "btn secondary compact dash-extra-date-del";
+        remove.setAttribute("aria-label", "Supprimer cette date");
+        remove.textContent = "×";
+        row.appendChild(input);
+        row.appendChild(remove);
+        box.appendChild(row);
+        updateOfferExtraDatesAddBtn();
+    }
+
+    function clearOfferExtraDates() {
+        const box = document.getElementById("offer-extra-dates");
+        if (box) box.innerHTML = "";
+        updateOfferExtraDatesAddBtn();
+    }
+
+    function getOfferExtraDateValues() {
+        return getOfferExtraDateInputs().map((input) => String(input.value || "").trim()).filter(Boolean);
+    }
+
+    function applyOfferPriceUnitUi(unit) {
+        document.querySelectorAll("#offer-price-unit-switch .dash-unit-btn").forEach((btn) => {
+            const active = btn.getAttribute("data-unit") === unit;
+            btn.classList.toggle("active", active);
+            btn.setAttribute("aria-pressed", active ? "true" : "false");
+        });
+        if (els.offerPricePerKg) {
+            els.offerPricePerKg.placeholder = unit === "cbm" ? "Prix par CBM" : "Prix par kilo";
+        }
+    }
+
+    function setOfferPriceUnit(unit) {
+        const next = unit === "cbm" ? "cbm" : "kg";
+        if (next === offerPriceUnit) return;
+        if (els.offerPricePerKg) offerPriceByUnit[offerPriceUnit] = els.offerPricePerKg.value;
+        offerPriceUnit = next;
+        if (els.offerPricePerKg) els.offerPricePerKg.value = offerPriceByUnit[next] ?? "";
+        applyOfferPriceUnitUi(next);
+    }
+
     function openOfferModal() {
         const offer = state.activeOffer;
         if (!offer) {
@@ -832,7 +936,38 @@
                 ? `Modifie les details du trajet ${getRouteLabel(offer)}.`
                 : `Modifie les details du trajet ${getRouteLabel(offer)} et garde tes kilos à jour.`;
         }
-        if (els.offerPricePerKg) els.offerPricePerKg.value = String(offer.pricePerKg ?? offer.price_per_kg ?? "");
+        const priceUnit = String(offer.price_unit || offer.priceUnit || "kg").toLowerCase() === "cbm" ? "cbm" : "kg";
+        offerPriceUnit = state.offerIsCargo ? priceUnit : "kg";
+        offerPriceByUnit = { kg: "", cbm: "" };
+        offerPriceByUnit[offerPriceUnit] = String(offer.pricePerKg ?? offer.price_per_kg ?? "");
+        if (els.offerPricePerKg) {
+            els.offerPricePerKg.value = offerPriceByUnit[offerPriceUnit];
+            els.offerPricePerKg.min = state.offerIsCargo ? "1" : "0";
+        }
+        applyOfferPriceUnitUi(offerPriceUnit);
+        const priceSwitch = document.getElementById("offer-price-unit-switch");
+        if (priceSwitch) priceSwitch.classList.toggle("hidden", !state.offerIsCargo);
+
+        // Une offre cargo peut être vendue au kilo OU au CBM. Le switch suit
+        // l'unité enregistrée ; l'autre unité démarre vide (aucun prix connu).
+        const priceLabel = document.getElementById("offer-price-label");
+        if (priceLabel) {
+            priceLabel.classList.toggle("hidden", state.offerIsCargo);
+            priceLabel.textContent = offerPriceUnit === "cbm" ? "Prix par CBM" : "Prix par kilo";
+        }
+
+        // Dates supplémentaires (cargo uniquement), même règle que post_trip.
+        const extraWrap = document.getElementById("offer-extra-dates-wrap");
+        if (extraWrap) extraWrap.classList.toggle("hidden", !state.offerIsCargo);
+        clearOfferExtraDates();
+        if (state.offerIsCargo) {
+            const extras = Array.isArray(offer.extra_dates)
+                ? offer.extra_dates
+                : (Array.isArray(offer.extraDates) ? offer.extraDates : []);
+            extras.slice(0, MAX_OFFER_EXTRA_DATES).forEach((date) => {
+                addOfferExtraDateRow(String(date || "").slice(0, 10));
+            });
+        }
 
         // === [DEVISE] Modèle unique du site (devise.js) : mêmes devises et même
         // apparence que le formulaire de publication des offres ===
@@ -847,14 +982,6 @@
             offerCurrencyPicker.set(existing || opts[0]?.value || getUserCurrency());
         }
 
-        // Une offre cargo peut etre vendue au kilo OU au CBM (price_unit).
-        // L'etiquette etait figee sur « Prix par kilo » : le prix affiche etait
-        // alors interprete dans la mauvaise unite.
-        const priceUnit = String(offer.price_unit || offer.priceUnit || "kg").toLowerCase();
-        const priceLabel = document.getElementById("offer-price-label");
-        if (priceLabel) {
-            priceLabel.textContent = (state.offerIsCargo && priceUnit === "cbm") ? "Prix par CBM" : "Prix par kilo";
-        }
         updateSameCountryHint("offer-origin", "offer-destination", "offer-same-country-hint");
         updateDateHint("offer-departure-date", "offer-date-hint");
 
@@ -949,9 +1076,24 @@
             return;
         }
 
+        // Dates supplémentaires (cargo) : toutes valides, puis une seule offre
+        // avec la date la plus proche en departure_date et les autres en extra_dates.
         if (cargo) {
-            if (!(payload.price_per_kg > 0)) {
-                setFeedback("Indique ton prix.", true);
+            payload.price_unit = offerPriceUnit;
+            const extraDates = getOfferExtraDateValues();
+            if (extraDates.some((date) => date < todayISO())) {
+                document.getElementById("offer-date-hint")?.classList.remove("hidden");
+                setFeedback("Les dates supplémentaires doivent être aujourd'hui ou plus tard.", true);
+                return;
+            }
+            const allDates = Array.from(new Set([payload.departure_date, ...extraDates].filter(Boolean))).sort();
+            payload.departure_date = allDates[0];
+            payload.extra_dates = allDates.slice(1);
+        }
+
+        if (cargo) {
+            if (!(payload.price_per_kg >= 1)) {
+                setFeedback("Indique un prix d'au moins 1.", true);
                 return;
             }
         } else if (payload.available_kg < 1 || payload.available_kg > 69 || payload.price_per_kg < 1) {
@@ -1403,6 +1545,23 @@
             openChatPage("", state.activeOffer.id);
         });
 
+        // Switch kilo / CBM (cargo) et dates supplémentaires.
+        document.querySelectorAll("#offer-price-unit-switch .dash-unit-btn").forEach((btn) => {
+            if (btn.dataset.ccUnitBound === "true") return;
+            btn.dataset.ccUnitBound = "true";
+            btn.addEventListener("click", () => setOfferPriceUnit(btn.getAttribute("data-unit")));
+        });
+        document.getElementById("offer-add-date-btn")?.addEventListener("click", () => {
+            addOfferExtraDateRow();
+            getOfferExtraDateInputs().slice(-1)[0]?.focus();
+        });
+        document.getElementById("offer-extra-dates")?.addEventListener("click", (event) => {
+            const remove = event.target.closest(".dash-extra-date-del");
+            if (!remove) return;
+            remove.closest(".dash-extra-date-row")?.remove();
+            updateOfferExtraDatesAddBtn();
+        });
+
         els.closeOfferModalBtn?.addEventListener("click", closeOfferModal);
         els.offerModal?.addEventListener("click", (event) => {
             if (event.target === els.offerModal) closeOfferModal();
@@ -1470,11 +1629,43 @@
         });
 
         els.clientRequestsList?.addEventListener("click", async (event) => {
+            const openDemandBtn = event.target.closest("[data-open-demand-modal]");
+            if (openDemandBtn) {
+                state.clientRequestsFilter = "active";
+                updateClientRequestFilter(state.parcelRequests || []);
+                window.CCDemandModal?.openCreate({
+                    onSaved: loadClientDashboard,
+                    trigger: openDemandBtn
+                });
+                return;
+            }
             const editBtn = event.target.closest("[data-edit-parcel]");
             if (editBtn) {
                 const parcelId = editBtn.getAttribute("data-edit-parcel");
                 if (!parcelId) return;
-                openEditParcelModal(parcelId);
+                const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId);
+                if (parcel) {
+                    window.CCDemandModal?.openEdit(parcel, {
+                        onSaved: loadClientDashboard,
+                        trigger: editBtn
+                    });
+                }
+                return;
+            }
+            const republishBtn = event.target.closest("[data-republish-parcel]");
+            if (republishBtn) {
+                const parcelId = republishBtn.getAttribute("data-republish-parcel");
+                const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId);
+                if (parcel) {
+                    // La nouvelle demande sera active : on revient sur cet onglet.
+                    state.clientRequestsFilter = "active";
+                    updateClientRequestFilter(state.parcelRequests || []);
+                    window.CCDemandModal?.openCreate({
+                        prefill: parcel,
+                        onSaved: loadClientDashboard,
+                        trigger: republishBtn
+                    });
+                }
                 return;
             }
             const deleteBtn = event.target.closest("[data-delete-parcel]");
@@ -1489,33 +1680,6 @@
                 if (threadId) openChatPage(threadId);
             }
         });
-
-        // Modale de modification de demande
-        async function openEditParcelModal(parcelId) {
-            editParcelId = parcelId;
-            const parcel = state.parcelRequests?.find(p => String(p.id) === parcelId);
-            if (!parcel) return;
-            document.getElementById("edit-parcel-origin").value = parcel.origin || "";
-            document.getElementById("edit-parcel-destination").value = parcel.destination || "";
-            notifyCountryChanged(["edit-parcel-origin", "edit-parcel-destination"]);
-            const editCityOrigin = document.getElementById("city-edit-parcel-origin");
-            const editCityDest = document.getElementById("city-edit-parcel-destination");
-            if (editCityOrigin) editCityOrigin.value = parcel.origin_city || parcel.city_origin || "";
-            if (editCityDest) editCityDest.value = parcel.destination_city || parcel.city_destination || "";
-            document.getElementById("edit-parcel-date").value = parcel.needed_by_date || "";
-            document.getElementById("edit-parcel-kg").value = parcel.weight_kg || "";
-            const editBudget = document.getElementById("edit-parcel-budget");
-            if (editBudget) editBudget.value = parcel.max_price_per_kg ?? "";
-            refreshRequestCurrencyOptions("edit", parcel.currency || "");
-            updateSameCountryHint("edit-parcel-origin", "edit-parcel-destination", "edit-parcel-same-country-hint");
-            updateDateHint("edit-parcel-date", "edit-parcel-date-hint");
-            setNoDateActive("edit-parcel-date", "edit-parcel-no-date-btn");
-            const fb = document.getElementById("edit-parcel-feedback");
-            if (fb) fb.classList.add("hidden");
-            const saveBtn = document.getElementById("edit-parcel-save-btn");
-            if (saveBtn) { saveBtn.disabled = false; saveBtn.classList.remove("hidden"); saveBtn.textContent = "Enregistrer"; }
-            document.getElementById("edit-parcel-modal")?.classList.remove("hidden");
-        }
 
         async function deleteParcelRequest(parcelId) {
             if (!window.ccSupabase) { ccNotify("Connexion indisponible.", true); return; }
@@ -1632,24 +1796,31 @@
         // Client cercle + nouvelle proposition
         // (cible explicite : un second .client-plus-btn existe dans la vue cargo,
         //  il ne doit pas dependre de l'ordre du document)
-        document.querySelector(".client-requests-panel .client-plus-btn")?.addEventListener("click", () => {
-            const modal = document.getElementById("dashboard-demande-modal");
-            if (modal) modal.classList.remove("hidden");
-            updateSameCountryHint("dash-demande-origin", "dash-demande-destination", "dash-demande-same-country-hint");
-            updateDateHint("dash-demande-date", "dash-demande-date-hint");
-            // Reinitialisation : apres un premier envoi, le bouton etait masque et
-            // le message de succes restait affiche a la deuxieme ouverture.
-            const fb = document.getElementById("dash-demande-feedback");
-            if (fb) fb.classList.add("hidden");
-            const submit = document.getElementById("dash-demande-submit-btn");
-            if (submit) {
-                submit.classList.remove("hidden");
-                submit.disabled = false;
-                submit.textContent = "Faire la demande";
-            }
-            // Devise proposée : pays de départ et pays d'arrivée (modèle unique).
-            refreshRequestCurrencyOptions("dash", "");
-            setNoDateActive("dash-demande-date", "dash-demande-no-date-btn");
+        // Onglets Actives / Archives du panneau des demandes client.
+        document.querySelectorAll("[data-client-requests-filter]").forEach((button) => {
+            if (button.dataset.clientFilterBound === "true") return;
+            button.dataset.clientFilterBound = "true";
+            button.addEventListener("click", () => {
+                state.clientRequestsFilter = button.dataset.clientRequestsFilter === "archived" ? "archived" : "active";
+                renderClientRequests(state.parcelRequests || []);
+                // On ouvre le panneau pour montrer le résultat du filtre.
+                const toggle = document.querySelector('.client-requests-panel [data-accordion-toggle]');
+                const body = document.getElementById("client-requests-body");
+                if (toggle && body && toggle.getAttribute("aria-expanded") !== "true") {
+                    toggle.setAttribute("aria-expanded", "true");
+                    body.hidden = false;
+                    toggle.closest(".dashboard-panel")?.classList.add("is-open");
+                }
+            });
+        });
+
+        document.querySelector(".client-requests-panel .client-plus-btn")?.addEventListener("click", (event) => {
+            state.clientRequestsFilter = "active";
+            updateClientRequestFilter(state.parcelRequests || []);
+            window.CCDemandModal?.openCreate({
+                onSaved: loadClientDashboard,
+                trigger: event.currentTarget
+            });
         });
 
         // S-04 : la modale #cargo-requests-modal (inatteignable) a ete supprimee.
@@ -1857,9 +2028,10 @@
         const escapeSel = (value) => (window.CSS && CSS.escape)
             ? CSS.escape(String(value))
             : String(value).replace(/["\\]/g, "\\$&");
+        // Une demande livrée n'a plus « Modifier » mais « Republier ».
         const selector = offerId
             ? `[data-edit-offer="${escapeSel(offerId)}"]`
-            : `[data-edit-parcel="${escapeSel(demandeId)}"]`;
+            : `[data-edit-parcel="${escapeSel(demandeId)}"], [data-republish-parcel="${escapeSel(demandeId)}"]`;
 
         // Le bouton « Modifier » est rendu dans la vue correspondant au type de
         // publication (voyageur / cargo / client) : on cherche, puis on bascule de

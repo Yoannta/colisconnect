@@ -19,6 +19,7 @@
         href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=20261103a">
+    <link rel="stylesheet" href="demand-modal.css?v=2">
     <!-- Drapeaux de la carte d'offre (comme sur la page des offres) -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -34,7 +35,8 @@
     <script defer src="admin-banner.js"></script>
     <!-- Carte d'offre partagée (identique à la page des offres) -->
     <script defer src="offer-card.js?v=20261101"></script>
-    <script defer src="dashboard.js?v=20261104d"></script>
+    <script defer src="demand-modal.js?v=2"></script>
+    <script defer src="dashboard.js?v=20261104f"></script>
 </head>
 
 <body class="dashboard-page">
@@ -188,6 +190,10 @@
                             </button>
                         </h3>
                         <div class="panel-actions">
+                            <div class="client-request-filter" role="group" aria-label="Demandes actives ou archivées">
+                                <button type="button" class="client-filter-btn active" data-client-requests-filter="active" aria-pressed="true">Actives</button>
+                                <button type="button" class="client-filter-btn" data-client-requests-filter="archived" aria-pressed="false">Archives</button>
+                            </div>
                             <button class="btn primary client-plus-btn" type="button" title="Nouvelle demande">
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                 <span>Nouvelle demande</span>
@@ -385,9 +391,17 @@
                         <label class="form-field">
                             <span>Date du voyage</span>
                             <input id="offer-departure-date" type="date" class="cc-input estimator-input" />
+                            <div id="offer-extra-dates-wrap" class="dash-extra-dates hidden">
+                                <div id="offer-extra-dates"></div>
+                                <button type="button" class="btn secondary compact dash-add-date" id="offer-add-date-btn">+ Ajouter une autre date</button>
+                            </div>
                         </label>
                         <label class="form-field">
                             <span id="offer-price-label">Prix par kilo</span>
+                            <div id="offer-price-unit-switch" class="dash-unit-switch hidden" role="group" aria-label="Unité de prix">
+                                <button type="button" class="dash-unit-btn active" data-unit="kg" aria-pressed="true"><span class="dash-unit-dot" aria-hidden="true"></span>Prix par kilo</button>
+                                <button type="button" class="dash-unit-btn" data-unit="cbm" aria-pressed="false"><span class="dash-unit-dot" aria-hidden="true"></span>Prix par CBM</button>
+                            </div>
                             <input id="offer-price-per-kg" type="number" min="0" class="cc-input estimator-input" />
                         </label>
                         <label class="form-field" id="offer-kg-field">
@@ -416,127 +430,99 @@
         </div>
     </div>
 
-    <!-- MODALE DEMANDE DE TRAJET (dashboard client) -->
-    <div id="dashboard-demande-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="demande-modal-title">
-        <div class="modal-card demande-modal-card">
-            <button type="button" class="close-modal" id="close-dashboard-demande-modal" aria-label="Fermer">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
-            </button>
-            <div>
-                <h2 id="demande-modal-title" class="cc-modal-title">Demande de trajet</h2>
-                <p class="demande-subtitle">Un voyageur vous contactera si votre demande l interesse.</p>
-                <div class="demande-form">
-                    <div class="demande-field">
-                        <label for="dash-demande-origin">Pays de depart</label>
-                        <input type="text" id="dash-demande-origin" class="cc-input demande-input" list="dash-demande-country-list" placeholder="Ex: France" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="city-dash-demande-origin">Ville de depart</label>
-                        <input type="text" id="city-dash-demande-origin" class="cc-input demande-input" placeholder="Ex: Paris" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="dash-demande-destination">Pays d arrivee</label>
-                        <input type="text" id="dash-demande-destination" class="cc-input demande-input" list="dash-demande-country-list" placeholder="Ex: Senegal" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="city-dash-demande-destination">Ville d'arrivee</label>
-                        <input type="text" id="city-dash-demande-destination" class="cc-input demande-input" placeholder="Ex: Dakar" autocomplete="off">
-                    </div>
-                    <p id="dash-demande-same-country-hint" class="demande-hint hidden" role="alert">
-                        Le pays de départ et le pays d'arrivée doivent être différents.
-                    </p>
-                    <datalist id="dash-demande-country-list"></datalist>
-                    <div class="demande-field">
-                        <label>Date limite</label>
-                        <div class="demande-date-row">
-                            <input type="date" id="dash-demande-date" class="cc-input demande-input">
-                            <button type="button" class="demande-date-alt" id="dash-demande-no-date-btn" aria-pressed="false">Pas de date limite</button>
-                        </div>
-                    </div>
-                    <p id="dash-demande-date-hint" class="demande-hint hidden" role="alert">
-                        La date limite doit être aujourd'hui ou plus tard.
-                    </p>
-                    <div class="demande-field">
-                        <label for="dash-demande-kg">Environ combien de kilos ?</label>
-                        <input type="number" id="dash-demande-kg" class="cc-input demande-input" placeholder="Ex: 10" min="1">
-                    </div>
-                    <div class="demande-field">
-                        <label for="dash-demande-budget">Votre budget par kilo</label>
-                        <div class="demande-budget-row">
-                            <input type="number" id="dash-demande-budget" class="cc-input demande-input" placeholder="Ex: 15" min="0" step="0.01">
-                            <div id="dash-demande-currency-picker"></div>
-                            <input type="hidden" id="dash-demande-currency" value="" />
-                        </div>
-                    </div>
-                    <div class="demande-field">
-                        <label for="dash-demande-description">Decrivez le colis (nom, categorie, type)</label>
-                        <textarea id="dash-demande-description" class="cc-input demande-input demande-textarea" rows="3" placeholder="Ex: Electronique, vetements, documents..."></textarea>
-                    </div>
-                    <p id="dash-demande-error" class="cc-field-error hidden" role="alert"></p>
-                    <button type="button" class="demande-submit btn primary full-width" id="dash-demande-submit-btn">Faire la demande</button>
-                    <p id="dash-demande-feedback" class="hidden demande-feedback" role="status">✅ Un voyageur vous contactera.</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- MODALE OFFICIELLE DEMANDE DE TRAJET (identique à la page Offres) -->
+    <div id="demand-modal" class="cc-modal" hidden>
+        <div class="cc-modal-overlay" data-demand-close></div>
+        <div class="cc-modal-card cc-demand-card" role="dialog" aria-modal="true" aria-labelledby="demand-modal-title" tabindex="-1">
+            <header class="cc-modal-head">
+                <h2 id="demand-modal-title">Demande de trajet</h2>
+                <button type="button" id="demand-close" class="cc-icon-btn" aria-label="Fermer la demande">&times;</button>
+            </header>
 
-    <!-- MODALE MODIFICATION DEMANDE DE TRAJET -->
-    <div id="edit-parcel-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="edit-parcel-modal-title">
-        <div class="modal-card demande-modal-card">
-            <button type="button" class="close-modal" id="close-edit-parcel-modal" aria-label="Fermer">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
-            </button>
-            <div>
-                <h2 id="edit-parcel-modal-title" class="cc-modal-title">Modifier ma demande</h2>
-                <p class="demande-subtitle">Modifiez les informations de votre demande de trajet.</p>
-                <div class="demande-form">
-                    <div class="demande-field">
-                        <label for="edit-parcel-origin">Pays de depart</label>
-                        <input type="text" id="edit-parcel-origin" class="cc-input demande-input" list="edit-parcel-country-list" placeholder="Ex: France" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="city-edit-parcel-origin">Ville de depart</label>
-                        <input type="text" id="city-edit-parcel-origin" class="cc-input demande-input" placeholder="Ex: Paris" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-parcel-destination">Pays d arrivee</label>
-                        <input type="text" id="edit-parcel-destination" class="cc-input demande-input" list="edit-parcel-country-list" placeholder="Ex: Senegal" autocomplete="off">
-                    </div>
-                    <div class="demande-field">
-                        <label for="city-edit-parcel-destination">Ville d'arrivee</label>
-                        <input type="text" id="city-edit-parcel-destination" class="cc-input demande-input" placeholder="Ex: Dakar" autocomplete="off">
-                    </div>
-                    <p id="edit-parcel-same-country-hint" class="demande-hint hidden" role="alert">
-                        Le pays de départ et le pays d'arrivée doivent être différents.
-                    </p>
-                    <datalist id="edit-parcel-country-list"></datalist>
-                    <div class="demande-field">
-                        <label>Date limite</label>
-                        <div class="demande-date-row">
-                            <input type="date" id="edit-parcel-date" class="cc-input demande-input">
-                            <button type="button" class="demande-date-alt" id="edit-parcel-no-date-btn" aria-pressed="false">Pas de date limite</button>
-                        </div>
-                    </div>
-                    <p id="edit-parcel-date-hint" class="demande-hint hidden" role="alert">
-                        La date limite doit être aujourd'hui ou plus tard.
-                    </p>
-                    <div class="demande-field">
-                        <label for="edit-parcel-kg">Environ combien de kilos ?</label>
-                        <input type="number" id="edit-parcel-kg" class="cc-input demande-input" placeholder="Ex: 10" min="1">
-                    </div>
-                    <div class="demande-field">
-                        <label for="edit-parcel-budget">Votre budget par kilo</label>
-                        <div class="demande-budget-row">
-                            <input type="number" id="edit-parcel-budget" class="cc-input demande-input" placeholder="Ex: 15" min="0" step="0.01">
-                            <div id="edit-parcel-currency-picker"></div>
-                            <input type="hidden" id="edit-parcel-currency" value="" />
-                        </div>
-                    </div>
-                    <p id="edit-parcel-error" class="cc-field-error hidden" role="alert"></p>
-                    <button type="button" class="demande-submit btn primary full-width" id="edit-parcel-save-btn">Enregistrer</button>
-                    <p id="edit-parcel-feedback" class="hidden demande-feedback" role="status">✅ Demande mise a jour.</p>
-                </div>
+            <div class="cc-wizard" aria-hidden="true">
+                <div class="cc-wizard-step active" data-dstep="1"><span class="cc-wizard-dot">1</span><span>Trajet</span></div>
+                <div class="cc-wizard-line"><i></i></div>
+                <div class="cc-wizard-step" data-dstep="2"><span class="cc-wizard-dot">2</span><span>Colis &amp; prix</span></div>
             </div>
+
+            <form id="demand-form" class="cc-demand-form" novalidate>
+                <div class="cc-modal-body">
+                    <section class="cc-step active" data-step="1" aria-label="Trajet">
+                        <div class="cc-field">
+                            <label for="demand-origin">Pays de départ</label>
+                            <input id="demand-origin" type="text" list="demand-country-list" autocomplete="off" placeholder="Ex. France">
+                        </div>
+                        <div class="cc-field">
+                            <label for="demand-city-origin">Ville de départ</label>
+                            <input id="demand-city-origin" type="text" autocomplete="off" placeholder="Ex. Paris">
+                        </div>
+                        <div class="cc-field">
+                            <label for="demand-destination">Pays d'arrivée</label>
+                            <input id="demand-destination" type="text" list="demand-country-list" autocomplete="off" placeholder="Ex. Sénégal">
+                        </div>
+                        <div class="cc-field">
+                            <label for="demand-city-destination">Ville d'arrivée</label>
+                            <input id="demand-city-destination" type="text" autocomplete="off" placeholder="Ex. Dakar">
+                        </div>
+                        <datalist id="demand-country-list"></datalist>
+                        <div class="cc-field">
+                            <label for="demand-date">Date limite</label>
+                            <div class="demande-date-row">
+                                <input id="demand-date" type="date">
+                                <button type="button" class="demande-date-alt" id="demand-no-date" aria-pressed="false">Pas de date limite</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="cc-step" data-step="2" aria-label="Colis et prix">
+                        <div class="cc-colis-zone" id="demand-colis-rows">
+                            <div class="cc-colis-box" data-colis="1">
+                                <div class="cc-colis-head">
+                                    <span class="cc-colis-title">Colis 1</span>
+                                    <button type="button" class="cc-icon-btn cc-colis-del" aria-label="Supprimer ce colis" title="Supprimer ce colis">&times;</button>
+                                </div>
+                                <div class="cc-field">
+                                    <label>Nom du colis</label>
+                                    <input type="text" class="cc-colis-nom" aria-label="Nom du colis" placeholder="Ex. vêtements" maxlength="60" autocomplete="off">
+                                </div>
+                                <div class="cc-field">
+                                    <label>Comment proposez-vous le prix ?</label>
+                                    <div class="cc-segmented" role="group" aria-label="Mode de prix du colis">
+                                        <button type="button" class="cc-seg-btn active" data-mode="per_kg" aria-pressed="true">par kilo</button>
+                                        <button type="button" class="cc-seg-btn" data-mode="total" aria-pressed="false">par quantité</button>
+                                    </div>
+                                </div>
+                                <div class="cc-field cc-kg-field">
+                                    <label>Environ combien de kilos ?</label>
+                                    <input type="number" class="cc-kg-input" aria-label="Environ combien de kilos ?" placeholder="Ex. 10" min="1" step="any" inputmode="decimal">
+                                </div>
+                                <div class="cc-field cc-qty-field" hidden>
+                                    <label class="cc-qty-label">Combien de colis ?</label>
+                                    <input type="number" class="cc-qty-input" aria-label="Combien de colis ?" placeholder="Ex. 5" min="1" step="1" inputmode="numeric">
+                                </div>
+                                <div class="cc-field">
+                                    <label class="cc-price-label">Combien proposez-vous ?</label>
+                                    <div class="cc-price-row">
+                                        <input type="number" class="cc-price-input" aria-label="Combien proposez-vous ?" placeholder="Ex. 2500" min="0" step="any" inputmode="decimal">
+                                        <div class="cc-cur-picker"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="cc-btn cc-btn-secondary cc-add-colis" id="demand-add-colis">+ Ajouter un autre colis</button>
+                        <p class="cc-hint">Chaque colis a son propre budget — le voyageur verra chaque proposition.</p>
+                    </section>
+
+                    <div id="demand-error" class="cc-form-error" role="alert" hidden></div>
+                </div>
+
+                <footer class="cc-modal-foot">
+                    <button type="button" id="demand-prev" class="cc-btn cc-btn-ghost">Retour</button>
+                    <button type="button" id="demand-next" class="cc-btn cc-btn-primary">Continuer</button>
+                    <button type="submit" id="demand-submit" class="cc-btn cc-btn-primary" hidden>Faire la demande</button>
+                    <p id="demand-feedback" class="cc-form-success" role="status" hidden>Un voyageur vous contactera.</p>
+                </footer>
+            </form>
         </div>
     </div>
 
