@@ -20668,3 +20668,26 @@ body.post-trip-page .option-card .option-remove {
     border: 1px solid var(--cc-danger-border);
     color: var(--cc-danger);
 }
+
+/* ── Bouton « Verifier mon identite » (dashboard) ──────────────────────────
+   Le reset `body.dashboard-page .btn { border: 1px solid transparent }` rendait
+   sa bordure invisible : on ne croyait pas qu'il etait cliquable. Meme style de
+   contour fin que les pilules Expediteur / Voyageur / Cargo (demande Yoyo). */
+body.dashboard-page .btn.identite-btn {
+    border: 1px solid var(--cc-border-strong);
+    border-radius: var(--cc-radius-md);
+    background: transparent;
+    color: var(--cc-text);
+}
+
+body.dashboard-page .btn.identite-btn:hover,
+body.dashboard-page .btn.identite-btn:focus-visible {
+    border-color: var(--cc-accent);
+    background: var(--cc-accent-soft-strong, rgba(255, 179, 71, 0.18));
+    color: var(--cc-text);
+}
+
+body.dashboard-page .btn.identite-btn .identite-steps {
+    border: 1px solid var(--cc-border-strong);
+    background: transparent;
+}
