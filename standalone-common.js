@@ -2777,10 +2777,62 @@
     }
 
     async function performLogoutAndRedirect() {
-        try { await window.ccSupabase?.auth?.signOut(); } catch (e) { }
-        localStorage.removeItem("cc_auth_token");
-        localStorage.removeItem("cc_refresh_token");
-        window.location.href = "index.html";
+        // 1) Déconnexion Supabase LOCALE : même si le réseau échoue, le jeton
+        //    enregistré par le client doit disparaître, sinon un retour arrière
+        //    restaure la session et l'utilisateur semble reconnecté.
+        try { await window.ccSupabase?.auth?.signOut({ scope: "local" }); } catch (e) { }
+        try { await window.ccSupabase?.auth?.setSession(null); } catch (e) { }
+        try {
+            Object.keys(localStorage).forEach((cle) => {
+                if (cle === "cc_auth_token" || cle === "cc_refresh_token"
+                    || (cle.startsWith("sb-") && cle.includes("auth-token"))) {
+                    localStorage.removeItem(cle);
+                }
+            });
+        } catch (e) { }
+        // 2) Oublier l'utilisateur en mémoire.
+        setSession("", null);
+        // 3) Remplacer l'entrée d'historique : le bouton Retour ne doit pas
+        //    ramener sur une page protégée après la déconnexion.
+        window.location.replace("index.html");
+    }
+
+    // Contrôle permanent des pages protégées : si la session a disparu (déconnexion
+    // dans un autre onglet, retour arrière depuis une page en cache, expiration),
+    // on renvoie immédiatement à l'accueil au lieu d'afficher une page « connectée »
+    // sans jeton.
+    function installAuthGuards() {
+        if (!requiresAuthTarget(currentTarget())) return;
+        const retourAccueil = () => {
+            if (currentFile() === "index.html") return;
+            window.location.replace("index.html");
+        };
+        const verifierSession = async () => {
+            if (!state.user || !state.token) { retourAccueil(); return; }
+            try {
+                const { data } = await window.ccSupabase.auth.getSession();
+                if (!data || !data.session) {
+                    setSession("", null);
+                    retourAccueil();
+                }
+            } catch (e) { /* réseau indisponible : on ne déconnecte pas pour autant */ }
+        };
+        // Retour arrière / restauration depuis le cache du navigateur.
+        window.addEventListener("pageshow", (event) => {
+            if (event.persisted || state.token) verifierSession();
+        });
+        // Onglet réactivé après une déconnexion faite ailleurs.
+        document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible" && state.token) verifierSession();
+        });
+        try {
+            window.ccSupabase.auth.onAuthStateChange((event) => {
+                if (event === "SIGNED_OUT") {
+                    setSession("", null);
+                    retourAccueil();
+                }
+            });
+        } catch (e) { }
     }
 
     function updateHeaderUi() {
@@ -2789,7 +2841,10 @@
 
         const authed = Boolean(state.user && state.token);
         const isAdmin = authed && String(state.user.role || "").toLowerCase() === "admin";
-        const userName = authed ? (state.user.fullName || state.user.email || "Connecté") : "";
+        const userName = authed
+            ? (state.user.fullName || state.user.email || state.user.phone
+                || state.user.phoneNumber || "Mon compte")
+            : "";
 
         headerAuth.innerHTML = "";
 
@@ -3073,6 +3128,7 @@
         updateHeaderUi();
         bindHeaderEvents();
         initProtectedNavigationInterceptor();
+        installAuthGuards();
 
         if (state.user && state.token) {
             startNotifPolling();

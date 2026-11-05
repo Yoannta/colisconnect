@@ -20641,3 +20641,30 @@ body.post-trip-page .option-card .option-text {
 body.post-trip-page .option-card .option-remove {
     flex: 0 0 auto;
 }
+
+/* Croix de la ligne « type personnalisé » (saisie en cours). */
+body.post-trip-page .custom-input-group {
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+body.post-trip-page .custom-refused-cancel {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--cc-danger-border);
+    border-radius: 10px;
+    background: var(--cc-danger-soft);
+    color: var(--cc-danger);
+}
+
+body.post-trip-page .custom-refused-cancel:hover {
+    background: var(--cc-danger);
+    color: var(--cc-on-danger);
+}
+
+/* La croix des cartes ajoutées reste visible sans survol. */
+body.post-trip-page .option-card .option-remove {
+    border: 1px solid var(--cc-danger-border);
+    color: var(--cc-danger);
+}

@@ -1725,6 +1725,13 @@
             }
         });
 
+        // Croix de la ligne de saisie : annule le type en cours et referme la ligne.
+        document.getElementById("cancelCustomRefusedBtn")?.addEventListener("click", () => {
+            if (newRefusedInput) newRefusedInput.value = "";
+            if (refusedGroup) refusedGroup.style.display = "none";
+            toggleRefusedBtn?.focus();
+        });
+
         saveRefusedBtn?.addEventListener("click", () => {
             // La virgule est le SEPARATEUR des types enregistres : un type saisi
             // « Vêtements, chaussures » serait relu comme deux types et affiche
