@@ -18,18 +18,18 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;700;800&family=JetBrains+Mono:wght@500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261103a">
+    <link rel="stylesheet" href="style.css?v=20261105a">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
     <script defer src="responsive.js"></script>
     <script defer src="password-toggle.js"></script>
-    <script defer src="shared-header.js?v=60"></script>
+    <script defer src="shared-header.js?v=61"></script>
 
-    <script defer src="standalone-common.js?v=20261030a"></script>
+    <script defer src="standalone-common.js?v=20261105a"></script>
     <script defer src="pinceau.js?v=20261015b"></script>
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
-    <script defer src="post_trip.js?v=46"></script>
+    <script defer src="post_trip.js?v=47"></script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 </head>
@@ -63,17 +63,8 @@
 
             <section class="post-shell">
                 <aside class="trip-benefits" data-benefits>
-                    <button type="button" class="benefits-trigger" id="benefits-trigger" aria-expanded="false"
-                        aria-controls="benefits-body">
-                        <h2>Pourquoi publier sur ColisConnect ?</h2>
-                        <span class="benefits-chevron" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="6 9 12 15 18 9" />
-                            </svg>
-                        </span>
-                    </button>
-                    <div class="benefits-body" id="benefits-body">
+                    <h2 class="benefits-title">Pourquoi publier sur ColisConnect ?</h2>
+                    <div class="benefits-body is-open" id="benefits-body">
                         <ul>
                             <li>
                                 <span class="benefits-icon" aria-hidden="true">
@@ -404,15 +395,6 @@
                                         </svg>
                                         Bateau
                                     </button>
-                                    <button type="button" class="segment-btn transport-mode-btn" data-mode="les_deux"
-                                        aria-pressed="false">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M2 12l20-8-8 20-3-9-9-3z" />
-                                        </svg>
-                                        Les deux
-                                    </button>
                                 </div>
                             </div>
 
@@ -651,13 +633,13 @@
                 </div>
             </div>
             <div class="add-custom-section">
-                <button type="button" class="cc-btn cc-btn-add" id="toggleCustomRefusedBtn">+ Ajouter un type
-                    personnalisé</button>
                 <div class="custom-input-group" id="customRefusedGroup">
                     <input type="text" class="form-input custom-input" id="newRefusedTypeInput"
                         placeholder="Entrer le nom du type...">
                     <button type="button" class="cc-btn cc-btn-secondary" id="saveCustomRefusedBtn">Enregistrer</button>
                 </div>
+                <button type="button" class="cc-btn cc-btn-add" id="toggleCustomRefusedBtn">+ Ajouter un type
+                    personnalisé</button>
             </div>
             <button type="button" class="cc-btn cc-btn-primary cc-btn-block" id="validateRefusedBtn">Valider la
                 sélection</button>
@@ -751,8 +733,12 @@
                         </span>
                         Code invalide. Réessayez.
                     </p>
-                    <button type="button" id="pm-change-number-btn" class="cc-btn cc-btn-ghost">Modifier le
-                        numéro</button>
+                    <div class="pm-otp-actions">
+                        <button type="button" id="pm-change-number-btn" class="cc-btn cc-btn-ghost">Modifier le
+                            numéro</button>
+                        <button type="button" id="pm-resend-code-btn" class="cc-btn cc-btn-ghost hidden">Renvoyer le
+                            code</button>
+                    </div>
                 </div>
 
                 <button type="button" class="cc-btn cc-btn-primary cc-btn-block" id="pm-confirm-btn" disabled>Enregistrer
@@ -787,16 +773,26 @@
         </div>
     </div>
 
-    <!-- Modale de confirmation (doublon < 3 min) — remplace confirm() natif -->
-    <div id="cc-confirm-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true"
-        aria-labelledby="cc-confirm-title">
-        <div class="pt-modal-card confirm-card">
-            <h2 id="cc-confirm-title" class="confirm-title">Cette annonce vient d'être publiée.</h2>
-            <p class="confirm-text">Vous venez de publier la même annonce il y a moins de 3 minutes. La publier une
-                deuxième fois ?</p>
-            <div class="modal-actions confirm-actions">
-                <button type="button" id="cc-confirm-cancel" class="cc-btn cc-btn-ghost">Annuler</button>
-                <button type="button" id="cc-confirm-ok" class="cc-btn cc-btn-primary">Publier quand même</button>
+    <!-- Modale d'avertissement : profil non vérifié au moment de publier -->
+    <div id="unverified-publish-modal" class="pt-modal-overlay hidden" role="dialog" aria-modal="true"
+        aria-labelledby="unverified-publish-title">
+        <div class="pt-modal-card unverified-card">
+            <span class="unverified-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+            </span>
+            <h2 id="unverified-publish-title" class="pm-title">Vous n'êtes pas encore vérifié</h2>
+            <p class="pm-subtitle">Les clients sont plus attirés par les profils vérifiés. Votre annonce sera publiée
+                et restera marquée comme non vérifiée tant que votre identité n'est pas confirmée.</p>
+            <div class="modal-actions unverified-actions">
+                <button type="button" id="unverified-publish-ok" class="cc-btn cc-btn-secondary">Publier quand
+                    même</button>
+                <button type="button" id="unverified-verify-btn" class="cc-btn cc-btn-primary">Vérifier mon
+                    identité</button>
             </div>
         </div>
     </div>
@@ -817,6 +813,16 @@
             }
 
             var rowSeq = 0;
+            // 1 ligne de base + 2 ajouts maximum.
+            var MAX_SPECIAL_ROWS = 3;
+
+            function updateSpecialAddBtn() {
+                var add = document.getElementById('addColisTypeBtn');
+                if (!add) return;
+                var plein = rowsBox.querySelectorAll('.colis-detail-row').length >= MAX_SPECIAL_ROWS;
+                add.disabled = plein;
+                add.classList.toggle('hidden', plein);
+            }
 
             function makeRow() {
                 rowSeq += 1;
@@ -838,6 +844,7 @@
                     '<span class="special-price-currency">—</span>' +
                     '</div>';
                 rowsBox.appendChild(row);
+                updateSpecialAddBtn();
             }
 
             // Libellé du badge à côté du prix : "DEVISE par kilo" ou "DEVISE par <nom du colis>"
@@ -926,6 +933,7 @@
                     if (field) field.value = (item.price === 0 || item.price) ? String(item.price) : '';
                     if (window.ccRefreshUniteLabel) window.ccRefreshUniteLabel(rowEl);
                 });
+                updateSpecialAddBtn();
                 if (items.length) {
                     var oui = document.getElementById('special-yes');
                     var non = document.getElementById('special-no');
@@ -956,6 +964,7 @@
                     var rowToDel = delBtn.closest('.colis-detail-row');
                     if (rowToDel) {
                         rowToDel.remove();
+                        updateSpecialAddBtn();
                         if (!rowsBox.querySelector('.colis-detail-row')) {
                             var yesBase = document.getElementById('special-yes');
                             var noBase = document.getElementById('special-no');
@@ -1022,7 +1031,11 @@
             }, true);
 
             var addBtn = document.getElementById('addColisTypeBtn');
-            if (addBtn) addBtn.addEventListener('click', makeRow);
+            if (addBtn) addBtn.addEventListener('click', function () {
+                if (rowsBox.querySelectorAll('.colis-detail-row').length >= MAX_SPECIAL_ROWS) return;
+                makeRow();
+            });
+            updateSpecialAddBtn();
         })();
     </script>
 

@@ -118,7 +118,7 @@
             el.addEventListener("input", clear, { once: true });
             el.addEventListener("change", clear, { once: true });
         }
-        setTimeout(() => el.classList.remove("input-error"), 1400);
+        setTimeout(() => el.classList.remove("input-error"), 2800);
     }
 
     function clearStepError(index) {
@@ -248,7 +248,7 @@
                 first.focus();
             }
         });
-        ["payment-method-modal", "publish-success-modal", "cc-confirm-modal", "refusedPopupOverlay"].forEach((id) => {
+        ["payment-method-modal", "publish-success-modal", "unverified-publish-modal", "refusedPopupOverlay"].forEach((id) => {
             const dialog = document.getElementById(id);
             if (!dialog) return;
             dialog.addEventListener("click", (e) => {
@@ -257,27 +257,30 @@
         });
     }
 
-    function ccConfirmDuplicate() {
+    // Profil non vérifié : avertissement non bloquant. « Publier quand même »
+    // continue la publication, « Vérifier mon identité » renvoie vers la
+    // vérification. Fermer la fenêtre annule la publication.
+    function ccUnverifiedGate() {
         return new Promise((resolve) => {
-            const dialog = document.getElementById("cc-confirm-modal");
-            const okBtn = document.getElementById("cc-confirm-ok");
-            const cancelBtn = document.getElementById("cc-confirm-cancel");
-            if (!dialog || !okBtn || !cancelBtn) { resolve(false); return; }
+            const dialog = document.getElementById("unverified-publish-modal");
+            const okBtn = document.getElementById("unverified-publish-ok");
+            const verifyBtn = document.getElementById("unverified-verify-btn");
+            if (!dialog || !okBtn || !verifyBtn) { resolve("publish"); return; }
             let settled = false;
             const finish = (value) => {
                 if (settled) return;
                 settled = true;
                 okBtn.removeEventListener("click", onOk);
-                cancelBtn.removeEventListener("click", onCancel);
+                verifyBtn.removeEventListener("click", onVerify);
                 closeDialog(dialog);
                 resolve(value);
             };
-            const onOk = () => finish(true);
-            const onCancel = () => finish(false);
+            const onOk = () => finish("publish");
+            const onVerify = () => finish("verify");
             okBtn.addEventListener("click", onOk);
-            cancelBtn.addEventListener("click", onCancel);
-            dialog.addEventListener("cc-dialog-closed", () => finish(false), { once: true });
-            openDialog(dialog, cancelBtn);
+            verifyBtn.addEventListener("click", onVerify);
+            dialog.addEventListener("cc-dialog-closed", () => finish("cancel"), { once: true });
+            openDialog(dialog, okBtn);
         });
     }
 
@@ -393,6 +396,13 @@
             b.classList.remove("selected");
             b.setAttribute("aria-pressed", "false");
         });
+        // Aucun moyen de transport n'est choisi tant que l'unité ne l'est pas :
+        // le transport découle automatiquement du choix Prix par kilo / Prix par CBM.
+        selectedTransportMode = null;
+        document.querySelectorAll("#transport-mode-section .transport-mode-btn").forEach((b) => {
+            b.classList.remove("selected");
+            b.setAttribute("aria-pressed", "false");
+        });
     }
 
     function choisirUnitePrix(unit) {
@@ -406,6 +416,13 @@
         if (back) back.classList.toggle("hidden", selectedProfileTypeChoice !== "cargo");
         document.querySelectorAll(".cargo-unit-btn").forEach((b) => {
             const actif = b.dataset.unit === selectedPriceUnit;
+            b.classList.toggle("selected", actif);
+            b.setAttribute("aria-pressed", actif ? "true" : "false");
+        });
+        // Le moyen de transport suit l'unité : kilo -> avion, CBM -> bateau.
+        selectedTransportMode = selectedPriceUnit === "cbm" ? "bateau" : "avion";
+        document.querySelectorAll("#transport-mode-section .transport-mode-btn").forEach((b) => {
+            const actif = b.dataset.mode === selectedTransportMode;
             b.classList.toggle("selected", actif);
             b.setAttribute("aria-pressed", actif ? "true" : "false");
         });
@@ -544,13 +561,8 @@
     function _getDestination() { return document.getElementById("destination"); }
 
     function openModal() {
-        const dep = _getDeparture();
-        if (!dep?.value) {
-            showStepError(0, "Indiquez le pays de départ", dep);
-            if (window.ccGoToWizardStep) window.ccGoToWizardStep(0);
-            return;
-        }
-        // Aller directement à la saisie du numéro
+        // Le pays de départ est déjà obligatoire à l'étape 1 : arrivé ici, il existe.
+        // On ouvre donc directement la saisie du numéro.
         selectPaymentProvider("direct_contact", "Contact Direct");
         openDialog(els.modal, els.localNumberInput);
     }
@@ -594,6 +606,7 @@
         const err = document.getElementById("pm-otp-error");
         if (err) err.classList.add("hidden");
         els.otpSection.classList.add("hidden");
+        if (typeof updateResendBtn === "function") updateResendBtn();
     }
 
     // [CONTACT MODIF] Decoupe "+330612345678" en indicatif connu + numero local.
@@ -754,6 +767,15 @@
         const isSecond = Boolean(confirmedRow && firstRow && confirmedRow !== firstRow);
         const method = paymentState.selectedMethod || "";
 
+        // Deux contacts identiques n'ont aucun intérêt : on refuse le doublon.
+        const dejaUtilise = Array.from(box?.querySelectorAll(".payment-contact-row") || [])
+            .filter((r) => r !== confirmedRow)
+            .some((r) => String(r.dataset.contactNumber || "").replace(/\s+/g, "") === fullNumber);
+        if (dejaUtilise) {
+            setContactNote("Numéro déjà enregistré : choisissez un autre numéro.");
+            return;
+        }
+
         // Marque TOUJOURS la ligne concernee.
         if (confirmedRow) {
             confirmedRow.dataset.contactMethod = method;
@@ -829,6 +851,35 @@
         const label = btn.querySelector(".pm-label");
         if (label) label.innerHTML = `${PHONE_ICON}<span>2e contact : <strong>${escapeHtml(parts.code)}</strong> ${escapeHtml(formatPhoneLocal(parts.local))}</span>`;
         syncAddContactBtn();
+    }
+
+    // ── Renvoi du code : 3 fois par jour maximum, sans requête réseau. ──
+    const RESEND_KEY = "cc_otp_resend";
+    function resendCountToday() {
+        try {
+            const o = JSON.parse(localStorage.getItem(RESEND_KEY) || "null");
+            const today = new Date().toISOString().slice(0, 10);
+            return o && o.day === today ? Number(o.n) || 0 : 0;
+        } catch (e) { return 0; }
+    }
+    function bumpResendCount() {
+        const n = resendCountToday() + 1;
+        try { localStorage.setItem(RESEND_KEY, JSON.stringify({ day: new Date().toISOString().slice(0, 10), n })); } catch (e) { }
+        return n;
+    }
+    function updateResendBtn() {
+        const btn = document.getElementById("pm-resend-code-btn");
+        if (!btn) return;
+        const otpVisible = els.otpSection && !els.otpSection.classList.contains("hidden");
+        const restant = Math.max(0, 3 - resendCountToday());
+        btn.classList.toggle("hidden", !otpVisible);
+        if (restant <= 0) {
+            btn.disabled = true;
+            btn.textContent = "Limite de 3 envois atteinte aujourd'hui";
+        } else {
+            btn.disabled = false;
+            btn.textContent = "Renvoyer le code";
+        }
     }
 
     function bindModalEvents() {
@@ -930,8 +981,31 @@
 
                 const otpError = document.getElementById("pm-otp-error");
                 if (otpError) otpError.classList.add("hidden");
+                updateResendBtn();
                 els.otpInput.focus();
             }, 1200);
+        });
+
+        // Renvoyer le code : simple simulation, plafonnée à 3 fois par jour.
+        document.getElementById("pm-resend-code-btn")?.addEventListener("click", () => {
+            const btn = document.getElementById("pm-resend-code-btn");
+            if (!btn || resendCountToday() >= 3) { updateResendBtn(); return; }
+            bumpResendCount();
+            paymentState.isVerified = false;
+            if (els.confirmBtn) els.confirmBtn.disabled = true;
+            const wrap = els.otpSection.querySelector(".otp-input-wrap");
+            if (wrap) wrap.style.display = "";
+            els.otpSection.querySelector(".pm-otp-success")?.remove();
+            if (els.otpInput) els.otpInput.value = "";
+            const otpError = document.getElementById("pm-otp-error");
+            if (otpError) otpError.classList.add("hidden");
+            setContactNote("Nouveau code envoyé.");
+            btn.disabled = true;
+            btn.textContent = "Envoi…";
+            setTimeout(() => {
+                updateResendBtn();
+                els.otpInput?.focus();
+            }, 900);
         });
 
         // Après l'envoi du code, le numero est verrouille (le SMS est parti vers
@@ -1023,47 +1097,6 @@
     // les clics arrives trop tard.
     let submitting = false;
 
-    // Verifie les villes de depart et d'arrivee aupres de la base, juste avant l'envoi.
-    // Renvoie false (en prevenant l'utilisateur) si une ville est vide ou inconnue du pays
-    // choisi ; sinon remet l'orthographe officielle dans les champs. Si la base est
-    // injoignable, on ne bloque pas la publication (on ne peut pas verifier).
-    async function verifierVillesAnnonce() {
-        // VILLES OPTIONNELLES (Yoyo 2026-10-04) : une ville vide ne bloque plus la publication.
-        // Si une ville saisie n'existe pas dans la liste du pays choisi, elle est simplement
-        // RETIREE du champ (meme regle que le champ pays : la saisie libre n'est pas conservee)
-        // et le champ est signale en rouge — sans aucune alerte, et sans bloquer l'envoi.
-        const controles = [
-            { champPays: els.departure, champVille: els.cityDeparture, libelle: "de depart" },
-            { champPays: els.destination, champVille: els.cityDestination, libelle: "d'arrivee" }
-        ];
-        for (const c of controles) {
-            const pays = String(c.champPays?.value || "").trim();
-            const valeur = String(c.champVille?.value || "").trim();
-            if (!valeur) continue;                 // ville optionnelle : rien a verifier
-            // Module commun ancien (encore en cache) : on ne touche a rien.
-            if (!window.CCCommon?.verifierVilleAnnonce) continue;
-            let r = null;
-            try {
-                r = await window.CCCommon.verifierVilleAnnonce(pays, valeur);
-            } catch (e) {
-                console.warn("Verification de ville indisponible:", e);
-                continue;   // base injoignable : on ne touche pas a la saisie
-            }
-            if (r && r.ok) {
-                if (r.ville && c.champVille.value !== r.ville) c.champVille.value = r.ville;
-                continue;
-            }
-            // Ville inconnue : on retire la saisie (le texte disparait), sans bloquer l'envoi.
-            if (c.champVille) {
-                c.champVille.value = "";
-                c.champVille.classList.add("cc-country-invalid");
-                c.champVille.title = (r && r.message) ||
-                    ("Ville inconnue pour " + (pays || "ce pays") + " : choisissez une ville dans la liste.");
-            }
-        }
-        return true;
-    }
-
     async function submitTrip(event) {
         event.preventDefault();
 
@@ -1082,48 +1115,26 @@
 
         try {
         clearNotice();
-        if (!window.CCCommon.requireCompletedProfile("post_trip.html")) return;
+        // Aucun contrôle des champs ici : ils ont déjà été filtrés étape par étape.
+        // Une session expirée est traitée plus bas par la réponse d'erreur.
 
-        const departureCountry = String(els.departure?.value || "").trim();
-        const destinationCountry = String(els.destination?.value || "").trim();
-
-        if (!isValidCountry(departureCountry)) {
-            revealStepError(0, "Indiquez le pays de départ", els.departure);
-            return;
-        }
-        if (!isValidCountry(destinationCountry)) {
-            revealStepError(0, "Indiquez le pays d'arrivée", els.destination);
-            return;
-        }
-
-        if (normalizeCountry(departureCountry) === normalizeCountry(destinationCountry)) {
-            revealStepError(0, "Le pays de départ et le pays d'arrivée doivent être différents.", els.destination);
-            return;
-        }
-
-        // En MODIFICATION, le contact est deja enregistre : on ne le redemande pas
-        // (sinon l'enregistrement serait bloque a chaque modification).
+        // En MODIFICATION, le contact est deja enregistre : on ne le redemande pas.
         if (!editingOfferId && (!paymentState.selectedMethod || !paymentState.accountNumber)) {
-            // Demande Yoyo 2026-10-16 : plus d'alerte navigateur ici. On ouvre
-            // DIRECTEMENT la fenêtre du numéro de contact (vérification SMS
-            // comprise) ; le champ du numéro prend le focus tout seul
-            // (voir selectPaymentProvider -> setTimeout(focus, 100)).
             openModal();
             return;
         }
 
-        // Choix de profil obligatoire — pas de fallback profil compte (Yoyo 2026-09, strict)
-        if (!selectedProfileTypeChoice) {
-            revealStepError(0, "Choisissez votre profil : Voyageur simple ou Entreprise / Cargo",
-                document.getElementById("btn-traveler-choice"),
-                document.querySelector("#profile-choice-section .profile-select-grid"));
-            return;
+        // Profil non vérifié : on prévient, sans bloquer. L'utilisateur peut
+        // publier quand même ou aller vérifier son identité.
+        if (window.CCCommon.isUserVerified && !window.CCCommon.isUserVerified()) {
+            const choix = await ccUnverifiedGate();
+            if (choix === "verify") {
+                window.location.href = "verification.html";
+                return;
+            }
+            if (choix === "cancel") return;
         }
 
-        // Soumettre directement (les champs sont visibles).
-        // Le verrou ville/pays est applique dans proceedSubmitTrip() : c'est le SEUL
-        // point d'envoi (le bouton du formulaire comme la modale de type de profil
-        // passent par la), donc aucun chemin ne peut le contourner.
         await proceedSubmitTrip();
         } finally {
             // Reautorisation apres un court delai : absorbe les clics arrives
@@ -1148,51 +1159,12 @@
             console.warn("Publication deja en cours — envoi ignore.");
             return;
         }
-        // Verrou ville AVANT tout envoi : le controle du champ se declenche a la sortie
-        // du champ (et fait un aller-retour reseau), donc taper une faute puis appuyer sur
-        // Entree / « Publier » enregistrait la faute — ou une ville videe — avant que le
-        // controle ait eu le temps de finir. Place ici, au point d'envoi unique : le
-        // bouton du formulaire ET la modale de type de profil sont couverts.
-        if (!(await verifierVillesAnnonce())) return;
         publishing = true;
-        // Backstop (l'etape 3 le verifie deja) : aucun envoi avec une ligne de prix
-        // special incomplete, sinon elle serait ignoree en silence.
-        if (typeof window.ccSpecialPricesError === "function") {
-            const problemePrix = window.ccSpecialPricesError();
-            if (problemePrix) {
-                publishing = false;
-                revealStepError(2, problemePrix.message, problemePrix.el);
-                return;
-            }
-        }
-        // Anti-doublon : meme annonce renvoyee coup sur coup (typiquement apres une
-        // erreur reseau alors que l'envoi avait en fait abouti) -> confirmation
-        // dans la page (S-02 / CA-48), jamais confirm() natif.
-        const _sigAnim = [
-            els.departure?.value?.trim(), els.destination?.value?.trim(),
-            els.cityDeparture?.value?.trim(), els.cityDestination?.value?.trim(),
-            els.dateDepart?.value, els.kilos?.value, els.price?.value
-        ].join("|");
-        try {
-            const _last = JSON.parse(localStorage.getItem("cc_last_publish") || "null");
-            if (_last && _last.sig === _sigAnim && (Date.now() - (_last.at || 0)) < 180000) {
-                const poursuivre = await ccConfirmDuplicate();
-                if (!poursuivre) {
-                    publishing = false;
-                    return;
-                }
-            }
-        } catch (e) { /* stockage indisponible */ }
         const departureCountry = String(els.departure?.value || "").trim();
         const destinationCountry = String(els.destination?.value || "").trim();
 
         // [ENTREPRISE / CARGO] Dates multiples : collecte de la date principale + dates ajoutées
         const tripDates = collectTripDates();
-        if (!tripDates.length) {
-            publishing = false;
-            revealStepError(0, "Indiquez la date du voyage", els.dateDepart);
-            return;
-        }
 
         // Limite de publication par type (mode="" pour voyageur, mode!=="" pour cargo)
         // ⚠ AUCUNE verification en MODIFICATION : l'annonce en cours d'edition est deja
@@ -1238,45 +1210,9 @@
         const prixSaisi = parseFloat(String(els.price?.value || "").replace(",", "."));
         const pricePerKg = Number.isFinite(prixSaisi) ? prixSaisi : 0;
 
-        // Validation dans l'ordre du formulaire (kilos -> unité -> prix -> devise
-        // -> transport), avec retour sur l'étape fautive et focus (CA-29).
-        if (!isCargoMode && availableKg < 1) {
-            publishing = false;
-            revealStepError(1, "Indiquez le nombre de kilos disponibles", els.kilos);
-            return;
-        }
-        if (!isCargoMode && availableKg > KILOS_MAX) {
-            publishing = false;
-            revealStepError(1, "Maximum " + KILOS_MAX + " kg par offre", els.kilos);
-            return;
-        }
-        if (isCargoMode && !choixUniteFait) {
-            publishing = false;
-            document.querySelector("#cargo-unit-choice .segment")?.classList.add("is-error");
-            revealStepError(1, "Choisissez prix au kilo ou prix au CBM",
-                document.querySelector("#cargo-unit-choice .cargo-unit-btn"),
-                document.getElementById("cargo-unit-choice"));
-            return;
-        }
-        if (!(pricePerKg >= 1)) {
-            publishing = false;
-            revealStepError(1, "Indiquez un prix d'au moins 1", els.price);
-            return;
-        }
-        const deviseChoisie = String(els.priceCurrencyInput?.value || "").trim();
-        if (!deviseChoisie) {
-            publishing = false;
-            revealStepError(1, "Choisissez votre monnaie", document.getElementById("currency-toggle-btn"));
-            return;
-        }
-        if (isCargoMode && !selectedTransportMode) {
-            publishing = false;
-            document.querySelector("#transport-mode-section .segment")?.classList.add("is-error");
-            revealStepError(1, "Choisissez le moyen de transport",
-                document.querySelector("#transport-mode-section .transport-mode-btn"),
-                document.querySelector("#transport-mode-section .segment"));
-            return;
-        }
+        // Aucune revalidation ici : chaque bouton Continuer a déjà filtré son étape.
+        // La devise choisie reste envoyée telle quelle (affichage intelligent des
+        // montants sur la page des offres).
 
         // Collecte des prix spéciaux (lignes de l'étape 3 — script inline du HTML).
         // [FIX] « Non » ne faisait que masquer le panneau : les lignes restaient dans
@@ -1433,7 +1369,6 @@
             clearExtraTripDates();
             document.getElementById("edit-notice")?.classList.add("hidden");
             try { localStorage.removeItem("cc_trip_draft"); } catch (e) { }
-            try { localStorage.setItem("cc_last_publish", JSON.stringify({ sig: _sigAnim, at: Date.now() })); } catch (e) { }
             paymentState.selectedMethod = null;
             paymentState.selectedMethodName = null;
             paymentState.accountNumber = null;
@@ -1449,10 +1384,6 @@
         } catch (error) {
             if (error?.status === 401) {
                 window.CCCommon.openAuthGate("post_trip.html");
-                return;
-            }
-            if (error?.code === "PROFILE_COMPLETION_REQUIRED" || error?.status === 403) {
-                window.CCCommon.openProfileCompletionGate("post_trip.html");
                 return;
             }
             console.error("[publication] échec :", error);
@@ -1666,13 +1597,8 @@
         if (prixSpeciaux.length && typeof window.ccSetSpecialPrices === "function") {
             try { window.ccSetSpecialPrices(prixSpeciaux); } catch (e) { console.warn("prix speciaux non restaures:", e); }
         }
-        if (estCargoOffre && offer.mode) {
-            selectedTransportMode = offer.mode;
-            document.querySelectorAll(".modal-transport-btn, #transport-mode-section .transport-mode-btn, .mode-btn").forEach((btn) => {
-                const val = btn.dataset.mode || btn.dataset.value || "";
-                if (val && String(val) === String(offer.mode)) btn.classList.add("selected");
-            });
-        }
+        // Le moyen de transport n'est plus relu de l'annonce : il découle de
+        // l'unité choisie (kilo -> avion, CBM -> bateau).
 
         // Textes de la page
         document.querySelectorAll("h1").forEach((h) => {
@@ -1700,7 +1626,14 @@
             choisirUnitePrix(nouvelleUnite);
             return;
         }
-        if (ev.target.closest("#price-unit-back")) { ev.preventDefault(); afficherChoixUnitePrix(); }
+        if (ev.target.closest("#price-unit-back")) {
+            ev.preventDefault();
+            // Aucune valeur n'est mémorisée entre deux unités : le prix est vidé
+            // pour que le montant saisi au kilo ne soit jamais relu comme un CBM.
+            const champPrix = document.getElementById("price");
+            if (champPrix) champPrix.value = "";
+            afficherChoixUnitePrix();
+        }
     });
 
     function bindEvents() {
@@ -2273,40 +2206,19 @@
                 noBtn.setAttribute("aria-pressed", "true");
                 yesBtn.classList.remove("selected");
                 yesBtn.setAttribute("aria-pressed", "false");
+                // « Non » supprime réellement les lignes déjà saisies : rien ne reste
+                // en mémoire pour être renvoyé plus tard. « Oui » recréera une ligne vide.
+                const rows = document.getElementById("colis-detail-rows");
+                if (rows) rows.innerHTML = "";
+                const addRowBtn = document.getElementById("addColisTypeBtn");
+                if (addRowBtn) {
+                    addRowBtn.classList.remove("hidden");
+                    addRowBtn.disabled = false;
+                }
             });
         }
 
         showStep(0);
-    }
-
-    // Accordéon des bénéfices : ouvert sur bureau, replié à 768, masqué à 360.
-    function initBenefitsAccordion() {
-        const btn = document.getElementById("benefits-trigger");
-        const body = document.getElementById("benefits-body");
-        if (!btn || !body) return;
-        const mq = window.matchMedia("(max-width: 1080px)");
-        let userOpen = false;
-        const sync = () => {
-            if (!mq.matches) {
-                btn.setAttribute("aria-expanded", "true");
-                body.classList.add("is-open");
-                return;
-            }
-            btn.setAttribute("aria-expanded", userOpen ? "true" : "false");
-            body.classList.toggle("is-open", userOpen);
-        };
-        btn.addEventListener("click", () => {
-            if (!mq.matches) return;
-            userOpen = !userOpen;
-            sync();
-        });
-        if (mq.addEventListener) {
-            mq.addEventListener("change", () => {
-                userOpen = false;
-                sync();
-            });
-        }
-        sync();
     }
 
     async function bootstrap() {
@@ -2318,7 +2230,6 @@
 
         initDateMin();
         initReveal();
-        initBenefitsAccordion();
         initDialogA11y();
         // Génère les champs pays+ville depuis les conteneurs .location-group
         if (window.CCCommon.initLocationFields) {

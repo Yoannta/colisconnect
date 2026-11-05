@@ -53,15 +53,10 @@
     '    </nav>\n' +
     '\n' +
     '    <div class="header-auth">\n' +
-    '        <button id="calm-mode-toggle" class="btn ghost btn-sm" title="Mode Calme (Neurodiversité)" style="margin-right: 10px;">\n' +
-    '            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">\n' +
-    '                <path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-11.314l.707.707m11.314 11.314l.707.707M12 8a4 4 0 100 8 4 4 0 000-8z" />\n' +
-    '            </svg>\n' +
-    '        </button>\n' +
     '        <p id="user-chip" class="user-chip hidden"></p>\n' +
     '        <a id="admin-link" href="admin.html" class="btn secondary hidden">Admin</a>\n' +
     '        <a id="auth-open-btn" href="auth.html" class="btn primary">Login</a>\n' +
-    '        <button id="logout-btn" class="btn secondary hidden">Quitter</button>\n' +
+    '        <button id="logout-btn" class="btn secondary hidden">Déconnecter</button>\n' +
     '    </div>\n' +
     '</header>';
 

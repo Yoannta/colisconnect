@@ -2258,27 +2258,6 @@
     // ─────────────────────────────────────────────────────────────
     // Thème, réseau, préremplissage URL
     // ─────────────────────────────────────────────────────────────
-    function bindCalmMode() {
-        // Le bouton est injecté par shared-header.js : on l'attache ici pour que le
-        // Mode Calme reste fonctionnel et mémorisé (CA-75).
-        let toggle = null;
-        const attach = () => {
-            toggle = document.getElementById("calm-mode-toggle");
-            if (!toggle || toggle.__ccBound) return;
-            toggle.__ccBound = true;
-            toggle.addEventListener("click", () => {
-                const calm = document.body.classList.toggle("is-calm");
-                try { localStorage.setItem("calm-mode", calm ? "true" : "false"); } catch (e) { /* stockage indisponible */ }
-                toggle.setAttribute("aria-pressed", calm ? "true" : "false");
-            });
-        };
-        attach();
-        window.addEventListener("load", attach);
-        try {
-            if (localStorage.getItem("calm-mode") === "true") document.body.classList.add("is-calm");
-        } catch (e) { /* stockage indisponible */ }
-    }
-
     function bindTheme() {
         if (!els.themeToggle) return;
         const updateIcon = () => {
@@ -2350,7 +2329,6 @@
         bindDemandModal();
         bindCurrency();
         bindTheme();
-        bindCalmMode();
         bindNetwork();
 
         if (els.floating) els.floating.hidden = true;

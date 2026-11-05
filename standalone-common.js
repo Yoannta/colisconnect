@@ -186,11 +186,10 @@
         // aucun bouton de deconnexion visible sur le site).
         if (logoutBtn) {
             logoutBtn.classList.remove("hidden");
+            logoutBtn.textContent = state.lang === "en" ? "Sign Out" : "Déconnecter";
             logoutBtn.addEventListener("click", async () => {
-                try { await window.ccSupabase?.auth?.signOut(); } catch (e) { }
-                localStorage.removeItem("cc_auth_token");
-                localStorage.removeItem("cc_refresh_token");
-                window.location.href = "index.html";
+                if (!(await askLogoutConfirmation())) return;
+                performLogoutAndRedirect();
             });
         }
 
@@ -2495,6 +2494,19 @@
             <p id="cc-country-feedback" class="auth-feedback" style="margin-top: 0.8rem;"></p>
         </section>
     </div>
+</div>
+
+<div id="cc-logout-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="cc-logout-title">
+    <div class="modal-card">
+        <section class="modal-panel">
+            <h3 id="cc-logout-title">Se déconnecter ?</h3>
+            <p>Êtes-vous sûr de vouloir vous déconnecter&nbsp;?</p>
+            <div class="gate-actions cc-logout-actions">
+                <button type="button" id="cc-logout-cancel" class="btn warning">Annuler</button>
+                <button type="button" id="cc-logout-confirm" class="btn primary">Se déconnecter</button>
+            </div>
+        </section>
+    </div>
 </div>`;
 
         while (holder.firstElementChild) document.body.appendChild(holder.firstElementChild);
@@ -2738,6 +2750,39 @@
         ui.initialized = true;
     }
 
+    // Demande confirmation avant de déconnecter. Annuler est le choix mis en
+    // avant (bouton jaune) ; « Se déconnecter » confirme.
+    function askLogoutConfirmation() {
+        return new Promise((resolve) => {
+            const modal = document.getElementById("cc-logout-modal");
+            const cancelBtn = document.getElementById("cc-logout-cancel");
+            const okBtn = document.getElementById("cc-logout-confirm");
+            if (!modal || !cancelBtn || !okBtn) { resolve(true); return; }
+            let settled = false;
+            const finish = (value) => {
+                if (settled) return;
+                settled = true;
+                cancelBtn.removeEventListener("click", onCancel);
+                okBtn.removeEventListener("click", onOk);
+                modal.classList.add("hidden");
+                resolve(value);
+            };
+            const onCancel = () => finish(false);
+            const onOk = () => finish(true);
+            cancelBtn.addEventListener("click", onCancel);
+            okBtn.addEventListener("click", onOk);
+            modal.classList.remove("hidden");
+            setTimeout(() => { try { cancelBtn.focus(); } catch (e) { } }, 40);
+        });
+    }
+
+    async function performLogoutAndRedirect() {
+        try { await window.ccSupabase?.auth?.signOut(); } catch (e) { }
+        localStorage.removeItem("cc_auth_token");
+        localStorage.removeItem("cc_refresh_token");
+        window.location.href = "index.html";
+    }
+
     function updateHeaderUi() {
         const headerAuth = document.querySelector(".header-auth");
         if (!headerAuth) return;
@@ -2746,9 +2791,7 @@
         const isAdmin = authed && String(state.user.role || "").toLowerCase() === "admin";
         const userName = authed ? (state.user.fullName || state.user.email || "Connecté") : "";
 
-        const calmToggle = document.getElementById("calm-mode-toggle");
-
-        headerAuth.innerHTML = calmToggle ? calmToggle.outerHTML : "";
+        headerAuth.innerHTML = "";
 
         injectLanguageToggle();
 
@@ -2778,7 +2821,7 @@
                         ${isAdmin ? '<a href="admin.html">Admin Panel</a>' : ""}
                         <a href="dashboard.html">Dashboard</a>
                         <a href="post_trip.html">Publier un trajet</a>
-                        <button class="logout-item" id="cc-logout-btn">${state.lang === "en" ? "Sign Out" : "Quitter"}</button>
+                        <button class="logout-item" id="cc-logout-btn">${state.lang === "en" ? "Sign Out" : "Déconnecter"}</button>
                     </div>
                 </div>
             `;
@@ -2798,27 +2841,14 @@
             const logoutBtn = document.getElementById("cc-logout-btn");
             if (logoutBtn) {
                 logoutBtn.addEventListener("click", async () => {
-                    await window.ccSupabase.auth.signOut();
-                    // Nettoyer AUSSI le refresh_token : sinon la restauration de session
-                    // (supabase-init.js) reconnecterait l'utilisateur tout seul.
-                    localStorage.removeItem("cc_auth_token");
-                    localStorage.removeItem("cc_refresh_token");
-                    window.location.href = 'index.html';
+                    if (!(await askLogoutConfirmation())) return;
+                    performLogoutAndRedirect();
                 });
             }
 
             document.addEventListener("click", () => {
                 menu?.classList.remove("is-active");
             }, { once: false });
-        }
-
-        const newCalmToggle = document.getElementById("calm-mode-toggle");
-        if (newCalmToggle) {
-            newCalmToggle.addEventListener("click", () => {
-                document.body.classList.toggle("is-calm");
-                const isCalm = document.body.classList.contains("is-calm");
-                localStorage.setItem("calm-mode", isCalm);
-            });
         }
 
         const file = currentFile();
@@ -2974,6 +3004,7 @@
         if (logoutBtn && !logoutBtn.dataset.bound) {
             logoutBtn.dataset.bound = "true";
             logoutBtn.addEventListener("click", async () => {
+                if (!(await askLogoutConfirmation())) return;
                 await logout();
                 updateHeaderUi();
                 window.location.href = "index.html";
@@ -3009,11 +3040,6 @@
                 event.preventDefault();
                 openAuthGate(pageTarget);
                 return;
-            }
-
-            if (requiresCompletedProfileTarget(pageTarget) && !isUserVerified()) {
-                event.preventDefault();
-                openProfileCompletionGate(pageTarget);
             }
         }, true);
     }
@@ -3062,9 +3088,9 @@
             openAuthGate(currentTarget());
         }
 
-        if (state.user && requiresCompletedProfileTarget(currentTarget()) && !isUserVerified()) {
-            openProfileCompletionGate(currentTarget());
-        }
+        // Le profil non vérifié n'est plus bloquant sur la page de publication :
+        // l'avertissement est affiché au moment de publier, avec le choix de
+        // continuer quand même ou d'aller vérifier son identité.
 
         // Check if user needs to provide country info (for existing users logging in)
         if (state.user && state.token) {
@@ -3353,6 +3379,9 @@
      * Autocomplete ville lié au pays — requête Supabase légère.
      * Seules les villes du pays sélectionné sont chargées.
      */
+    // Cache des recherches de villes : une même saisie revient instantanément.
+    const _cacheRechercheVilles = new Map();
+
     function setupCityAutocomplete(cityInput, countryInput) {
         if (!cityInput || !countryInput || cityInput.dataset.ccCityDone === "true") return;
         cityInput.dataset.ccCityDone = "true";
@@ -3437,60 +3466,49 @@
             // 2) celles qui la contiennent simplement (ex : « Mar » -> Aimargues)
             //    Le « ^ » est indispensable : sans lui, la recherche Postgres trouve le
             //    motif n'importe ou dans le nom.
+            // Une seule requête réseau dans le cas normal (au lieu de six) :
+            // les villes qui commencent par la saisie ; on ne relance une
+            // recherche « contient » que si la première ne renvoie rien.
             const colonnes = colonnesVilles();
-            const resultats = await Promise.all([
-                lancer(colonnes[0], `^${motif}`, true),
-                lancer(colonnes[0], `.*${motif}.*`, false),
-                lancer(colonnes[1], `^${motif}`, true),
-                lancer(colonnes[1], `.*${motif}.*`, false)
-            ]);
-            // [FIX 2026-10-28] Correspondance EXACTE, en plus des 4 recherches.
-            // Les requetes sont limitees a 20 lignes sans tri : pour « Paris »,
-            // les arrondissements (« Paris 09 Opera »...) saturaient la limite et
-            // la ville « Paris » elle-meme n'apparaissait pas. validerVille ne
-            // trouvait alors aucun exact et EFFACAIT la saisie.
-            const exacts = await Promise.all(
-                colonnes.map((col) => lancer(col, `^${motif}$`, true))
-            );
+            const cleCache = code + "|" + t;
+            if (_cacheRechercheVilles.has(cleCache)) {
+                return _cacheRechercheVilles.get(cleCache);
+            }
 
-            // Base injoignable (les requetes ont echoue) : on ne peut RIEN verifier.
-            // On le signale par null pour ne pas effacer une ville valide hors connexion.
-            if (resultats.some(r => r === null)) return null;
+            let liste = await lancer(colonnes[0], `^${motif}`, true);
+            // Base injoignable : on ne peut RIEN verifier, on ne vide pas le champ.
+            if (liste === null) return null;
+            if (!liste.length) {
+                liste = await lancer(colonnes[0], `.*${motif}.*`, false);
+                if (liste === null) return null;
+            }
+            if (!liste.length && colonnes[1]) {
+                liste = await lancer(colonnes[1], `^${motif}`, true);
+                if (liste === null) return null;
+            }
 
             const noms = [];
             const vus = {};
-            // Les correspondances exactes passent en premier (elles ne doivent
-            // jamais etre coupees par la limite d'affichage).
-            (exacts || []).forEach(liste => {
-                (liste || []).forEach(ligne => {
-                    const nom = nomVille(ligne);
-                    if (nom && !vus[nom]) {
-                        vus[nom] = 1;
-                        noms.push(nom);
-                    }
-                });
-            });
-            resultats.forEach(liste => {
-                (liste || []).forEach(ligne => {
-                    const nom = nomVille(ligne);
-                    if (nom && !vus[nom]) {
-                        vus[nom] = 1;
-                        noms.push(nom);
-                    }
-                });
+            (liste || []).forEach((ligne) => {
+                const nom = nomVille(ligne);
+                if (nom && !vus[nom]) {
+                    vus[nom] = 1;
+                    noms.push(nom);
+                }
             });
 
             // Tri par pertinence : d'abord les villes qui COMMENCENT par la saisie,
-            // puis les plus courtes, puis l'alphabet.
-            // (Avant : ordre aleatoire de la base -> pour « Mar » la 1re proposition
-            //  etait « Aimargues », pas Marseille.)
-            return noms.sort((a, b) => {
+            // puis les plus courtes, puis l'alphabet. La correspondance exacte
+            // arrive ainsi avant « Paris 09 … ».
+            const resultat = noms.sort((a, b) => {
                 const na = normaliserVille(a), nb = normaliserVille(b);
                 const pa = na.startsWith(t) ? 0 : 1, pb = nb.startsWith(t) ? 0 : 1;
                 if (pa !== pb) return pa - pb;
                 if (na.length !== nb.length) return na.length - nb.length;
                 return na.localeCompare(nb, "fr");
             });
+            _cacheRechercheVilles.set(cleCache, resultat);
+            return resultat;
         }
 
         function showVilles(villes) {
@@ -3530,7 +3548,7 @@
                 if (_lastQuery !== key) return;              // une saisie plus recente existe
                 if (cityInput.value !== texte) return;       // le champ a change entre-temps
                 showVilles(villes || []);                    // base injoignable -> aucune suggestion
-            }, 250);
+            }, 80);
         });
 
         // Changement de PAYS -> la ville saisie appartenait a l'ancien pays : on la vide.

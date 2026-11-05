@@ -2925,27 +2925,3 @@ body.results-page .cc-theme-toggle svg {
     }
 }
 
-/* ── Mode Calme (CA-75) ─────────────────────────────────────────────────── */
-body.results-page.is-calm .noise-layer,
-body.results-page.is-calm .ambient,
-body.results-page.is-calm .gold-dust {
-    display: none !important;
-}
-
-body.results-page.is-calm .cc-card,
-body.results-page.is-calm .cc-skeleton-card {
-    transition: none;
-}
-
-body.results-page.is-calm .cc-card:hover {
-    transform: none;
-}
-
-body.results-page.is-calm .cc-skeleton::after {
-    display: none;
-}
-
-body.results-page.is-calm .cc-progress > span {
-    animation: none;
-    width: 100%;
-}

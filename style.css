@@ -20499,3 +20499,145 @@ html.cc-kb-open .mobile-bottom-nav {
     opacity: 0 !important;
     pointer-events: none !important;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Déconnexion, unité de prix, avertissement profil — 2026-11-05
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Confirmation de déconnexion : « Annuler » en jaune, mis en avant. */
+#cc-logout-modal .cc-logout-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+.btn.warning {
+    background: linear-gradient(135deg, #ffd166, #f5b93b);
+    color: #241a05;
+    border: 1px solid #e0a52c;
+    box-shadow: 0 8px 20px -8px rgba(224, 165, 44, 0.7);
+    font-weight: 800;
+}
+
+.btn.warning:hover {
+    filter: brightness(1.05);
+    background: linear-gradient(135deg, #ffdb85, #ffc655);
+}
+
+/* Avertissement « profil non vérifié » avant publication. */
+#unverified-publish-modal .unverified-card {
+    text-align: center;
+}
+
+.unverified-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 6px;
+    color: #f5b93b;
+}
+
+.unverified-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Le titre des bénéfices n'est plus un bouton : simple texte. */
+body.post-trip-page .benefits-title {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.30;
+    color: var(--cc-text);
+}
+
+/* Choix kilo / CBM : deux vrais boutons séparés, nettement cliquables. */
+body.post-trip-page #cargo-unit-choice .segment {
+    gap: 18px;
+    padding: 0;
+    background: transparent;
+}
+
+body.post-trip-page #cargo-unit-choice .segment-btn {
+    min-height: 52px;
+    background: var(--cc-surface-1);
+    border: 1px solid var(--cc-border-strong);
+    border-radius: 12px;
+    box-shadow: var(--cc-shadow-1);
+}
+
+body.post-trip-page #cargo-unit-choice .segment-btn:hover {
+    background: var(--cc-surface-2);
+    border-color: var(--cc-accent);
+    color: var(--cc-accent);
+}
+
+body.post-trip-page #cargo-unit-choice .segment-btn.selected {
+    background: linear-gradient(135deg, var(--cc-accent-fill), var(--cc-accent-fill-end));
+    border-color: var(--cc-accent-strong);
+    color: var(--cc-on-accent);
+}
+
+body.post-trip-page.light #cargo-unit-choice .segment-btn {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(58, 47, 30, 0.22);
+}
+
+body.post-trip-page.light #cargo-unit-choice .segment-btn.selected {
+    background: linear-gradient(135deg, #f3c96b, #e0a52c);
+    border-color: #b8860b;
+    color: #241a05;
+}
+
+/* Champ en erreur : contour rouge plus franc, lisible aussi en thème clair. */
+body.post-trip-page .input-error {
+    border: 3px solid #e01b1b !important;
+    box-shadow: 0 0 0 5px rgba(224, 27, 27, 0.34), 0 0 16px rgba(224, 27, 27, 0.30) !important;
+    transition: none !important;
+}
+
+body.post-trip-page .input-error:focus,
+body.post-trip-page .form-input.input-error,
+body.post-trip-page .form-input.input-error:focus {
+    border-color: #e01b1b !important;
+    box-shadow: 0 0 0 5px rgba(224, 27, 27, 0.34), 0 0 16px rgba(224, 27, 27, 0.30) !important;
+}
+
+body.post-trip-page.light .input-error,
+body.post-trip-page.light .input-error:focus,
+body.post-trip-page.light .form-input.input-error,
+body.post-trip-page.light .form-input.input-error:focus {
+    border-color: #b00020 !important;
+    box-shadow: 0 0 0 5px rgba(176, 0, 32, 0.30), 0 0 16px rgba(176, 0, 32, 0.22) !important;
+}
+
+/* Renvoi du code à côté de « Modifier le numéro ». */
+.pm-otp-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Type personnalisé : le champ au-dessus, « Ajouter » en dessous. */
+body.post-trip-page .custom-input-group {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* Croix de suppression visible sur les types ajoutés à la main. */
+body.post-trip-page .option-card {
+    flex-wrap: nowrap;
+}
+
+body.post-trip-page .option-card .option-text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+body.post-trip-page .option-card .option-remove {
+    flex: 0 0 auto;
+}
