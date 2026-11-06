@@ -20521,3 +20521,14 @@ body.dashboard-page .btn.identite-btn .identite-steps {
     border: 1px solid var(--cc-border-strong);
     background: transparent;
 }
+/* Le suffixe « kg » se confondait avec les fleches du champ nombre (etape 2 —
+   kilos disponibles). On decale le suffixe a gauche des fleches et on elargit
+   la reserve de padding. */
+body.post-trip-page #kilos-group .input-suffix,
+body.post-trip-page #kilos-group .input-with-suffix span {
+    right: 32px;
+}
+
+body.post-trip-page #kilos-group .input-with-suffix input {
+    padding-right: 72px;
+}

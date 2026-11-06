@@ -904,6 +904,13 @@
         };
 
         els.indicatifInput?.addEventListener("change", () => {
+            // Changer d'indicatif : le numero deja saisi correspond a l'ancien code,
+            // on le vide pour pouvoir taper le nouveau (demande Yoyo).
+            if (els.localNumberInput) {
+                els.localNumberInput.value = "";
+                els.localNumberInput.disabled = false;
+                try { els.localNumberInput.focus(); } catch (e) { /* ignore */ }
+            }
             updateVerifyButton();
             resetVerificationIfNeeded();
         });
@@ -1663,6 +1670,14 @@
         // prix speciaux enregistres : on reconstruit les lignes (sinon la section
         // disparaissait a l'enregistrement, car le formulaire renvoyait une liste vide)
         const prixSpeciaux = Array.isArray(offer.special_prices) ? offer.special_prices : [];
+        // Devise de reference des badges « prix speciaux » (repli cote HTML) :
+        // sans elle la ligne affichait « — par velo » au lieu de « 25 € par velo ».
+        window.ccEditBaseCurrency = String(
+            offer.base_currency || offer.baseCurrency
+            || els.priceCurrencyInput?.value
+            || (window.CCCommon?.getUserCurrency ? window.CCCommon.getUserCurrency() : "")
+            || ""
+        ).toUpperCase();
         if (prixSpeciaux.length && typeof window.ccSetSpecialPrices === "function") {
             try { window.ccSetSpecialPrices(prixSpeciaux); } catch (e) { console.warn("prix speciaux non restaures:", e); }
         }
