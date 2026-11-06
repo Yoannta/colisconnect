@@ -20532,3 +20532,16 @@ body.post-trip-page #kilos-group .input-with-suffix span {
 body.post-trip-page #kilos-group .input-with-suffix input {
     padding-right: 72px;
 }
+
+/* Etape 1 de « Publier une offre » : les fleches ▼ devant les champs
+   « Pays de depart » et « Pays d'arrivee » sont retirees (elles laissaient
+   croire a une liste deroulante). Demande Yoyo. */
+body.post-trip-page .location-group .cc-custom-arrow {
+    display: none;
+}
+
+/* En-tete d'une conversation : la photo et le nom de l'interlocuteur ouvrent
+   sa page profil, ils doivent donc se voir cliquables. */
+.cc-profil-cliquable {
+    cursor: pointer;
+}

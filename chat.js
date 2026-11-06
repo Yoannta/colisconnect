@@ -488,6 +488,27 @@
         if (els.chatMeta) els.chatMeta.textContent = thread.travelerName || "Contact";
         if (els.chatOfferInfo) els.chatOfferInfo.textContent = thread.offerTitle || "Détails de l'offre";
 
+        // Photo / nom de l'interlocuteur : ouvrir sa page profil (demande Yoyo).
+        // Le bouton « Retour » de cette page ramene ensuite a la conversation.
+        try {
+            const pairId = thread.isOfferOwner
+                ? (thread.user_id || thread.userId || (thread.user && thread.user.id))
+                : (thread.offerOwnerId || thread.offer_owner_id || (thread.offer_owner && thread.offer_owner.id));
+            const avatarCercle = document.getElementById("chat-avatar-circle");
+            const ouvrirProfilPair = () => {
+                if (!pairId) return;
+                window.location.href = "profil.html?id=" + encodeURIComponent(String(pairId));
+            };
+            [avatarCercle, els.chatMeta, document.querySelector(".chat-panel-contact-info")].forEach((el) => {
+                if (!el) return;
+                el.classList.add("cc-profil-cliquable");
+                el.setAttribute("title", "Voir le profil");
+                el.onclick = ouvrirProfilPair;
+            });
+        } catch (err) {
+            console.warn("profil de l'interlocuteur indisponible:", err);
+        }
+
         const paidStatuses = ["paid", "voyageur_paye", "colisconnect_paye"];
         const isPaid = paidStatuses.includes(String(thread.status || ""));
 
