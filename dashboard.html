@@ -18,7 +18,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=20261105c">
+    <link rel="stylesheet" href="style.css?v=20261105h">
     <link rel="stylesheet" href="demand-modal.css?v=2">
     <!-- Drapeaux de la carte d'offre (comme sur la page des offres) -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
@@ -36,7 +36,7 @@
     <!-- Carte d'offre partagée (identique à la page des offres) -->
     <script defer src="offer-card.js?v=20261101"></script>
     <script defer src="demand-modal.js?v=2"></script>
-    <script defer src="dashboard.js?v=20261105b"></script>
+    <script defer src="dashboard.js?v=20261105c"></script>
 </head>
 
 <body class="dashboard-page">
@@ -187,10 +187,6 @@
                             <span class="cc-acc-title">Mes demandes de trajet</span>
                         </h3>
                         <div class="panel-actions">
-                            <div class="client-request-filter" role="group" aria-label="Demandes actives ou archivées">
-                                <button type="button" class="client-filter-btn active" data-client-requests-filter="active" aria-pressed="true">Actives</button>
-                                <button type="button" class="client-filter-btn" data-client-requests-filter="archived" aria-pressed="false">Archives</button>
-                            </div>
                             <button class="btn primary client-plus-btn" type="button" title="Nouvelle demande" data-open-demand-modal>
                                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                                 <span>Nouvelle demande</span>
@@ -206,6 +202,11 @@
                                 <span class="cc-skeleton cc-skeleton-row" aria-hidden="true"></span>
                             </div>
                         </div>
+                        <button type="button" class="btn secondary compact cargo-offers-toggle" id="client-voir-tous-demandes"
+                            aria-expanded="false" aria-controls="client-requests-list" hidden>
+                            <span id="client-voir-tous-demandes-label">Voir tous</span>
+                            <svg class="cc-toggle-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
                     </div>
                 </article>
 
@@ -233,10 +234,13 @@
                 <section class="dashboard-panel client-history-panel">
                     <div class="panel-head">
                         <h3 class="panel-heading">
-                            <span class="cc-acc-title">Mes historiques</span>
+                            <button class="cc-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="client-history-body">
+                                <span class="cc-acc-title">Mes historiques</span>
+                                <svg class="cc-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
                         </h3>
                     </div>
-                    <div class="cc-acc-body">
+                    <div class="cc-acc-body" id="client-history-body" hidden>
                         <div id="client-history-list" class="client-discussion-list">
                             <div class="cc-loading" aria-busy="true">
                                 <span class="cc-sr-only">Chargement...</span>

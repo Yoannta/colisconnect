@@ -10,6 +10,7 @@
         cargoActiveOffers: [],
         // « Actives » ou « Archives » dans le panneau des demandes client.
         clientRequestsFilter: "active",
+        clientRequestsExpanded: false,
     };
 
     // Identifiant de la demande de trajet en cours de modification.
@@ -622,18 +623,20 @@
         const all = Array.isArray(parcelRequests) ? parcelRequests : [];
         updateClientRequestFilter(all);
 
-        const filter = state.clientRequestsFilter === "archived" ? "archived" : "active";
-        const visible = all.filter((item) => filter === "archived" ? isArchivedParcel(item) : !isArchivedParcel(item));
-
-        if (!visible.length) {
-            els.clientRequestsList.innerHTML = filter === "archived"
-                ? `<div class="traveler-empty-requests"><p>Aucune demande archivée.</p></div>`
-                : `<div class="traveler-empty-requests">
-                    <p>Aucune demande active pour le moment.</p>
+        if (!all.length) {
+            els.clientRequestsList.innerHTML = `
+                <div class="traveler-empty-requests">
+                    <p>Aucune demande pour le moment.</p>
                     <button type="button" class="btn primary btn-sm" data-open-demand-modal>Publier une demande</button>
                 </div>`;
+            refreshClientSeeAll(0);
             return;
         }
+
+        // Comme les offres du cargo : une seule demande visible, le reste derriere
+        // la barre « Voir tous » (demande Yoyo).
+        const expanded = state.clientRequestsExpanded === true;
+        const visible = expanded ? all : all.slice(0, 1);
 
         els.clientRequestsList.innerHTML = visible.map((item, i) => {
             const statusLabel = formatParcelStatus(item.status);
@@ -668,6 +671,7 @@
                     <div class="item-desc" title="${window.CCCommon.escapeHtml(fullDetails)}">${details}</div>
                 </div>
                 <div class="dash-row-inline">
+                    <button class="client-item-btn" data-view-parcel="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
                     ${isArchived
                         ? `<button class="client-item-btn" data-republish-parcel="${window.CCCommon.escapeHtml(item.id)}">Republier</button>`
                         : `<button class="client-item-btn" data-edit-parcel="${window.CCCommon.escapeHtml(item.id)}">Modifier</button>`}
@@ -675,6 +679,54 @@
                 </div>
             </div>`;
         }).join("");
+        refreshClientSeeAll(all.length);
+    }
+
+    // Barre « Voir tous / Voir moins » du panneau des demandes (expediteur).
+    function refreshClientSeeAll(total) {
+        const btn = document.getElementById("client-voir-tous-demandes");
+        if (!btn) return;
+        const expanded = state.clientRequestsExpanded === true;
+        const texte = expanded ? "Voir moins" : "Voir tous";
+        const label = document.getElementById("client-voir-tous-demandes-label");
+        if (label) label.textContent = texte;
+        else btn.textContent = texte;
+        btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+        btn.classList.toggle("is-expanded", expanded);
+        btn.hidden = Number(total) <= 1;
+    }
+
+    // Fiche detail (lecture seule) pour le bouton « Voir » des offres et demandes.
+    function openItemDetail(titre, lignes) {
+        let overlay = document.getElementById("cc-detail-overlay");
+        if (!overlay) {
+            overlay = document.createElement("div");
+            overlay.id = "cc-detail-overlay";
+            overlay.className = "cc-detail-overlay";
+            overlay.innerHTML = `
+                <div class="cc-detail-card" role="dialog" aria-modal="true" aria-labelledby="cc-detail-title">
+                    <div class="cc-detail-head">
+                        <h3 id="cc-detail-title"></h3>
+                        <button type="button" class="cc-icon-btn" data-close-detail aria-label="Fermer">&times;</button>
+                    </div>
+                    <div id="cc-detail-body" class="cc-detail-body"></div>
+                </div>`;
+            overlay.addEventListener("click", (ev) => {
+                if (ev.target === overlay || ev.target.closest("[data-close-detail]")) {
+                    overlay.classList.remove("is-open");
+                }
+            });
+            document.addEventListener("keydown", (ev) => {
+                if (ev.key === "Escape") overlay.classList.remove("is-open");
+            });
+            document.body.appendChild(overlay);
+        }
+        document.getElementById("cc-detail-title").textContent = titre || "Détail";
+        document.getElementById("cc-detail-body").innerHTML = (lignes || [])
+            .filter((l) => l && l.valeur !== "" && l.valeur !== null && l.valeur !== undefined)
+            .map((l) => `<div class="cc-detail-row"><span class="cc-detail-label">${window.CCCommon.escapeHtml(l.label)}</span><span class="cc-detail-value">${window.CCCommon.escapeHtml(String(l.valeur))}</span></div>`)
+            .join("");
+        overlay.classList.add("is-open");
     }
 
     function renderClientDiscussions(conversations) {
@@ -1231,6 +1283,7 @@
                 <div class="col-mode">${window.CCCommon.escapeHtml(mode)}</div>
                 <div class="col-statut"></div>
                 <div class="col-actions">
+                    <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-view-offer="${window.CCCommon.escapeHtml(o.id)}">Voir</button>
                     <button class="cargo-ops-btn" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-edit-offer="${window.CCCommon.escapeHtml(o.id)}">Modifier</button>
                     <button class="cargo-ops-btn cargo-ops-btn-danger" data-offer-id="${window.CCCommon.escapeHtml(o.id)}" data-action="delete">Supprimer</button>
                 </div>
@@ -1699,6 +1752,23 @@
         });
 
         els.clientRequestsList?.addEventListener("click", async (event) => {
+            // « Voir » : fiche detail de la demande, en lecture seule.
+            const viewParcelBtn = event.target.closest("[data-view-parcel]");
+            if (viewParcelBtn) {
+                const parcelId = viewParcelBtn.getAttribute("data-view-parcel");
+                const item = (state.parcelRequests || []).find((p) => String(p.id) === String(parcelId));
+                if (item) {
+                    openItemDetail("Détail de la demande", [
+                        { label: "Trajet", valeur: [item.origin, item.destination].filter(Boolean).join(" → ") },
+                        { label: "Villes", valeur: [item.origin_city, item.destination_city].filter(Boolean).join(" → ") },
+                        { label: "Poids", valeur: item.weight_kg ? `${item.weight_kg} kg` : "" },
+                        { label: "Date limite", valeur: item.needed_by_date ? formatDateNumeric(item.needed_by_date) : "" },
+                        { label: "Statut", valeur: formatParcelStatus(item.status) },
+                        { label: "Description", valeur: item.description || item.details || "" },
+                    ]);
+                }
+                return;
+            }
             const openDemandBtn = event.target.closest("[data-open-demand-modal]");
             if (openDemandBtn) {
                 state.clientRequestsFilter = "active";
@@ -1866,6 +1936,12 @@
         // Client cercle + nouvelle proposition
         // (cible explicite : un second .client-plus-btn existe dans la vue cargo,
         //  il ne doit pas dependre de l'ordre du document)
+        // Barre « Voir tous / Voir moins » du panneau des demandes client.
+        document.getElementById("client-voir-tous-demandes")?.addEventListener("click", () => {
+            state.clientRequestsExpanded = state.clientRequestsExpanded !== true;
+            renderClientRequests(state.parcelRequests || []);
+        });
+
         // Onglets Actives / Archives du panneau des demandes client.
         document.querySelectorAll("[data-client-requests-filter]").forEach((button) => {
             if (button.dataset.clientFilterBound === "true") return;
@@ -1911,6 +1987,26 @@
             const offerId = button.getAttribute("data-offer-id");
             if (!offerId) return;
             const action = button.getAttribute("data-action");
+
+            // « Voir » : fiche detail de l'offre, en lecture seule.
+            if (button.getAttribute("data-view-offer")) {
+                const item = (state.offers || []).find(o => String(o.id) === String(offerId));
+                if (item) {
+                    const devise = String(item.baseCurrency || item.base_currency || "").toUpperCase();
+                    const prix = Number(item.pricePerKg || item.price_per_kg || 0);
+                    openItemDetail("Détail de l'offre", [
+                        { label: "Trajet", valeur: [item.origin, item.destination].filter(Boolean).join(" → ") },
+                        { label: "Villes", valeur: [item.originCity || item.origin_city, item.destinationCity || item.destination_city].filter(Boolean).join(" → ") },
+                        { label: "Mode", valeur: item.mode || "" },
+                        { label: "Kilos disponibles", valeur: item.availableKg || item.available_kg ? `${item.availableKg || item.available_kg} kg` : "" },
+                        { label: "Prix", valeur: prix ? `${prix} ${devise}/kg` : "" },
+                        { label: "Départ", valeur: item.departureDate || item.departure_date || "" },
+                        { label: "Statut", valeur: item.status || "" },
+                        { label: "Colis refusés", valeur: item.refusedColisTypes || item.refused_colis_types || "" },
+                    ]);
+                }
+                return;
+            }
 
             if (action === "delete") {
                 // Une seule implementation de suppression (deleteOffer) : elle verifie

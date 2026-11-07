@@ -20563,3 +20563,81 @@ body.results-page .cc-search-fields .cc-field-pill .cc-pill {
     margin: 0;
     white-space: nowrap;
 }
+/* Titres « Mes demandes de trajet » et « Mes historiques » en noir (demande Yoyo). */
+body.dashboard-page .client-requests-panel .cc-acc-title,
+body.dashboard-page .client-history-panel .cc-acc-title {
+    color: #111111;
+}
+
+body.dashboard-page:not(.light) .client-requests-panel .cc-acc-title,
+body.dashboard-page:not(.light) .client-history-panel .cc-acc-title {
+    color: #f4ead8;
+}
+
+/* Fiche detail (bouton « Voir ») des offres et des demandes. */
+.cc-detail-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(12, 10, 6, 0.55);
+}
+
+.cc-detail-overlay.is-open {
+    display: flex;
+}
+
+.cc-detail-card {
+    width: 100%;
+    max-width: 440px;
+    max-height: 80vh;
+    overflow: auto;
+    background: #fffdf7;
+    color: #2a2118;
+    border: 1px solid rgba(184, 134, 11, 0.35);
+    border-radius: 16px;
+    padding: 16px 18px 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.cc-detail-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.cc-detail-head h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #111111;
+}
+
+.cc-detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(23, 23, 23, 0.08);
+    font-size: 0.88rem;
+}
+
+.cc-detail-row:last-child {
+    border-bottom: none;
+}
+
+.cc-detail-label {
+    color: #6d6252;
+    font-weight: 600;
+}
+
+.cc-detail-value {
+    text-align: right;
+    font-weight: 700;
+    color: #111111;
+    overflow-wrap: anywhere;
+}
