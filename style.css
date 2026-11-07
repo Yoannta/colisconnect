@@ -20545,3 +20545,21 @@ body.post-trip-page .location-group .cc-custom-arrow {
 .cc-profil-cliquable {
     cursor: pointer;
 }
+/* Recherche : les fleches ▼ injectees par l'autocompletion des champs pays
+   (desktop et feuille telephone) ne doivent pas s'afficher. */
+body.results-page .cc-custom-arrow {
+    display: none;
+}
+
+/* Pastille « Profils verifies » placee entre la date et le bouton Rechercher. */
+body.results-page .cc-search-fields .cc-field-pill {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    min-width: 0;
+}
+
+body.results-page .cc-search-fields .cc-field-pill .cc-pill {
+    margin: 0;
+    white-space: nowrap;
+}
