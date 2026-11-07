@@ -376,5 +376,193 @@
         });
     }
 
-    window.CCOfferCard = { html: html, footer: cc3CardFooter, getInitials: getInitials };
+    // ════════════════════════════════════════════════════════════
+    // Carte de DEMANDE : modèle historique cc3 (celui d'avant la
+    // refonte « carte unique »). Rendu repris de renderDemands()
+    // d'origine : route + date limite + phrase « Je veux envoyer … »
+    // (multi-colis tronqué à 2 phrases + « Voir plus ») + pied cc3.
+    // ════════════════════════════════════════════════════════════
+    function demand(d, options) {
+        const opts = options || {};
+        d = d || {};
+        const eh = (value) => window.CCCommon.escapeHtml(String(value === undefined || value === null ? "" : value));
+
+        const userCur = opts.userCurrency || opts.currency || window.CCCommon.state?.userCurrency || "XOF";
+        const currentUserId = opts.currentUserId || opts.userId || window.CCCommon.state?.user?.id;
+        const rawCur = (value) => String(value || "XOF").toUpperCase();
+
+        const orName = String(d.origin || "").trim();
+        const destName = String(d.destination || "").trim();
+        const orCity = String(d.origin_city || d.originCity || "").trim();
+        const destCity = String(d.destination_city || d.destCity || "").trim();
+
+        // Date limite courte en français (ex: « 12 nov. 2026 »)
+        let limitDate = "";
+        const rawDate = d.needed_by_date || d.neededByDate;
+        if (rawDate) {
+            try {
+                const dl = new Date(String(rawDate).slice(0, 10) + "T00:00:00");
+                if (!isNaN(dl.getTime())) {
+                    limitDate = dl.toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
+                }
+            } catch (e) { /* fallback */ }
+            if (!limitDate) limitDate = eh(String(rawDate).slice(0, 10));
+        }
+
+        const descTxt = String(d.description || "").trim();
+        const hasDesc = !!descTxt;
+
+        // items (jsonb multi-colis) prioritaire ; sinon scalaires des anciennes demandes
+        let parsedItems = d.items;
+        if (typeof parsedItems === "string") {
+            try { parsedItems = JSON.parse(parsedItems); } catch (e) { parsedItems = null; }
+        }
+        const items = Array.isArray(parsedItems) && parsedItems.length ? parsedItems : null;
+
+        // Devise unique à l'écran : celle du pays de l'utilisateur (comme les offres).
+        // Montant publié dans la devise du colis -> converti ; taux manquant -> devise d'origine.
+        const moneyText = (raw, fromCurRaw) => {
+            const fromCur = rawCur(fromCurRaw || d.currency);
+            const displayCur = rawCur(userCur);
+            const rates = window.CCCommon.EXCHANGE_RATES || {};
+            if (fromCur !== displayCur && (!rates[fromCur] || !rates[displayCur])) {
+                return window.CCCommon.formatAmount(Number(raw), fromCur);
+            }
+            return window.CCCommon.formatAmount(window.CCCommon.convertCurrency(Number(raw), fromCur, displayCur), displayCur);
+        };
+
+        // « 12 kilo de valise » (partie « envoyer » d'un colis)
+        const mkItemSendHl = (it) => {
+            const noun = it && it.item_type ? String(it.item_type).trim().toLowerCase() : "";
+            const hasW = it && it.weight_kg !== null && it.weight_kg !== undefined && it.weight_kg !== "";
+            const hasQ = it && it.quantity !== null && it.quantity !== undefined && it.quantity !== "";
+            if (hasW) return `<span class="cc3-demand-hl">${eh(it.weight_kg)} kilo${noun ? ` de ${eh(noun)}` : ""}</span>`;
+            if (hasQ) {
+                const q = Number(it.quantity);
+                const nounTxt = noun ? (q > 1 && !/[sxz]$/i.test(noun) ? `${noun}s` : noun) : "colis";
+                return `<span class="cc3-demand-hl">${eh(it.quantity)} ${eh(nounTxt)}</span>`;
+            }
+            return "";
+        };
+        // « 13 200 FCFA » (partie « prix » ; le montant vaut pour le lot, jamais « /kg »)
+        const mkItemPriceHl = (it) => {
+            const raw = it && it.max_price_per_kg !== null && it.max_price_per_kg !== undefined && it.max_price_per_kg !== ""
+                ? it.max_price_per_kg
+                : (it && it.max_price_total !== null && it.max_price_total !== undefined && it.max_price_total !== "" ? it.max_price_total : null);
+            if (raw === null) return "";
+            return `<span class="cc3-demand-hl">${eh(moneyText(raw, it && it.currency))}</span>`;
+        };
+        const mkItemSentence = (it) => {
+            const s = mkItemSendHl(it);
+            const p = mkItemPriceHl(it);
+            if (s && p) return `Je veux envoyer ${s} et je peux payer environ ${p}`;
+            if (s) return `Je veux envoyer ${s}`;
+            if (p) return `Je peux payer environ ${p}`;
+            return "";
+        };
+
+        const sentences = items ? items.map(mkItemSentence).filter(Boolean) : [];
+        const isMulti = sentences.length > 1;
+
+        // Au-delà de 2 phrases : la carte ne grandit pas -> « … » + « Voir plus »
+        const VISIBLE_SENTENCES = 2;
+        let phraseTxt = "";
+        let demandLines = "";
+        if (isMulti) {
+            const restN = sentences.length - VISIBLE_SENTENCES;
+            const visible = sentences.slice(0, VISIBLE_SENTENCES).map((s, i, arr) =>
+                `<span class="cc3-demand-sentence">${s}${restN > 0 && i === arr.length - 1 ? '<span class="cc3-demand-ellipsis" aria-hidden="true">…</span>' : ""}</span>`
+            ).join("");
+            const extra = restN > 0
+                ? sentences.slice(VISIBLE_SENTENCES).map((s) => `<span class="cc3-demand-sentence cc3-demand-extra">${s}</span>`).join("")
+                : "";
+            demandLines = `<span class="cc3-demand-lines">${visible}${extra}</span>`;
+            if (restN > 0) demandLines += `<button type="button" class="cc3-demand-more" data-count="${restN}">Voir plus (${restN})</button>`;
+        } else {
+            // Phrase classique pour un seul colis (identique à l'ancienne carte)
+            const it = (items && items.length === 1) ? items[0] : d;
+            const sendHl = mkItemSendHl(it);
+            const priceHl = mkItemPriceHl(it);
+            phraseTxt = sendHl
+                ? `Je veux envoyer ${sendHl}` + (priceHl ? ` et je peux payer environ ${priceHl}` : "")
+                : (priceHl ? `Je peux payer environ ${priceHl}` : "");
+        }
+
+        const ownerId = d.user_id || d.userId || "";
+        const ownerName = String((d.owner && d.owner.full_name) || d.ownerName || "Demandeur");
+        const ownerPhoto = String((d.owner && d.owner.profile_photo) || d.ownerProfilePhoto || "").trim();
+        const isVerified = Boolean((d.owner && d.owner.is_verified) || d.ownerIsVerified);
+        const isOwnDemand = !!currentUserId
+            && String(ownerId).trim() !== ""
+            && String(ownerId) === String(currentUserId);
+
+        return `
+<div class="offer-wrap">
+  <article class="cc3-card">
+    <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+    <section class="cc3-route">
+      <div class="cc3-flag-shell"><span class="cc3-flag" data-demande-flag data-role="origin" aria-hidden="true"></span></div>
+      <div class="cc3-place">
+        <span class="cc3-label">From</span>
+        <span class="cc3-country">${eh(orName) || "—"}</span>
+        ${orCity ? `<span class="cc3-city">${eh(orCity)}</span>` : ""}
+      </div>
+      <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+        <path d="M2 47C50 11 105 8 181 45"></path>
+        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+          <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+        </g>
+      </svg>
+      <div class="cc3-place cc3-place-to">
+        <span class="cc3-label">To</span>
+        <span class="cc3-country">${eh(destName) || "—"}</span>
+        ${destCity ? `<span class="cc3-city">${eh(destCity)}</span>` : ""}
+      </div>
+      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag" data-demande-flag data-role="dest" aria-hidden="true"></span></div>
+    </section>
+
+    <div class="cc3-rule"></div>
+
+    <section class="cc3-details">
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Date limite</span>
+          <span class="cc3-value">${limitDate ? `<span class="cc3-gold">${limitDate}</span>` : "Non précisée"}</span>
+        </div>
+      </div>
+      ${phraseTxt || demandLines || hasDesc ? `
+      <div class="cc3-detail cc3-demand-phrase">
+        ${phraseTxt ? `<p class="cc3-demand-phrase-txt">${phraseTxt}</p>` : ""}
+        ${demandLines ? `<div class="cc3-demand-multi">${demandLines}</div>` : ""}
+        ${hasDesc ? `<p class="cc3-demand-desc">${eh(descTxt)}</p>` : ""}
+      </div>` : ""}
+    </section>
+
+    ${cc3CardFooter({
+        photo: ownerPhoto,
+        ownerId: ownerId,
+        name: ownerName,
+        isVerified: isVerified,
+        label: "Expéditeur",
+        editAttr: isOwnDemand ? `data-edit-own-demand="${String(d.id ?? "")}"` : "",
+        editLabel: "Modifier ma demande",
+        editAriaLabel: "Modifier ma demande de transport",
+        deleteAttr: isOwnDemand ? `data-delete-own-demand="${String(d.id ?? "")}"` : "",
+        deleteLabel: "Supprimer ma demande",
+        dataAttr: isOwnDemand ? "" : `data-contact-request="${String(d.id ?? "")}"`,
+        ariaLabel: `Contacter ${ownerName}`,
+        inactiveLabel: "Votre demande"
+    })}
+  </article>
+</div>`;
+    }
+
+    window.CCOfferCard = { html: html, demand: demand, footer: cc3CardFooter, getInitials: getInitials };
 })();

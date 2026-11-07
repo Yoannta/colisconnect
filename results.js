@@ -636,8 +636,10 @@
     // La refonte avait remplacé la carte d'offre par .cc-card. La carte
     // revient au format cc3 — le même que celui du dashboard voyageur — et
     // garde tout le reste de la refonte (groupes, filtres, pagination).
-    // Les cartes de DEMANDE restent en .cc-card (results-card.js).
+    // Les cartes de DEMANDE utilisent aussi la famille cc3 (modèle historique,
+    // celui d'avant la refonte) via CCOfferCard.demand().
     const OFFER_GRID_CLASS = "cc-card-grid cc-card-grid--inner cards-list cards-list--cc3";
+    const DEMAND_GRID_CLASS = "cc-card-grid cc-card-grid--inner cards-list cards-list--cc3";
 
     function renderOfferCard(offer) {
         if (window.CCOfferCard && typeof window.CCOfferCard.html === "function") {
@@ -648,6 +650,20 @@
         }
         // Repli : la carte de la refonte, si offer-card.js n'est pas chargé.
         return window.CCResultsCard.offer(offer, {
+            currency: userCurrency(),
+            userId: currentUserId()
+        });
+    }
+
+    function renderDemandCard(demand) {
+        if (window.CCOfferCard && typeof window.CCOfferCard.demand === "function") {
+            return window.CCOfferCard.demand(demand, {
+                userCurrency: userCurrency(),
+                currentUserId: currentUserId()
+            });
+        }
+        // Repli : la carte de la refonte, si offer-card.js n'est pas chargé.
+        return window.CCResultsCard.demand(demand, {
             currency: userCurrency(),
             userId: currentUserId()
         });
@@ -837,9 +853,10 @@
         els.list.innerHTML = groupHtml(
             own,
             others,
-            (demand) => window.CCResultsCard.demand(demand, { currency: userCurrency(), userId: currentUserId() }),
+            renderDemandCard,
             "Mes demandes",
-            "Toutes les demandes"
+            "Toutes les demandes",
+            DEMAND_GRID_CLASS
         );
         flagsAfterRender();
         renderActiveChips();
@@ -1124,6 +1141,16 @@
             accordion.setAttribute("aria-expanded", open ? "false" : "true");
             accordion.classList.toggle("is-open", !open);
             if (body) body.hidden = open;
+            return;
+        }
+
+        // « Voir plus » de la carte de demande cc3 (modèle historique)
+        const moreCc3 = event.target.closest(".cc3-demand-more");
+        if (moreCc3) {
+            const lines = moreCc3.closest(".cc3-demand-multi")?.querySelector(".cc3-demand-lines");
+            if (!lines) return;
+            const isOpen = lines.classList.toggle("is-expanded");
+            moreCc3.textContent = isOpen ? "Voir moins" : `Voir plus (${moreCc3.dataset.count || ""})`;
             return;
         }
 
