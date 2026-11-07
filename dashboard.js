@@ -708,6 +708,48 @@
         }).join("");
     }
 
+    // ─── Mes historiques : les personnes avec qui l'expediteur a abouti a un envoi
+    // (paiement valide ou expedition terminee). Une ligne par personne.
+    const HISTORY_STATUSES = [
+        "paid", "voyageur_paye", "colisconnect_paye",
+        "completed", "delivered", "termine", "terminé", "livre", "livré"
+    ];
+
+    function renderClientHistory(conversations) {
+        const host = document.getElementById("client-history-list");
+        if (!host) return;
+        const liste = (conversations || []).filter((t) =>
+            HISTORY_STATUSES.includes(String(t.status || "").toLowerCase())
+        );
+        if (!liste.length) {
+            host.innerHTML = `
+                <div class="traveler-empty-requests">
+                    <p>Aucun historique pour le moment.</p>
+                    <span>Les personnes avec qui vous avez abouti à un envoi apparaîtront ici.</span>
+                </div>`;
+            return;
+        }
+        host.innerHTML = liste.map((item, i) => {
+            const nom = window.CCCommon.escapeHtml(item.travelerName || item.contactName || "Contact");
+            const route = window.CCCommon.escapeHtml(item.offerTitle || item.preview || "Envoi terminé");
+            let date = "";
+            try {
+                const d = new Date(item.lastMessageAt || item.created_at || "");
+                if (!isNaN(d.getTime())) date = d.toLocaleDateString("fr-FR");
+            } catch (e) { date = ""; }
+            return `
+                <div class="client-discussion-item" data-thread-id="${window.CCCommon.escapeHtml(item.id)}">
+                    <div class="client-item-index">${i + 1}</div>
+                    <div class="item-content">
+                        <div class="item-name">${nom}</div>
+                        <div class="item-desc">${route}${date ? " · " + date : ""}</div>
+                    </div>
+                    <button class="client-item-btn client-item-btn-outline" data-open-thread="${window.CCCommon.escapeHtml(item.id)}">Voir</button>
+                </div>
+            `;
+        }).join("");
+    }
+
     // ===== PANNEAUX ACCORDEON (dashboard chercheur) =====
     // Bouton deroulant : le contenu reste cache tant que le client n'a pas clique.
     function setupClientAccordions() {
@@ -808,7 +850,11 @@
                 const conversations = (Array.isArray(convResp) ? convResp : [])
                     .filter(c => !c.isOfferOwner || c.kind === "request");
                 state.clientConversations = conversations;
-                renderClientDiscussions(conversations);
+                // Un echange deja abouti (paye/termine) part dans « Mes historiques » :
+                // il ne reste pas en double dans « Propositions recues ».
+                const abouti = (t) => HISTORY_STATUSES.includes(String(t.status || "").toLowerCase());
+                renderClientDiscussions(conversations.filter((t) => !abouti(t)));
+                renderClientHistory(conversations);
             } catch (error) {
                 renderPanelError(els.clientDiscussionsList, error, loadDashboard);
             }
@@ -1633,6 +1679,21 @@
             }
             if (item) {
                 const threadId = item.getAttribute("data-thread-id");
+                if (threadId) openChatPage(threadId);
+            }
+        });
+
+        // « Mes historiques » : meme comportement que les propositions recues.
+        document.getElementById("client-history-list")?.addEventListener("click", (event) => {
+            const bouton = event.target.closest("[data-open-thread]");
+            const ligne = event.target.closest("[data-thread-id]");
+            if (bouton) {
+                const threadId = bouton.getAttribute("data-open-thread");
+                if (threadId) openChatPage(threadId);
+                return;
+            }
+            if (ligne) {
+                const threadId = ligne.getAttribute("data-thread-id");
                 if (threadId) openChatPage(threadId);
             }
         });
