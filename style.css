@@ -20554,9 +20554,10 @@ body.results-page .cc-custom-arrow {
 /* Pastille « Profils verifies » placee entre la date et le bouton Rechercher. */
 body.results-page .cc-search-fields .cc-field-pill {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: flex-start;
     min-width: 0;
+    align-self: stretch;
 }
 
 body.results-page .cc-search-fields .cc-field-pill .cc-pill {
@@ -20640,4 +20641,10 @@ body.dashboard-page:not(.light) .client-history-panel .cc-acc-title {
     font-weight: 700;
     color: #111111;
     overflow-wrap: anywhere;
+}
+
+/* Une ligne par element dans la fiche detail (colis speciaux, colis d'une demande). */
+.cc-detail-line {
+    display: block;
+    line-height: 1.35;
 }

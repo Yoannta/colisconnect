@@ -723,8 +723,17 @@
         }
         document.getElementById("cc-detail-title").textContent = titre || "Détail";
         document.getElementById("cc-detail-body").innerHTML = (lignes || [])
-            .filter((l) => l && l.valeur !== "" && l.valeur !== null && l.valeur !== undefined)
-            .map((l) => `<div class="cc-detail-row"><span class="cc-detail-label">${window.CCCommon.escapeHtml(l.label)}</span><span class="cc-detail-value">${window.CCCommon.escapeHtml(String(l.valeur))}</span></div>`)
+            .filter((l) => {
+                if (!l) return false;
+                if (Array.isArray(l.valeur)) return l.valeur.filter(Boolean).length > 0;
+                return l.valeur !== "" && l.valeur !== null && l.valeur !== undefined;
+            })
+            .map((l) => {
+                const contenu = Array.isArray(l.valeur)
+                    ? l.valeur.filter(Boolean).map((v) => `<span class="cc-detail-line">${window.CCCommon.escapeHtml(String(v))}</span>`).join("")
+                    : window.CCCommon.escapeHtml(String(l.valeur));
+                return `<div class="cc-detail-row"><span class="cc-detail-label">${window.CCCommon.escapeHtml(l.label)}</span><span class="cc-detail-value">${contenu}</span></div>`;
+            })
             .join("");
         overlay.classList.add("is-open");
     }
@@ -1758,13 +1767,27 @@
                 const parcelId = viewParcelBtn.getAttribute("data-view-parcel");
                 const item = (state.parcelRequests || []).find((p) => String(p.id) === String(parcelId));
                 if (item) {
+                    const devise = String(item.currency || "").toUpperCase();
+                    const colis = Array.isArray(item.items) ? item.items : [];
+                    const lignesColis = colis.length
+                        ? colis.map((c) => {
+                            const nom = c.item_type || c.name || "Colis";
+                            const poids = c.weight_kg ? ` — ${c.weight_kg} kg` : "";
+                            const qte = c.quantity ? ` — ${c.quantity} pièce(s)` : "";
+                            const cur = String(c.currency || devise || "").toUpperCase();
+                            const prix = c.max_price_per_kg
+                                ? ` — ${c.max_price_per_kg} ${cur}/kg`
+                                : (c.max_price_total ? ` — ${c.max_price_total} ${cur}` : "");
+                            return `${nom}${poids}${qte}${prix}`;
+                        })
+                        : [item.item_type || "—"];
                     openItemDetail("Détail de la demande", [
                         { label: "Trajet", valeur: [item.origin, item.destination].filter(Boolean).join(" → ") },
                         { label: "Villes", valeur: [item.origin_city, item.destination_city].filter(Boolean).join(" → ") },
-                        { label: "Poids", valeur: item.weight_kg ? `${item.weight_kg} kg` : "" },
-                        { label: "Date limite", valeur: item.needed_by_date ? formatDateNumeric(item.needed_by_date) : "" },
-                        { label: "Statut", valeur: formatParcelStatus(item.status) },
-                        { label: "Description", valeur: item.description || item.details || "" },
+                        { label: "Colis", valeur: lignesColis },
+                        { label: "Poids total", valeur: item.weight_kg ? `${item.weight_kg} kg` : "" },
+                        { label: "Quantité", valeur: item.quantity ? `${item.quantity} pièce(s)` : "" },
+                        { label: "Date limite", valeur: item.needed_by_date ? formatDateNumeric(item.needed_by_date) : "Pas de date limite" },
                     ]);
                 }
                 return;
@@ -1994,14 +2017,34 @@
                 if (item) {
                     const devise = String(item.baseCurrency || item.base_currency || "").toUpperCase();
                     const prix = Number(item.pricePerKg || item.price_per_kg || 0);
+                    const unite = String(item.priceUnit || item.price_unit || "kg").toLowerCase() === "cbm" ? "CBM" : "kg";
+                    // Colis speciaux saisis a la creation (nom + prix + unite).
+                    const brutSpecial = item.specialPrices || item.special_prices || [];
+                    let specials = [];
+                    if (Array.isArray(brutSpecial)) specials = brutSpecial;
+                    else { try { specials = JSON.parse(brutSpecial || "[]") || []; } catch (e) { specials = []; } }
+                    const lignesSpecial = (Array.isArray(specials) ? specials : [])
+                        .filter((s) => s && s.type)
+                        .map((s) => {
+                            const cur = String(s.currency || devise || "").toUpperCase();
+                            const mode = String(s.mode || "kilo") === "qty" ? " (prix/quantité)" : " /kg";
+                            return `${s.type} — ${s.price} ${cur}${mode}`;
+                        });
+                    // Dates supplementaires eventuelles (cargo).
+                    const brutDates = item.extraDates || item.extra_dates || [];
+                    let extras = [];
+                    if (Array.isArray(brutDates)) extras = brutDates;
+                    else { try { extras = JSON.parse(brutDates || "[]") || []; } catch (e) { extras = []; } }
+                    extras = (Array.isArray(extras) ? extras : []).filter(Boolean).map((d) => formatDateNumeric(String(d)));
                     openItemDetail("Détail de l'offre", [
                         { label: "Trajet", valeur: [item.origin, item.destination].filter(Boolean).join(" → ") },
                         { label: "Villes", valeur: [item.originCity || item.origin_city, item.destinationCity || item.destination_city].filter(Boolean).join(" → ") },
                         { label: "Mode", valeur: item.mode || "" },
                         { label: "Kilos disponibles", valeur: item.availableKg || item.available_kg ? `${item.availableKg || item.available_kg} kg` : "" },
-                        { label: "Prix", valeur: prix ? `${prix} ${devise}/kg` : "" },
-                        { label: "Départ", valeur: item.departureDate || item.departure_date || "" },
-                        { label: "Statut", valeur: item.status || "" },
+                        { label: "Prix", valeur: prix ? `${prix} ${devise}/${unite}` : "" },
+                        { label: "Départ", valeur: (item.departureDate || item.departure_date) ? formatDateNumeric(item.departureDate || item.departure_date) : "" },
+                        { label: "Autres dates", valeur: extras },
+                        { label: "Colis spéciaux", valeur: lignesSpecial },
                         { label: "Colis refusés", valeur: item.refusedColisTypes || item.refused_colis_types || "" },
                     ]);
                 }
