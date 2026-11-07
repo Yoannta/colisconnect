@@ -1440,6 +1440,17 @@
         }
     }
 
+    // Modifier une annonce (voyageur, cargo ou depuis une carte) : on repart dans
+    // la vraie page de publication, formulaire prerempli — meme comportement que
+    // le bouton « Modifier » de la page de recherche (demande Yoyo).
+    function goToEditOffer(offerId) {
+        if (!offerId) {
+            window.location.href = "post_trip.html";
+            return;
+        }
+        window.location.href = "post_trip.html?editOffer=" + encodeURIComponent(String(offerId));
+    }
+
     function bindEvents() {
         // Devises de la modale d'offre : recalcul a chaque changement de pays.
         if (els.offerOrigin && !els.offerOrigin.dataset.ccCurrencyBound) {
@@ -1528,7 +1539,7 @@
                 window.location.href = "post_trip.html";
                 return;
             }
-            openOfferModal();
+            goToEditOffer(state.activeOffer.id);
         });
 
         els.editOfferBtn?.addEventListener("click", () => {
@@ -1536,7 +1547,7 @@
                 window.location.href = "post_trip.html";
                 return;
             }
-            openOfferModal();
+            goToEditOffer(state.activeOffer.id);
         });
 
         els.openMessagesBtn?.addEventListener("click", (event) => {
@@ -1579,10 +1590,8 @@
             if (editBtn) {
                 const offerId = editBtn.getAttribute("data-edit-offer");
                 const offer = state.offers?.find(o => String(o.id) === offerId);
-                if (offer) {
-                    state.activeOffer = offer;
-                    openOfferModal();
-                }
+                if (offer) state.activeOffer = offer;
+                goToEditOffer(offerId);
                 return;
             }
             const deleteBtn = event.target.closest("[data-delete-offer]");
@@ -1852,10 +1861,8 @@
 
             // Sinon : Modifier
             const offer = state.offers.find(o => String(o.id) === offerId);
-            if (offer) {
-                state.activeOffer = offer;
-                openOfferModal();
-            }
+            if (offer) state.activeOffer = offer;
+            goToEditOffer(offerId);
         });
 
         // Upload photo de profil -> Sauvegarde dans Supabase.
