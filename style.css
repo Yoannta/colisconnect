@@ -20554,10 +20554,11 @@ body.results-page .cc-custom-arrow {
 /* Pastille « Profils verifies » placee entre la date et le bouton Rechercher. */
 body.results-page .cc-search-fields .cc-field-pill {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: flex-start;
     min-width: 0;
-    align-self: stretch;
+    /* cale la pastille au niveau du champ (sous le libelle « Date limite ») */
+    padding-top: 26px;
 }
 
 body.results-page .cc-search-fields .cc-field-pill .cc-pill {
