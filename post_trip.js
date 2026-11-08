@@ -386,6 +386,7 @@
 
     function afficherChoixUnitePrix() {
         choixUniteFait = false;
+        reinitialiserTransport();
         document.getElementById("cargo-unit-choice")?.classList.remove("hidden");
         document.getElementById("price-group")?.classList.add("hidden");
         document.getElementById("price-unit-back")?.classList.add("hidden");
@@ -409,7 +410,38 @@
             b.classList.toggle("selected", actif);
             b.setAttribute("aria-pressed", actif ? "true" : "false");
         });
+        appliquerTransportLie();
         document.getElementById("price")?.focus();
+    }
+
+    // Regle metier : un prix au kilo vaut pour l'avion, un prix au CBM pour le bateau.
+    // Le choix de l'unite impose donc le moyen de transport (on ne laisse que lui).
+    function appliquerTransportLie() {
+        const section = document.getElementById("transport-mode-section");
+        if (!section) return;
+        const mode = selectedPriceUnit === "cbm" ? "bateau" : "avion";
+        section.querySelectorAll(".transport-mode-btn").forEach((b) => {
+            const compatible = b.dataset.mode === mode;
+            b.classList.toggle("hidden", !compatible);
+            b.classList.remove("selected");
+            b.setAttribute("aria-pressed", "false");
+            if (compatible) {
+                b.classList.add("selected");
+                b.setAttribute("aria-pressed", "true");
+            }
+        });
+        selectedTransportMode = mode;
+    }
+
+    // Retour au choix d'unite : on reaffiche les deux transports.
+    function reinitialiserTransport() {
+        const section = document.getElementById("transport-mode-section");
+        if (!section) return;
+        section.querySelectorAll(".transport-mode-btn").forEach((b) => {
+            b.classList.remove("hidden", "selected");
+            b.setAttribute("aria-pressed", "false");
+        });
+        selectedTransportMode = null;
     }
 
     function applyProfileTypeUI(choice) {
@@ -1298,7 +1330,7 @@
                 const type = row.querySelector(".colis-name-label")?.textContent?.trim();
                 const mode = row.getAttribute("data-mode");
                 const price = parseFloat(row.querySelector(".price-field")?.value);
-                if (type && type !== "Nom du colis" && mode && !isNaN(price) && price > 0) {
+                if (type && type !== "Quel est le colis ?" && mode && !isNaN(price) && price > 0) {
                     specialPrices.push({ type, mode, price });
                 }
             });
@@ -1696,6 +1728,9 @@
         const submitBtn = document.getElementById("trip-form")?.querySelector("button[type='submit']");
         if (submitBtn) submitBtn.textContent = "Enregistrer les modifications";
         document.getElementById("edit-notice")?.classList.remove("hidden");
+        if (selectedProfileTypeChoice === "cargo" && choixUniteFait) {
+            try { appliquerTransportLie(); } catch (e) { /* section absente */ }
+        }
         console.log("[modif] annonce", editingOfferId, "chargee dans le formulaire");
     }
 

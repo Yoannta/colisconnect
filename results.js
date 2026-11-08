@@ -1986,14 +1986,19 @@
             const qtyVal = Number(qtyRaw);
             const kgOk = String(kgRaw).trim() !== "" && Number.isFinite(kgVal) && kgVal > 0;
             const qtyOk = String(qtyRaw).trim() !== "" && Number.isFinite(qtyVal) && qtyVal > 0;
-            if (!kgOk && !qtyOk) {
-                showDemandError(`Indiquez le nombre d'articles ou le poids total du colis n°${index + 1}.`, box.querySelector(".cc-qty-input") || box.querySelector(".cc-kg-input"));
+            // Tout est obligatoire sauf le poids total estime (facultatif, « Optionnel »).
+            if (!qtyOk) {
+                showDemandError(`Indiquez combien d'articles pour le colis n°${index + 1}.`, box.querySelector(".cc-qty-input"));
                 return false;
             }
             const priceField = box.querySelector(".cc-price-input");
             const priceRaw = priceField?.value;
-            if (priceRaw !== undefined && String(priceRaw).trim() !== "" && (!Number.isFinite(Number(priceRaw)) || Number(priceRaw) < 0)) {
-                showDemandError(`Le montant proposé du colis n°${index + 1} n'est pas valide.`, priceField);
+            if (priceRaw === undefined || String(priceRaw).trim() === "") {
+                showDemandError(`Indiquez le budget proposé pour le colis n°${index + 1}.`, priceField);
+                return false;
+            }
+            if (!Number.isFinite(Number(priceRaw)) || Number(priceRaw) <= 0) {
+                showDemandError(`Le budget proposé du colis n°${index + 1} n'est pas valide.`, priceField);
                 return false;
             }
             if (!boxCurrency(box)) {

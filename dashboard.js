@@ -2036,14 +2036,15 @@
                     if (Array.isArray(brutDates)) extras = brutDates;
                     else { try { extras = JSON.parse(brutDates || "[]") || []; } catch (e) { extras = []; } }
                     extras = (Array.isArray(extras) ? extras : []).filter(Boolean).map((d) => formatDateNumeric(String(d)));
+                    // Une seule date -> « Date », plusieurs -> « Dates » (demande Yoyo).
+                    const toutesDates = [(item.departureDate || item.departure_date) ? formatDateNumeric(item.departureDate || item.departure_date) : "", ...extras].filter(Boolean);
                     openItemDetail("Détail de l'offre", [
                         { label: "Trajet", valeur: [item.origin, item.destination].filter(Boolean).join(" → ") },
                         { label: "Villes", valeur: [item.originCity || item.origin_city, item.destinationCity || item.destination_city].filter(Boolean).join(" → ") },
                         { label: "Mode", valeur: item.mode || "" },
                         { label: "Kilos disponibles", valeur: item.availableKg || item.available_kg ? `${item.availableKg || item.available_kg} kg` : "" },
                         { label: "Prix", valeur: prix ? `${prix} ${devise}/${unite}` : "" },
-                        { label: "Départ", valeur: (item.departureDate || item.departure_date) ? formatDateNumeric(item.departureDate || item.departure_date) : "" },
-                        { label: "Autres dates", valeur: extras },
+                        { label: toutesDates.length > 1 ? "Dates" : "Date", valeur: toutesDates },
                         { label: "Colis spéciaux", valeur: lignesSpecial },
                         { label: "Colis refusés", valeur: item.refusedColisTypes || item.refused_colis_types || "" },
                     ]);

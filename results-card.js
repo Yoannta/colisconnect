@@ -392,7 +392,10 @@
         if (item.quantity !== null && item.quantity !== undefined && String(item.quantity).trim() !== "") {
             lignes.push({ cle: "Nombre d'articles", val: String(item.quantity) });
         }
-        if (item.weight_kg !== null && item.weight_kg !== undefined && String(item.weight_kg).trim() !== "") {
+        // Poids : 0 kg (ou vide) n'est pas affiche ; on affiche a partir de 1 kg.
+        const poidsNum = Number(item.weight_kg);
+        if (item.weight_kg !== null && item.weight_kg !== undefined && String(item.weight_kg).trim() !== ""
+            && Number.isFinite(poidsNum) && poidsNum >= 1) {
             lignes.push({ cle: "Poids total", val: `${item.weight_kg} kg` });
         }
         const rawPrice = item.max_price_total ?? item.max_price_per_kg;

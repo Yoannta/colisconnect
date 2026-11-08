@@ -383,7 +383,7 @@
 
                             <div class="form-group" id="transport-mode-section" style="display:none;">
                                 <span class="cc-label">Moyen de transport</span>
-                                <div class="segment segment-3" role="group" aria-label="Moyen de transport">
+                                <div class="segment" role="group" aria-label="Moyen de transport">
                                     <button type="button" class="segment-btn transport-mode-btn" data-mode="avion"
                                         aria-pressed="false">
                                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
@@ -403,15 +403,6 @@
                                             <path d="M3 16c1.5 2 3 2 4.5 0s3-2 4.5 0 3 2 4.5 0 3-2 4.5 0" />
                                         </svg>
                                         Bateau
-                                    </button>
-                                    <button type="button" class="segment-btn transport-mode-btn" data-mode="les_deux"
-                                        aria-pressed="false">
-                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round" aria-hidden="true">
-                                            <path d="M2 12l20-8-8 20-3-9-9-3z" />
-                                        </svg>
-                                        Les deux
                                     </button>
                                 </div>
                             </div>
@@ -464,7 +455,7 @@
                                     <div id="colis-detail-rows" data-guide="special-price-line">
                                         <div class="colis-detail-row" data-row="0">
                                             <button type="button" class="colis-name-btn" data-row="0">
-                                                <span class="colis-name-label">Nom du colis</span>
+                                                <span class="colis-name-label">Quel est le colis ?</span>
                                                 <span class="colis-name-chevron" aria-hidden="true">
                                                     <svg viewBox="0 0 24 24" width="14" height="14" fill="none"
                                                         stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -826,7 +817,7 @@
                 row.setAttribute('data-row', String(r));
                 row.innerHTML =
                     '<button type="button" class="colis-name-btn" data-row="' + r + '">' +
-                    '<span class="colis-name-label">Nom du colis</span>' + CHEVRON + '</button>' +
+                    '<span class="colis-name-label">Quel est le colis ?</span>' + CHEVRON + '</button>' +
                     '<div class="colis-price-modes" data-row="' + r + '">' +
                     '<button type="button" class="price-mode-btn" data-mode="kilo" data-row="' + r + '" aria-pressed="false">prix/kilo</button>' +
                     '<span class="price-or">ou</span>' +
@@ -859,7 +850,7 @@
                     ? window.CCCommon.currencySymbol(code) : (code || '');
                 var nameEl = rowEl.querySelector('.colis-name-label');
                 var nom = nameEl ? nameEl.textContent.trim() : '';
-                var unite = mode === 'kilo' ? 'kilo' : (nom && nom !== 'Nom du colis' ? nom : 'unité');
+                var unite = mode === 'kilo' ? 'kilo' : (nom && nom !== 'Quel est le colis ?' ? nom : 'unité');
                 curSpan.textContent = (cur || '—') + ' par ' + unite;
             }
 
@@ -880,7 +871,7 @@
                     var row = rows[i];
                     var nameEl = row.querySelector('.colis-name-label');
                     var nom = nameEl ? nameEl.textContent.trim() : '';
-                    var nomSaisi = !!nom && nom !== 'Nom du colis';
+                    var nomSaisi = !!nom && nom !== 'Quel est le colis ?';
                     var mode = row.getAttribute('data-mode');
                     var field = row.querySelector('.price-field');
                     var prix = field ? parseFloat(field.value) : NaN;
@@ -951,7 +942,7 @@
                 btn.type = 'button';
                 btn.className = 'colis-name-btn';
                 btn.setAttribute('data-row', input.getAttribute('data-row'));
-                btn.innerHTML = '<span class="colis-name-label">' + (val ? esc(val) : 'Nom du colis') + '</span>' + CHEVRON;
+                btn.innerHTML = '<span class="colis-name-label">' + (val ? esc(val) : 'Quel est le colis ?') + '</span>' + CHEVRON;
                 input.replaceWith(btn);
                 refreshUniteLabel(btn.closest('.colis-detail-row'));
             }
@@ -980,8 +971,8 @@
                     input.type = 'text';
                     input.className = 'colis-name-input form-input';
                     input.setAttribute('data-row', nameBtn.getAttribute('data-row'));
-                    input.placeholder = 'Nom du colis';
-                    if (label && label !== 'Nom du colis') input.value = label;
+                    input.placeholder = 'Quel est le colis ?';
+                    if (label && label !== 'Quel est le colis ?') input.value = label;
                     nameBtn.replaceWith(input);
                     input.focus();
                     return;
