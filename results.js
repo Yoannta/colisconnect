@@ -1694,7 +1694,10 @@
     }
 
     function getBoxMode(box) {
-        return box.querySelector(".cc-seg-btn.active")?.dataset.mode || "per_kg";
+        const seg = box.querySelector(".cc-seg-btn.active");
+        // Nouveau formulaire : plus de « par kilo / par quantite », le budget porte
+        // sur le colis entier.
+        return seg ? seg.dataset.mode : "total";
     }
 
     function boxCurrency(box) {
@@ -1709,16 +1712,26 @@
 
     function refreshBoxUi(box) {
         if (!box) return;
+        const aMode = Boolean(box.querySelector(".cc-seg-btn"));
         const isKg = getBoxMode(box) === "per_kg";
         const kgField = box.querySelector(".cc-kg-field");
         const qtyField = box.querySelector(".cc-qty-field");
-        if (kgField) kgField.hidden = !isKg;
-        if (qtyField) qtyField.hidden = isKg;
-        const name = getBoxName(box);
+        if (kgField) kgField.hidden = aMode ? !isKg : false;
+        if (qtyField) qtyField.hidden = aMode ? isKg : false;
         const qtyLabel = box.querySelector(".cc-qty-label");
-        if (qtyLabel) {
+        if (qtyLabel && aMode) {
+            const name = getBoxName(box);
             qtyLabel.textContent = name ? `Combien de ${name} ?` : "Combien de colis ?";
             box.querySelector(".cc-qty-input")?.setAttribute("aria-label", qtyLabel.textContent);
+        }
+        if (!aMode) {
+            // Nouveau formulaire : libelle fixe, pas de texte qui change a chaque frappe.
+            const priceInput = box.querySelector(".cc-price-input");
+            if (priceInput) {
+                priceInput.placeholder = "Ex. 2500";
+                priceInput.setAttribute("aria-label", "Quel budget proposez-vous pour ce colis ?");
+            }
+            return;
         }
         const priceInput = box.querySelector(".cc-price-input");
         if (!priceInput) return;
@@ -1963,14 +1976,18 @@
         }
         for (let index = 0; index < boxes.length; index += 1) {
             const box = boxes[index];
-            const isKg = getBoxMode(box) === "per_kg";
-            const valueField = box.querySelector(isKg ? ".cc-kg-input" : ".cc-qty-input");
-            const raw = valueField?.value || "";
-            const value = Number(raw);
-            if (!raw || !Number.isFinite(value) || value <= 0 || (!isKg && !Number.isInteger(value))) {
-                showDemandError(isKg
-                    ? `Indiquez le poids du colis n°${index + 1} (en kilos).`
-                    : `Indiquez combien de colis pour le colis n°${index + 1}.`, valueField);
+            if (!getBoxName(box)) {
+                showDemandError(`Indiquez ce que vous souhaitez envoyer (colis n°${index + 1}).`, box.querySelector(".cc-colis-nom"));
+                return false;
+            }
+            const kgRaw = box.querySelector(".cc-kg-input")?.value || "";
+            const qtyRaw = box.querySelector(".cc-qty-input")?.value || "";
+            const kgVal = Number(kgRaw);
+            const qtyVal = Number(qtyRaw);
+            const kgOk = String(kgRaw).trim() !== "" && Number.isFinite(kgVal) && kgVal > 0;
+            const qtyOk = String(qtyRaw).trim() !== "" && Number.isFinite(qtyVal) && qtyVal > 0;
+            if (!kgOk && !qtyOk) {
+                showDemandError(`Indiquez le nombre d'articles ou le poids total du colis n°${index + 1}.`, box.querySelector(".cc-qty-input") || box.querySelector(".cc-kg-input"));
                 return false;
             }
             const priceField = box.querySelector(".cc-price-input");
@@ -1990,21 +2007,21 @@
     function buildDemandPayload() {
         const boxes = getColisBoxes();
         const items = boxes.map((box) => {
-            const isKg = getBoxMode(box) === "per_kg";
             const name = getBoxName(box);
-            const rawValue = (isKg ? box.querySelector(".cc-kg-input") : box.querySelector(".cc-qty-input"))?.value;
-            const value = Number(rawValue);
+            const kgRaw = box.querySelector(".cc-kg-input")?.value;
+            const qtyRaw = box.querySelector(".cc-qty-input")?.value;
+            const hasKg = kgRaw !== undefined && String(kgRaw).trim() !== "" && Number.isFinite(Number(kgRaw));
+            const hasQty = qtyRaw !== undefined && String(qtyRaw).trim() !== "" && Number.isFinite(Number(qtyRaw));
             const priceRaw = box.querySelector(".cc-price-input")?.value;
-            const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
-            const price = hasPrice ? Number(priceRaw) : null;
+            const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "" && Number.isFinite(Number(priceRaw));
             return {
                 currency: boxCurrency(box),
                 item_type: name || null,
-                price_mode: hasPrice ? (isKg ? "per_kg" : "total") : null,
-                weight_kg: isKg ? value : null,
-                quantity: isKg ? null : value,
-                max_price_per_kg: hasPrice && isKg ? price : null,
-                max_price_total: hasPrice && !isKg ? price : null
+                price_mode: hasPrice ? "total" : null,
+                weight_kg: hasKg ? Number(kgRaw) : null,
+                quantity: hasQty ? Number(qtyRaw) : null,
+                max_price_per_kg: null,
+                max_price_total: hasPrice ? Number(priceRaw) : null
             };
         });
         const first = items[0] || {};
@@ -2036,6 +2053,24 @@
             return;
         }
         if (!validateColisStep()) return;
+        // Bug corrige : pays et ville incoherents (ex. pays Senegal + ville Abidjan)
+        // passaient sans controle.
+        const verifVille = window.CCCommon && window.CCCommon.verifierVilleAnnonce;
+        if (typeof verifVille === "function") {
+            const paires = [
+                { pays: els.demandOrigin?.value, ville: els.demandCityOrigin?.value, champ: els.demandCityOrigin },
+                { pays: els.demandDestination?.value, ville: els.demandCityDestination?.value, champ: els.demandCityDestination },
+            ];
+            for (const paire of paires) {
+                let res = null;
+                try { res = await verifVille(paire.pays, paire.ville); } catch (e) { res = null; }
+                if (res && res.ok === false) {
+                    goToStep(1);
+                    showDemandError(res.message || `La ville « ${paire.ville} » ne se trouve pas au ${paire.pays}.`, paire.champ);
+                    return;
+                }
+            }
+        }
         const payload = buildDemandPayload();
         const submit = els.demandSubmit;
         const originalLabel = state.editingDemandId ? "Enregistrer" : "Faire la demande";

@@ -62,7 +62,10 @@
     }
 
     function getBoxMode(box) {
-        return box.querySelector(".cc-seg-btn.active")?.dataset.mode || "per_kg";
+        const seg = box.querySelector(".cc-seg-btn.active");
+        // Nouveau formulaire : plus de « par kilo / par quantite ». Le budget porte
+        // sur le colis entier, donc mode « total » par defaut.
+        return seg ? seg.dataset.mode : "total";
     }
 
     function boxCurrency(box) {
@@ -77,11 +80,14 @@
 
     function refreshBoxUi(box) {
         if (!box) return;
+        const aMode = Boolean(box.querySelector(".cc-seg-btn"));
         const isKg = getBoxMode(box) === "per_kg";
         const kgField = box.querySelector(".cc-kg-field");
         const qtyField = box.querySelector(".cc-qty-field");
-        if (kgField) kgField.hidden = !isKg;
-        if (qtyField) qtyField.hidden = isKg;
+        // Sans boutons de mode (nouveau formulaire) : nombre d'articles ET poids
+        // total estime sont affiches en meme temps.
+        if (kgField) kgField.hidden = aMode ? !isKg : false;
+        if (qtyField) qtyField.hidden = aMode ? isKg : false;
         const name = getBoxName(box);
         const qtyLabel = box.querySelector(".cc-qty-label");
         if (qtyLabel) {
@@ -317,7 +323,7 @@
             const qty = box.querySelector(".cc-qty-input");
             if (qty) qty.value = hasQty ? item.quantity : "";
             const price = box.querySelector(".cc-price-input");
-            const priceValue = isKg ? item.max_price_per_kg : item.max_price_total;
+            const priceValue = (item.max_price_total ?? item.max_price_per_kg);
             if (price) price.value = priceValue === null || priceValue === undefined ? "" : priceValue;
             if (item.currency) setBoxCurrency(box, item.currency);
             refreshBoxUi(box);
@@ -360,14 +366,21 @@
         }
         for (let index = 0; index < boxes.length; index += 1) {
             const box = boxes[index];
-            const isKg = getBoxMode(box) === "per_kg";
-            const valueField = box.querySelector(isKg ? ".cc-kg-input" : ".cc-qty-input");
-            const raw = valueField?.value || "";
-            const value = Number(raw);
-            if (!raw || !Number.isFinite(value) || value <= 0 || (!isKg && !Number.isInteger(value))) {
-                showError(isKg
-                    ? `Indiquez le poids du colis n°${index + 1} (en kilos).`
-                    : `Indiquez combien de colis pour le colis n°${index + 1}.`, valueField);
+            // « Que souhaitez-vous envoyer ? » est la question principale : on la demande.
+            if (!getBoxName(box)) {
+                showError(`Indiquez ce que vous souhaitez envoyer (colis n°${index + 1}).`, box.querySelector(".cc-colis-nom"));
+                return false;
+            }
+            const kgRaw = box.querySelector(".cc-kg-input")?.value || "";
+            const qtyRaw = box.querySelector(".cc-qty-input")?.value || "";
+            const kgVal = Number(kgRaw);
+            const qtyVal = Number(qtyRaw);
+            const kgOk = String(kgRaw).trim() !== "" && Number.isFinite(kgVal) && kgVal > 0;
+            const qtyOk = String(qtyRaw).trim() !== "" && Number.isFinite(qtyVal) && qtyVal > 0;
+            // Le poids total est facultatif (« Optionnel ») : il faut au moins le
+            // nombre d'articles ou le poids.
+            if (!kgOk && !qtyOk) {
+                showError(`Indiquez le nombre d'articles ou le poids total du colis n°${index + 1}.`, box.querySelector(".cc-qty-input") || box.querySelector(".cc-kg-input"));
                 return false;
             }
             const priceField = box.querySelector(".cc-price-input");
@@ -387,21 +400,22 @@
     function buildPayload() {
         const boxes = getBoxes();
         const items = boxes.map((box) => {
-            const isKg = getBoxMode(box) === "per_kg";
             const name = getBoxName(box);
-            const rawValue = (isKg ? box.querySelector(".cc-kg-input") : box.querySelector(".cc-qty-input"))?.value;
-            const value = Number(rawValue);
+            const kgRaw = box.querySelector(".cc-kg-input")?.value;
+            const qtyRaw = box.querySelector(".cc-qty-input")?.value;
+            const hasKg = kgRaw !== undefined && String(kgRaw).trim() !== "" && Number.isFinite(Number(kgRaw));
+            const hasQty = qtyRaw !== undefined && String(qtyRaw).trim() !== "" && Number.isFinite(Number(qtyRaw));
             const priceRaw = box.querySelector(".cc-price-input")?.value;
-            const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "";
-            const price = hasPrice ? Number(priceRaw) : null;
+            const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "" && Number.isFinite(Number(priceRaw));
             return {
                 currency: boxCurrency(box),
                 item_type: name || null,
-                price_mode: hasPrice ? (isKg ? "per_kg" : "total") : null,
-                weight_kg: isKg ? value : null,
-                quantity: isKg ? null : value,
-                max_price_per_kg: hasPrice && isKg ? price : null,
-                max_price_total: hasPrice && !isKg ? price : null
+                // Budget « pour ce colis » : c'est un montant total.
+                price_mode: hasPrice ? "total" : null,
+                weight_kg: hasKg ? Number(kgRaw) : null,
+                quantity: hasQty ? Number(qtyRaw) : null,
+                max_price_per_kg: null,
+                max_price_total: hasPrice ? Number(priceRaw) : null
             };
         });
         const first = items[0] || {};
@@ -433,6 +447,23 @@
             return;
         }
         if (!validateColisStep()) return;
+        // Bug corrige : un pays et une ville incoherents (Senegal + Abidjan) passaient.
+        const verifVille = window.CCCommon && window.CCCommon.verifierVilleAnnonce;
+        if (typeof verifVille === "function") {
+            const paires = [
+                { pays: els.origin?.value, ville: els.cityOrigin?.value, champ: els.cityOrigin },
+                { pays: els.destination?.value, ville: els.cityDestination?.value, champ: els.cityDestination },
+            ];
+            for (const paire of paires) {
+                let res = null;
+                try { res = await verifVille(paire.pays, paire.ville); } catch (e) { res = null; }
+                if (res && res.ok === false) {
+                    goToStep(1);
+                    showError(res.message || `La ville « ${paire.ville} » ne se trouve pas au ${paire.pays}.`, paire.champ);
+                    return;
+                }
+            }
+        }
         const payload = buildPayload();
         const originalLabel = state.editingId ? "Enregistrer" : "Faire la demande";
         try {

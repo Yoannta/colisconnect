@@ -20649,3 +20649,42 @@ body.dashboard-page:not(.light) .client-history-panel .cc-acc-title {
     display: block;
     line-height: 1.35;
 }
+
+/* ── Carte demande : informations structurees (colis, articles, poids, budget) ──
+   Remplace l'ancienne phrase « Je veux envoyer … et je peux payer environ … ». */
+.cc-card--demand .cc-demand-item,
+.cc3-card .cc-demand-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px !important;
+    margin-bottom: 8px !important;
+    border: 1px solid rgba(184, 134, 11, 0.28);
+    border-radius: 10px;
+}
+
+.cc-card--demand .cc-demand-line,
+.cc3-card .cc-demand-line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    padding: 1px 0 !important;
+}
+
+.cc-card--demand .cc-demand-key,
+.cc3-card .cc-demand-key {
+    font-weight: 600;
+    opacity: 0.72;
+    white-space: nowrap;
+    margin-right: 10px !important;
+}
+
+.cc-card--demand .cc-demand-val,
+.cc3-card .cc-demand-val {
+    font-weight: 750;
+    text-align: right;
+    overflow-wrap: anywhere;
+}

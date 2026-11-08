@@ -33,7 +33,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
-    <link rel="stylesheet" href="style.css?v=20261105j">
+    <link rel="stylesheet" href="style.css?v=20261105k">
     <link rel="stylesheet" href="results-refonte.css?v=20261103a">
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -45,8 +45,8 @@
     <script defer src="devise.js?v=3"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="offer-card.js?v=20261103a"></script>
-    <script defer src="results-card.js?v=20261102d"></script>
-    <script defer src="results.js?v=20261103a"></script>
+    <script defer src="results-card.js?v=20261105a"></script>
+    <script defer src="results.js?v=20261105b"></script>
 </head>
 
 <body class="results-page">
@@ -352,28 +352,21 @@
                                     <button type="button" class="cc-icon-btn cc-colis-del" aria-label="Supprimer ce colis" title="Supprimer ce colis">&times;</button>
                                 </div>
                                 <div class="cc-field">
-                                    <label>Nom du colis</label>
-                                    <input type="text" class="cc-colis-nom" aria-label="Nom du colis" placeholder="Ex. vêtements" maxlength="60" autocomplete="off">
+                                    <label>Que souhaitez-vous envoyer ?</label>
+                                    <input type="text" class="cc-colis-nom" aria-label="Que souhaitez-vous envoyer ?" placeholder="Ex. vêtements" maxlength="60" autocomplete="off">
                                 </div>
-                                <div class="cc-field">
-                                    <label>Comment proposez-vous le prix ?</label>
-                                    <div class="cc-segmented" role="group" aria-label="Mode de prix du colis">
-                                        <button type="button" class="cc-seg-btn active" data-mode="per_kg" aria-pressed="true">par kilo</button>
-                                        <button type="button" class="cc-seg-btn" data-mode="total" aria-pressed="false">par quantité</button>
-                                    </div>
+                                <div class="cc-field cc-qty-field">
+                                    <label class="cc-qty-label">Combien d'articles ?</label>
+                                    <input type="number" class="cc-qty-input" aria-label="Combien d'articles ?" placeholder="Ex. 2" min="1" step="1" inputmode="numeric">
                                 </div>
                                 <div class="cc-field cc-kg-field">
-                                    <label>Environ combien de kilos ?</label>
-                                    <input type="number" class="cc-kg-input" aria-label="Environ combien de kilos ?" placeholder="Ex. 10" min="1" step="any" inputmode="decimal">
-                                </div>
-                                <div class="cc-field cc-qty-field" hidden>
-                                    <label class="cc-qty-label">Combien de colis ?</label>
-                                    <input type="number" class="cc-qty-input" aria-label="Combien de colis ?" placeholder="Ex. 5" min="1" step="1" inputmode="numeric">
+                                    <label>Quel est le poids total estimé ? (kg)</label>
+                                    <input type="number" class="cc-kg-input" aria-label="Quel est le poids total estimé ? (kg)" placeholder="Optionnel" min="0" step="any" inputmode="decimal">
                                 </div>
                                 <div class="cc-field">
-                                    <label class="cc-price-label">Combien proposez-vous ?</label>
+                                    <label class="cc-price-label">Quel budget proposez-vous pour ce colis ?</label>
                                     <div class="cc-price-row">
-                                        <input type="number" class="cc-price-input" aria-label="Combien proposez-vous ?" placeholder="Ex. 2500" min="0" step="any" inputmode="decimal">
+                                        <input type="number" class="cc-price-input" aria-label="Quel budget proposez-vous pour ce colis ?" placeholder="Ex. 2500" min="0" step="any" inputmode="decimal">
                                         <div class="cc-cur-picker"></div>
                                     </div>
                                 </div>
