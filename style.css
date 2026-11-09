@@ -8961,6 +8961,19 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .chat-info-banner .banner-icon { font-size: 1.2rem; flex-shrink: 0; }
 .chat-info-banner .banner-text { flex: 1; line-height: 1.4; }
 .chat-info-banner .banner-text strong { color: #10b981; }
+.chat-info-banner .banner-tuto {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.74rem;
+    opacity: 0.95;
+}
+.chat-info-banner .banner-tuto a {
+    color: #10b981;
+    font-weight: 600;
+    text-decoration: underline;
+    white-space: nowrap;
+}
+body.chat-page.light .chat-info-banner .banner-tuto a { color: #0f766e; }
 .banner-action-btn {
     flex-shrink: 0;
     padding: 6px 14px;
