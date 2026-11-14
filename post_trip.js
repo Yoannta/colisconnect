@@ -17,6 +17,7 @@
         cityDeparture: document.getElementById("city-departure"),
         cityDestination: document.getElementById("city-destination"),
         dateDepart: document.getElementById("date-depart"),
+        dateReception: document.getElementById("date-reception"),
         addTripDateBtn: document.getElementById("addTripDateBtn"),
         tripExtraDatesWrap: document.getElementById("trip-extra-dates-wrap"),
         tripExtraDates: document.getElementById("trip-extra-dates"),
@@ -345,6 +346,23 @@
         const mm = String(now.getMonth() + 1).padStart(2, "0");
         const dd = String(now.getDate()).padStart(2, "0");
         els.dateDepart.min = `${yyyy}-${mm}-${dd}`;
+        syncReceptionLimit();
+    }
+
+    // ── Date limite de reception : le colis doit arriver AVANT le grand depart.
+    // Le calendrier interdit donc toute date posterieure a la date du voyage.
+    function syncReceptionLimit({ signaler = false } = {}) {
+        const champ = els.dateReception;
+        if (!champ) return;
+        const depart = String(els.dateDepart?.value || "").trim();
+        if (depart) champ.max = depart;
+        else champ.removeAttribute("max");
+        if (depart && champ.value && champ.value > depart) {
+            champ.value = "";
+            if (signaler) {
+                revealStepError(0, "La date limite de réception doit être avant la date du voyage", champ);
+            }
+        }
     }
 
     // ---- [ENTREPRISE / CARGO] Plusieurs dates pour le même trajet ----
@@ -1370,7 +1388,9 @@
             paymentMethod: firstContactMethod,
             paymentQr: firstContactNumber, // Re-purpose paymentQr as accountNumber
             mode: isCargoMode ? (selectedTransportMode || "") : "",
-            refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : ""
+            refused_colis_types: window.refusedSelections ? window.refusedSelections.join(", ") : "",
+            // Date limite de reception du colis (facultative), avant le grand depart.
+            receiveByDate: String(document.getElementById("date-reception")?.value || "").trim() || null
         };
         // colis_types : la section « types acceptes » a ete retiree de la page.
         //   - CREATION : on envoie "" (comportement historique, compatible avec
@@ -1435,7 +1455,8 @@
                     paymentQr2: "payment_qr_2", referralCode: "referral_code",
                     cityDeparture: "city_origin", cityDestination: "city_destination",
                     originCountryCode: "origin_country_code", destCountryCode: "destination_country_code",
-                    specialPrices: "special_prices"
+                    specialPrices: "special_prices",
+                    receiveByDate: "receive_by_date"
                 };
                 const bodyUpdate = {};
                 Object.keys(fullPayload).forEach((k) => {
@@ -1450,7 +1471,23 @@
                 }
                 created = { item: { id: editingOfferId } };
             } else {
-                created = await window.CCCommon.api("/api/offers", { method: "POST", body: fullPayload });
+                // On n'envoie pas receiveByDate a l'API (colonne recente) : on la pose
+                // juste apres sur l'annonce creee.
+                const bodyCreation = { ...fullPayload };
+                delete bodyCreation.receiveByDate;
+                created = await window.CCCommon.api("/api/offers", { method: "POST", body: bodyCreation });
+                // L'API de creation n'ecrit pas la date limite de reception : on la
+                // pose juste apres, sur l'annonce qui vient d'etre creee.
+                const nouvelId = created?.id || created?.item?.id || created?.offer?.id;
+                if (nouvelId && fullPayload.receiveByDate && window.ccSupabase) {
+                    try {
+                        await window.ccSupabase.from("offers")
+                            .update({ receive_by_date: fullPayload.receiveByDate })
+                            .eq("id", nouvelId);
+                    } catch (e) {
+                        console.warn("Date limite de reception non enregistree :", e);
+                    }
+                }
             }
 
             // Mise à jour du profil APRÈS publication réussie
@@ -1640,6 +1677,8 @@
             set("destination", offer.destination);
             set("city-destination", offer.city_destination || "");
             set("date-depart", String(offer.departure_date || "").slice(0, 10));
+            set("date-reception", String(offer.receive_by_date || "").slice(0, 10));
+            syncReceptionLimit();
             // [FIX 2026-10-19] Une offre cargo stocke available_kg = 99999 : l'ecrire dans
             // #kilos (qui porte max="69") rendait le formulaire HTML INVALIDE, et le
             // navigateur bloquait silencieusement « Enregistrer les modifications ».
@@ -1997,6 +2036,11 @@
             updateExtraDatesAddBtn();
         });
 
+        // Date limite de reception : le calendrier suit la date du voyage.
+        els.dateDepart?.addEventListener("change", () => syncReceptionLimit());
+        els.dateDepart?.addEventListener("input", () => syncReceptionLimit());
+        els.dateReception?.addEventListener("change", () => syncReceptionLimit({ signaler: true }));
+
         // Sélection du mode de transport (inline dans le formulaire).
         // Selecteur limite a la section transport : les boutons « Prix au kilo / CBM »
         // portent aussi .transport-mode-btn et mettaient selectedTransportMode a undefined.
@@ -2132,6 +2176,16 @@
                     showErr(errBox1, "La date du voyage doit être aujourd'hui ou plus tard.");
                     markError(dateVoyage);
                     focusField(dateVoyage);
+                    return;
+                }
+
+                // 2 bis) Date limite de reception (optionnel) : jamais apres le depart.
+                const dateReception = document.getElementById("date-reception");
+                if (dateReception && dateReception.value && dateVoyage?.value
+                    && dateReception.value > dateVoyage.value) {
+                    showErr(errBox1, "La date limite de réception doit être avant la date du voyage.");
+                    markError(dateReception);
+                    focusField(dateReception);
                     return;
                 }
 

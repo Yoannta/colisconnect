@@ -841,11 +841,45 @@
             "Mes demandes",
             "Toutes les demandes"
         );
+        setupDemandCollapse();
         flagsAfterRender();
         renderActiveChips();
         els.loadMore.hidden = true;
         els.loadMoreStatus.hidden = true;
         setBusy(false);
+    }
+
+    // ── Demandes d'un meme utilisateur : une seule carte visible, les autres
+    // derriere « Voir tous » (meme principe que les offres d'un cargo).
+    function setupDemandCollapse(conteneur) {
+        const racine = conteneur || els.list;
+        if (!racine) return;
+        const cartes = Array.from(racine.querySelectorAll("article.cc-card--demand"));
+        const parUtilisateur = new Map();
+        cartes.forEach((carte) => {
+            const cle = carte.getAttribute("data-demand-user") || "";
+            if (!cle) return;
+            if (!parUtilisateur.has(cle)) parUtilisateur.set(cle, []);
+            parUtilisateur.get(cle).push(carte);
+        });
+        parUtilisateur.forEach((liste) => {
+            if (liste.length < 2) return;
+            liste.forEach((carte, i) => { if (i > 0) carte.hidden = true; });
+            const bouton = document.createElement("button");
+            bouton.type = "button";
+            bouton.className = "cc-demand-expand";
+            bouton.setAttribute("aria-expanded", "false");
+            bouton.innerHTML = '<span class="cc-demand-expand-label">Voir tous</span>' +
+                '<span class="cc-demand-expand-count">+' + (liste.length - 1) + "</span>";
+            bouton.addEventListener("click", () => {
+                const ouvert = bouton.getAttribute("aria-expanded") === "true";
+                liste.forEach((carte, i) => { if (i > 0) carte.hidden = ouvert; });
+                bouton.setAttribute("aria-expanded", ouvert ? "false" : "true");
+                const label = bouton.querySelector(".cc-demand-expand-label");
+                if (label) label.textContent = ouvert ? "Voir tous" : "Voir moins";
+            });
+            liste[liste.length - 1].insertAdjacentElement("afterend", bouton);
+        });
     }
 
     function updateCounterAndTitle(filteredCount) {

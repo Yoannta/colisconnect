@@ -474,7 +474,7 @@
         });
 
         return `
-      <article class="cc-card cc-card--demand${own ? " cc-card--own" : ""}" aria-labelledby="${escape(uid)}">
+      <article class="cc-card cc-card--demand${own ? " cc-card--own" : ""}" data-demand-user="${escape(demand.user_id || "")}" aria-labelledby="${escape(uid)}">
         ${own ? '<span class="cc-own-badge">Votre demande</span>' : ""}
         ${routeHtml(routeSource, uid)}
         <div class="cc-rule"></div>
