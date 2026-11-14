@@ -265,3 +265,49 @@
   .profil-page .cc3-price { font-size: 15px !important; }
   .profil-page .cc3-price-source { order: 3 !important; }
 }
+
+/* Demandes de trajet affichees sur la page profil (meme contenu que la recherche). */
+.profil-demandes {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profil-demande {
+  border: 1px solid var(--profil-bord, rgba(187, 132, 55, 0.35));
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--profil-carte, rgba(255, 255, 255, 0.03));
+}
+
+.profil-demande-route {
+  font-weight: 800;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.profil-demande-meta {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+.profil-demande-colis {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profil-demande-colis li {
+  font-size: 0.88rem;
+  line-height: 1.4;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(187, 132, 55, 0.25);
+}
+
+.profil-demande-colis-nom {
+  font-weight: 700;
+}

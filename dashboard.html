@@ -36,7 +36,7 @@
     <!-- Carte d'offre partagée (identique à la page des offres) -->
     <script defer src="offer-card.js?v=20261101"></script>
     <script defer src="demand-modal.js?v=20261105b"></script>
-    <script defer src="dashboard.js?v=20261105f"></script>
+    <script defer src="dashboard.js?v=20261105g"></script>
 </head>
 
 <body class="dashboard-page">
@@ -137,6 +137,25 @@
                                 <span class="cc-skeleton cc-skeleton-row" aria-hidden="true"></span>
                                 <span class="cc-skeleton cc-skeleton-row" aria-hidden="true"></span>
                                 <span class="cc-skeleton cc-skeleton-row" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dashboard-panel traveler-history-panel">
+                    <div class="panel-head">
+                        <h3 class="panel-heading">
+                            <button class="cc-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="traveler-history-body">
+                                <span class="cc-acc-title">Mes historiques</span>
+                                <svg class="cc-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                        </h3>
+                    </div>
+                    <div class="cc-acc-body" id="traveler-history-body" hidden>
+                        <div id="traveler-history-list" class="client-discussion-list">
+                            <div class="traveler-empty-requests">
+                                <p>Aucun historique pour le moment.</p>
+                                <span>Les personnes avec qui vous avez abouti à un envoi apparaîtront ici.</span>
                             </div>
                         </div>
                     </div>
@@ -361,6 +380,26 @@
                                 <span class="cc-skeleton cc-skeleton-row" aria-hidden="true"></span>
                                 <span class="cc-skeleton cc-skeleton-row" aria-hidden="true"></span>
                                 <span class="cc-skeleton cc-skeleton-row" aria-hidden="true"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mes historiques (cargo) -->
+                <div class="card dashboard-panel cargo-history-panel">
+                    <div class="panel-head">
+                        <h3 class="panel-heading">
+                            <button class="cc-acc-toggle" type="button" data-accordion-toggle aria-expanded="false" aria-controls="cargo-history-body">
+                                <span class="cc-acc-title">Mes historiques</span>
+                                <svg class="cc-acc-chevron" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                        </h3>
+                    </div>
+                    <div class="cc-acc-body" id="cargo-history-body" hidden>
+                        <div id="cargo-history-list" class="client-discussion-list">
+                            <div class="traveler-empty-requests">
+                                <p>Aucun historique pour le moment.</p>
+                                <span>Les personnes avec qui vous avez abouti à un envoi apparaîtront ici.</span>
                             </div>
                         </div>
                     </div>

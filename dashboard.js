@@ -776,8 +776,8 @@
         "completed", "delivered", "termine", "terminé", "livre", "livré"
     ];
 
-    function renderClientHistory(conversations) {
-        const host = document.getElementById("client-history-list");
+    function renderHistoryList(hostId, conversations) {
+        const host = document.getElementById(hostId);
         if (!host) return;
         const liste = (conversations || []).filter((t) =>
             HISTORY_STATUSES.includes(String(t.status || "").toLowerCase())
@@ -809,6 +809,11 @@
                 </div>
             `;
         }).join("");
+    }
+
+    // Historique du dashboard expediteur (meme rendu, panneau dedie).
+    function renderClientHistory(conversations) {
+        renderHistoryList("client-history-list", conversations);
     }
 
     // ===== PANNEAUX ACCORDEON (dashboard chercheur) =====
@@ -1397,6 +1402,8 @@
                     return true; // offres indisponibles : on montre au moins mes fils entrants
                 }) : [];
                 state.incomingRequests = incoming;
+                // « Mes historiques » cargo : fils de mes offres deja aboutis.
+                renderHistoryList("cargo-history-list", Array.isArray(convResp) ? convResp.filter((c) => c.isOfferOwner) : []);
 
                 if (els.cargoStatRequests) els.cargoStatRequests.textContent = `${incoming.length}`;
                 const cargoInterestedCount = document.getElementById("cargo-interested-count");
@@ -1517,6 +1524,8 @@
                 try {
                     const convResp = await withTimeout(window.CCCommon.api("/api/conversations"));
                     state.requests = (Array.isArray(convResp) ? convResp : []).filter((item) => item.isOfferOwner);
+                    // « Mes historiques » voyageur : fils de mes offres deja aboutis.
+                    renderHistoryList("traveler-history-list", Array.isArray(convResp) ? convResp.filter((c) => c.isOfferOwner) : []);
                     await offersTask; // l'offre active doit etre connue pour filtrer
                     const requests = getRequestsForOffer(state.activeOffer);
                     renderRequests(requests, state.activeOffer);
@@ -1745,19 +1754,22 @@
             }
         });
 
-        // « Mes historiques » : meme comportement que les propositions recues.
-        document.getElementById("client-history-list")?.addEventListener("click", (event) => {
-            const bouton = event.target.closest("[data-open-thread]");
-            const ligne = event.target.closest("[data-thread-id]");
-            if (bouton) {
-                const threadId = bouton.getAttribute("data-open-thread");
-                if (threadId) openChatPage(threadId);
-                return;
-            }
-            if (ligne) {
-                const threadId = ligne.getAttribute("data-thread-id");
-                if (threadId) openChatPage(threadId);
-            }
+        // « Mes historiques » : meme comportement sur les trois tableaux de bord
+        // (expediteur, voyageur, cargo) — la liste existe dans chacun.
+        ["client-history-list", "traveler-history-list", "cargo-history-list"].forEach((listeId) => {
+            document.getElementById(listeId)?.addEventListener("click", (event) => {
+                const bouton = event.target.closest("[data-open-thread]");
+                const ligne = event.target.closest("[data-thread-id]");
+                if (bouton) {
+                    const threadId = bouton.getAttribute("data-open-thread");
+                    if (threadId) openChatPage(threadId);
+                    return;
+                }
+                if (ligne) {
+                    const threadId = ligne.getAttribute("data-thread-id");
+                    if (threadId) openChatPage(threadId);
+                }
+            });
         });
 
         els.clientRequestsList?.addEventListener("click", async (event) => {

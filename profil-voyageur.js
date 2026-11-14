@@ -115,6 +115,23 @@
       offres = (data || []).filter((o) => String(o.status || "").toLowerCase() === "active");
     } catch (e) { offres = []; }
 
+    // --- ses demandes de trajet (parcel_requests) : elles doivent apparaitre ici
+    // aussi, pas seulement dans la recherche (bug signale par Yoyo).
+    let demandes = [];
+    if (!demo) {
+      try {
+        const { data } = await sb.from("parcel_requests")
+          .select("*")
+          .eq("user_id", id)
+          .order("created_at", { ascending: false })
+          .limit(10);
+        demandes = (data || []).filter((d) => {
+          const st = String(d.status || "").toLowerCase();
+          return st !== "archived" && st !== "deleted" && st !== "cancelled" && st !== "annule";
+        });
+      } catch (e) { demandes = []; }
+    }
+
     const aujourdhui = new Date(); aujourdhui.setHours(0, 0, 0, 0);
     const aVenir = offres.filter((o) => {
       const d = o.departure_date ? new Date(o.departure_date) : null;
@@ -170,10 +187,6 @@
         '<div class="profil-etoiles" aria-hidden="true">' + etoiles(moyenne) + "</div>" +
         '<div class="profil-note-detail">' + totalAvis + " avis</div>" +
         "</section>";
-    } else {
-      html += '<section class="profil-note">' +
-        '<div class="profil-note-detail">Pas encore noté — aucun avis pour le moment.</div>' +
-        "</section>";
     }
 
     // --- toutes les notes ---
@@ -221,6 +234,35 @@
       html += '<div class="profil-vide">' +
         (estCargo ? "Ce cargo n\'a aucune offre en ligne pour le moment."
                   : "Ce voyageur n\'a pas de voyage disponible pour le moment.") + "</div>";
+    }
+    html += "</section>";
+
+    // --- ses demandes de trajet (visibles aussi depuis la recherche) ---
+    html += '<section class="profil-section"><h2>Ses demandes</h2>';
+    if (demandes.length) {
+      html += '<div class="profil-demandes">' + demandes.map((d) => {
+        const route = [d.origin, d.destination].filter(Boolean).join(" → ");
+        const villes = [d.origin_city, d.destination_city].filter(Boolean).join(" → ");
+        const limite = d.needed_by_date ? dateLisible(d.needed_by_date) : "Pas de date limite";
+        const items = Array.isArray(d.items) ? d.items : [];
+        const lignes = items.map((it) => {
+          const nom = it.item_type ? echap(it.item_type) : "Colis";
+          const poids = Number(it.weight_kg) >= 1 ? " · " + echap(it.weight_kg) + " kg" : "";
+          const qte = it.quantity ? " · " + echap(it.quantity) + " article(s)" : "";
+          const devise = echap(String(it.currency || d.currency || "").toUpperCase());
+          const budget = it.max_price_total ? " · " + echap(it.max_price_total) + " " + devise
+            : (it.max_price_per_kg ? " · " + echap(it.max_price_per_kg) + " " + devise + "/kg" : "");
+          return '<li><span class="profil-demande-colis-nom">' + nom + "</span>" + poids + qte + budget + "</li>";
+        }).join("");
+        return '<article class="profil-demande">' +
+          '<div class="profil-demande-route">' + echap(route || "Trajet") + "</div>" +
+          (villes ? '<div class="profil-demande-meta">' + echap(villes) + "</div>" : "") +
+          '<div class="profil-demande-meta">Date limite : ' + echap(limite) + "</div>" +
+          (lignes ? '<ul class="profil-demande-colis">' + lignes + "</ul>" : "") +
+          "</article>";
+      }).join("") + "</div>";
+    } else {
+      html += '<div class="profil-vide">Aucune demande en cours pour le moment.</div>';
     }
     html += "</section>";
 
