@@ -346,6 +346,7 @@
         const mm = String(now.getMonth() + 1).padStart(2, "0");
         const dd = String(now.getDate()).padStart(2, "0");
         els.dateDepart.min = `${yyyy}-${mm}-${dd}`;
+        if (els.dateReception) els.dateReception.min = `${yyyy}-${mm}-${dd}`;
         syncReceptionLimit();
     }
 
@@ -355,12 +356,25 @@
         const champ = els.dateReception;
         if (!champ) return;
         const depart = String(els.dateDepart?.value || "").trim();
+        // Meme regle que la date du voyage : aucune date passee.
+        const aujourdhui = (() => {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        })();
+        champ.min = aujourdhui;
         if (depart) champ.max = depart;
         else champ.removeAttribute("max");
         if (depart && champ.value && champ.value > depart) {
             champ.value = "";
             if (signaler) {
                 revealStepError(0, "La date limite de réception doit être avant la date du voyage", champ);
+            }
+            return;
+        }
+        if (champ.value && champ.value < aujourdhui) {
+            champ.value = "";
+            if (signaler) {
+                revealStepError(0, "La date limite de réception doit être aujourd'hui ou plus tard", champ);
             }
         }
     }
@@ -2179,14 +2193,21 @@
                     return;
                 }
 
-                // 2 bis) Date limite de reception (optionnel) : jamais apres le depart.
+                // 2 bis) Date limite de reception (optionnel) : ni passee, ni apres le depart.
                 const dateReception = document.getElementById("date-reception");
-                if (dateReception && dateReception.value && dateVoyage?.value
-                    && dateReception.value > dateVoyage.value) {
-                    showErr(errBox1, "La date limite de réception doit être avant la date du voyage.");
-                    markError(dateReception);
-                    focusField(dateReception);
-                    return;
+                if (dateReception && dateReception.value) {
+                    if (dateReception.min && dateReception.value < dateReception.min) {
+                        showErr(errBox1, "La date limite de réception doit être aujourd'hui ou plus tard.");
+                        markError(dateReception);
+                        focusField(dateReception);
+                        return;
+                    }
+                    if (dateVoyage?.value && dateReception.value > dateVoyage.value) {
+                        showErr(errBox1, "La date limite de réception doit être avant la date du voyage.");
+                        markError(dateReception);
+                        focusField(dateReception);
+                        return;
+                    }
                 }
 
                 // 3) [ENTREPRISE / CARGO] Dates multiples : chaque ligne ajoutée doit être
