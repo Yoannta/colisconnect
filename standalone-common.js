@@ -1769,7 +1769,8 @@
             if (p.includes("/payments") || p.includes("/initiate-payment") || p.includes("/payment-webhook")) {
                 const urlObj = new URL(path, window.location.origin);
                 let funcName = '';
-                if (p.includes("/initiate-payment")) funcName = 'initiate-payment' + urlObj.search;
+                if (p.includes("/payments/verify")) funcName = 'verify-payment';
+                else if (p.includes("/initiate-payment")) funcName = 'initiate-payment' + urlObj.search;
                 else if (p.includes("/payment-webhook")) funcName = 'payment-webhook';
                 else funcName = 'initiate-payment';
 

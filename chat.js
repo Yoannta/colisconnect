@@ -988,33 +988,67 @@
             hubContainer.innerHTML = `
                 <div style="animation: fadeIn 0.3s ease;">
                     <button id="btn-back-choice" style="background: transparent; border: none; color: #aaa; margin-bottom: 20px; cursor: pointer;">← Retour</button>
-                    <h3 style="margin-bottom: 10px;">Indicatif pays</h3>
-                    <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
-                        <input type="text" id="momo-prefix" placeholder="Ex: +225" style="width: 100%; font-size: 1.1rem; background: transparent; border: none; color: white; outline: none;">
+                    <h3 style="margin-bottom: 6px;">Payer par Mobile Money</h3>
+                    <p style="color: #9ca3af; font-size: 0.82rem; margin-bottom: 14px;">Saisissez votre numéro : la demande de paiement arrive directement sur votre téléphone. Rien à ressaisir ensuite.</p>
+                    <div style="background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 12px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                        <input type="tel" id="momo-phone" placeholder="+225 07 00 00 00 00" autocomplete="tel" inputmode="tel" style="width: 100%; font-size: 1.1rem; background: transparent; border: none; color: white; outline: none; padding: 8px 0;">
                     </div>
+                    <p id="momo-error" style="color: #f87171; font-size: 0.8rem; min-height: 18px;"></p>
                     <div id="momo-routing-zone"></div>
                 </div>
             `;
             document.getElementById("btn-back-choice").onclick = () => openSplitPaymentModal(type, totalAmount);
-            const prefixInput = document.getElementById("momo-prefix");
+            const phoneInput = document.getElementById("momo-phone");
             const routingZone = document.getElementById("momo-routing-zone");
-            const countryCodes = {
-                "+225": { name: "Côte d'Ivoire 🇨🇮", iso: "CI" }, "+221": { name: "Sénégal 🇸🇳", iso: "SN" },
-                "+229": { name: "Bénin 🇧🇯", iso: "BJ" }, "+237": { name: "Cameroun 🇨🇲", iso: "CM" },
-                "+243": { name: "RD Congo 🇨🇩", iso: "CD" }, "+242": { name: "Congo 🇨🇬", iso: "CG" },
-                "+241": { name: "Gabon 🇬🇦", iso: "GA" }, "+254": { name: "Kenya 🇰🇪", iso: "KE" },
+            const errorBox = document.getElementById("momo-error");
+            // Operateurs par pays (slugs GeniusPay). Le pays vient de l'indicatif.
+            const countries = {
+                "+225": { name: "Côte d'Ivoire", rails: [["wave", "Wave"], ["orange_money", "Orange Money"], ["mtn_money", "MTN MoMo"], ["moov_money", "Moov Money"]] },
+                "+221": { name: "Sénégal", rails: [["wave", "Wave"], ["orange_money", "Orange Money"], ["free_money", "Free Money"]] },
+                "+229": { name: "Bénin", rails: [["mtn_money", "MTN MoMo"], ["moov_money", "Moov Money"]] },
+                "+226": { name: "Burkina Faso", rails: [["orange_money", "Orange Money"], ["moov_money", "Moov Money"]] },
+                "+223": { name: "Mali", rails: [["orange_money", "Orange Money"], ["moov_money", "Moov Money"]] },
+                "+228": { name: "Togo", rails: [["moov_money", "Moov Money"]] },
+                "+227": { name: "Niger", rails: [["orange_money", "Orange Money"]] },
+                "+245": { name: "Guinée-Bissau", rails: [["orange_money", "Orange Money"]] },
+                "+237": { name: "Cameroun", rails: [["mtn_money", "MTN MoMo"], ["orange_money", "Orange Money"]] },
+                "+242": { name: "Congo", rails: [["mtn_money", "MTN MoMo"]] },
+                "+243": { name: "RD Congo", rails: [["orange_money", "Orange Money"], ["mpesa", "M-Pesa"]] },
+                "+254": { name: "Kenya", rails: [["mpesa", "M-Pesa"]] },
             };
-            prefixInput.oninput = () => {
-                const val = prefixInput.value.trim();
-                const matched = Object.keys(countryCodes).find(p => val === p || (val.length > 3 && val.startsWith(p)));
+            const renderRails = () => {
+                const raw = String(phoneInput.value || "").trim();
+                const digits = raw.replace(/[^\d]/g, "");
+                const matched = Object.keys(countries).find((p) => digits.startsWith(p.slice(1)));
                 if (matched) {
-                    const c = countryCodes[matched];
-                    routingZone.innerHTML = `<button class="method-btn-premium" id="btn-momo-go" style="width:100%;border-color:var(--emerald-bright);margin-top:10px;"><span class="icon">🚀</span><div class="text-wrap"><span class="title">Continuer en ${c.name}</span></div></button>`;
-                    document.getElementById("btn-momo-go").onclick = () => handleHubPayment("momo", null, null, c.iso);
-                } else if (val.length >= 4) {
+                    const c = countries[matched];
+                    routingZone.innerHTML = `
+                        <p style="color: #9ca3af; font-size: 0.78rem; text-transform: uppercase; letter-spacing: .5px; margin: 10px 0 8px;">Payer avec</p>
+                        ${c.rails.map(([slug, label]) => `
+                            <button class="method-btn-premium" data-rail="${slug}" style="width:100%;margin-bottom:8px;">
+                                <span class="icon">📱</span>
+                                <div class="text-wrap"><span class="title">${label}</span><span class="subtitle">${c.name} — validation sur votre téléphone</span></div>
+                            </button>`).join("")}
+                    `;
+                    routingZone.querySelectorAll("[data-rail]").forEach((btn) => {
+                        btn.onclick = () => {
+                            const phone = String(phoneInput.value || "").trim().replace(/\s/g, "");
+                            if (!/^\+\d{8,15}$/.test(phone)) {
+                                if (errorBox) errorBox.textContent = "Numéro complet avec le + (ex: +2250700000000).";
+                                return;
+                            }
+                            if (errorBox) errorBox.textContent = "";
+                            handleHubPayment(btn.getAttribute("data-rail"), phone, btn);
+                        };
+                    });
+                } else if (/^\+\d{8,15}$/.test(raw.replace(/\s/g, ""))) {
                     routingZone.innerHTML = `<div style="color:#f87171; padding:15px; border-radius:12px; background:rgba(239,68,68,0.1);">Mobile Money non disponible pour ce pays.</div>`;
-                } else { routingZone.innerHTML = ""; }
+                } else {
+                    routingZone.innerHTML = "";
+                }
             };
+            phoneInput.oninput = renderRails;
+            phoneInput.focus();
         };
     }
 
@@ -1052,23 +1086,88 @@
         }
     }
 
-    async function handleHubPayment(type, provider = null, phoneNum = null, country = null) {
+    // Paiement : carte -> page PSP hebergee ; mobile money -> mode direct
+    // (GeniusPay envoie la demande sur le telephone, plus rien a ressaisir).
+    async function handleHubPayment(rail = "card", phone = null, btnEl = null) {
         const resId = state.activeThreadData?.reservation?.id || state.activeThreadData?.reservation_id || state.activeThreadData?.reservationId;
         if (!resId) return alert("Identifiant réservation manquant.");
-        const btn = document.getElementById(type === "card" ? "pay-card" : "btn-momo-validate");
+        const btn = btnEl || document.getElementById(rail === "card" ? "pay-card" : null);
         const originalContent = btn ? btn.innerHTML : "";
         if (btn) { btn.innerHTML = `<span class="spinner"></span> Connexion...`; btn.style.pointerEvents = "none"; }
         try {
-            const result = await window.CCCommon.api(`/api/payments/initiate${country ? '?country=' + country : ''}`, {
+            const result = await window.CCCommon.api("/api/payments/initiate", {
                 method: "POST",
-                body: { reservationId: resId, type, phoneNumber: phoneNum, amountEUR: PAYMENT_STATE.amount, country }
+                body: { reservationId: resId, rail, phone }
             });
-            if (result.paymentUrl) window.location.href = result.paymentUrl;
-            else throw new Error("Lien de paiement non généré.");
+            if (btn) { btn.innerHTML = originalContent; btn.style.pointerEvents = ""; }
+            if (result?.paymentUrl) { window.location.href = result.paymentUrl; return; }
+            // Mode direct : on attend la validation sur le telephone, en verifiant
+            // le statut reel toutes les 4 s (jamais l'ecran seul).
+            await watchDirectPayment(resId, phone, result);
         } catch (err) {
             if (btn) { btn.innerHTML = originalContent; btn.style.pointerEvents = ""; }
             alert("Erreur: " + (err.message || "Service momentanément indisponible."));
         }
+    }
+
+    // Ecran d'attente : « validez sur votre telephone », puis verification
+    // periodique aupres du serveur (qui interroge GeniusPay).
+    async function watchDirectPayment(reservationId, phone, info) {
+        const modal = document.getElementById("split-payment-modal");
+        const container = document.getElementById("payment-modal-container");
+        if (!container) return alert("Validez la demande de paiement reçue sur votre téléphone.");
+
+        const montant = info?.amount
+            ? (window.CCCommon?.formatAmount ? window.CCCommon.formatAmount(info.amount, info.currency) : `${info.amount} ${info.currency}`)
+            : "";
+        container.innerHTML = `
+            <div style="text-align:center; padding: 10px 4px;">
+                <div style="font-size: 2.4rem; margin-bottom: 10px;">📲</div>
+                <h3 style="margin-bottom: 8px;">Validez sur votre téléphone</h3>
+                <p style="color:#9ca3af; font-size:0.88rem; line-height:1.5; margin-bottom: 14px;">
+                    Une demande de paiement${montant ? ` de <strong>${montant}</strong>` : ""} a été envoyée au
+                    <strong>${window.CCCommon.escapeHtml(String(phone || ""))}</strong>.<br>
+                    Confirmez-la dans l'application ou par le code USSD de votre opérateur.
+                </p>
+                ${info?.otpInstructions ? `<p style="color:#fbbf24; font-size:0.82rem; margin-bottom:12px;">${window.CCCommon.escapeHtml(info.otpInstructions)}</p>` : ""}
+                <p id="direct-wait-status" style="color:#34d399; font-size:0.85rem; min-height:20px;">En attente de la confirmation…</p>
+                <button type="button" id="direct-wait-close" style="margin-top: 16px; background: transparent; border: none; color: #aaa; font-size: 0.85rem; cursor: pointer;">Fermer</button>
+            </div>
+        `;
+        document.getElementById("direct-wait-close").onclick = () => modal?.classList.add("hidden");
+
+        const statusEl = document.getElementById("direct-wait-status");
+        const started = Date.now();
+        const tick = async () => {
+            if (!document.body.contains(container) || modal?.classList.contains("hidden")) return;
+            try {
+                const res = await window.CCCommon.api("/api/payments/verify", {
+                    method: "POST",
+                    body: { reservationId }
+                });
+                if (res?.status === "paid" || res?.changed) {
+                    if (statusEl) statusEl.textContent = "Paiement confirmé !";
+                    modal?.classList.add("hidden");
+                    showNotification("Paiement confirmé. Vos kilos sont réservés.", "success");
+                    await loadConversations();
+                    if (state.activeThreadId) await openThread(state.activeThreadId);
+                    await openReceipt();
+                    return;
+                }
+                if (statusEl) {
+                    const secs = Math.round((Date.now() - started) / 1000);
+                    statusEl.textContent = `Toujours en attente… (${secs}s) — vérifiez votre téléphone.`;
+                }
+            } catch (e) {
+                if (statusEl) statusEl.textContent = "Vérification impossible pour le moment, nouvelle tentative…";
+            }
+            if (Date.now() - started > 180000) {
+                if (statusEl) statusEl.textContent = "Toujours pas de confirmation. Le paiement reste vérifiable : rouvrez la conversation plus tard.";
+                return;
+            }
+            setTimeout(tick, 4000);
+        };
+        setTimeout(tick, 3000);
     }
 
     // ---- Events ----
@@ -1263,6 +1362,15 @@
                 // valider un paiement sans payer. Seul le webhook (service role) est
                 // autoritaire. Ici on se contente de LIRE l'etat reel.
                 const resId = urlParams.get('id');
+                if (resId) {
+                    // Le webhook peut arriver apres la redirection : on demande au
+                    // serveur de relire le paiement chez GeniusPay avant d'afficher.
+                    try {
+                        await window.CCCommon.api("/api/payments/verify", { method: "POST", body: { reservationId: resId } });
+                    } catch (e) {
+                        console.warn("Verification du paiement au retour impossible:", e);
+                    }
+                }
                 if (resId && window.ccSupabase) {
                     try {
                         const { data: reservation, error } = await window.ccSupabase
