@@ -499,7 +499,6 @@
                     : Array.isArray(payload) ? payload : [];
             }
             if (seq !== state.seq.demands) return;
-            items = await enrichDemandCountryCodes(items);
             state.demands = items;
             state.demandsLoaded = true;
             if (state.section === "demand") renderDemands();
@@ -814,28 +813,6 @@
         setBusy(false);
     }
 
-    // ── Les demandes ne stockent pas les codes pays : on les resout une fois pour
-    // afficher les drapeaux comme sur les cartes d'offres.
-    async function enrichDemandCountryCodes(items) {
-        const getCode = window.CCCommon && window.CCCommon._getCountryCode;
-        if (typeof getCode !== "function" || !Array.isArray(items)) return items;
-        const cache = new Map();
-        const codeDe = async (nom) => {
-            const cle = String(nom || "").trim();
-            if (!cle) return "";
-            if (cache.has(cle)) return cache.get(cle);
-            let code = "";
-            try { code = (await getCode(cle)) || ""; } catch (e) { code = ""; }
-            cache.set(cle, code);
-            return code;
-        };
-        for (const demande of items) {
-            if (!demande.originCountryCode) demande.originCountryCode = await codeDe(demande.origin);
-            if (!demande.destCountryCode) demande.destCountryCode = await codeDe(demande.destination);
-        }
-        return items;
-    }
-
     function renderDemands() {
         if (!els.list) return;
         if (state.loading.demands && !state.demandsLoaded) {
@@ -1137,17 +1114,6 @@
             if (name === "create-demand") openDemandModal();
             if (name === "clear-filters") clearFilters();
             if (name === "retry") reloadActive();
-            return;
-        }
-
-        // Dépliant « Voir tous » des cartes de demande (colis 2, 3...).
-        const demandeToggle = event.target.closest("[data-demand-expand]");
-        if (demandeToggle) {
-            const grille = demandeToggle.closest(".cc3-special-grid");
-            const ouvert = grille ? grille.classList.toggle("expanded") : false;
-            demandeToggle.setAttribute("aria-expanded", ouvert ? "true" : "false");
-            const libelle = demandeToggle.querySelector(".cc3-toggle-label");
-            if (libelle) libelle.textContent = ouvert ? "Voir moins" : "Voir tous";
             return;
         }
 
