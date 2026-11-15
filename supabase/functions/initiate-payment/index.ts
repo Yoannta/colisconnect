@@ -38,32 +38,31 @@ const COUNTRY_BY_PREFIX: Record<string, { country: string; currency: string }> =
 
 // Slugs de rails acceptes cote client (voir geniuspay_get_rails).
 const ALLOWED_RAILS = [
-    "wave", "orange_money", "mtn_money", "moov_money", "free_money", "djamo", "telecel",
-    "mobicash", "airtel_money", "togocel", "afrimoney", "mpesa", "emoney", "qmoney",
+    "wave", "orange_money", "mtn_money", "moov_money", "free_money", "mobicash",
+    "airtel_money", "togocel", "mpesa", "zamtel_kwacha",
 ];
 
-// Rails reellement proposes par pays (coverage officielle GeniusPay, 2026-11-16).
+// Rails reellement proposes par pays : releve sur la page de paiement
+// GeniusPay le 2026-11-16 (verite terrain, pas la doc).
 const RAILS_BY_COUNTRY: Record<string, string[]> = {
-    CI: ["wave", "orange_money", "mtn_money", "moov_money", "djamo", "telecel"],
-    SN: ["wave", "orange_money", "free_money", "djamo"],
+    CI: ["orange_money", "mtn_money", "moov_money", "wave"],
+    SN: ["orange_money", "free_money", "wave"],
+    BJ: ["mtn_money", "moov_money"],
+    BF: ["orange_money", "wave", "moov_money", "mobicash"],
     ML: ["orange_money", "mobicash"],
-    BF: ["orange_money", "moov_money", "wave", "mobicash", "telecel"],
-    BJ: ["orange_money", "mtn_money", "moov_money"],
-    TG: ["orange_money", "moov_money", "togocel"],
+    TG: ["moov_money", "togocel"],
     NE: ["airtel_money"],
-    CM: ["mtn_money", "orange_money"],
+    GW: ["orange_money"],
+    GN: ["orange_money"],
+    CM: ["orange_money", "mtn_money"],
+    CG: ["airtel_money", "mtn_money"],
     GA: ["airtel_money"],
-    CG: ["mtn_money", "airtel_money"],
-    GN: ["orange_money", "mtn_money"],
-    SL: ["afrimoney"],
-    GH: ["mtn_money"],
-    UG: ["mtn_money", "airtel_money"],
-    ZM: ["mtn_money", "airtel_money"],
-    RW: ["mtn_money", "airtel_money"],
-    CD: ["airtel_money", "mpesa", "orange_money", "emoney"],
+    CD: ["airtel_money", "orange_money", "mpesa"],
     KE: ["mpesa"],
-    TZ: ["mpesa"],
-    GM: ["qmoney"],
+    UG: ["airtel_money", "mtn_money"],
+    RW: ["airtel_money", "mtn_money"],
+    ZM: ["mtn_money", "zamtel_kwacha"],
+    SL: ["orange_money"]
 };
 
 const XOF_ZONE = ["CI", "SN", "BJ", "BF", "ML", "TG", "NE", "GW"];
