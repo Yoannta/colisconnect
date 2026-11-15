@@ -1779,7 +1779,23 @@
                     body: options.body,
                     headers: options.headers || {}
                 });
-                if (error) throw error;
+                if (error) {
+                    // [FIX] functions.invoke masque le corps des reponses non-2xx :
+                    // on relit la reponse pour afficher le VRAI message (ex. cle
+                    // GeniusPay invalide, reservation deja payee).
+                    let message = error.message || "Paiement impossible.";
+                    try {
+                        const ctx = error.context;
+                        if (ctx && typeof ctx.clone === "function") {
+                            const body = await ctx.clone().json();
+                            if (body && body.error) message = String(body.error);
+                        } else if (ctx && typeof ctx.json === "function") {
+                            const body = await ctx.json();
+                            if (body && body.error) message = String(body.error);
+                        }
+                    } catch (e) { /* corps illisible : on garde le message generique */ }
+                    throw new Error(message);
+                }
                 return data;
             }
         }

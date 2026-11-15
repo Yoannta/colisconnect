@@ -33,11 +33,38 @@ const COUNTRY_BY_PREFIX: Record<string, { country: string; currency: string }> =
     "260": { country: "ZM", currency: "ZMW" },
     "265": { country: "MW", currency: "MWK" },
     "258": { country: "MZ", currency: "MZN" },
-    "232": { country: "SL", currency: "SLE" },
+    "232": { country: "SL", currency: "SLL" },
 };
 
 // Slugs de rails acceptes cote client (voir geniuspay_get_rails).
-const ALLOWED_RAILS = ["wave", "orange_money", "mtn_money", "moov_money", "free_money", "mpesa"];
+const ALLOWED_RAILS = [
+    "wave", "orange_money", "mtn_money", "moov_money", "free_money", "djamo", "telecel",
+    "mobicash", "airtel_money", "togocel", "afrimoney", "mpesa", "emoney", "qmoney",
+];
+
+// Rails reellement proposes par pays (coverage officielle GeniusPay, 2026-11-16).
+const RAILS_BY_COUNTRY: Record<string, string[]> = {
+    CI: ["wave", "orange_money", "mtn_money", "moov_money", "djamo", "telecel"],
+    SN: ["wave", "orange_money", "free_money", "djamo"],
+    ML: ["orange_money", "mobicash"],
+    BF: ["orange_money", "moov_money", "wave", "mobicash", "telecel"],
+    BJ: ["orange_money", "mtn_money", "moov_money"],
+    TG: ["orange_money", "moov_money", "togocel"],
+    NE: ["airtel_money"],
+    CM: ["mtn_money", "orange_money"],
+    GA: ["airtel_money"],
+    CG: ["mtn_money", "airtel_money"],
+    GN: ["orange_money", "mtn_money"],
+    SL: ["afrimoney"],
+    GH: ["mtn_money"],
+    UG: ["mtn_money", "airtel_money"],
+    ZM: ["mtn_money", "airtel_money"],
+    RW: ["mtn_money", "airtel_money"],
+    CD: ["airtel_money", "mpesa", "orange_money", "emoney"],
+    KE: ["mpesa"],
+    TZ: ["mpesa"],
+    GM: ["qmoney"],
+};
 
 const XOF_ZONE = ["CI", "SN", "BJ", "BF", "ML", "TG", "NE", "GW"];
 
@@ -94,25 +121,25 @@ Deno.serve(async (req: Request) => {
             .eq("id", reservationId)
             .maybeSingle();
         if (resErr) throw resErr;
-        if (!reservation) return json({ error: "Reservation introuvable." }, 404);
+        if (!reservation) return json({ error: "Reservation introuvable.", success: false });
 
         const resume = Array.isArray((reservation as any).offers)
             ? (reservation as any).offers[0]
             : (reservation as any).offers;
 
         if (String((reservation as any).user_id) !== String(user.id)) {
-            return json({ error: "Seul le client de cette reservation peut payer." }, 403);
+            return json({ error: "Seul le client de cette reservation peut payer.", success: false });
         }
 
         const paidStatuses = ["paid", "voyageur_paye", "colisconnect_paye", "livre", "delivered"];
         if (paidStatuses.includes(String((reservation as any).status || ""))) {
-            return json({ error: "Cette reservation est deja payee.", alreadyPaid: true }, 409);
+            return json({ error: "Cette reservation est deja payee.", alreadyPaid: true, success: false });
         }
 
         const kg = Number((reservation as any).kg || 0);
         const pricePerKg = Number(resume?.price_per_kg || 0);
         const offerCurrency = String(resume?.base_currency || "XOF").toUpperCase();
-        if (!(kg > 0)) return json({ error: "Choisissez d'abord le nombre de kilos." }, 400);
+        if (!(kg > 0)) return json({ error: "Choisissez d'abord le nombre de kilos.", success: false });
         if (!(pricePerKg > 0)) return json({ error: "Prix au kilo indisponible sur cette offre." }, 400);
 
         const totalInOfferCurrency = Math.round(kg * pricePerKg * 100) / 100;
@@ -140,7 +167,7 @@ Deno.serve(async (req: Request) => {
         } else {
             const from = rateOf(offerCurrency);
             const to = rateOf(targetCurrency);
-            if (!from || !to) return json({ error: "Taux de change indisponible. Reessayez plus tard." }, 503);
+            if (!from || !to) return json({ error: "Taux de change indisponible. Reessayez plus tard.", success: false });
             amount = (commissionInOfferCurrency / from) * to;
         }
 
@@ -155,10 +182,20 @@ Deno.serve(async (req: Request) => {
         }
 
         if (!wantsCard && !ALLOWED_RAILS.includes(rail)) {
-            return json({ error: "Moyen de paiement non pris en charge." }, 400);
+            return json({ error: "Moyen de paiement non pris en charge.", success: false });
         }
         if (!wantsCard && !/^\+\d{8,15}$/.test(phone)) {
-            return json({ error: "Numero de telephone invalide." }, 400);
+            return json({ error: "Numero de telephone invalide.", success: false });
+        }
+        if (!wantsCard) {
+            const railsForCountry = RAILS_BY_COUNTRY[countryCode] || [];
+            if (!railsForCountry.includes(rail)) {
+                return json({
+                    error: `${rail} n'est pas disponible en ${countryCode}.`,
+                    success: false,
+                    available_rails: railsForCountry,
+                });
+            }
         }
 
         const payload: Record<string, unknown> = {
@@ -209,7 +246,6 @@ Deno.serve(async (req: Request) => {
                     error_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
                     metadata: { reservationId: String(reservationId) },
                 };
-                if (!wantsCard) v1Payload.payment_method = rail;
                 const v1Res = await fetch("https://pay.genius.ci/api/v1/merchant/payments", {
                     method: "POST",
                     headers: {
@@ -223,7 +259,7 @@ Deno.serve(async (req: Request) => {
                 const v1Url = v1Data?.data?.checkout_url || v1Data?.checkout_url || v1Data?.data?.payment_url;
                 if (!v1Res.ok || !v1Url) {
                     const v1Msg = v1Data?.message || v1Data?.error || "Paiement refuse par GeniusPay.";
-                    return json({ error: String(v1Msg) }, 400);
+                    return json({ error: String(v1Msg), success: false });
                 }
                 await supabase
                     .from("reservations")
@@ -246,7 +282,7 @@ Deno.serve(async (req: Request) => {
             }
             console.error("[Payment] GeniusPay refus:", geniusRes.status, JSON.stringify(result).slice(0, 500));
             const message = result?.error?.message || result?.error || result?.message || "Paiement refuse par GeniusPay.";
-            return json({ error: String(message) }, 400);
+            return json({ error: String(message), success: false });
         }
 
         // Montant total enregistre : c'est lui que le recu affichera.

@@ -1002,19 +1002,28 @@
             const routingZone = document.getElementById("momo-routing-zone");
             const errorBox = document.getElementById("momo-error");
             // Operateurs par pays (slugs GeniusPay). Le pays vient de l'indicatif.
+            // Liste officielle GeniusPay (coverage: pays + operateurs mobile money live).
             const countries = {
-                "+225": { name: "Côte d'Ivoire", rails: [["wave", "Wave"], ["orange_money", "Orange Money"], ["mtn_money", "MTN MoMo"], ["moov_money", "Moov Money"]] },
-                "+221": { name: "Sénégal", rails: [["wave", "Wave"], ["orange_money", "Orange Money"], ["free_money", "Free Money"]] },
-                "+229": { name: "Bénin", rails: [["mtn_money", "MTN MoMo"], ["moov_money", "Moov Money"]] },
-                "+226": { name: "Burkina Faso", rails: [["orange_money", "Orange Money"], ["moov_money", "Moov Money"]] },
-                "+223": { name: "Mali", rails: [["orange_money", "Orange Money"], ["moov_money", "Moov Money"]] },
-                "+228": { name: "Togo", rails: [["moov_money", "Moov Money"]] },
-                "+227": { name: "Niger", rails: [["orange_money", "Orange Money"]] },
-                "+245": { name: "Guinée-Bissau", rails: [["orange_money", "Orange Money"]] },
-                "+237": { name: "Cameroun", rails: [["mtn_money", "MTN MoMo"], ["orange_money", "Orange Money"]] },
-                "+242": { name: "Congo", rails: [["mtn_money", "MTN MoMo"]] },
-                "+243": { name: "RD Congo", rails: [["orange_money", "Orange Money"], ["mpesa", "M-Pesa"]] },
-                "+254": { name: "Kenya", rails: [["mpesa", "M-Pesa"]] },
+                "+225": { name: "Côte d'Ivoire", currency: "XOF", rails: [["wave", "Wave"], ["orange_money", "Orange Money"], ["mtn_money", "MTN MoMo"], ["moov_money", "Moov Money"], ["djamo", "Djamo"], ["telecel", "Telecel Money"]] },
+                "+221": { name: "Sénégal", currency: "XOF", rails: [["wave", "Wave"], ["orange_money", "Orange Money"], ["free_money", "Free Money"], ["djamo", "Djamo"]] },
+                "+223": { name: "Mali", currency: "XOF", rails: [["orange_money", "Orange Money"], ["mobicash", "Mobicash"]] },
+                "+226": { name: "Burkina Faso", currency: "XOF", rails: [["orange_money", "Orange Money"], ["moov_money", "Moov Money"], ["wave", "Wave"], ["mobicash", "Mobicash"], ["telecel", "Telecel Money"]] },
+                "+229": { name: "Bénin", currency: "XOF", rails: [["orange_money", "Orange Money"], ["mtn_money", "MTN MoMo"], ["moov_money", "Moov Money"]] },
+                "+228": { name: "Togo", currency: "XOF", rails: [["orange_money", "Orange Money"], ["moov_money", "Moov Money"], ["togocel", "Togocom / T-Money"]] },
+                "+227": { name: "Niger", currency: "XOF", rails: [["airtel_money", "Airtel Money"]] },
+                "+237": { name: "Cameroun", currency: "XAF", rails: [["mtn_money", "MTN MoMo"], ["orange_money", "Orange Money"]] },
+                "+241": { name: "Gabon", currency: "XAF", rails: [["airtel_money", "Airtel Money"]] },
+                "+242": { name: "Congo", currency: "XAF", rails: [["mtn_money", "MTN MoMo"], ["airtel_money", "Airtel Money"]] },
+                "+224": { name: "Guinée", currency: "GNF", rails: [["orange_money", "Orange Money"], ["mtn_money", "MTN MoMo"]] },
+                "+232": { name: "Sierra Leone", currency: "SLL", rails: [["afrimoney", "Afrimoney"]] },
+                "+233": { name: "Ghana", currency: "GHS", rails: [["mtn_money", "MTN MoMo"]] },
+                "+256": { name: "Ouganda", currency: "UGX", rails: [["mtn_money", "MTN MoMo"], ["airtel_money", "Airtel Money"]] },
+                "+260": { name: "Zambie", currency: "ZMW", rails: [["mtn_money", "MTN MoMo"], ["airtel_money", "Airtel Money"]] },
+                "+250": { name: "Rwanda", currency: "RWF", rails: [["mtn_money", "MTN MoMo"], ["airtel_money", "Airtel Money"]] },
+                "+243": { name: "RD Congo", currency: "CDF", rails: [["airtel_money", "Airtel Money"], ["mpesa", "M-Pesa"], ["orange_money", "Orange Money"], ["emoney", "e-Money"]] },
+                "+254": { name: "Kenya", currency: "KES", rails: [["mpesa", "M-Pesa"]] },
+                "+255": { name: "Tanzanie", currency: "TZS", rails: [["mpesa", "M-Pesa"]] },
+                "+220": { name: "Gambie", currency: "GMD", rails: [["qmoney", "QMoney"]] }
             };
             const renderRails = () => {
                 const raw = String(phoneInput.value || "").trim();
