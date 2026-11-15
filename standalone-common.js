@@ -633,6 +633,24 @@
         }
     }
 
+    // Un fil dont la reservation est payee : les coordonnees sont le service
+    // vendu, le filtre anti-contact ne doit plus s'y appliquer.
+    async function isPaidChatThread(threadId) {
+        try {
+            const { data, error } = await window.ccSupabase
+                .from("chat_threads")
+                .select("reservation_id, reservations(status)")
+                .eq("id", threadId)
+                .maybeSingle();
+            if (error) throw error;
+            const res = Array.isArray(data?.reservations) ? data.reservations[0] : data?.reservations;
+            return ["paid", "voyageur_paye", "colisconnect_paye"].includes(String(res?.status || ""));
+        } catch (error) {
+            console.warn("Verification du paiement du fil impossible:", error.message || error);
+            return false;
+        }
+    }
+
     // Texte du premier message d'un fil ouvert depuis une demande : porte le contexte de la
     // demande, faute de colonne dediee sur chat_threads (voir /api/conversations/by-request).
     function demandeContextText(demande) {
@@ -1170,7 +1188,8 @@
                     // SEND MESSAGE
                     const threadId = threadMatch[1];
                     const text = String(options.body?.text || "");
-                    if (window.CCAntiContact?.evaluate) {
+                    const paidThread = await isPaidChatThread(threadId);
+                    if (!paidThread && window.CCAntiContact?.evaluate) {
                         const recentText = await recentChatText(threadId);
                         const moderation = window.CCAntiContact.evaluate(text, { recentText });
                         if (!moderation.allowed) {
@@ -1183,7 +1202,7 @@
                     }
                     // Couche 2 (verificateur IA) : dernier verrou avant l'ecriture reelle.
                     // Le moderateur classique decide seul s'il faut appeler le modele.
-                    if (window.CCFraudeIA?.verifierEnvoi) {
+                    if (!paidThread && window.CCFraudeIA?.verifierEnvoi) {
                         const verdict = await window.CCFraudeIA.verifierEnvoi(threadId, text);
                         if (verdict && verdict.fraude) {
                             const err = new Error("Message bloqué : divulgation de contacts confirmée par la vérification anti-fraude.");

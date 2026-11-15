@@ -7,6 +7,8 @@
         messages: [],
         receiptBase64: null,
         paymentType: "regular",
+        travelerPhone: "",
+        userPhone: "",
         isTutorialAccepted: false,
         isSendingMessage: false,
         leakWarningVisible: false,
@@ -68,9 +70,30 @@
         messageInput: document.getElementById("message-input"),
         chatPayBtn: document.getElementById("chat-pay-btn"),
         chatInfoBanner: document.getElementById("chat-info-banner"),
+        chatPaidBanner: document.getElementById("chat-paid-banner"),
+        paidInfoText: document.getElementById("paid-line-info-text"),
+        paidReceiptBtn: document.getElementById("paid-line-receipt"),
+        paidContactsDetail: document.getElementById("paid-contacts-detail"),
+        receiptDownloadBtn: document.getElementById("receipt-download-btn"),
+        receiptCloseBtn: document.getElementById("receipt-close-btn"),
         tutorialOverlay: document.getElementById("chat-tutorial-overlay"),
         comprisBtn: document.getElementById("banner-compris-btn"),
     };
+
+    // Statuts d'une reservation dont le paiement est encaisse.
+    const PAID_STATUSES = ["paid", "voyageur_paye", "colisconnect_paye"];
+
+    function isPaidThread(thread) {
+        const t = thread || state.activeThreadData;
+        return PAID_STATUSES.includes(String(t?.status || ""));
+    }
+
+    function threadCurrency(thread) {
+        const cur = thread?.offer?.base_currency;
+        if (cur) return cur;
+        return window.CCCommon?.getUserCurrency ? window.CCCommon.getUserCurrency() : "XOF";
+    }
+
 
     // ---- Helpers ----
     function isMobileView() {
@@ -293,12 +316,13 @@
             const isValidation = (msg.text || "").includes("PAIEMENT VALIDÉ");
             let html = `<div class="chat-msg-row chat-msg-system"><span class="chat-bubble-system">${window.CCCommon.escapeHtml(msg.text || "")}`;
             if (isValidation) {
-                // Le webhook peut produire GENIUS_... : l'ancien motif TX_ seulement
-                // fabriquait une fausse reference horodatee quand elle manquait.
+                // Le webhook peut produire GENIUS_... et le texte porte deja
+                // « Référence : X » : on lit d'abord cette valeur, sinon un
+                // prefixe connu. Aucun identifiant fabrique.
+                const refMatch = (msg.text || "").match(/Référence\s*:\s*([^\s\\]+)/i);
                 const txIdMatch = (msg.text || "").match(/\b(?:TX|GENIUS)_[A-Za-z0-9]+\b/);
-                if (txIdMatch) {
-                    html += `<br><button style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.viewReceipt('${txIdMatch[0]}')">🧾 Voir mon Bon de Mise en Relation</button>`;
-                }
+                const ref = refMatch ? refMatch[1] : (txIdMatch ? txIdMatch[0] : "");
+                html += `<br><button data-receipt-ref="${window.CCCommon.escapeHtml(ref)}" style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.viewReceipt(this.getAttribute('data-receipt-ref')||'')">🧾 Voir mon reçu</button>`;
             }
             html += `</span></div>`;
             return html;
@@ -328,25 +352,54 @@
         };
     }
 
-    function fillReceiptTemplate(root, txId) {
-        const thread = state.activeThreadData;
-        const user = window.CCCommon.state.user;
-        const now = new Date();
-        const dateStr = now.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
-        const hourStr = now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-        const travelerId = thread?.offerOwnerId || thread?.offer_owner_id || thread?.travelerId || "N/A";
-        const trip = getReceiptTripParts(thread);
+    // Toutes les donnees du recu viennent de la reservation du fil ouvert :
+    // reference reelle (payment_tx_id posee par le webhook), montant, kilos,
+    // date du paiement, contacts des deux parties.
+    function receiptContext(thread) {
+        const t = thread || state.activeThreadData || {};
+        const res = t.reservation || {};
+        const user = window.CCCommon.state.user || {};
+        const trip = getReceiptTripParts(t);
+        return {
+            ref: String(res.payment_tx_id || t.payment_tx_id || "").trim(),
+            amount: Number(res.total_amount || 0),
+            kg: Number(res.kg || 0),
+            currency: threadCurrency(t),
+            paidAt: res.updated_at || null,
+            senderName: user.fullName || user.user_metadata?.full_name || user.email || "Expéditeur",
+            senderId: user.id ? String(user.id).substring(0, 8) : "N/A",
+            senderPhone: String(user.phoneNumber || user.phone_number || state.userPhone || "").trim(),
+            travelerName: t.travelerName || "Voyageur",
+            travelerId: String(t.offerOwnerId || t.offer_owner_id || "N/A").substring(0, 8),
+            travelerPhone: String(state.travelerPhone || "").trim(),
+            from: trip.from,
+            to: trip.to
+        };
+    }
 
-        setReceiptText(root, "pdf-receipt-id", "REF: " + (txId || "N/A"));
+    function fillReceiptTemplate(root, txId) {
+        const ctx = receiptContext();
+        const paidAt = ctx.paidAt ? new Date(ctx.paidAt) : new Date();
+        const dateStr = paidAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+        const hourStr = paidAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+        const fmt = (value, cur) => (window.CCCommon?.formatAmount ? window.CCCommon.formatAmount(value, cur) : `${value} ${cur}`);
+
+        setReceiptText(root, "pdf-receipt-id", "REF: " + (txId || ctx.ref || "N/A"));
         setReceiptText(root, "pdf-date", dateStr);
         setReceiptText(root, "pdf-hour", hourStr);
-        setReceiptText(root, "pdf-sender-name", user?.fullName || user?.user_metadata?.full_name || user?.email || "Expéditeur");
-        setReceiptText(root, "pdf-sender-id", "ID: " + (user?.id ? String(user.id).substring(0, 8) : "N/A"));
-        setReceiptText(root, "pdf-traveler-name", thread?.travelerName || "Voyageur");
-        setReceiptText(root, "pdf-traveler-id", "ID: " + String(travelerId).substring(0, 8));
-        setReceiptText(root, "pdf-trip-from", trip.from);
-        setReceiptText(root, "pdf-trip-to", trip.to);
+        setReceiptText(root, "pdf-amount", ctx.amount > 0 ? fmt(ctx.amount, ctx.currency) : "—");
+        setReceiptText(root, "pdf-kg", ctx.kg > 0 ? `${ctx.kg} kg` : "—");
+        setReceiptText(root, "pdf-payment-date", ctx.paidAt ? `Payé le ${dateStr} à ${hourStr}` : "Paiement confirmé");
+        setReceiptText(root, "pdf-sender-name", ctx.senderName);
+        setReceiptText(root, "pdf-sender-id", "ID: " + ctx.senderId);
+        setReceiptText(root, "pdf-sender-phone", "Tél : " + (ctx.senderPhone || "—"));
+        setReceiptText(root, "pdf-traveler-name", ctx.travelerName);
+        setReceiptText(root, "pdf-traveler-id", "ID: " + ctx.travelerId);
+        setReceiptText(root, "pdf-traveler-phone", "Tél : " + (ctx.travelerPhone || "—"));
+        setReceiptText(root, "pdf-trip-from", ctx.from);
+        setReceiptText(root, "pdf-trip-to", ctx.to);
     }
+
 
     function createReceiptCaptureNode(template, txId) {
         const host = document.createElement("div");
@@ -402,12 +455,29 @@
             return;
         }
 
+        // Un identifiant fabrique (« TX_ » + horodatage) n'est jamais une vraie
+        // reference : on prefere celle de la reservation.
+        const ref = /^TX_\d{10,}$/.test(String(txId || "")) ? "" : String(txId || "");
+
         // Remplissage des données
-        fillReceiptTemplate(modal, txId);
+        fillReceiptTemplate(modal, ref);
 
         // Affichage
         modal.classList.remove("hidden");
     };
+
+    // Ouvre le recu du fil ouvert, en recuperant d'abord le telephone du
+    // voyageur pour que le document soit complet des deux cotes.
+    async function openReceipt() {
+        const thread = state.activeThreadData;
+        const travelerId = thread?.offerOwnerId || thread?.offer_owner_id;
+        if (!state.travelerPhone && travelerId) {
+            const profile = await fetchTravelerContact(travelerId).catch(() => null);
+            if (profile) state.travelerPhone = profile.phone_number || "";
+        }
+        await window.viewReceipt("");
+    }
+
 
     // ---- Téléchargement réel du Bon (PDF) ----
     // Avant, ce bouton se contentait de rouvrir la modale : aucun fichier n'était
@@ -448,6 +518,7 @@
         if (!thread || !window.CCCommon.state?.user) {
             els.chatPayBtn?.classList.add("hidden");
             els.chatInfoBanner?.classList.add("hidden");
+            els.chatPaidBanner?.classList.add("hidden");
             return;
         }
         const payableStatuses = ["pending", "commission_payee", "agreed"];
@@ -467,6 +538,31 @@
             if (!shouldShowBanner) state.isTutorialAccepted = true;
             if (els.comprisBtn) els.comprisBtn.classList.toggle("hidden", state.isTutorialAccepted);
         }
+        updatePaidPanel(thread);
+    }
+
+    // Trois lignes en haut du fil, une fois le paiement encaisse :
+    //   1. resume (montant, kilos)   2. « Voir mon recu »   3. contacts debloques.
+    function updatePaidPanel(thread) {
+        const paid = isPaidThread(thread) && !thread?.isOfferOwner;
+        els.chatPaidBanner?.classList.toggle("hidden", !paid);
+        if (!paid) {
+            if (els.paidContactsDetail) {
+                els.paidContactsDetail.classList.add("hidden");
+                els.paidContactsDetail.innerHTML = "";
+            }
+            return;
+        }
+        const res = thread?.reservation || {};
+        const amount = Number(res.total_amount || 0);
+        const kg = Number(res.kg || 0);
+        const cur = threadCurrency(thread);
+        const bits = ["Paiement confirmé"];
+        if (amount > 0) {
+            bits.push(window.CCCommon?.formatAmount ? window.CCCommon.formatAmount(amount, cur) : `${amount} ${cur}`);
+        }
+        if (kg > 0) bits.push(`${kg} kg réservés`);
+        if (els.paidInfoText) els.paidInfoText.textContent = bits.join(" — ") + ".";
     }
 
     function triggerTutorialFocus() {
@@ -509,17 +605,10 @@
             console.warn("profil de l'interlocuteur indisponible:", err);
         }
 
-        const paidStatuses = ["paid", "voyageur_paye", "colisconnect_paye"];
-        const isPaid = paidStatuses.includes(String(thread.status || ""));
+        // ---- Apres paiement : bandeau a trois lignes, contacts debloques ----
+        updatePaidPanel(thread);
 
-        let contactBox = document.getElementById("chat-contact-revealed");
-        if (!contactBox) {
-            contactBox = document.createElement("div");
-            contactBox.id = "chat-contact-revealed";
-            els.chatPanelHeader?.after(contactBox);
-        }
-
-        if (isPaid && !thread.isOfferOwner) {
+        if (isPaidThread(thread) && !thread.isOfferOwner) {
             const travelerId = thread.offerOwnerId || thread.offer_owner_id;
             const threadIdAtRender = thread.id;
             fetchTravelerContact(travelerId).then(profile => {
@@ -527,65 +616,20 @@
                 // [FIX] La reponse asynchrone pouvait arriver apres un changement de
                 // fil et injecter le contact precedent dans le nouveau contexte.
                 if (String(state.activeThreadId) !== String(threadIdAtRender)) return;
-                if (!contactBox.isConnected) return;
-                contactBox.innerHTML = `
-                    <div style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1)); border: 1px solid var(--emerald-bright); padding: 15px; border-radius: 12px; margin: 10px 20px; animation: slideDown 0.4s ease;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <div style="color: var(--emerald-bright); font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px;">✅ Réservation Confirmée</div>
-                                <div style="font-weight: 700; font-size: 1.1rem; color: white;">${window.CCCommon.escapeHtml(profile.full_name || thread.travelerName)}</div>
-                                <div style="color: #aaa; font-size: 0.9rem; margin-top: 2px;">Tél: ${window.CCCommon.escapeHtml(profile.phone_number || "Non renseigné")}</div>
-                            </div>
-                            <div style="display: flex; flex-direction: column; gap: 8px;">
-                                <a href="https://wa.me/${(profile.phone_number || "").replace(/\+/g, '').replace(/\s/g, '')}" target="_blank"
-                                   style="background: #25D366; color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 0.8rem; display: flex; align-items: center; gap: 6px;">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" style="width: 16px; filter: brightness(0) invert(1);"> WhatsApp
-                                </a>
-                                <button id="btn-show-receipt"
-                                    style="background: rgba(255,255,255,0.1); color: white; padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); font-weight: 600; font-size: 0.8rem; cursor: pointer;">
-                                    🧾 Voir le reçu
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                const receiptBtn = document.getElementById("btn-show-receipt");
-                if (receiptBtn) receiptBtn.onclick = () => showPaymentReceipt(thread, profile);
+                if (!els.paidContactsDetail) return;
+                const phone = String(profile.phone_number || "").trim();
+                const digits = phone.replace(/[^\d]/g, "");
+                state.travelerPhone = phone;
+                els.paidContactsDetail.innerHTML =
+                    `<span class="paid-contact-name">${window.CCCommon.escapeHtml(profile.full_name || thread.travelerName || "")}</span>` +
+                    (phone ? `<span class="paid-contact-phone">📞 ${window.CCCommon.escapeHtml(phone)}</span>` : "") +
+                    (digits ? `<a class="paid-contact-wa" href="https://wa.me/${digits}" target="_blank" rel="noopener">WhatsApp</a>` : "");
+                els.paidContactsDetail.classList.remove("hidden");
             }).catch(() => { });
-        } else {
-            contactBox.innerHTML = "";
+        } else if (els.paidContactsDetail) {
+            els.paidContactsDetail.classList.add("hidden");
+            els.paidContactsDetail.innerHTML = "";
         }
-    }
-
-    function showPaymentReceipt(thread, profile) {
-        const res = thread.reservation || thread;
-        const txId = res.payment_tx_id || res.paymentTxId || "N/A";
-        const date = res.updated_at ? new Date(res.updated_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "N/A";
-        const receiptHtml = `
-            <div style="padding: 20px; text-align: center; color: white; font-family: 'Inter', sans-serif;">
-                <div style="font-size: 3rem; margin-bottom: 10px;">🧾</div>
-                <h2 style="margin-bottom: 20px; color: var(--emerald-bright);">Reçu de Paiement</h2>
-                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 15px; text-align: left; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
-                        <span style="color: #aaa;">Référence :</span>
-                        <span style="font-family: monospace; font-weight: 700;">${txId}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="color: #aaa;">Date :</span><span>${date}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="color: #aaa;">Voyageur :</span><span>${window.CCCommon.escapeHtml(profile.full_name || thread.travelerName)}</span>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <span style="color: #aaa;">Client :</span><span>${window.CCCommon.state.user?.email}</span>
-                    </div>
-                </div>
-                <button onclick="window.generateReceiptPDF('${txId}')" style="margin-top: 20px; width: 100%; background: var(--emerald-bright); color: black; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer;">📩 Télécharger le Bon (PDF)</button>
-            </div>
-        `;
-        const modal = document.getElementById("payment-hub-modal");
-        const container = document.getElementById("payment-modal-container-hub");
-        if (modal && container) { container.innerHTML = receiptHtml; modal.classList.remove("hidden"); }
     }
 
     async function fetchTravelerContact(userId) {
@@ -610,6 +654,7 @@
         if (els.messagesList) els.messagesList.innerHTML = "";
         state.messages = [];
         els.chatPayBtn?.classList.add("hidden");
+        els.chatPaidBanner?.classList.add("hidden");
     }
 
     async function openThread(threadId) {
@@ -618,6 +663,7 @@
         const selected = state.conversations.find((item) => String(item.id) === String(threadId));
         state.activeThreadId = threadId;
         state.activeThreadData = selected || null;
+        state.travelerPhone = ""; // contact de l'autre partie : propre a chaque fil
         renderConversations();
         showChatView();
         document.body.classList.add("thread-open");
@@ -712,6 +758,40 @@
         await openThread(found.id);
     }
 
+    // Retour de paiement : le parametre `id` est la RESERVATION, pas le fil.
+    // On retrouve le fil correspondant (liste chargee, sinon requete directe)
+    // et on l'ouvre pour ramener le client exactement la ou il a paye.
+    async function openThreadForReservation(reservationId) {
+        if (!reservationId) return false;
+        const wanted = String(reservationId);
+        await loadConversations();
+        const findThread = () => state.conversations.find((item) =>
+            String(item.reservation_id || item.reservation?.id || "") === wanted
+        );
+        let found = findThread();
+        if (!found && window.ccSupabase) {
+            try {
+                const { data, error } = await window.ccSupabase
+                    .from("chat_threads")
+                    .select("id")
+                    .eq("reservation_id", reservationId)
+                    .maybeSingle();
+                if (error) throw error;
+                if (data?.id) {
+                    await loadConversations();
+                    found = state.conversations.find((item) => String(item.id) === String(data.id));
+                }
+            } catch (e) {
+                console.warn("Fil de la reservation introuvable:", e);
+            }
+        }
+        if (!found) return false;
+        state.activeThreadId = found.id;
+        await openThread(found.id);
+        return true;
+    }
+
+
     // ---- Anti-Leak ----
     function detectLeakClient(text) {
         if (!text) return false;
@@ -770,12 +850,15 @@
         if (!text) return;
         if (!state.activeThreadId) { alert("Sélectionnez une conversation."); return; }
         if (!state.isTutorialAccepted) { triggerTutorialFocus(); return; }
-        if (detectLeakClient(text)) { showLeakWarning(true); return; }
+        // Une fois le paiement encaisse, partager ses coordonnees EST le service
+        // paye : plus de filtre anti-contact ni de verdict IA sur les numeros.
+        const contactAllowed = isPaidThread(state.activeThreadData);
+        if (!contactAllowed && detectLeakClient(text)) { showLeakWarning(true); return; }
         const threadId = state.activeThreadId;
         // Couche 2 : verificateur IA. Le moderateur classique ne declenche que sur les
         // schemas a chiffres successifs : le reste du chat ne provoque aucun appel.
         const ia = window.CCFraudeIA;
-        if (ia) {
+        if (ia && !contactAllowed) {
             // Un avertissement deja affiche ne bloque plus l'envoi a lui seul : on demande
             // le verdict sur CE message. Le blocage ne revient que si le moderateur confirme
             // la fraude pour ce message precis (sinon un message corrige restait bloque).
@@ -1016,6 +1099,7 @@
         });
 
         els.messageInput?.addEventListener("input", () => {
+            if (isPaidThread(state.activeThreadData)) { showLeakWarning(false); return; }
             showLeakWarning(detectLeakClient(els.messageInput.value));
         });
 
@@ -1104,12 +1188,21 @@
         document.getElementById("split-payment-close")?.addEventListener("click", () => {
             document.getElementById("split-payment-modal").classList.add("hidden");
         });
+        document.getElementById("split-payment-cancel")?.addEventListener("click", () => {
+            document.getElementById("split-payment-modal")?.classList.add("hidden");
+        });
         document.getElementById("payment-hub-close")?.addEventListener("click", () => {
             document.getElementById("payment-hub-modal").classList.add("hidden");
         });
         document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
-        document.getElementById("split-payment-cancel")?.addEventListener("click", () => {
-            document.getElementById("split-payment-modal")?.classList.add("hidden");
+        // « Voir mon recu » (2e ligne du bandeau) + boutons de la modale
+        els.paidReceiptBtn?.addEventListener("click", () => { openReceipt().catch(() => { }); });
+        els.receiptDownloadBtn?.addEventListener("click", () => {
+            const ctx = receiptContext();
+            window.generateReceiptPDF(ctx.ref || "");
+        });
+        els.receiptCloseBtn?.addEventListener("click", () => {
+            document.getElementById("receipt-view-modal")?.classList.add("hidden");
         });
 
         // « J'ai reverse » : le bouton etait genere mais aucun handler n'existait.
@@ -1189,8 +1282,6 @@
                 } else {
                     showNotification("Retour de paiement détecté. Vérification en cours.", "info");
                 }
-
-                if (window.CCCommon.state.user) setTimeout(() => loadConversations().catch(() => { }), 1000);
             }
         } catch (e) { console.error("Payment return handling error:", e); }
 
@@ -1206,9 +1297,23 @@
         // paiement (?payment=success&id=<reservation>) `id` designe la RESERVATION
         // et non un fil -> on ne l'interprete pas comme fil dans ce cas.
         const isPaymentReturn = params.get("payment") === "success" || params.get("status") === "success";
+        const paymentReservationId = isPaymentReturn ? (params.get("id") || params.get("reservationId")) : null;
         const threadId = isPaymentReturn ? null : (params.get("id") || params.get("threadId"));
 
-        if (offerId) await ensureConversationForOffer(offerId);
+        if (paymentReservationId) {
+            // Retour de paiement : on rouvre LA conversation payee (et non la liste),
+            // puis le recu s'affiche tout seul ; il reste accessible ensuite par la
+            // ligne « Voir mon recu » du bandeau.
+            const opened = await openThreadForReservation(paymentReservationId);
+            if (opened) {
+                try {
+                    window.history.replaceState({}, "", "chat.html?id=" + encodeURIComponent(state.activeThreadId));
+                } catch (e) { }
+                await openReceipt();
+            } else {
+                await loadConversations();
+            }
+        } else if (offerId) await ensureConversationForOffer(offerId);
         else if (requestId) await ensureConversationForRequest(requestId);
         else if (threadId) await openThreadFromUrl(threadId);
         else await loadConversations();

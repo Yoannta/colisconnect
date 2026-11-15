@@ -20727,3 +20727,115 @@ body.dashboard-page:not(.light) .client-history-panel .cc-acc-title {
     font-size: 0.92em;
 }
 
+
+/* ---- Bandeau « paiement confirmé » : 3 lignes en haut du fil ----
+   1) resume du paiement  2) « Voir mon recu »  3) contacts debloques */
+.chat-paid-banner {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 6px 0 8px;
+    animation: fadeInSlide 0.35s ease-out;
+}
+
+.chat-paid-banner .paid-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    text-align: left;
+}
+
+.chat-paid-banner .paid-line-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
+.paid-line-info {
+    background: rgba(19, 236, 200, 0.08);
+    border: 1px solid rgba(19, 236, 200, 0.25);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.paid-line-receipt {
+    width: 100%;
+    background: rgba(16, 185, 129, 0.16);
+    border: 1px solid var(--emerald-bright, #10b981);
+    color: #ffffff;
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+
+.paid-line-receipt:hover {
+    background: rgba(16, 185, 129, 0.28);
+    transform: translateY(-1px);
+}
+
+.paid-line-label { flex: 1; }
+.paid-line-chevron { opacity: 0.7; font-size: 1.15rem; }
+
+.paid-line-contacts {
+    align-items: flex-start;
+    background: rgba(37, 211, 102, 0.12);
+    border: 1px solid rgba(37, 211, 102, 0.5);
+    color: rgba(255, 255, 255, 0.92);
+}
+
+.paid-wa-logo {
+    width: 26px;
+    height: 26px;
+    flex: 0 0 26px;
+    border-radius: 50%;
+    background: #25D366;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.paid-wa-logo svg { width: 16px; height: 16px; fill: #ffffff; }
+
+.paid-contacts-text { flex: 1; }
+
+.paid-contacts-detail {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+.paid-contacts-detail .paid-contact-phone { color: #34d399; }
+
+.paid-contacts-detail .paid-contact-wa {
+    background: #25D366;
+    color: #ffffff;
+    text-decoration: none;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.receipt-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    background: #f9fafb;
+    border-top: 1px solid #eee;
+}
+
+.receipt-actions .btn { flex: 1 1 180px; }
+
+body.light .paid-line-info,
+body.light .paid-line-contacts,
+body.light .paid-line-receipt { color: #0f172a; }
+body.light .paid-line-receipt { background: rgba(16, 185, 129, 0.12); }
+body.light .paid-line-receipt:hover { background: rgba(16, 185, 129, 0.22); }
+body.light .paid-contacts-detail .paid-contact-phone { color: #047857; }
