@@ -557,12 +557,15 @@
         const amount = Number(res.total_amount || 0);
         const kg = Number(res.kg || 0);
         const cur = threadCurrency(thread);
-        const bits = ["Paiement confirmé"];
+        const bits = ["🎉 Félicitations pour votre paiement !"];
+        const details = [];
         if (amount > 0) {
-            bits.push(window.CCCommon?.formatAmount ? window.CCCommon.formatAmount(amount, cur) : `${amount} ${cur}`);
+            details.push(window.CCCommon?.formatAmount ? window.CCCommon.formatAmount(amount, cur) : `${amount} ${cur}`);
         }
-        if (kg > 0) bits.push(`${kg} kg réservés`);
-        if (els.paidInfoText) els.paidInfoText.textContent = bits.join(" — ") + ".";
+        if (kg > 0) details.push(`${kg} kg réservés`);
+        if (details.length) bits.push(details.join(" · "));
+        bits.push("Vous pouvez maintenant vous partager vos contacts et vos numéros.");
+        if (els.paidInfoText) els.paidInfoText.textContent = bits.join(" — ");
     }
 
     function triggerTutorialFocus() {

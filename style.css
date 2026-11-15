@@ -20839,3 +20839,19 @@ body.light .paid-line-receipt { color: #0f172a; }
 body.light .paid-line-receipt { background: rgba(16, 185, 129, 0.12); }
 body.light .paid-line-receipt:hover { background: rgba(16, 185, 129, 0.22); }
 body.light .paid-contacts-detail .paid-contact-phone { color: #047857; }
+
+/* Reçu : le document défile, les boutons restent visibles (mobile) */
+#receipt-view-modal .receipt-modal-card {
+    display: flex;
+    flex-direction: column;
+    max-height: 92vh;
+}
+
+#receipt-view-modal #receipt-content-view {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#receipt-view-modal .receipt-actions { flex: 0 0 auto; }
