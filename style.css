@@ -20702,32 +20702,6 @@ body.dashboard-page:not(.light) .client-history-panel .cc-acc-title {
     overflow-wrap: anywhere;
 }
 
-/* Deux dates cote a cote a l'etape 1 : « Date du voyage » et « Date limite de reception ». */
-.post-trip-page .form-row-dates {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
-}
-
-.post-trip-page .form-row-dates .form-group {
-    margin-bottom: 0;
-}
-
-@media (max-width: 640px) {
-    .post-trip-page .form-row-dates {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* Mention « (optionnel) » dans un libelle, discretement. */
-.cc-optional {
-    font-weight: 400;
-    opacity: 0.7;
-    font-size: 0.92em;
-}
-
-
 /* ---- Bandeau « paiement confirmé » : 3 lignes en haut du fil ----
    1) resume du paiement  2) « Voir mon recu »  3) contacts debloques */
 .chat-paid-banner {
