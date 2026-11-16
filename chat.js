@@ -1066,7 +1066,35 @@
                         };
                     });
                 } else if (/^\+\d{8,15}$/.test(raw.replace(/\s/g, ""))) {
-                    routingZone.innerHTML = `<div style="color:#f87171; padding:15px; border-radius:12px; background:rgba(239,68,68,0.1);">Mobile Money non disponible pour ce pays.</div>`;
+                    routingZone.innerHTML = `
+                        <div style="padding:16px;border-radius:14px;background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.30);margin-top:6px;">
+                            <p style="color:#fbbf24;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Paiement mobile pas encore disponible</p>
+                            <p style="color:#d1d5db;font-size:0.82rem;line-height:1.5;">Le mobile money n'est pas encore ouvert dans ce pays. Le paiement par carte bancaire est accepté.</p>
+                        </div>
+                        <button class="method-btn-premium" id="momo-pay-card" style="width:100%;margin-top:10px;">
+                            <span class="icon">💳</span>
+                            <div class="text-wrap"><span class="title">Payer par carte</span><span class="subtitle">Visa / Mastercard — paiement sécurisé</span></div>
+                        </button>`;
+                    const cardBtn = document.getElementById("momo-pay-card");
+                    if (cardBtn) cardBtn.onclick = (ev) => {
+                        // On transmet le numero : le pays est ainsi deja choisi sur la page
+                        // de paiement GeniusPay, le client n'a plus qu'a saisir sa carte.
+                        const tel = String(phoneInput.value || "").trim().replace(/\s/g, "");
+                        handleHubPayment("card", /^\+\d{8,15}$/.test(tel) ? tel : null, ev.currentTarget);
+                    };
+                } else if (digits.length >= 3) {
+                    // Indicatif deja hors liste mobile money : autant le dire tout de suite.
+                    routingZone.innerHTML = `
+                        <div style="padding:16px;border-radius:14px;background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.30);margin-top:6px;">
+                            <p style="color:#fbbf24;font-weight:600;margin-bottom:6px;font-size:0.9rem;">Paiement mobile pas encore disponible</p>
+                            <p style="color:#d1d5db;font-size:0.82rem;line-height:1.5;">Votre pays n'est pas encore ouvert au mobile money. Le paiement par carte bancaire est accepté.</p>
+                        </div>
+                        <button class="method-btn-premium" id="momo-pay-card" style="width:100%;margin-top:10px;">
+                            <span class="icon">💳</span>
+                            <div class="text-wrap"><span class="title">Payer par carte</span><span class="subtitle">Visa / Mastercard — paiement sécurisé</span></div>
+                        </button>`;
+                    const cb = document.getElementById("momo-pay-card");
+                    if (cb) cb.onclick = (ev) => handleHubPayment("card", null, ev.currentTarget);
                 } else {
                     routingZone.innerHTML = "";
                 }
