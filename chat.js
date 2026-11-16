@@ -1262,18 +1262,10 @@
                 return;
             }
             const availableKg = thread?.offer?.available_kg || thread?.offer?.availableKg || 0;
-            // Ouvrir la modale kg avant le paiement
-            const kgModal = document.getElementById("kg-modal");
-            const kgInput = document.getElementById("kg-modal-input");
-            const kgError = document.getElementById("kg-modal-error");
-            if (kgModal && kgInput) {
-                kgInput.value = "";
-                kgInput.max = availableKg || 999;
-                if (kgError) kgError.style.display = "none";
-                if (availableKg > 0) kgInput.placeholder = `Max ${availableKg} kg`;
-                else kgInput.placeholder = "Saisissez les kg souhaites";
-                kgModal.classList.remove("hidden");
-            }
+            // Commission au forfait : on ne demande plus le nombre de kilos, on va
+            // droit au choix du moyen de paiement.
+            void availableKg;
+            openSplitPaymentModal("commission", thread?.reservation?.total_amount || 0);
         });
 
         // Bouton confirmation de la modale kg
