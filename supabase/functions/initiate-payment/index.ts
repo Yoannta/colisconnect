@@ -83,7 +83,7 @@ const V1_MIN_AMOUNT = 200; // minimum XOF / XAF / GNF
 
 // Commission plateforme : montant FIXE, exprime en FCFA (XOF). Chaque client paie
 // l'equivalent dans sa devise via le taux du jour (table exchange_rates).
-const COMMISSION_AMOUNT = 2000;
+const COMMISSION_AMOUNT = 200; // PHASE DE TEST : 200 F (minimum GeniusPay). Valeur reelle : 2000.
 const COMMISSION_BASE_CURRENCY = "XOF";
 // payment_method acceptes par la v1 (doc officielle).
 const V1_METHODS = [
