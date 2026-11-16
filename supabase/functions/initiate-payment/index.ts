@@ -322,7 +322,8 @@ Deno.serve(async (req: Request) => {
                         body: JSON.stringify({ ...v1BasePayload, ...(variant || {}) }),
                     });
                     const data: any = await v1Res.json().catch(() => ({}));
-                    const url = data?.data?.payment_url || data?.data?.checkout_url || data?.checkout_url || "";
+                    const url = data?.data?.payment_url || data?.data?.checkout_url || data?.checkout_url ||
+                        data?.data?.metadata?.payment_url || data?.metadata?.payment_url || "";
                     const ref = String(data?.data?.reference || "");
                     // Un push mobile money peut ne renvoyer aucune URL (la demande part
                     // directement sur le telephone) : la reference suffit alors.
