@@ -459,6 +459,18 @@
         // reference : on prefere celle de la reservation.
         const ref = /^TX_\d{10,}$/.test(String(txId || "")) ? "" : String(txId || "");
 
+        // Le telephone du voyageur n'est pas dans la liste des conversations (choix
+        // de confidentialite : rien n'est expose avant paiement). On le recupere ici,
+        // au moment du recu, pour que le document soit complet des deux cotes.
+        if (!state.travelerPhone) {
+            const t = state.activeThreadData;
+            const tid = t?.offerOwnerId || t?.offer_owner_id;
+            if (tid) {
+                const prof = await fetchTravelerContact(tid).catch(() => null);
+                if (prof?.phone_number) state.travelerPhone = prof.phone_number;
+            }
+        }
+
         // Remplissage des données
         fillReceiptTemplate(modal, ref);
 
@@ -638,7 +650,12 @@
     async function fetchTravelerContact(userId) {
         if (!userId) return null;
         try {
-            const { data, error } = await window.supabase.from('profiles').select('full_name, phone_number').eq('id', userId).maybeSingle();
+            // Le client Supabase de l'app s'appelle ccSupabase (supabase-init.js) :
+            // window.supabase n'a jamais existe, donc cette requete echouait en
+            // silence et le telephone du voyageur sortait vide sur le recu.
+            const client = window.ccSupabase || window.supabase;
+            if (!client) return null;
+            const { data, error } = await client.from('profiles').select('full_name, phone_number').eq('id', userId).maybeSingle();
             if (error) throw error;
             return data;
         } catch (e) { return null; }
