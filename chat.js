@@ -913,7 +913,7 @@
     const PAYMENT_STATE = { step: null, amount: 0, totalAmount: 0 };
     // Commission plateforme : montant FIXE de 2 000 FCFA, converti dans la devise du
     // client avec le taux du jour (meme table exchange_rates que la page des offres).
-    const COMMISSION_XOF = 2000;
+    const COMMISSION_XOF = 200; // PHASE DE TEST : 200 F. Valeur reelle : 2000.
 
     function fileToDataUrl(file) {
         return new Promise((resolve, reject) => {
@@ -979,7 +979,7 @@
             : `${PAYMENT_STATE.amount} ${userCurrency}`;
         const commissionLine = String(userCurrency).toUpperCase() === "XOF"
             ? commissionLabel
-            : `${commissionLabel} (soit 2 000 FCFA)`;
+            : `${commissionLabel} (soit ${COMMISSION_XOF} FCFA)`;
         modal.classList.remove("hidden");
         hubContainer.innerHTML = `
             <div class="payment-selection">
