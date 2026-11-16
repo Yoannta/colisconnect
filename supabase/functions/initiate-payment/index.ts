@@ -87,7 +87,7 @@ const COMMISSION_AMOUNT = 2000;
 const COMMISSION_BASE_CURRENCY = "XOF";
 // payment_method acceptes par la v1 (doc officielle).
 const V1_METHODS = [
-    "wave", "orange_money", "mtn_money", "moov_money", "airtel_money", "pawapay", "paystack", "card",
+    "wave", "orange_money", "mtn_money", "moov_money", "airtel_money", "pawapay", "card",
 ];
 // Codes operateur PawaPay (mmo_provider) : doc officielle, section Fournisseurs MMO.
 const MMO_PROVIDER: Record<string, Record<string, string>> = {
@@ -297,8 +297,10 @@ Deno.serve(async (req: Request) => {
                     variants.push(null);
                 } else {
                     if (rail) {
-                        if (mmoCode) variants.push({ payment_method: "pawapay", mmo_provider: mmoCode });
+                        // Le rail natif d'abord : il evite un detour par un agregateur
+                        // (pawaPay est desactive sur le compte, inutile de le solliciter avant).
                         if (V1_METHODS.includes(rail)) variants.push({ payment_method: rail });
+                        if (mmoCode) variants.push({ payment_method: "pawapay", mmo_provider: mmoCode });
                     } else {
                         // Aucun operateur choisi : PawaPay detecte pays + operateur depuis
                         // le numero (mode direct, le client n'a rien d'autre a saisir).
