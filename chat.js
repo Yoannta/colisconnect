@@ -344,12 +344,20 @@
     }
 
     function getReceiptTripParts(thread) {
-        const rawTitle = String(thread?.offerTitle || thread?.title || "France -> Destination");
-        const parts = rawTitle.split(/\s*(?:→|->| - | to )\s*/i);
-        return {
-            from: (parts[0] || "France").trim(),
-            to: (parts[1] || "Destination").trim()
-        };
+        const t = thread || state.activeThreadData || {};
+        const offer = t.offer || {};
+        // Les villes viennent des champs de l'offre (origin / destination). Avant, on
+        // les devinait en decoupant le titre de l'offre : des que le titre ne contenait
+        // pas de fleche, le recu affichait « France » et « Destination ».
+        let from = String(offer.origin || offer.from || t.offerOrigin || "").trim();
+        let to = String(offer.destination || offer.to || t.offerDestination || "").trim();
+        if (!from || !to) {
+            const titre = String(t.offerTitle || t.title || "");
+            const parts = titre.split(/\s*(?:→|->| - | to )\s*/i);
+            from = from || String(parts[0] || "").trim();
+            to = to || String(parts[1] || "").trim();
+        }
+        return { from: from || "—", to: to || "—" };
     }
 
     // Toutes les donnees du recu viennent de la reservation du fil ouvert :
