@@ -67,6 +67,30 @@ const RAILS_BY_COUNTRY: Record<string, string[]> = {
 
 const XOF_ZONE = ["CI", "SN", "BJ", "BF", "ML", "TG", "NE", "GW"];
 
+// Paiement v1 : base officielle (doc https://geniuspay.ci/docs/api).
+// L'ancienne base pay.genius.ci sert la meme API v1 mais GeniusPay l'a declaree depreciee.
+const V1_API_BASE = Deno.env.get("GENIUS_V1_API_URL") || "https://geniuspay.ci/api/v1/merchant";
+const V1_MIN_AMOUNT = 200; // minimum XOF / XAF / GNF
+// payment_method acceptes par la v1 (doc officielle).
+const V1_METHODS = [
+    "wave", "orange_money", "mtn_money", "moov_money", "airtel_money", "pawapay", "paystack", "card",
+];
+// Codes operateur PawaPay (mmo_provider) : doc officielle, section Fournisseurs MMO.
+const MMO_PROVIDER: Record<string, Record<string, string>> = {
+    CI: { orange_money: "ORANGE_CIV", mtn_money: "MTN_MOMO_CIV", moov_money: "MOOV_CIV", wave: "WAVE_CIV" },
+    SN: { orange_money: "ORANGE_SEN", free_money: "FREE_SEN" },
+    BJ: { mtn_money: "MTN_MOMO_BEN", moov_money: "MOOV_BEN" },
+    CM: { orange_money: "ORANGE_CMR", mtn_money: "MTN_MOMO_CMR" },
+    CG: { airtel_money: "AIRTEL_COG", mtn_money: "MTN_MOMO_COG" },
+    CD: { airtel_money: "AIRTEL_COD", orange_money: "ORANGE_COD", mpesa: "VODACOM_MPESA_COD" },
+    GA: { airtel_money: "AIRTEL_GAB" },
+    KE: { mpesa: "MPESA_KEN" },
+    RW: { airtel_money: "AIRTEL_RWA", mtn_money: "MTN_MOMO_RWA" },
+    UG: { airtel_money: "AIRTEL_UGA", mtn_money: "MTN_MOMO_UGA" },
+    ZM: { mtn_money: "MTN_MOMO_ZMB", zamtel_kwacha: "ZAMTEL_ZMB" },
+    SL: { orange_money: "ORANGE_SLE" },
+};
+
 function json(body: unknown, status = 200) {
     return new Response(JSON.stringify(body), {
         status,
@@ -228,11 +252,22 @@ Deno.serve(async (req: Request) => {
             const msg = String(result?.error?.message || result?.error || result?.message || "");
             const keyProblem = geniusRes.status === 401 || geniusRes.status === 403 || /api key/i.test(msg);
             if (keyProblem) {
-                // Les cles en place ne sont pas encore des cles v2 : on retombe sur
-                // l'API v1 (page de paiement hebergee) pour ne rien casser.
-                console.warn("[Payment] v2 refuse (cle), repli sur v1:", geniusRes.status, msg);
-                const v1Payload: Record<string, unknown> = {
-                    amount: minorUnits,
+                // Les cles en place ne sont pas des cles v2 : on encaisse en v1, sur la base
+                // officielle geniuspay.ci. Mode direct pour que le client ne ressaisisse
+                // ni pays, ni operateur, ni numero : on envoie son rail et son telephone.
+                console.warn("[Payment] v2 refuse (cle), encaissement v1:", geniusRes.status, msg);
+
+                const v1Amount = currencyOut === "EUR" ? Math.round(minorUnits) / 100 : minorUnits;
+                if (!wantsCard && currencyOut !== "EUR" && v1Amount < V1_MIN_AMOUNT) {
+                    return json({
+                        error: `Le minimum GeniusPay est de ${V1_MIN_AMOUNT} ${currencyOut}. ` +
+                            `Ajoutez des kilos pour atteindre ce montant.`,
+                        success: false,
+                    });
+                }
+
+                const v1BasePayload: Record<string, unknown> = {
+                    amount: v1Amount,
                     currency: currencyOut,
                     description: `ColisConnect - Reservation #${reservationId}`,
                     customer: {
@@ -245,33 +280,69 @@ Deno.serve(async (req: Request) => {
                     error_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
                     metadata: { reservationId: String(reservationId) },
                 };
-                const v1Res = await fetch("https://pay.genius.ci/api/v1/merchant/payments", {
-                    method: "POST",
-                    headers: {
-                        "X-API-Key": publicKey,
-                        "X-API-Secret": secretKey,
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(v1Payload),
-                });
-                const v1Data = await v1Res.json().catch(() => ({}));
-                const v1Url = v1Data?.data?.checkout_url || v1Data?.checkout_url || v1Data?.data?.payment_url;
-                if (!v1Res.ok || !v1Url) {
-                    const v1Msg = v1Data?.message || v1Data?.error || "Paiement refuse par GeniusPay.";
-                    return json({ error: String(v1Msg), success: false });
+
+                // Trois essais, du plus precis au plus sur : code PawaPay du pays,
+                // nom du rail, puis page hebergee (le client y choisit lui-meme).
+                const mmoCode = wantsCard ? "" : ((MMO_PROVIDER[countryCode] || {})[rail] || "");
+                const variants: Array<Record<string, unknown> | null> = [];
+                if (wantsCard) {
+                    variants.push({ payment_method: "card" });
+                } else {
+                    if (mmoCode) variants.push({ payment_method: "pawapay", mmo_provider: mmoCode });
+                    if (V1_METHODS.includes(rail)) variants.push({ payment_method: rail });
+                    variants.push(null);
                 }
+
+                let v1Data: any = {};
+                let v1Url = "";
+                let v1Mode = "checkout";
+                let v1Error = "Paiement refuse par GeniusPay.";
+                for (const variant of variants) {
+                    const v1Res = await fetch(`${V1_API_BASE}/payments`, {
+                        method: "POST",
+                        headers: {
+                            "X-API-Key": publicKey,
+                            "X-API-Secret": secretKey,
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ ...v1BasePayload, ...(variant || {}) }),
+                    });
+                    const data: any = await v1Res.json().catch(() => ({}));
+                    const url = data?.data?.payment_url || data?.data?.checkout_url || data?.checkout_url || "";
+                    if (v1Res.ok && url) {
+                        v1Data = data;
+                        v1Url = url;
+                        v1Mode = data?.data?.payment_url ? "direct" : "checkout";
+                        break;
+                    }
+                    const errText = typeof data?.error === "string"
+                        ? data.error
+                        : (data?.error?.message || data?.message || "");
+                    if (errText) v1Error = String(errText);
+                    console.warn(
+                        "[Payment] v1 refuse", variant ? JSON.stringify(variant) : "checkout",
+                        v1Res.status, v1Error,
+                    );
+                }
+
+                if (!v1Url) return json({ error: v1Error, success: false });
+
+                // Reference MTX-... : c'est elle qui sert a confirmer le paiement ensuite.
+                const v1Ref = String(v1Data?.data?.reference || "");
                 await supabase
                     .from("reservations")
                     .update({
                         total_amount: totalInOfferCurrency,
                         payment_provider: wantsCard ? "geniuspay_card_v1" : `geniuspay_${rail}_v1`,
+                        payment_tx_id: v1Ref || null,
                         updated_at: new Date().toISOString(),
                     })
                     .eq("id", reservationId);
                 return json({
                     success: true,
-                    mode: "checkout",
+                    mode: v1Mode,
                     paymentUrl: v1Url,
+                    reference: v1Ref,
                     status: "pending_checkout",
                     amount: minorUnits,
                     currency: currencyOut,

@@ -9,6 +9,8 @@ const CORS_HEADERS = {
 };
 
 const API_BASE = Deno.env.get("GENIUS_API_URL") || "https://api.geniuspay.ci";
+// Base officielle du paiement v1 (doc geniuspay.ci/docs/api).
+const V1_API_BASE = Deno.env.get("GENIUS_V1_API_URL") || "https://geniuspay.ci/api/v1/merchant";
 const PAID_STATUSES = ["paid", "voyageur_paye", "colisconnect_paye", "livre", "delivered"];
 
 function json(body: unknown, status = 200) {
@@ -24,6 +26,17 @@ async function geniusGet(path: string) {
             "X-API-Key": Deno.env.get("GENIUS_PUBLIC_KEY") || "",
             "X-API-Secret": Deno.env.get("GENIUS_PRIVATE_KEY") || "",
             "Authorization": `Bearer ${Deno.env.get("GENIUS_PRIVATE_KEY") || ""}`,
+        },
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+}
+
+async function geniusV1Get(path: string) {
+    const res = await fetch(`${V1_API_BASE}${path}`, {
+        headers: {
+            "X-API-Key": Deno.env.get("GENIUS_PUBLIC_KEY") || "",
+            "X-API-Secret": Deno.env.get("GENIUS_PRIVATE_KEY") || "",
         },
     });
     const data = await res.json().catch(() => ({}));
@@ -52,7 +65,7 @@ Deno.serve(async (req: Request) => {
 
         const { data: reservation, error: rErr } = await supabase
             .from("reservations")
-            .select("id, user_id, status, kg, offer_id, offers(user_id)")
+            .select("id, user_id, status, kg, offer_id, payment_tx_id, payment_provider, offers(user_id)")
             .eq("id", reservationId)
             .maybeSingle();
         if (rErr) throw rErr;
@@ -70,16 +83,27 @@ Deno.serve(async (req: Request) => {
             return json({ success: true, status: "paid", changed: false });
         }
 
-        const remote = await geniusGet(`/v2/payments/${encodeURIComponent(String(reservationId))}`);
+        // Reference enregistree a la creation : MTX-... pour la v1, rien pour la v2.
+        // Les deux APIs ont des bases separees : une reference v1 ne se lit qu'en v1.
+        const txId = String((reservation as any).payment_tx_id || "");
+        const isV1 = /^MTX-/i.test(txId);
+
+        const remote = isV1
+            ? await geniusV1Get(`/payments/${encodeURIComponent(txId)}`)
+            : await geniusGet(`/v2/payments/${encodeURIComponent(String(reservationId))}`);
         if (!remote.ok) {
             return json({ success: false, status: "unknown", error: "Paiement introuvable chez GeniusPay." }, 404);
         }
-        const remoteStatus = String(remote.data?.status || "").toLowerCase();
+        const remoteStatus = String(
+            isV1 ? (remote.data as any)?.data?.status : (remote.data as any)?.status,
+        ).toLowerCase();
         if (remoteStatus !== "completed") {
             return json({ success: true, status: remoteStatus || "pending", changed: false });
         }
 
-        const txRef = remote.data?.provider_reference || remote.data?.transaction_id || String(reservationId);
+        const txRef = isV1
+            ? txId
+            : ((remote.data as any)?.provider_reference || (remote.data as any)?.transaction_id || String(reservationId));
         const { error: upErr } = await supabase
             .from("reservations")
             .update({ status: "paid", payment_tx_id: txRef, updated_at: new Date().toISOString() })

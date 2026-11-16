@@ -11,6 +11,8 @@ const CORS_HEADERS = {
 };
 
 const API_BASE = Deno.env.get("GENIUS_API_URL") || "https://api.geniuspay.ci";
+// Base officielle du paiement v1 (doc geniuspay.ci/docs/api).
+const V1_API_BASE = Deno.env.get("GENIUS_V1_API_URL") || "https://geniuspay.ci/api/v1/merchant";
 const PAID_STATUSES = ["paid", "voyageur_paye", "colisconnect_paye", "livre", "delivered"];
 
 function json(body: unknown, status = 200) {
@@ -43,12 +45,43 @@ async function verifyHmac(raw: string, signatureHeader: string | null, secret: s
     return hex === v1;
 }
 
+// Signature v1 (doc officielle) : header X-Webhook-Signature = hex brut et
+// X-Webhook-Timestamp, HMAC-SHA256(timestamp + "." + corps_brut, whsec).
+// Ce n'est PAS le format v2 (t=...,v1=...).
+async function verifyHmacV1(raw: string, signatureHeader: string | null, timestamp: string | null, secret: string) {
+    if (!signatureHeader || !timestamp) return false;
+    if (Math.abs(Date.now() / 1000 - Number(timestamp)) > 300) return false; // anti-rejeu
+    const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(secret),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"],
+    );
+    const mac = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${timestamp}.${raw}`));
+    const hex = [...new Uint8Array(mac)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    const got = signatureHeader.trim().toLowerCase().replace(/^sha256=/, "");
+    return hex === got;
+}
+
 async function geniusGet(path: string) {
     const res = await fetch(`${API_BASE}${path}`, {
         headers: {
             "X-API-Key": Deno.env.get("GENIUS_PUBLIC_KEY") || "",
             "X-API-Secret": Deno.env.get("GENIUS_PRIVATE_KEY") || "",
             "Authorization": `Bearer ${Deno.env.get("GENIUS_PRIVATE_KEY") || ""}`,
+        },
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, status: res.status, data };
+}
+
+// Lecture d'une transaction v1 (reference MTX-...). La v2 ne connait pas ces references.
+async function geniusV1Get(path: string) {
+    const res = await fetch(`${V1_API_BASE}${path}`, {
+        headers: {
+            "X-API-Key": Deno.env.get("GENIUS_PUBLIC_KEY") || "",
+            "X-API-Secret": Deno.env.get("GENIUS_PRIVATE_KEY") || "",
         },
     });
     const data = await res.json().catch(() => ({}));
@@ -135,7 +168,13 @@ Deno.serve(async (req: Request) => {
         const secret = Deno.env.get("GENIUS_WEBHOOK_SECRET");
         let signatureValid = false;
         if (secret) {
-            signatureValid = await verifyHmac(raw, req.headers.get("X-GeniusPay-Signature"), secret);
+            signatureValid = await verifyHmac(raw, req.headers.get("X-GeniusPay-Signature"), secret) ||
+                await verifyHmacV1(
+                    raw,
+                    req.headers.get("X-Webhook-Signature"),
+                    req.headers.get("X-Webhook-Timestamp"),
+                    secret,
+                );
             if (!signatureValid) {
                 console.warn("[Webhook] Signature absente ou invalide — verification API seule.");
             }
@@ -146,6 +185,9 @@ Deno.serve(async (req: Request) => {
 
         const reference = String(
             payload?.transaction_ref ||
+            payload?.metadata?.reservationId ||
+            payload?.data?.metadata?.reservationId ||
+            payload?.data?.metadata?.reservation_id ||
             payload?.reference ||
             payload?.metadata?.reservationId ||
             payload?.data?.metadata?.reservationId ||
@@ -165,23 +207,27 @@ Deno.serve(async (req: Request) => {
         // Sinon, on ne croit rien : on relit le paiement via l'API.
         if (signatureValid) {
             const txFromBody = String(
-                payload?.data?.transaction_id || payload?.transaction_id || payload?.provider_reference || reference,
+                payload?.data?.reference || payload?.data?.transaction_id || payload?.transaction_id || payload?.provider_reference || reference,
             );
             const done = await markPaid(supabase, reference, txFromBody);
             return json({ success: true, via: "signature", ...done });
         }
 
-        const remote = await geniusGet(`/v2/payments/${encodeURIComponent(reference)}`);
+        // La reference de la commande peut etre MTX-... (v1) : la v2 ne la connait pas.
+        const mtxRef = String(payload?.data?.reference || payload?.reference || "");
+        const remote = /^MTX-/i.test(mtxRef)
+            ? await geniusV1Get(`/payments/${encodeURIComponent(mtxRef)}`)
+            : await geniusGet(`/v2/payments/${encodeURIComponent(reference)}`);
         if (!remote.ok) {
             console.warn("[Webhook] Verification API impossible:", remote.status, JSON.stringify(remote.data).slice(0, 300));
             return json({ error: "verification impossible", remote_status: remote.status }, 502);
         }
-        const remoteStatus = String(remote.data?.status || "").toLowerCase();
+        const remoteStatus = String(remote.data?.data?.status || remote.data?.status || "").toLowerCase();
         if (remoteStatus !== "completed") {
             return json({ success: true, ignored: true, remote: remoteStatus });
         }
 
-        const txRef = remote.data?.provider_reference || remote.data?.transaction_id || reference;
+        const txRef = /^MTX-/i.test(mtxRef) ? mtxRef : (remote.data?.provider_reference || remote.data?.transaction_id || reference);
         const done = await markPaid(supabase, reference, txRef);
         return json({ success: true, ...done });
     } catch (error: any) {
