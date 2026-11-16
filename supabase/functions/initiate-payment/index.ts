@@ -179,7 +179,9 @@ Deno.serve(async (req: Request) => {
         const geo = countryFromPhone(phone);
         const countryCode = geo?.country || "CI";
         const targetCurrency = wantsCard
-            ? "EUR"
+            // Carte : on facture directement en XOF. GeniusPay l'accepte et evite la
+            // double conversion (nos 3,05 EUR ne valaient que 1 862 F chez eux).
+            ? COMMISSION_BASE_CURRENCY
             : (XOF_ZONE.includes(countryCode) ? "XOF" : (geo?.currency || "EUR"));
 
         const { data: rates } = await supabase
