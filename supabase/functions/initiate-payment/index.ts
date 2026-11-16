@@ -34,6 +34,15 @@ const COUNTRY_BY_PREFIX: Record<string, { country: string; currency: string }> =
     "265": { country: "MW", currency: "MWK" },
     "258": { country: "MZ", currency: "MZN" },
     "232": { country: "SL", currency: "SLL" },
+    // Europe / hors Afrique : paiement carte, montant converti dans la devise locale.
+    "33": { country: "FR", currency: "EUR" },
+    "32": { country: "BE", currency: "EUR" },
+    "352": { country: "LU", currency: "EUR" },
+    "39": { country: "IT", currency: "EUR" },
+    "34": { country: "ES", currency: "EUR" },
+    "351": { country: "PT", currency: "EUR" },
+    "41": { country: "CH", currency: "CHF" },
+    "44": { country: "GB", currency: "GBP" },
 };
 
 // Slugs de rails acceptes cote client (voir geniuspay_get_rails).
@@ -71,6 +80,11 @@ const XOF_ZONE = ["CI", "SN", "BJ", "BF", "ML", "TG", "NE", "GW"];
 // L'ancienne base pay.genius.ci sert la meme API v1 mais GeniusPay l'a declaree depreciee.
 const V1_API_BASE = Deno.env.get("GENIUS_V1_API_URL") || "https://geniuspay.ci/api/v1/merchant";
 const V1_MIN_AMOUNT = 200; // minimum XOF / XAF / GNF
+
+// Commission plateforme : montant FIXE, exprime en FCFA (XOF). Chaque client paie
+// l'equivalent dans sa devise via le taux du jour (table exchange_rates).
+const COMMISSION_AMOUNT = 2000;
+const COMMISSION_BASE_CURRENCY = "XOF";
 // payment_method acceptes par la v1 (doc officielle).
 const V1_METHODS = [
     "wave", "orange_money", "mtn_money", "moov_money", "airtel_money", "pawapay", "paystack", "card",
@@ -134,7 +148,7 @@ Deno.serve(async (req: Request) => {
         const reservationId = body?.reservationId;
         const rail = String(body?.rail || "").toLowerCase();
         const phone = cleanPhone(body?.phone);
-        const wantsCard = rail === "card" || !rail;
+        const wantsCard = rail === "card";
 
         if (!reservationId) return json({ error: "reservationId manquant." }, 400);
 
@@ -159,15 +173,9 @@ Deno.serve(async (req: Request) => {
             return json({ error: "Cette reservation est deja payee.", alreadyPaid: true, success: false });
         }
 
-        const kg = Number((reservation as any).kg || 0);
-        const pricePerKg = Number(resume?.price_per_kg || 0);
-        const offerCurrency = String(resume?.base_currency || "XOF").toUpperCase();
-        if (!(kg > 0)) return json({ error: "Choisissez d'abord le nombre de kilos.", success: false });
-        if (!(pricePerKg > 0)) return json({ error: "Prix au kilo indisponible sur cette offre." }, 400);
-
-        const totalInOfferCurrency = Math.round(kg * pricePerKg * 100) / 100;
-        const commissionInOfferCurrency = Math.round(totalInOfferCurrency * 0.10 * 100) / 100;
-
+        // Commission plateforme : montant FIXE de 2 000 FCFA, independant des kilos.
+        // Le client paie l'equivalent dans sa devise, converti avec le taux du jour
+        // (table exchange_rates : la meme source que le convertisseur des offres).
         const geo = countryFromPhone(phone);
         const countryCode = geo?.country || "CI";
         const targetCurrency = wantsCard
@@ -177,40 +185,39 @@ Deno.serve(async (req: Request) => {
         const { data: rates } = await supabase
             .from("exchange_rates")
             .select("currency_code, rate_to_eur")
-            .in("currency_code", [offerCurrency, targetCurrency]);
+            .in("currency_code", [COMMISSION_BASE_CURRENCY, targetCurrency]);
         const rateOf = (code: string) => {
             if (code === "EUR") return 1;
             const row = (rates || []).find((r: any) => String(r.currency_code).toUpperCase() === code);
             const v = Number(row?.rate_to_eur || 0);
             return v > 0 ? v : 0;
         };
-        let amount = 0;
-        if (offerCurrency === targetCurrency) {
-            amount = commissionInOfferCurrency;
-        } else {
-            const from = rateOf(offerCurrency);
-            const to = rateOf(targetCurrency);
-            if (!from || !to) return json({ error: "Taux de change indisponible. Reessayez plus tard.", success: false });
-            amount = (commissionInOfferCurrency / from) * to;
+        const fromRate = rateOf(COMMISSION_BASE_CURRENCY);
+        const toRate = rateOf(targetCurrency);
+        if (!fromRate || !toRate) {
+            return json({ error: "Taux de change indisponible. Reessayez plus tard.", success: false });
         }
+        // 2000 XOF -> EUR -> devise cible
+        const amount = (COMMISSION_AMOUNT / fromRate) * toRate;
 
         let minorUnits: number;
         let currencyOut: string;
         if (targetCurrency === "EUR") {
             currencyOut = "EUR";
-            minorUnits = Math.max(100, Math.round(amount * 100));
+            minorUnits = Math.round(amount * 100); // centimes
         } else {
-            currencyOut = targetCurrency; // XOF/XAF/GNF : pas de decimales
-            minorUnits = Math.max(100, Math.round(amount));
+            currencyOut = targetCurrency; // XOF/XAF/GNF... : pas de decimales
+            minorUnits = Math.round(amount);
         }
 
-        if (!wantsCard && !ALLOWED_RAILS.includes(rail)) {
+        // rail vide = pas d'operateur choisi : PawaPay deduit l'operateur du numero.
+        if (!wantsCard && rail && !ALLOWED_RAILS.includes(rail)) {
             return json({ error: "Moyen de paiement non pris en charge.", success: false });
         }
         if (!wantsCard && !/^\+\d{8,15}$/.test(phone)) {
             return json({ error: "Numero de telephone invalide.", success: false });
         }
-        if (!wantsCard) {
+        if (!wantsCard && rail) {
             const railsForCountry = RAILS_BY_COUNTRY[countryCode] || [];
             if (!railsForCountry.includes(rail)) {
                 return json({
@@ -231,10 +238,10 @@ Deno.serve(async (req: Request) => {
             customer_phone: phone || undefined,
             success_url: `https://yoannta.github.io/colisconnect/chat.html?payment=success&id=${reservationId}`,
             cancel_url: `https://yoannta.github.io/colisconnect/chat.html?payment=error&id=${reservationId}`,
-            metadata: { reservationId: String(reservationId), commission: commissionInOfferCurrency },
+            metadata: { reservationId: String(reservationId), commission: amount, currency: currencyOut },
         };
         // Carte : pas de payment_method -> page hebergee (3DS).
-        if (!wantsCard) payload.payment_method = rail;
+        if (!wantsCard && rail) payload.payment_method = rail;
 
         const geniusRes = await fetch(`${API_BASE}/v2/payments/initiate`, {
             method: "POST",
@@ -283,14 +290,20 @@ Deno.serve(async (req: Request) => {
 
                 // Trois essais, du plus precis au plus sur : code PawaPay du pays,
                 // nom du rail, puis page hebergee (le client y choisit lui-meme).
-                const mmoCode = wantsCard ? "" : ((MMO_PROVIDER[countryCode] || {})[rail] || "");
+                const mmoCode = wantsCard || !rail ? "" : ((MMO_PROVIDER[countryCode] || {})[rail] || "");
                 const variants: Array<Record<string, unknown> | null> = [];
                 if (wantsCard) {
                     variants.push({ payment_method: "card" });
                     variants.push(null);
                 } else {
-                    if (mmoCode) variants.push({ payment_method: "pawapay", mmo_provider: mmoCode });
-                    if (V1_METHODS.includes(rail)) variants.push({ payment_method: rail });
+                    if (rail) {
+                        if (mmoCode) variants.push({ payment_method: "pawapay", mmo_provider: mmoCode });
+                        if (V1_METHODS.includes(rail)) variants.push({ payment_method: rail });
+                    } else {
+                        // Aucun operateur choisi : PawaPay detecte pays + operateur depuis
+                        // le numero (mode direct, le client n'a rien d'autre a saisir).
+                        variants.push({ payment_method: "pawapay" });
+                    }
                     variants.push(null);
                 }
 
@@ -336,7 +349,7 @@ Deno.serve(async (req: Request) => {
                 await supabase
                     .from("reservations")
                     .update({
-                        total_amount: totalInOfferCurrency,
+                        total_amount: amount,
                         payment_provider: wantsCard ? "geniuspay_card_v1" : `geniuspay_${rail}_v1`,
                         payment_tx_id: v1Ref || null,
                         updated_at: new Date().toISOString(),
@@ -350,8 +363,8 @@ Deno.serve(async (req: Request) => {
                     status: "pending_checkout",
                     amount: minorUnits,
                     currency: currencyOut,
-                    amountOfferCurrency: commissionInOfferCurrency,
-                    offerCurrency,
+                    amountOfferCurrency: amount,
+                    offerCurrency: currencyOut,
                 });
             }
             console.error("[Payment] GeniusPay refus:", geniusRes.status, JSON.stringify(result).slice(0, 500));
@@ -363,7 +376,7 @@ Deno.serve(async (req: Request) => {
         await supabase
             .from("reservations")
             .update({
-                total_amount: totalInOfferCurrency,
+                total_amount: amount,
                 payment_provider: wantsCard ? "geniuspay_card" : `geniuspay_${rail}`,
                 payment_tx_id: result?.transaction_id || null,
                 updated_at: new Date().toISOString(),
@@ -382,8 +395,8 @@ Deno.serve(async (req: Request) => {
             transactionId: result?.transaction_id || null,
             amount: minorUnits,
             currency: currencyOut,
-            amountOfferCurrency: commissionInOfferCurrency,
-            offerCurrency,
+            amountOfferCurrency: amount,
+            offerCurrency: currencyOut,
         });
     } catch (error: any) {
         console.error("[Payment] Erreur:", error?.message || error);

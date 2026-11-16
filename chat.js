@@ -911,6 +911,9 @@
 
     // ---- Payment ----
     const PAYMENT_STATE = { step: null, amount: 0, totalAmount: 0 };
+    // Commission plateforme : montant FIXE de 2 000 FCFA, converti dans la devise du
+    // client avec le taux du jour (meme table exchange_rates que la page des offres).
+    const COMMISSION_XOF = 2000;
 
     function fileToDataUrl(file) {
         return new Promise((resolve, reject) => {
@@ -963,12 +966,25 @@
             return;
         }
 
-        // Commission plateforme : 10 % du montant total.
-        PAYMENT_STATE.amount = Math.round(total * 0.10 * 100) / 100;
+        // Commission plateforme : montant fixe de 2 000 FCFA, converti dans la devise
+        // du client (taux du jour). Le nombre de kilos n'entre plus dans le calcul.
+        const userCurrency = window.CCCommon?.getUserCurrency ? window.CCCommon.getUserCurrency() : "XOF";
+        const commissionLocal = window.CCCommon?.convertCurrency
+            ? window.CCCommon.convertCurrency(COMMISSION_XOF, "XOF", userCurrency)
+            : COMMISSION_XOF;
+        PAYMENT_STATE.amount = Math.round(commissionLocal * 100) / 100;
+        PAYMENT_STATE.currency = userCurrency;
+        const commissionLabel = window.CCCommon?.formatAmount
+            ? window.CCCommon.formatAmount(PAYMENT_STATE.amount, userCurrency)
+            : `${PAYMENT_STATE.amount} ${userCurrency}`;
+        const commissionLine = String(userCurrency).toUpperCase() === "XOF"
+            ? commissionLabel
+            : `${commissionLabel} (soit 2 000 FCFA)`;
         modal.classList.remove("hidden");
         hubContainer.innerHTML = `
             <div class="payment-selection">
-                <h3 style="margin-bottom: 20px; font-weight: 600;">Comment souhaitez-vous payer ?</h3>
+                <h3 style="margin-bottom: 8px; font-weight: 600;">Comment souhaitez-vous payer ?</h3>
+                <p style="color:#9ca3af; font-size:0.88rem; margin-bottom:18px;">Frais de mise en relation : <strong style="color:#fff">${commissionLine}</strong></p>
                 <div class="payment-methods-grid">
                     <button class="method-btn-premium" id="pay-card">
                         <span class="icon">💳</span>
@@ -994,6 +1010,7 @@
                         <input type="tel" id="momo-phone" placeholder="+225 07 00 00 00 00" autocomplete="tel" inputmode="tel" style="width: 100%; font-size: 1.1rem; background: transparent; border: none; color: white; outline: none; padding: 8px 0;">
                     </div>
                     <p id="momo-error" style="color: #f87171; font-size: 0.8rem; min-height: 18px;"></p>
+                    <p style="color:#9ca3af; font-size:0.82rem; margin-bottom:10px;">À payer : <strong style="color:#fff">${commissionLine}</strong> — la demande part dès que votre numéro est complet.</p>
                     <div id="momo-routing-zone"></div>
                 </div>
             `;
@@ -1055,6 +1072,22 @@
                 }
             };
             phoneInput.oninput = renderRails;
+            // Des que le numero est complet, le paiement part tout seul : PawaPay deduit
+            // l'operateur du numero, il n'y a plus rien d'autre a choisir.
+            let autoTimer = null;
+            let autoPhone = "";
+            phoneInput.addEventListener("input", () => {
+                const phone = String(phoneInput.value || "").trim().replace(/\s/g, "");
+                if (!/^\+\d{8,15}$/.test(phone) || phone === autoPhone) return;
+                clearTimeout(autoTimer);
+                autoTimer = setTimeout(() => {
+                    if (document.getElementById("momo-phone") !== phoneInput) return;
+                    if (document.getElementById("momo-error")?.textContent) return;
+                    autoPhone = phone;
+                    if (errorBox) errorBox.textContent = "";
+                    handleHubPayment("", phone, null);
+                }, 1200);
+            });
             phoneInput.focus();
         };
     }
