@@ -1107,6 +1107,13 @@
                 body: { reservationId: resId, rail, phone }
             });
             if (btn) { btn.innerHTML = originalContent; btn.style.pointerEvents = ""; }
+            // Un refus (montant minimum GeniusPay, operateur indisponible, etc.) doit
+            // s'afficher clairement : sinon on affiche « validez sur votre telephone »
+            // pour un paiement qui n'a jamais ete cree.
+            if (!result || result.success === false || result.error) {
+                alert(result?.error || "Paiement indisponible pour le moment.");
+                return;
+            }
             if (result?.paymentUrl) { window.location.href = result.paymentUrl; return; }
             // Mode direct : on attend la validation sur le telephone, en verifiant
             // le statut reel toutes les 4 s (jamais l'ecran seul).
