@@ -2638,6 +2638,11 @@ body.home-page.light .hero-logo--light { display: block; }
     flex: 1;
 }
 
+.banner-body {
+    flex: 1;
+    min-width: 0;
+}
+
 .banner-text strong {
     color: var(--emerald-bright);
 }
@@ -2647,6 +2652,39 @@ body.home-page.light .hero-logo--light { display: block; }
     font-size: 0.75rem !important;
     white-space: nowrap;
     box-shadow: 0 4px 10px rgba(19, 236, 200, 0.4);
+}
+
+/* Banniere d'information : compacte sur mobile (3 lignes) + « Voir plus ».
+   Elle ne doit jamais pousser la zone des messages : flex-shrink:0 + max-height. */
+.chat-info-banner { flex-shrink: 0; }
+.banner-more-btn {
+    display: none;
+    margin-top: 6px;
+    background: transparent;
+    border: none;
+    color: var(--emerald-bright);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+}
+@media (max-width: 800px) {
+    .chat-info-banner .banner-text {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+    }
+    .banner-more-btn { display: inline-block; }
+    .chat-info-banner.expanded .banner-text {
+        display: block;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+        overflow: visible;
+    }
+    .chat-info-banner.expanded .banner-more-btn { display: inline-block; }
 }
 
 .tutorial-overlay {
@@ -8805,7 +8843,11 @@ html.mobile-mode .mobile-bottom-nav a[href$="admin.html"] {
 .cta-pay-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 .chat-messages-zone {
     flex: 1;
+    /* sans min-height:0 un enfant flex ne peut pas descendre sous son contenu :
+       la zone grandissait et le fil ne scrollait plus (banniere en cause). */
+    min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 16px 20px;
     display: flex;
     flex-direction: column;
