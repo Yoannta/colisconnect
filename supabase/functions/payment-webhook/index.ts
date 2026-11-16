@@ -197,6 +197,12 @@ Deno.serve(async (req: Request) => {
 
         console.log(`[Webhook] ref=${reference} status=${status} event=${payload?.event_type || payload?.event || ""}`);
 
+        // Evenement de test envoye par le bouton « Tester » du dashboard :
+        // il n'a pas de commande associee, on l'acquitte pour ne pas afficher un echec.
+        if (String(payload?.event || payload?.event_type || "") === "webhook.test") {
+            return json({ success: true, test: true });
+        }
+
         if (!reference) return json({ error: "reference manquante" }, 400);
         if (!["completed", "success"].includes(status)) {
             return json({ success: true, ignored: true, status });
@@ -215,7 +221,7 @@ Deno.serve(async (req: Request) => {
 
         // La reference de la commande peut etre MTX-... (v1) : la v2 ne la connait pas.
         const mtxRef = String(payload?.data?.reference || payload?.reference || "");
-        const remote = /^MTX-/i.test(mtxRef)
+        const remote = /^(MTX-|SANDBOX_)/i.test(mtxRef)
             ? await geniusV1Get(`/payments/${encodeURIComponent(mtxRef)}`)
             : await geniusGet(`/v2/payments/${encodeURIComponent(reference)}`);
         if (!remote.ok) {
@@ -227,7 +233,7 @@ Deno.serve(async (req: Request) => {
             return json({ success: true, ignored: true, remote: remoteStatus });
         }
 
-        const txRef = /^MTX-/i.test(mtxRef) ? mtxRef : (remote.data?.provider_reference || remote.data?.transaction_id || reference);
+        const txRef = /^(MTX-|SANDBOX_)/i.test(mtxRef) ? mtxRef : (remote.data?.provider_reference || remote.data?.transaction_id || reference);
         const done = await markPaid(supabase, reference, txRef);
         return json({ success: true, ...done });
     } catch (error: any) {

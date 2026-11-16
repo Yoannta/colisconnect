@@ -287,6 +287,7 @@ Deno.serve(async (req: Request) => {
                 const variants: Array<Record<string, unknown> | null> = [];
                 if (wantsCard) {
                     variants.push({ payment_method: "card" });
+                    variants.push(null);
                 } else {
                     if (mmoCode) variants.push({ payment_method: "pawapay", mmo_provider: mmoCode });
                     if (V1_METHODS.includes(rail)) variants.push({ payment_method: rail });
@@ -309,10 +310,13 @@ Deno.serve(async (req: Request) => {
                     });
                     const data: any = await v1Res.json().catch(() => ({}));
                     const url = data?.data?.payment_url || data?.data?.checkout_url || data?.checkout_url || "";
-                    if (v1Res.ok && url) {
+                    const ref = String(data?.data?.reference || "");
+                    // Un push mobile money peut ne renvoyer aucune URL (la demande part
+                    // directement sur le telephone) : la reference suffit alors.
+                    if (v1Res.ok && (url || ref)) {
                         v1Data = data;
                         v1Url = url;
-                        v1Mode = data?.data?.payment_url ? "direct" : "checkout";
+                        v1Mode = variant?.payment_method ? "direct" : "checkout";
                         break;
                     }
                     const errText = typeof data?.error === "string"
@@ -341,7 +345,7 @@ Deno.serve(async (req: Request) => {
                 return json({
                     success: true,
                     mode: v1Mode,
-                    paymentUrl: v1Url,
+                    paymentUrl: v1Url || null,
                     reference: v1Ref,
                     status: "pending_checkout",
                     amount: minorUnits,

@@ -83,10 +83,11 @@ Deno.serve(async (req: Request) => {
             return json({ success: true, status: "paid", changed: false });
         }
 
-        // Reference enregistree a la creation : MTX-... pour la v1, rien pour la v2.
+        // Reference enregistree a la creation : MTX-... (v1 live) ou SANDBOX_... (v1 bac a sable).
         // Les deux APIs ont des bases separees : une reference v1 ne se lit qu'en v1.
         const txId = String((reservation as any).payment_tx_id || "");
-        const isV1 = /^MTX-/i.test(txId);
+        const provider = String((reservation as any).payment_provider || "");
+        const isV1 = /^MTX-/i.test(txId) || /^SANDBOX_/i.test(txId) || /_v1$/i.test(provider);
 
         const remote = isV1
             ? await geniusV1Get(`/payments/${encodeURIComponent(txId)}`)
