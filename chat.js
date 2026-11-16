@@ -1365,6 +1365,14 @@
             }
         });
 
+        // Banniere d'info : 3 lignes sur mobile, « Voir plus » pour derouler.
+        document.getElementById("banner-more-btn")?.addEventListener("click", (event) => {
+            const banner = els.chatInfoBanner || document.getElementById("chat-info-banner");
+            if (!banner) return;
+            const expanded = banner.classList.toggle("expanded");
+            event.currentTarget.textContent = expanded ? "Voir moins" : "Voir plus";
+        });
+
         els.comprisBtn?.addEventListener("click", () => {
             state.isTutorialAccepted = true;
             if (state.activeThreadId) markThreadTutorialAccepted(state.activeThreadId);
