@@ -988,7 +988,7 @@
                 <div class="payment-methods-grid">
                     <button class="method-btn-premium" id="pay-card">
                         <span class="icon">💳</span>
-                        <div class="text-wrap"><span class="title">Carte Bancaire</span><span class="subtitle">Visa / Mastercard / Stripe</span></div>
+                        <div class="text-wrap"><span class="title">Carte Bancaire</span><span class="subtitle">Visa / Mastercard</span></div>
                     </button>
                     <button class="method-btn-premium" id="pay-momo">
                         <span class="icon">📱</span>
