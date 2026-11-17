@@ -529,11 +529,14 @@
         state.rulesCorps = corps;
         state.rulesRole = voyageur ? "voyageur" : "client";
 
-        // On reste DANS la fenetre du recu : la vue recu se masque, la page blanche
-        // des regles prend sa place dans la meme pop-up.
+        // On reste DANS la fenetre du recu : le document et ses boutons se masquent et
+        // la page blanche des regles prend leur place, a l'interieur du meme cadre.
         const modal = document.getElementById("receipt-view-modal");
         const vueRecu = document.getElementById("receipt-content-view");
         const vueRegles = document.getElementById("receipt-rules-view");
+        const vueDoc = document.getElementById("receipt-pdf-template");
+        const vueActions = document.querySelector("#receipt-view-modal .receipt-actions");
+        const carte = modal.querySelector(".modal-card");
         if (!modal || !vueRegles) return;
 
         const btn = (id, libelle, fond, couleur) =>
@@ -546,16 +549,25 @@
             `</div>` + corps;
 
         vueRegles.style.display = "block";
-        vueRegles.style.maxHeight = "calc(100vh - 40px)";
+        if (vueDoc) vueDoc.style.display = "none";
+        if (vueActions) vueActions.style.display = "none";
+        modal.classList.remove("hidden");
+        // La carte du recu a une hauteur maximale et masque le debordement : la page des
+        // regles defile donc en interne, sinon la fin du texte serait coupee. La mesure
+        // se fait une fois la fenetre affichee, sinon elle vaut zero.
+        const limiteCss = carte ? parseFloat(getComputedStyle(carte).maxHeight) : NaN;
+        const hauteurCarte = Number.isFinite(limiteCss) && limiteCss > 0
+            ? limiteCss
+            : (carte ? carte.clientHeight : window.innerHeight);
+        vueRegles.style.maxHeight = Math.max(260, Math.round(hauteurCarte - 90)) + "px";
         vueRegles.style.overflowY = "auto";
         vueRegles.scrollTop = 0;
-        if (vueRecu) vueRecu.style.display = "none";
-        modal.classList.remove("hidden");
 
         document.getElementById("rules-back")?.addEventListener("click", () => {
             vueRegles.style.display = "none";
             vueRegles.innerHTML = "";
-            if (vueRecu) vueRecu.style.display = "block";
+            if (vueDoc) vueDoc.style.display = "block";
+            if (vueActions) vueActions.style.display = "";
         });
         document.getElementById("rules-download")?.addEventListener("click", () => {
             window.downloadRulesPDF(voyageur ? "voyageur" : "client");
@@ -614,8 +626,10 @@
             vueRegles.style.display = "none";
             vueRegles.innerHTML = "";
         }
-        const vueRecu = document.getElementById("receipt-content-view");
-        if (vueRecu) vueRecu.style.display = "block";
+        const vueDoc = document.getElementById("receipt-pdf-template");
+        if (vueDoc) vueDoc.style.display = "block";
+        const vueActions = document.querySelector("#receipt-content-view .receipt-actions");
+        if (vueActions) vueActions.style.display = "";
 
         // Le telephone du voyageur n'est pas dans la liste des conversations (choix
         // de confidentialite : rien n'est expose avant paiement). On le recupere ici,
