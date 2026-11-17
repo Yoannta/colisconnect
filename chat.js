@@ -668,7 +668,10 @@
                 filename: `bon-colisconnect-${String(txId || "recu").replace(/[^\w-]+/g, "_")}.pdf`,
                 image: { type: "jpeg", quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
-                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                // Respecte le saut de page place avant les regles : elles arrivent sur
+                // la deuxieme page du PDF, jamais coupees au milieu du recu.
+                pagebreak: { mode: ["css", "legacy"] }
             }).from(capture.clone).save();
         } catch (error) {
             console.warn("Generation PDF impossible:", error);
