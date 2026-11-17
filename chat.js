@@ -448,6 +448,14 @@
         ].join(";");
 
         fillReceiptTemplate(clone, txId);
+
+        // Deuxieme page du PDF : les regles, pour que le client les ait aussi entre les
+        // mains une fois le recu telecharge (elles ne s'affichent pas dans le recu).
+        const pageRegles = document.createElement("div");
+        pageRegles.style.cssText = "page-break-before: always; break-before: page; padding-top: 40px; border-top: 1px solid #e5e7eb;";
+        pageRegles.innerHTML = rulesBody(false);
+        clone.appendChild(pageRegles);
+
         host.appendChild(clone);
         document.body.appendChild(host);
         return { host, clone };
@@ -464,8 +472,7 @@
     // ---- Receipt Viewer Logic ----
     // ---- Règles (page blanche) : client avant de donner le colis, voyageur avant
     // de le récupérer. Meme mise en page dans les deux cas, seul le texte change.
-    window.showRules = function (role) {
-        const voyageur = String(role) === "voyageur" || String(role) === "traveler";
+    function rulesBody(voyageur) {
         const titre = voyageur
             ? "RÈGLES — AVANT DE RÉCUPÉRER LE COLIS"
             : "RÈGLES — AVANT DE DONNER LE COLIS";
@@ -509,29 +516,83 @@
             ], "#b91c1c");
         }
 
-        let host = document.getElementById("rules-overlay");
-        if (!host) {
-            host = document.createElement("div");
-            host.id = "rules-overlay";
-            host.style.cssText = "position:fixed;inset:0;z-index:9999;background:#ffffff;color:#111827;overflow-y:auto;padding:26px 20px 48px;display:none;";
-            document.body.appendChild(host);
-        }
-        host.innerHTML =
-            `<div style="max-width:640px;margin:0 auto;">` +
-            `<button type="button" id="rules-close" style="background:#f3f4f6;border:none;border-radius:10px;padding:10px 16px;font-size:15px;font-weight:700;color:#111827;cursor:pointer;margin-bottom:18px;">← Fermer</button>` +
-            `<h1 style="font-size:20px;font-weight:900;line-height:1.3;margin:0 0 8px;">${titre}</h1>` +
+        // Le contenu sans les boutons : sert aussi a generer le PDF des regles.
+        return `<h1 style="font-size:20px;font-weight:900;line-height:1.3;margin:0 0 8px;color:#111827;">${titre}</h1>` +
             `<p style="font-size:14px;color:#6b7280;margin:0 0 8px;">${sousTitre}</p>` +
             sections.join("") +
-            `<p style="margin-top:26px;padding:16px;background:#f9fafb;border-left:4px solid #111827;font-size:14px;line-height:1.6;"><strong>NB :</strong> tout autre problème hors de ces cadres sera soumis à une étude de l'équipe ColisConnect avant toute action.</p>` +
-            `</div>`;
-        host.style.display = "block";
-        host.scrollTop = 0;
-        const fermer = document.getElementById("rules-close");
-        if (fermer) fermer.onclick = () => { host.style.display = "none"; host.innerHTML = ""; };
-        document.body.style.overflow = "hidden";
-        if (fermer) {
-            const liberer = () => { document.body.style.overflow = ""; };
-            fermer.addEventListener("click", liberer);
+            `<p style="margin-top:26px;padding:16px;background:#f9fafb;border-left:4px solid #111827;font-size:14px;line-height:1.6;color:#111827;"><strong>NB :</strong> tout autre problème hors de ces cadres sera soumis à une étude de l'équipe ColisConnect avant toute action.</p>`;
+    }
+
+    window.showRules = function (role) {
+        const voyageur = String(role) === "voyageur" || String(role) === "traveler";
+        const corps = rulesBody(voyageur);
+        state.rulesCorps = corps;
+        state.rulesRole = voyageur ? "voyageur" : "client";
+
+        // On reste DANS la fenetre du recu : la vue recu se masque, la page blanche
+        // des regles prend sa place dans la meme pop-up.
+        const modal = document.getElementById("receipt-view-modal");
+        const vueRecu = document.getElementById("receipt-content-view");
+        const vueRegles = document.getElementById("receipt-rules-view");
+        if (!modal || !vueRegles) return;
+
+        const btn = (id, libelle, fond, couleur) =>
+            `<button type="button" id="${id}" style="background:${fond};border:none;border-radius:10px;padding:12px 16px;font-size:15px;font-weight:700;color:${couleur};cursor:pointer;">${libelle}</button>`;
+
+        vueRegles.innerHTML =
+            `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:22px;">` +
+            (voyageur ? "" : btn("rules-back", "← Retour au reçu", "#f3f4f6", "#111827")) +
+            btn("rules-download", "📩 Télécharger les règles (PDF)", "#059669", "#ffffff") +
+            `</div>` + corps;
+
+        vueRegles.style.display = "block";
+        vueRegles.style.maxHeight = "calc(100vh - 40px)";
+        vueRegles.style.overflowY = "auto";
+        vueRegles.scrollTop = 0;
+        if (vueRecu) vueRecu.style.display = "none";
+        modal.classList.remove("hidden");
+
+        document.getElementById("rules-back")?.addEventListener("click", () => {
+            vueRegles.style.display = "none";
+            vueRegles.innerHTML = "";
+            if (vueRecu) vueRecu.style.display = "block";
+        });
+        document.getElementById("rules-download")?.addEventListener("click", () => {
+            window.downloadRulesPDF(voyageur ? "voyageur" : "client");
+        });
+    };
+
+    // PDF des regles, meme mise en page que la page blanche.
+    window.downloadRulesPDF = async function (role) {
+        if (typeof window.html2pdf === "undefined") {
+            alert("Le module PDF n'est pas encore chargé, réessayez dans un instant.");
+            return;
+        }
+        const voyageur = String(role) === "voyageur";
+        const corps = (state.rulesCorps && state.rulesRole === (voyageur ? "voyageur" : "client"))
+            ? state.rulesCorps
+            : null;
+        if (!corps) {
+            window.showRules(role);
+            return window.downloadRulesPDF(role);
+        }
+        const host = document.createElement("div");
+        host.style.cssText = "position:fixed;left:0;top:0;width:794px;background:#ffffff;color:#111827;font-family:'Inter',Arial,sans-serif;padding:44px;z-index:2147483647;pointer-events:none;";
+        host.innerHTML = corps;
+        document.body.appendChild(host);
+        try {
+            await window.html2pdf().set({
+                margin: 8,
+                filename: `regles-colisconnect-${voyageur ? "voyageur" : "client"}.pdf`,
+                image: { type: "jpeg", quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff", scrollY: 0 },
+                jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+                pagebreak: { mode: ["css", "legacy"] }
+            }).from(host).save();
+        } catch (e) {
+            alert("PDF indisponible : " + (e?.message || "réessayez."));
+        } finally {
+            host.remove();
         }
     };
 
@@ -545,6 +606,16 @@
         // Un identifiant fabrique (« TX_ » + horodatage) n'est jamais une vraie
         // reference : on prefere celle de la reservation.
         const ref = /^TX_\d{10,}$/.test(String(txId || "")) ? "" : String(txId || "");
+
+        // On revient toujours sur le recu lui-meme : si la page des regles etait
+        // affichee dans cette meme fenetre, elle laisse la place.
+        const vueRegles = document.getElementById("receipt-rules-view");
+        if (vueRegles && vueRegles.style.display !== "none") {
+            vueRegles.style.display = "none";
+            vueRegles.innerHTML = "";
+        }
+        const vueRecu = document.getElementById("receipt-content-view");
+        if (vueRecu) vueRecu.style.display = "block";
 
         // Le telephone du voyageur n'est pas dans la liste des conversations (choix
         // de confidentialite : rien n'est expose avant paiement). On le recupere ici,
