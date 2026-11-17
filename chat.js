@@ -322,7 +322,13 @@
                 const refMatch = (msg.text || "").match(/Référence\s*:\s*([^\s\\]+)/i);
                 const txIdMatch = (msg.text || "").match(/\b(?:TX|GENIUS)_[A-Za-z0-9]+\b/);
                 const ref = refMatch ? refMatch[1] : (txIdMatch ? txIdMatch[0] : "");
-                html += `<br><button data-receipt-ref="${window.CCCommon.escapeHtml(ref)}" style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.viewReceipt(this.getAttribute('data-receipt-ref')||'')">🧾 Voir mon reçu</button>`;
+                if (state.activeThreadData?.isOfferOwner) {
+                    // Cote voyageur on ne montre jamais le recu du client : il voit ses
+                    // propres regles, celles qu'il doit lire avant de recuperer le colis.
+                    html += `<br><button type="button" onclick="window.showRules('voyageur')" style="margin-top:10px;background:#111827;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;">📋 Voir les règles avant de récupérer le colis</button>`;
+                } else {
+                    html += `<br><button data-receipt-ref="${window.CCCommon.escapeHtml(ref)}" style="margin-top:10px;background:#059669;border:none;cursor:pointer;border-radius:8px;padding:10px 15px;font-weight:bold;color:white;font-size:0.85rem;" onclick="window.viewReceipt(this.getAttribute('data-receipt-ref')||'')">🧾 Voir mon reçu</button>`;
+                }
             }
             html += `</span></div>`;
             return html;
@@ -456,6 +462,79 @@
     }
 
     // ---- Receipt Viewer Logic ----
+    // ---- Règles (page blanche) : client avant de donner le colis, voyageur avant
+    // de le récupérer. Meme mise en page dans les deux cas, seul le texte change.
+    window.showRules = function (role) {
+        const voyageur = String(role) === "voyageur" || String(role) === "traveler";
+        const titre = voyageur
+            ? "RÈGLES — AVANT DE RÉCUPÉRER LE COLIS"
+            : "RÈGLES — AVANT DE DONNER LE COLIS";
+        const sousTitre = voyageur
+            ? "Ce que le client attend de vous, et ce qui peut bloquer votre compte."
+            : "Vous avez payé la mise en relation. Voici ce qui protège votre colis.";
+
+        const sections = [];
+        const bloc = (titreBloc, items, couleur) => {
+            sections.push(
+                `<h2 style="font-size:15px;font-weight:800;margin:26px 0 10px;color:${couleur};">${titreBloc}</h2>` +
+                `<ul style="margin:0;padding-left:20px;">` +
+                items.map((t) => `<li style="margin-bottom:10px;font-size:15px;line-height:1.55;">${t}</li>`).join("") +
+                `</ul>`
+            );
+        };
+
+        if (voyageur) {
+            bloc("Vos obligations", [
+                "Si vous êtes <strong>vérifié</strong> : après la distribution des contacts, le client a le droit de vous demander une photo de votre billet d'avion pour sa sécurité. En cas de refus, votre compte risque d'être bloqué.",
+                "Vous ne pouvez pas changer les clauses de l'entente avec le client sans son accord : augmenter le prix par kilo, ou déclarer son colis comme inéligible sans raison valable, par exemple.",
+                "Si vous n'êtes <strong>pas vérifié</strong> : vous êtes soumis aux mêmes règles que les voyageurs vérifiés, à une différence près — le client a le droit de vous demander une photo de votre pièce d'identité, pour s'assurer de votre identité et vous retrouver en cas de litige.",
+            ], "#111");
+        } else {
+            bloc("Ce que vous devez faire", [
+                "Une fois sur WhatsApp, ou sur le canal de communication avec le voyageur, demandez-lui qu'il vous envoie la photo de son billet d'avion.",
+                "S'il n'est pas vérifié, demandez-lui en plus du billet son passeport ou sa pièce d'identité.",
+                "Si le voyageur arrive à destination et met plus d'une semaine à restituer votre colis, signalez-le à la plateforme ColisConnect afin que nous bloquions son compte.",
+            ], "#111");
+            bloc("Nous remboursons la moitié de la somme payée", [
+                "Si le voyageur a volé votre colis.",
+                "S'il a menti sur le prix par kilo.",
+                "S'il a menti sur les informations qu'il a affichées sur sa carte ou envoyées par message.",
+                "Si le voyageur n'est plus en mesure d'envoyer votre colis à destination.",
+                "Si le voyageur <em>vérifié</em> ne veut pas mettre à votre disposition une photo de son billet d'avion.",
+                "Si le voyageur <em>non vérifié</em> ne veut pas mettre à votre disposition une photo d'une pièce d'identité et de son billet d'avion.",
+            ], "#059669");
+            bloc("Nous ne remboursons pas", [
+                "Si vous changez d'avis après avoir payé le service.",
+                "Si vous n'avez pas envoyé votre colis à temps.",
+            ], "#b91c1c");
+        }
+
+        let host = document.getElementById("rules-overlay");
+        if (!host) {
+            host = document.createElement("div");
+            host.id = "rules-overlay";
+            host.style.cssText = "position:fixed;inset:0;z-index:9999;background:#ffffff;color:#111827;overflow-y:auto;padding:26px 20px 48px;display:none;";
+            document.body.appendChild(host);
+        }
+        host.innerHTML =
+            `<div style="max-width:640px;margin:0 auto;">` +
+            `<button type="button" id="rules-close" style="background:#f3f4f6;border:none;border-radius:10px;padding:10px 16px;font-size:15px;font-weight:700;color:#111827;cursor:pointer;margin-bottom:18px;">← Fermer</button>` +
+            `<h1 style="font-size:20px;font-weight:900;line-height:1.3;margin:0 0 8px;">${titre}</h1>` +
+            `<p style="font-size:14px;color:#6b7280;margin:0 0 8px;">${sousTitre}</p>` +
+            sections.join("") +
+            `<p style="margin-top:26px;padding:16px;background:#f9fafb;border-left:4px solid #111827;font-size:14px;line-height:1.6;"><strong>NB :</strong> tout autre problème hors de ces cadres sera soumis à une étude de l'équipe ColisConnect avant toute action.</p>` +
+            `</div>`;
+        host.style.display = "block";
+        host.scrollTop = 0;
+        const fermer = document.getElementById("rules-close");
+        if (fermer) fermer.onclick = () => { host.style.display = "none"; host.innerHTML = ""; };
+        document.body.style.overflow = "hidden";
+        if (fermer) {
+            const liberer = () => { document.body.style.overflow = ""; };
+            fermer.addEventListener("click", liberer);
+        }
+    };
+
     window.viewReceipt = async function (txId) {
         const modal = document.getElementById("receipt-view-modal");
         if (!modal) {
