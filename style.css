@@ -20871,3 +20871,95 @@ body.light .paid-contacts-detail .paid-contact-phone { color: #047857; }
 }
 
 #receipt-view-modal .receipt-actions { flex: 0 0 auto; }
+
+/* ── Carte DEMANDE : meme habillage que la carte OFFRE ─────────────────────
+   Le panneau central garde son cadre mais accueille les elements du colis. */
+.cards-list .cc3-card .cc3-detail-price--demand {
+    display: block;
+    min-height: 0;
+    padding: 0 !important;
+}
+
+.cards-list .cc3-card .cc3-detail-price--demand .water-lens {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    /* Pas de padding horizontal : la grille interne doit demarrer exactement
+       comme celle des deux blocs de details (Date limite / Nombre de colis). */
+    padding: 10px 0 11px !important;
+    width: 100% !important;
+}
+
+.cards-list .cc3-card .cc3-detail-price--demand .water-lens__content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+}
+
+.cc3-demand-bloc {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    row-gap: 2px;
+    width: 100%;
+}
+
+/* Chaque ligne = libelle (colonne 1) + valeur (colonne 2) : les deux colonnes
+   demarrent exactement sous « Date limite » et « Nombre de colis ». */
+.cc3-demand-line {
+    display: contents;
+}
+
+/* Libelle a gauche : noir (theme clair), creme en sombre. */
+.cards-list .cc3-card .cc3-demand-key {
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    color: #f4ead8;
+    white-space: nowrap;
+    /* 5px (padding du bloc) + 19px (icone) + 7px (gap) = 31px */
+    padding: 1px 10px 1px 37px !important;
+}
+
+/* Valeur a droite : meme couleur que « Articles refuses ». */
+.cards-list .cc3-card .cc3-demand-val {
+    font-size: 0.72rem;
+    font-weight: 750;
+    color: #e6b23c;
+    text-align: left;
+    overflow-wrap: anywhere;
+    padding: 1px 0 1px 39px !important;
+}
+
+body.results-page.light .cc3-demand-key {
+    color: #111111;
+}
+
+body.results-page.light .cc3-demand-val {
+    color: #b07f17;
+}
+
+.cc3-demand-bloc + .cc3-demand-bloc {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed rgba(184, 134, 11, 0.3);
+}
+
+.cc3-demand-bloc-titre {
+    display: block;
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #b07f17;
+    margin-bottom: 3px;
+}
+
+/* Valeur doree (date limite de la carte demande), comme la date de la carte offre. */
+.cc3-card .cc3-value--gold {
+    color: #e6b23c;
+}
+
+body.results-page.light .cc3-card .cc3-value--gold {
+    color: #b07f17;
+}
