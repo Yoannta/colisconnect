@@ -383,31 +383,31 @@
     }
 
     function demandSentence(item, demand, displayCurrency) {
-        // Presentation structuree (demande Yoyo) : une ligne par information, comme
-        // les questions du formulaire de creation. Rien n'est affiche si le champ
-        // n'a pas ete rempli.
-        const nom = item.item_type ? String(item.item_type).trim() : "";
-        const lignes = [];
-        if (nom) lignes.push({ cle: "Colis à envoyer", val: nom });
-        if (item.quantity !== null && item.quantity !== undefined && String(item.quantity).trim() !== "") {
-            lignes.push({ cle: "Nombre d'articles", val: String(item.quantity) });
+        // Mode phrase : une seule phrase lisible par colis, comme avant la refonte.
+        const noun = item.item_type ? String(item.item_type).trim().toLowerCase() : "";
+        const weight = item.weight_kg !== null && item.weight_kg !== undefined && item.weight_kg !== "";
+        const quantity = item.quantity !== null && item.quantity !== undefined && item.quantity !== "";
+        let send = "";
+        if (weight) {
+            send = `<span class="cc-demand-hl">${escape(item.weight_kg)} kg${noun ? ` de ${escape(noun)}` : ""}</span>`;
+        } else if (quantity) {
+            const count = Number(item.quantity);
+            const plural = noun && count > 1 && !/[sxz]$/i.test(noun) ? `${noun}s` : noun;
+            send = `<span class="cc-demand-hl">${escape(item.quantity)} ${escape(plural || "colis")}</span>`;
         }
-        // Poids : 0 kg (ou vide) n'est pas affiche ; on affiche a partir de 1 kg.
-        const poidsNum = Number(item.weight_kg);
-        if (item.weight_kg !== null && item.weight_kg !== undefined && String(item.weight_kg).trim() !== ""
-            && Number.isFinite(poidsNum) && poidsNum >= 1) {
-            lignes.push({ cle: "Poids total", val: `${item.weight_kg} kg` });
-        }
-        const rawPrice = item.max_price_total ?? item.max_price_per_kg;
+        const rawPrice = item.max_price_per_kg ?? item.max_price_total;
+        let pay = "";
         let missingRate = false;
-        if (rawPrice !== null && rawPrice !== undefined && String(rawPrice).trim() !== "") {
+        if (rawPrice !== null && rawPrice !== undefined && rawPrice !== "") {
             const from = String(item.currency || demand.currency || "XOF").toUpperCase();
             const converted = money(Number(rawPrice), from, displayCurrency);
             missingRate = converted.missingRate;
-            lignes.push({ cle: "Budget proposé", val: converted.text });
+            pay = `<span class="cc-demand-hl">${escape(converted.text)}</span>`;
         }
-        if (!lignes.length) return { html: "", missingRate: false };
-        const html = `<div class="cc-demand-item">${lignes.map((l) => `<div class="cc-demand-line"><span class="cc-demand-key">${escape(l.cle)}</span><span class="cc-demand-val">${escape(l.val)}</span></div>`).join("")}</div>`;
+        let html = "";
+        if (send && pay) html = `Je veux envoyer ${send} et je peux payer environ ${pay}`;
+        else if (send) html = `Je veux envoyer ${send}`;
+        else if (pay) html = `Je peux payer environ ${pay}`;
         return { html, missingRate };
     }
 
