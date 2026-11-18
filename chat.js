@@ -74,6 +74,9 @@
         paidInfoText: document.getElementById("paid-line-info-text"),
         paidReceiptBtn: document.getElementById("paid-line-receipt"),
         paidContactsDetail: document.getElementById("paid-contacts-detail"),
+        paidLines: document.getElementById("paid-lines"),
+        paidToggleBtn: document.getElementById("paid-toggle"),
+        paidToggleLabel: document.getElementById("paid-toggle-label"),
         receiptDownloadBtn: document.getElementById("receipt-download-btn"),
         receiptCloseBtn: document.getElementById("receipt-close-btn"),
         tutorialOverlay: document.getElementById("chat-tutorial-overlay"),
@@ -753,6 +756,30 @@
         if (details.length) bits.push(details.join(" · "));
         bits.push("Vous pouvez maintenant vous partager vos contacts et vos numéros.");
         if (els.paidInfoText) els.paidInfoText.textContent = bits.join(" — ");
+    }
+
+    // Repli du bandeau d'apres-paiement : le client peut faire remonter les trois
+    // lignes pour liberer la place du chat. Le choix est garde d'une visite a l'autre.
+    const PAID_COLLAPSE_KEY = "cc.paidBanner.collapsed";
+
+    function setPaidCollapsed(collapsed) {
+        if (!els.paidLines || !els.paidToggleBtn) return;
+        els.paidLines.classList.toggle("is-collapsed", collapsed);
+        els.paidToggleBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        if (els.paidToggleLabel) {
+            els.paidToggleLabel.textContent = collapsed ? "Afficher le message de paiement" : "Masquer";
+        }
+        const chevron = els.paidToggleBtn.querySelector(".paid-toggle-chevron");
+        if (chevron) chevron.textContent = collapsed ? "⌄" : "⌃";
+        try {
+            window.localStorage.setItem(PAID_COLLAPSE_KEY, collapsed ? "1" : "0");
+        } catch (err) { /* navigation privee : l'etat reste en memoire pour la session */ }
+    }
+
+    function restorePaidCollapse() {
+        let collapsed = false;
+        try { collapsed = window.localStorage.getItem(PAID_COLLAPSE_KEY) === "1"; } catch (err) { collapsed = false; }
+        setPaidCollapsed(collapsed);
     }
 
     function triggerTutorialFocus() {
@@ -1558,6 +1585,12 @@
         document.getElementById("split-payment-submit")?.addEventListener("click", () => submitSplitPayment());
         // « Voir mon recu » (2e ligne du bandeau) + boutons de la modale
         els.paidReceiptBtn?.addEventListener("click", () => { openReceipt().catch(() => { }); });
+        // Ligne de repli sous les trois lignes : masque / reaffiche le bandeau paye.
+        els.paidToggleBtn?.addEventListener("click", () => {
+            const collapsed = !els.paidLines?.classList.contains("is-collapsed");
+            setPaidCollapsed(collapsed);
+        });
+        restorePaidCollapse();
         els.receiptDownloadBtn?.addEventListener("click", () => {
             const ctx = receiptContext();
             window.generateReceiptPDF(ctx.ref || "");
