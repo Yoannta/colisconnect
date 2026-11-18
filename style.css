@@ -20765,29 +20765,47 @@ body.dashboard-page:not(.light) .client-history-panel .cc-acc-title {
     text-align: left;
 }
 
-/* Repli du bandeau d'apres-paiement : accordeon vertical.
-   grid-template-rows 1fr -> 0fr anime la hauteur sans valeur en dur. */
-.paid-lines {
+/* Repli des bandeaux (paiement et consignes) : accordeon vertical.
+   grid-template-rows 1fr -> 0fr anime la hauteur sans valeur en dur.
+   .cc-fold est la version generique, .paid-lines l'alias historique. */
+.paid-lines,
+.cc-fold {
     display: grid;
     grid-template-rows: 1fr;
     transition: grid-template-rows 0.28s ease, opacity 0.22s ease;
 }
 
-.paid-lines-inner {
+.paid-lines-inner,
+.cc-fold-inner {
     min-height: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
     overflow: hidden;
 }
 
-.paid-lines.is-collapsed {
+/* Disposition propre au bandeau de paiement (lignes empilees). */
+.paid-lines-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* Disposition propre au bandeau de consignes (icone / texte / bouton en ligne). */
+.info-lines-inner {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.paid-lines.is-collapsed,
+.cc-fold.is-collapsed {
     grid-template-rows: 0fr;
     opacity: 0;
 }
 
 /* Seul element laisse visible quand tout est replie. */
-.paid-toggle {
+.paid-toggle,
+.cc-fold-toggle {
     align-self: center;
     display: inline-flex;
     align-items: center;
@@ -20807,31 +20825,52 @@ body.dashboard-page:not(.light) .client-history-panel .cc-acc-title {
 }
 
 .paid-toggle:hover,
-.paid-toggle:focus-visible {
+.paid-toggle:focus-visible,
+.cc-fold-toggle:hover,
+.cc-fold-toggle:focus-visible {
     color: #ffffff;
     border-color: rgba(19, 236, 200, 0.6);
     background: rgba(19, 236, 200, 0.08);
 }
 
-.paid-lines.is-collapsed ~ .paid-toggle {
+.paid-lines.is-collapsed ~ .paid-toggle,
+.cc-fold.is-collapsed ~ .cc-fold-toggle {
     color: rgba(255, 255, 255, 0.85);
     border-color: rgba(19, 236, 200, 0.45);
     background: rgba(19, 236, 200, 0.06);
 }
 
-.paid-toggle-chevron {
+.paid-toggle-chevron,
+.cc-fold-chevron {
     font-size: 0.8rem;
     line-height: 1;
 }
 
-body.light .paid-toggle {
+/* Le bandeau de consignes est une ligne : le repli passe sous le contenu. */
+#chat-info-banner {
+    flex-wrap: wrap;
+}
+
+#chat-info-banner .cc-fold {
+    flex: 1 1 100%;
+}
+
+#chat-info-banner .cc-fold-toggle {
+    margin-inline: auto;
+}
+
+body.light .paid-toggle,
+body.light .cc-fold-toggle {
     color: #64748b;
     border-color: rgba(15, 23, 42, 0.18);
 }
 
 body.light .paid-toggle:hover,
 body.light .paid-toggle:focus-visible,
-body.light .paid-lines.is-collapsed ~ .paid-toggle {
+body.light .paid-lines.is-collapsed ~ .paid-toggle,
+body.light .cc-fold-toggle:hover,
+body.light .cc-fold-toggle:focus-visible,
+body.light .cc-fold.is-collapsed ~ .cc-fold-toggle {
     color: #0f172a;
     border-color: rgba(5, 150, 105, 0.5);
     background: rgba(5, 150, 105, 0.08);

@@ -77,6 +77,9 @@
         paidLines: document.getElementById("paid-lines"),
         paidToggleBtn: document.getElementById("paid-toggle"),
         paidToggleLabel: document.getElementById("paid-toggle-label"),
+        infoLines: document.getElementById("info-lines"),
+        infoToggleBtn: document.getElementById("info-toggle"),
+        infoToggleLabel: document.getElementById("info-toggle-label"),
         receiptDownloadBtn: document.getElementById("receipt-download-btn"),
         receiptCloseBtn: document.getElementById("receipt-close-btn"),
         tutorialOverlay: document.getElementById("chat-tutorial-overlay"),
@@ -727,6 +730,14 @@
             els.chatInfoBanner.classList.toggle("hidden", !shouldShowBanner);
             if (!shouldShowBanner) state.isTutorialAccepted = true;
             if (els.comprisBtn) els.comprisBtn.classList.toggle("hidden", state.isTutorialAccepted);
+            // Ligne de repli des consignes : elle n'existe qu'une fois « J'ai compris »
+            // clique (ou deja clique lors d'une visite precedente sur ce fil).
+            const accepte = state.isTutorialAccepted === true;
+            if (els.infoToggleBtn) els.infoToggleBtn.classList.toggle("hidden", !accepte);
+            if (repliInfoFil !== state.activeThreadId) {
+                repliInfoFil = state.activeThreadId;
+                setInfoCollapsed(accepte ? repliMemorise(INFO_COLLAPSE_KEY) : false, false);
+            }
         }
         updatePaidPanel(thread);
     }
@@ -767,22 +778,40 @@
         if (els.paidInfoText) els.paidInfoText.textContent = bits.join(" — ");
     }
 
-    // Repli du bandeau d'apres-paiement : le client peut faire remonter les trois
-    // lignes pour liberer la place du chat. Le choix est garde d'une visite a l'autre.
+    // Repli des bandeaux (consignes d'entree et apres-paiement) : le client peut
+    // faire remonter le contenu pour liberer la place du chat. Meme mecanisme pour
+    // les deux ; seul le libelle change. Le choix est garde d'une visite a l'autre.
     const PAID_COLLAPSE_KEY = "cc.paidBanner.collapsed";
+    const INFO_COLLAPSE_KEY = "cc.infoBanner.collapsed";
+    // Fil pour lequel l'etat de repli des consignes a deja ete applique : evite de
+    // re-replier le bandeau a chaque rafraichissement si l'utilisateur vient de l'ouvrir.
+    let repliInfoFil = null;
 
-    function setPaidCollapsed(collapsed) {
-        if (!els.paidLines || !els.paidToggleBtn) return;
-        els.paidLines.classList.toggle("is-collapsed", collapsed);
-        els.paidToggleBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
-        if (els.paidToggleLabel) {
-            els.paidToggleLabel.textContent = collapsed ? "Afficher le message de paiement" : "Masquer";
-        }
-        const chevron = els.paidToggleBtn.querySelector(".paid-toggle-chevron");
+    function appliquerRepli(box, btn, labelEl, collapsed, textes, cle, memoriser) {
+        if (!box || !btn) return;
+        box.classList.toggle("is-collapsed", collapsed);
+        btn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        if (labelEl) labelEl.textContent = collapsed ? textes.afficher : textes.masquer;
+        const chevron = btn.querySelector(".paid-toggle-chevron, .cc-fold-chevron");
         if (chevron) chevron.textContent = collapsed ? "⌄" : "⌃";
+        if (memoriser === false) return;
         try {
-            window.localStorage.setItem(PAID_COLLAPSE_KEY, collapsed ? "1" : "0");
+            window.localStorage.setItem(cle, collapsed ? "1" : "0");
         } catch (err) { /* navigation privee : l'etat reste en memoire pour la session */ }
+    }
+
+    function setPaidCollapsed(collapsed, memoriser) {
+        appliquerRepli(els.paidLines, els.paidToggleBtn, els.paidToggleLabel, collapsed,
+            { afficher: "Afficher le message de paiement", masquer: "Masquer" }, PAID_COLLAPSE_KEY, memoriser);
+    }
+
+    function setInfoCollapsed(collapsed, memoriser) {
+        appliquerRepli(els.infoLines, els.infoToggleBtn, els.infoToggleLabel, collapsed,
+            { afficher: "Afficher les consignes", masquer: "Masquer" }, INFO_COLLAPSE_KEY, memoriser);
+    }
+
+    function repliMemorise(cle) {
+        try { return window.localStorage.getItem(cle) === "1"; } catch (err) { return false; }
     }
 
     function restorePaidCollapse() {
@@ -1645,6 +1674,17 @@
             els.chatInfoBanner?.classList.remove("tutorial-focus");
             els.comprisBtn?.classList.remove("highlight-mode");
             els.comprisBtn?.classList.add("hidden");
+            // C'est ici que la ligne de repli des consignes devient visible : avant ce
+            // clic, l'utilisateur doit lire les regles, donc pas de bouton pour les cacher.
+            repliInfoFil = state.activeThreadId;
+            els.infoToggleBtn?.classList.remove("hidden");
+            setInfoCollapsed(false, false);
+        });
+
+        // Ligne de repli des consignes : masque / reaffiche le bandeau d'entree.
+        els.infoToggleBtn?.addEventListener("click", () => {
+            const collapsed = !els.infoLines?.classList.contains("is-collapsed");
+            setInfoCollapsed(collapsed);
         });
 
         els.messageInput?.addEventListener("mousedown", (e) => {

@@ -24,7 +24,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
         rel="stylesheet">
     <!-- Design « Obsidian Luxe / Gold Light » : même feuille de style que results.html -->
-    <link rel="stylesheet" href="style.css?v=20261118a">
+    <link rel="stylesheet" href="style.css?v=20261118b">
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -41,7 +41,7 @@
     <script defer src="devise.js?v=2"></script>
     <script defer src="admin-banner.js"></script>
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script defer src="chat.js?v=20261118b"></script>
+    <script defer src="chat.js?v=20261118c"></script>
 </head>
 
 <body class="chat-page">
@@ -116,23 +116,34 @@
             <div id="chat-tutorial-overlay" class="tutorial-overlay hidden"></div>
 
             <div id="chat-info-banner" class="chat-info-banner hidden">
-                <div class="banner-icon">💡</div>
-                <div class="banner-body">
-                    <div class="banner-text">
-                        <strong>Aucun contact ni aucune information personnelle ne doivent être divulgués sur la
-                        plateforme.</strong> Les contacts sont bloqués par défaut.<br>
-                        Pour pouvoir échanger vos coordonnées, veuillez appuyer sur
-                        <strong>« Valider ma réservation »</strong> afin de payer les frais de mise en relation.<br>
-                        <strong>NB : SI VOUS ESSAYEZ DE CONTOURNER LES RÈGLES, VOUS SEREZ BLOQUÉ.</strong><br>
-                        <!-- TODO(video) : coller l'URL de la video tutorielle a la place du "#" ci-dessous -->
-                        <span class="banner-tuto">Voir la vidéo tutorielle :
-                            <a href="#" id="banner-tuto-link" target="_blank" rel="noopener">cliquez ici</a>
-                        </span>
+                <div id="info-lines" class="cc-fold">
+                    <div class="cc-fold-inner info-lines-inner">
+                        <div class="banner-icon">💡</div>
+                        <div class="banner-body">
+                            <div class="banner-text">
+                                <strong>Aucun contact ni aucune information personnelle ne doivent être divulgués sur la
+                                plateforme.</strong> Les contacts sont bloqués par défaut.<br>
+                                Pour pouvoir échanger vos coordonnées, veuillez appuyer sur
+                                <strong>« Valider ma réservation »</strong> afin de payer les frais de mise en relation.<br>
+                                <strong>NB : SI VOUS ESSAYEZ DE CONTOURNER LES RÈGLES, VOUS SEREZ BLOQUÉ.</strong><br>
+                                <!-- TODO(video) : coller l'URL de la video tutorielle a la place du "#" ci-dessous -->
+                                <span class="banner-tuto">Voir la vidéo tutorielle :
+                                    <a href="#" id="banner-tuto-link" target="_blank" rel="noopener">cliquez ici</a>
+                                </span>
+                            </div>
+                            <button type="button" id="banner-more-btn" class="banner-more-btn">Voir plus</button>
+                        </div>
+                        <button type="button" id="banner-compris-btn" class="btn primary sm banner-action-btn">J'ai
+                            compris</button>
                     </div>
-                    <button type="button" id="banner-more-btn" class="banner-more-btn">Voir plus</button>
                 </div>
-                <button type="button" id="banner-compris-btn" class="btn primary sm banner-action-btn">J'ai
-                    compris</button>
+                <!-- Ligne de repli des consignes : n'apparait qu'APRES « J'ai compris ».
+                     Meme mecanisme que la ligne de repli du bandeau de paiement. -->
+                <button type="button" id="info-toggle" class="cc-fold-toggle hidden" aria-expanded="true"
+                    aria-controls="info-lines">
+                    <span class="cc-fold-chevron" aria-hidden="true">⌃</span>
+                    <span id="info-toggle-label">Masquer</span>
+                </button>
             </div>
 
             <!-- Bandeau d'apres-paiement : 3 lignes en haut du fil
