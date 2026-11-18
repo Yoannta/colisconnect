@@ -744,6 +744,15 @@
             return;
         }
         const res = thread?.reservation || {};
+        // Fil paye : la moderation est eteinte pour ce fil, on efface donc tout ce
+        // qui restait d'une alerte precedente (memoire du fil, bandeau rouge, bouton
+        // d'envoi grise). Sans ca, un fil paye restait « bloque » a l'ecran alors que
+        // la base l'autorise.
+        try {
+            window.CCFraudeIA?.oublier(thread?.id || state.activeThreadId);
+            showLeakWarning(false);
+            refreshSendButton();
+        } catch (err) { /* module absent : rien a nettoyer */ }
         const amount = Number(res.total_amount || 0);
         const kg = Number(res.kg || 0);
         const cur = threadCurrency(thread);
@@ -1490,7 +1499,10 @@
         // Surveillance de la frappe (couche 2) : le moderateur classique peut faire
         // analyser le message en cours de redaction avant meme l'envoi. Une seule
         // analyse par conversation, apres une courte pause de frappe.
+        // Fil paye : le bot n'est plus consulte du tout — plus aucun appel pendant
+        // la frappe (c'est la que se cachait le seul cout recurrent).
         els.messageInput?.addEventListener("input", () => {
+            if (isPaidThread(state.activeThreadData)) return;
             window.CCFraudeIA?.surveiller(state.activeThreadId, els.messageInput.value || "");
         });
 
