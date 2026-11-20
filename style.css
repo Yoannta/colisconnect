@@ -20982,3 +20982,19 @@ body.light .paid-contacts-detail .paid-contact-phone { color: #047857; }
 }
 
 #receipt-view-modal .receipt-actions { flex: 0 0 auto; }
+
+/* ── Recherche : bouton « Effacer » agrandi (meme hauteur que « Rechercher ») ── */
+body.results-page .cc-search-actions .cc-btn-secondary {
+    min-width: 124px !important;
+    height: 48px !important;
+    padding: 0 24px;
+    font-size: 15px;
+}
+
+/* ── Profil : les demandes reprennent exactement la carte de la recherche ── */
+.profil-demandes.cards-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 10px;
+}
