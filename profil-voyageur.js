@@ -240,21 +240,27 @@
     // --- ses demandes de trajet (visibles aussi depuis la recherche) ---
     html += '<section class="profil-section"><h2>Ses demandes</h2>';
     if (demandes.length) {
-      // Meme composant que la recherche : la carte demande est identique.
-      const peutCarte = window.CCResultsCard && typeof window.CCResultsCard.demand === "function";
-      if (peutCarte) {
-        const cartes = demandes.map((d) => {
-          try {
-            return window.CCResultsCard.demand(d, {
-              currency: d.currency || "XOF",
-              userId: id
-            });
-          } catch (e) { return ""; }
+      html += '<div class="profil-demandes">' + demandes.map((d) => {
+        const route = [d.origin, d.destination].filter(Boolean).join(" → ");
+        const villes = [d.origin_city, d.destination_city].filter(Boolean).join(" → ");
+        const limite = d.needed_by_date ? dateLisible(d.needed_by_date) : "Pas de date limite";
+        const items = Array.isArray(d.items) ? d.items : [];
+        const lignes = items.map((it) => {
+          const nom = it.item_type ? echap(it.item_type) : "Colis";
+          const poids = Number(it.weight_kg) >= 1 ? " · " + echap(it.weight_kg) + " kg" : "";
+          const qte = it.quantity ? " · " + echap(it.quantity) + " article(s)" : "";
+          const devise = echap(String(it.currency || d.currency || "").toUpperCase());
+          const budget = it.max_price_total ? " · " + echap(it.max_price_total) + " " + devise
+            : (it.max_price_per_kg ? " · " + echap(it.max_price_per_kg) + " " + devise + "/kg" : "");
+          return '<li><span class="profil-demande-colis-nom">' + nom + "</span>" + poids + qte + budget + "</li>";
         }).join("");
-        html += '<div class="profil-demandes cc-card-grid cc-card-grid--inner cards-list cards-list--cc3">' + cartes + "</div>";
-      } else {
-        html += '<div class="profil-vide">Impossible d\'afficher les demandes pour le moment.</div>';
-      }
+        return '<article class="profil-demande">' +
+          '<div class="profil-demande-route">' + echap(route || "Trajet") + "</div>" +
+          (villes ? '<div class="profil-demande-meta">' + echap(villes) + "</div>" : "") +
+          '<div class="profil-demande-meta">Date limite : ' + echap(limite) + "</div>" +
+          (lignes ? '<ul class="profil-demande-colis">' + lignes + "</ul>" : "") +
+          "</article>";
+      }).join("") + "</div>";
     } else {
       html += '<div class="profil-vide">Aucune demande en cours pour le moment.</div>';
     }
@@ -268,23 +274,6 @@
       (voyage ? (estCargo ? "Contacter le cargo" : "Contacter le voyageur") : (estCargo ? "Aucune offre disponible" : "Aucun voyage disponible")) + "</button>";
 
     conteneur.innerHTML = html;
-
-    // --- drapeaux des cartes de demande : le code pays n'est pas stocke, on le
-    //     resout a partir du nom affiche (meme source que la recherche) ---
-    (function poserDrapeaux(racine) {
-      const getCode = window.CCCommon && window.CCCommon._getCountryCode;
-      if (!racine || typeof getCode !== "function") return;
-      racine.querySelectorAll(".cc-flag[data-flag-country]").forEach(function (flag) {
-        if (flag.classList.contains("fi")) return;
-        const pays = flag.getAttribute("data-flag-country");
-        if (!pays) return;
-        getCode(pays).then(function (code) {
-          if (flag.isConnected && /^[A-Za-z]{2}$/.test(String(code || ""))) {
-            flag.classList.add("fi", "fis", "fi-" + String(code).toLowerCase());
-          }
-        }).catch(function () { /* pays inconnu : drapeau laisse vide */ });
-      });
-    })(conteneur);
 
     // --- contacts : la carte et le bouton du bas ouvrent la même discussion ---
     function ouvrirDiscussion(idOffreChoisi) {
