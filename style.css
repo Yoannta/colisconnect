@@ -20983,19 +20983,9 @@ body.light .paid-contacts-detail .paid-contact-phone { color: #047857; }
 
 #receipt-view-modal .receipt-actions { flex: 0 0 auto; }
 
-/* ── Recherche : bouton « Effacer » agrandi (meme hauteur que « Rechercher ») ── */
-body.results-page .cc-search-actions .cc-btn-secondary {
-    min-width: 124px !important;
-    height: 48px !important;
-    padding: 0 24px;
-    font-size: 15px;
-}
 
-/* ── Profil : les demandes reprennent exactement la carte de la recherche ── */
-.profil-demandes.cards-list {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
+/* ── Profil : les demandes utilisent la grille exacte de la recherche ── */
+.profil-demandes {
     margin-top: 10px;
 }
 
@@ -21034,4 +21024,15 @@ body.results-page .cc-card .cc-route-txt {
     body.results-page .cc-card .cc-route-side {
         gap: 7px;
     }
+}
+
+/* ── Carte demande : corbeille plus lisible a cote de « Modifier ma demande » ── */
+body.results-page .cc-card--demand .cc-card-actions .cc-icon-btn {
+    width: 46px;
+    height: 46px;
+}
+
+body.results-page .cc-card--demand .cc-card-actions .cc-icon-btn svg {
+    width: 20px;
+    height: 20px;
 }

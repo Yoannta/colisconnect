@@ -251,7 +251,7 @@
             });
           } catch (e) { return ""; }
         }).join("");
-        html += '<div class="profil-demandes cards-list">' + cartes + "</div>";
+        html += '<div class="profil-demandes cc-card-grid cc-card-grid--inner cards-list cards-list--cc3">' + cartes + "</div>";
       } else {
         html += '<div class="profil-vide">Impossible d\'afficher les demandes pour le moment.</div>';
       }
