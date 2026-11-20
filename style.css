@@ -20998,3 +20998,40 @@ body.results-page .cc-search-actions .cc-btn-secondary {
     gap: 14px;
     margin-top: 10px;
 }
+
+/* ── Carte : les noms de pays ne se coupent pas au milieu d'un mot ──────────
+   (« Chine » ne doit jamais s'afficher « Chin / e », ni « Côte d'Ivoire »
+   etre tronque des le premier mot). */
+body.results-page .cc-card .cc-route-country {
+    display: block;
+    width: 100%;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+    overflow-wrap: normal;
+    word-break: normal;
+    hyphens: none;
+    white-space: normal;
+    text-overflow: clip;
+}
+
+body.results-page .cc-card .cc-route-txt {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+/* Sur une carte etroite, on rend de la place au texte : drapeau et avion plus petits. */
+@media (max-width: 560px) {
+    body.results-page .cc-card .cc-route-flight {
+        width: 32px;
+        flex-basis: 32px;
+    }
+    body.results-page .cc-card .cc-flag {
+        width: 34px;
+        height: 34px;
+        flex-basis: 34px;
+        line-height: 34px;
+    }
+    body.results-page .cc-card .cc-route-side {
+        gap: 7px;
+    }
+}

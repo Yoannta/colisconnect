@@ -269,6 +269,23 @@
 
     conteneur.innerHTML = html;
 
+    // --- drapeaux des cartes de demande : le code pays n'est pas stocke, on le
+    //     resout a partir du nom affiche (meme source que la recherche) ---
+    (function poserDrapeaux(racine) {
+      const getCode = window.CCCommon && window.CCCommon._getCountryCode;
+      if (!racine || typeof getCode !== "function") return;
+      racine.querySelectorAll(".cc-flag[data-flag-country]").forEach(function (flag) {
+        if (flag.classList.contains("fi")) return;
+        const pays = flag.getAttribute("data-flag-country");
+        if (!pays) return;
+        getCode(pays).then(function (code) {
+          if (flag.isConnected && /^[A-Za-z]{2}$/.test(String(code || ""))) {
+            flag.classList.add("fi", "fis", "fi-" + String(code).toLowerCase());
+          }
+        }).catch(function () { /* pays inconnu : drapeau laisse vide */ });
+      });
+    })(conteneur);
+
     // --- contacts : la carte et le bouton du bas ouvrent la même discussion ---
     function ouvrirDiscussion(idOffreChoisi) {
       if (!idOffreChoisi) return;
