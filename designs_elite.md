@@ -82,4 +82,66 @@ function animateNexus() {
   3. Validation Utilisateur avant tout code.
 
 ---
-*Maintenu par Antigravity & ChatGPT.*
+---
+
+# 💎 V2 — Signatures « ColisConnect-Premium » (27/11/2026)
+
+Base de référence de la refonte V2. Les signatures de l'École du e-commerce ci-dessus
+restent valables comme **principes** ; ce qui suit les traduit pour un produit
+logistique : un colis, un trajet, une confiance.
+
+## 1. Palette (jetons à utiliser tels quels)
+
+| Jeton | Valeur | Usage |
+|---|---|---|
+| `--obsidian` | `#070B0A` | fond principal, jamais pur noir |
+| `--obsidian-2` | `#0D1512` | surfaces surélevées |
+| `--emerald` | `#12B886` | action principale, états actifs |
+| `--emerald-deep` | `#0B6B4F` | dégradés, ombres colorées |
+| `--gold` | `#D9B45B` | **uniquement** la confiance : vérifié, certifié, payé |
+| `--ivory` | `#F2F5F3` | texte principal |
+| `--mist` | `rgba(242,245,243,.62)` | texte secondaire |
+| `--glass` | `rgba(255,255,255,.045)` | verre, bordure `rgba(255,255,255,.09)` |
+
+Règle d'or : **le doré ne décore pas**, il certifie. Deux éléments dorés maximum par écran.
+
+## 2. Trois signatures à porter (et à prouver)
+
+### a. Liquid Depth v2 — la carte qui a du poids
+Verre + parallaxe légère au curseur (`rotateX/Y` ≤ 4°, `skew` ≤ 2°), ombre portée
+colorée `0 24px 60px rgba(11,107,79,.28)`, jamais de flou gratuit.
+Doit rester **immobile** si `prefers-reduced-motion`.
+
+### b. Flow Line — le trajet visible
+Chaque offre porte une ligne fine qui relie origine → destination : tracé qui se
+dessine au scroll (`stroke-dashoffset`), point lumineux qui parcourt la ligne en 3 s.
+C'est la signature du produit : **on voit le colis avancer**, pas juste un trajet écrit.
+
+### c. Nexus Gate v2 — l'accueil qui respire
+Noyau central à facettes (faible poly) + anneaux en rotation inverse, opacité 4–12 %.
+Interdits : particules > 800, animations qui dépassent 60 fps sur un portable, son.
+
+## 3. Typographie et rythme
+
+- Titres : sans-serif géométrique, `letter-spacing:-0.02em`, graisse 600, jamais > 64 px sur mobile.
+- Corps : 16–18 px, interligne 1.6, largeur de lecture ≤ 68 caractères.
+- Rythme vertical : échelle de 8 px. Un écran = **un seul** message dominant.
+
+## 4. Mouvement
+
+`entrée 320 ms (power2.out)` · `sortie 200 ms` · décalage en cascade 40 ms.
+Interdit : rebond, rotation d'icônes, animation en boucle infinie visible.
+
+## 5. Accessibilité (critère de refus)
+
+- Contraste texte ≥ 4.5:1 (le doré sur obsidienne est OK, le vert clair sur verre **non**).
+- Tout élément interactif : focus visible (anneau `--emerald` 2 px).
+- Aucune information portée par la seule couleur.
+
+## 6. Protocole de validation (rappel du contrat V2)
+
+Un écran n'entre ici qu'avec : **capture réelle**, **état validé par Yoyo**, et une
+ligne datée dans `collaboration.md`. Pas de capture = pas de signature.
+
+---
+*Maintenu par Hermes (V2). Écrans validés : aucun pour l'instant.*

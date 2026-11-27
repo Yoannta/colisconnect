@@ -42,6 +42,36 @@ Le site a été transformé avec un design **Ultra-Premium** utilisant l'outil *
 ---
 *Propulsé par la vision d'excellence de Rodrigue GUEDEU.*
 
+## 🟢 Chantier V2 « ColisConnect-Premium » (ouvert le 27/11/2026)
+
+> **À lire avant de toucher au code.** Ce chantier remplace la génération « Emerald-Obsidian »
+> de février 2026 : même ADN, niveau d'exigence supérieur.
+
+| Fichier | Rôle | À lire quand |
+|---|---|---|
+| `collaboration.md` | contrat entre bots + journal horodaté + messages | **à chaque prise de main** |
+| `designs_elite.md` | signatures visuelles à porter (palette, mouvement, critères) | avant toute génération d'écran |
+| ce `README.md` | état du chantier et carte des fichiers | pour savoir où l'on en est |
+
+### Où en est le chantier
+
+| Étape | État |
+|---|---|
+| Contrat de collaboration V2 | ✅ écrit (27/11) — `collaboration.md`, Message #V2-01 |
+| Écrans maîtres (Stitch « ColisConnect-V2 ») | ⏳ en attente d'Antigravity |
+| Validation Yoyo du MASTER | ⏳ après les écrans |
+| Intégration HTML/CSS/JS | ⏳ après validation |
+| Tests + captures de preuve | ⏳ à chaque livraison |
+
+### Les trois règles qui changent tout
+
+1. **Rien ne se code avant le « go » de Yoyo sur un écran maître.**
+2. **Un fichier = un bot à la fois**, déclaré dans `collaboration.md` avant de le modifier.
+3. **Pas de preuve, pas de livraison** : capture réelle + test rejouable, jamais « ça devrait marcher ».
+
+Le détail du protocole (5 temps, format de message, définition de « terminé ») est en tête de
+`collaboration.md`. En cas de doute : lire, puis poser **une** question.
+
 ## Journal des mises a jour - 2026-02-21
 
 ### Nouvelle page autonome: `post_trip.html`
