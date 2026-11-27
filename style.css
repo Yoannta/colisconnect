@@ -21036,3 +21036,110 @@ body.results-page .cc-card--demand .cc-card-actions .cc-icon-btn svg {
     width: 20px;
     height: 20px;
 }
+
+/* ── Carte DEMANDE : même habillage que la carte OFFRE ─────────────────────
+   Le panneau du bas (lentille d'eau) accueille les PHRASES de la demande :
+   « Je souhaite envoyer … et je propose un budget d'environ … ». */
+.cards-list .cc3-card .cc3-detail-price--demand {
+    display: block;
+    min-height: 0;
+    padding: 0 !important;
+}
+
+.cards-list .cc3-card .cc3-detail-price--demand .water-lens {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+    /* !important obligatoire : le reset `.cards-list .cc3-card *` met tout
+       padding à 0 en !important (sinon le texte touche le bord et se coupe). */
+    padding: 10px 15px 11px !important;
+}
+
+.cards-list .cc3-card .cc3-detail-price--demand .water-lens__content {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    /* La lentille grossit son contenu (scale 1.03) : sur une phrase longue cela
+       rognait la première et la dernière lettre. Ici le texte reste net. */
+    transform: none;
+    filter: none;
+}
+
+.cc3-demand-sentence {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #fffaf2;
+    font-size: 0.72rem;
+    font-weight: 600;
+    line-height: 1.42;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.cards-list .cc3-card .cc3-detail-price--demand .cc3-demand-sentence--main {
+    font-size: 0.74rem;
+}
+
+.cc3-demand-sentence + .cc3-demand-sentence {
+    margin-top: 4px !important;
+}
+
+.cc3-demand-sentence--empty,
+.cc3-demand-sentence.cc3-demand-empty {
+    color: rgba(255, 250, 242, 0.62);
+    font-weight: 500;
+    font-style: italic;
+}
+
+.cc3-demand-warn {
+    display: inline-block;
+    margin-top: 3px !important;
+    padding: 1px 7px !important;
+    border-radius: 999px;
+    color: #ffd9a0;
+    border: 1px solid rgba(255, 200, 120, 0.45);
+    background: rgba(255, 176, 60, 0.14);
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Dépliant « Voir tous les colis » : les autres phrases se lisent sur le fond
+   de la carte, comme le corps de l'accordéon des offres. */
+.cards-list .cc3-card .cc3-special-grid .cc3-accordion-body .cc3-demand-sentence {
+    color: #e9e2d6;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.42;
+    padding: 2px 0 !important;
+}
+
+.cards-list .cc3-card .cc3-special-grid .cc3-accordion-body .cc3-demand-desc {
+    margin: 2px 0 0 !important;
+    padding: 0 !important;
+    color: #a9a49d;
+    font-size: 0.68rem;
+    font-weight: 500;
+    line-height: 1.4;
+    font-style: italic;
+}
+
+body.results-page.light .cards-list .cc3-card .cc3-special-grid .cc3-accordion-body .cc3-demand-sentence {
+    color: #1b1b1b;
+}
+
+body.results-page.light .cards-list .cc3-card .cc3-special-grid .cc3-accordion-body .cc3-demand-desc {
+    color: #555049;
+}
+
+/* Valeur dorée (date limite de la carte demande), comme la date de la carte offre. */
+.cc3-card .cc3-value--gold {
+    color: #e6b23c;
+}
+
+body.results-page.light .cc3-card .cc3-value--gold {
+    color: #b07f17;
+}

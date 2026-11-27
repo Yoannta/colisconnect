@@ -425,27 +425,28 @@
         return { html: phrase, missingRate };
     }
 
-    function demandBody(demand, displayCurrency) {
+    // ── Carte DEMANDE : MÊME habillage que la carte OFFRE (fond mappemonde,
+    //    drapeaux, ligne de vol, deux cellules de détails, panneau du bas).
+    //    Le panneau du bas affiche les PHRASES de la demande (« Je souhaite
+    //    envoyer … et je propose un budget d'environ … »), une par colis.
+    function demandPhrases(demand, displayCurrency) {
         const items = demandItems(demand);
-        const sentences = items.map((item) => demandSentence(item, demand, displayCurrency)).filter((entry) => entry.html);
+        const entries = items.map((item) => demandSentence(item, demand, displayCurrency)).filter((entry) => entry.html);
         const description = String(demand.description || "").trim();
-        const hasMissingRate = sentences.some((entry) => entry.missingRate);
-        if (!sentences.length && !description) return "";
+        const missingRate = entries.some((entry) => entry.missingRate);
+        const sentences = entries.map((entry) => entry.html);
 
-        const visible = 2;
-        const hasMore = sentences.length > visible;
-        const sentenceHtml = sentences.map((entry, index) => {
-            const extra = index >= visible;
-            return `<p class="cc-demand-sentence${extra ? " cc-demand-extra" : ""}">${entry.html}${hasMore && index === visible - 1 ? '<span class="cc-demand-ellipsis" aria-hidden="true">…</span>' : ""}</p>`;
-        }).join("");
+        const premiere = sentences.length ? sentences[0] : (description ? escape(description) : "");
+        const suite = sentences.slice(1);
+        const reste = [];
+        suite.forEach((html) => reste.push(`<p class="cc3-demand-sentence">${html}</p>`));
+        // Description libre : dans le dépliant si des phrases existent déjà.
+        if (description && sentences.length) {
+            reste.push(`<p class="cc3-demand-desc">${escape(description)}</p>`);
+        }
+        const moreLabel = suite.length ? `Voir tous les colis (${sentences.length})` : "Voir la description";
 
-        return `
-      <div class="cc-card-body cc-demand-body">
-        ${sentences.length ? `<div class="cc-demand-lines">${sentenceHtml}</div>` : ""}
-        ${hasMore ? `<button type="button" class="cc-link-btn cc-demand-more" data-demand-more data-count="${sentences.length - visible}" aria-expanded="false">Voir plus (${sentences.length - visible})</button>` : ""}
-        ${description ? `<p class="cc-demand-description">${escape(description)}</p>` : ""}
-        ${hasMissingRate ? `<span class="cc-warn-badge">Taux indisponible</span>` : ""}
-      </div>`;
+        return { premiere, reste: reste.join(""), moreLabel, missingRate };
     }
 
     function demandCard(demand, options) {
@@ -455,20 +456,17 @@
         const uid = `cc-card-demand-${cleanId(demand.id || Math.random().toString(36).slice(2))}`;
         const origin = String(demand.origin || "").trim() || "Non précisé";
         const destination = String(demand.destination || "").trim() || "Non précisé";
-        const routeSource = {
-            origin,
-            destination,
-            city_origin: demand.origin_city,
-            city_destination: demand.destination_city
-        };
+        const originCity = String(demand.origin_city || demand.city_origin || demand.cityOrigin || "").trim();
+        const destCity = String(demand.destination_city || demand.city_destination || demand.cityDestination || "").trim();
+        // Les demandes ne stockent pas les codes pays : results.js les résout avant le rendu.
+        const originCode = countryCode(demand.originCountryCode || demand.origin_country_code);
+        const destCode = countryCode(demand.destCountryCode || demand.destination_country_code);
+        const flagClass = (iso) => (iso ? ` fi fis fi-${iso}` : "");
 
         const rawDate = demand.needed_by_date || demand.neededByDate;
-        const limit = longDate(rawDate) || "Non précisée";
-        const limitHtml = `<span class="cc-date">${escape(limit)}</span>`;
-        const countRaw = demandItemCount(demand);
-        const colisHtml = countRaw > 0
-            ? metaCell("Colis", `<span class="cc-meta-value cc-mono">${escape(countRaw)} colis</span>`)
-            : "";
+        const dateLimite = longDate(rawDate) || "Non précisée";
+        const nbColis = demandItemCount(demand);
+        const phrases = demandPhrases(demand, displayCurrency);
 
         const ownerName = String(demand.owner?.full_name || demand.ownerName || "Demandeur");
         const ownerPhoto = String(demand.owner?.profile_photo || demand.ownerProfilePhoto || "").trim();
@@ -487,25 +485,100 @@
             contactDisabled: !String(ownerId).trim()
         });
 
+        const footer = window.CCOfferCard && typeof window.CCOfferCard.footer === "function"
+            ? window.CCOfferCard.footer({
+                photo: ownerPhoto,
+                ownerId,
+                name: ownerName,
+                isVerified: verified,
+                label: "Expéditeur",
+                editAttr: own ? `data-edit-own-demand="${escape(demand.id)}"` : "",
+                editLabel: "Modifier ma demande",
+                editAriaLabel: "Modifier ma demande",
+                deleteAttr: own ? `data-delete-own-demand="${escape(demand.id)}"` : "",
+                deleteLabel: "Supprimer ma demande",
+                dataAttr: own ? "" : `data-contact-request="${escape(demand.id)}"`,
+                ariaLabel: `Contacter ${ownerName}`,
+                inactiveLabel: "Contact indisponible"
+            })
+            : ownerFooter({ name: ownerName, photo: ownerPhoto, verified, role: "Expéditeur", ownerId, actions });
+
         return `
-      <article class="cc-card cc-card--demand${own ? " cc-card--own" : ""}" aria-labelledby="${escape(uid)}">
-        ${own ? '<span class="cc-own-badge">Votre demande</span>' : ""}
-        ${routeHtml(routeSource, uid)}
-        <div class="cc-rule"></div>
-        <div class="cc-meta">
-          ${metaCell("Date limite", `<span class="cc-meta-value cc-mono cc-accent">${limitHtml}</span>`)}
-          ${colisHtml}
+<div class="offer-wrap">
+  <article class="cc3-card cc3-card--demand${own ? " cc3-card--own" : ""}" aria-labelledby="${escape(uid)}">
+    <img class="cc3-planet cc3-dark" src="assets/card-image-version/planet-route-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-planet cc3-light" src="assets/card-image-version/planet-route-light-cutout.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-dark" src="assets/card-image-version/bottom-city-watermark.png" alt="" aria-hidden="true">
+    <img class="cc3-skyline cc3-light" src="assets/card-image-version/bottom-city-watermark-light.png" alt="" aria-hidden="true">
+
+    ${own ? '<span class="cc-own-badge">Votre demande</span>' : ""}
+
+    <section class="cc3-route">
+      <div class="cc3-flag-shell"><span class="cc3-flag${flagClass(originCode)}" aria-hidden="true"></span></div>
+      <div class="cc3-place">
+        <span class="cc3-label">From</span>
+        <span class="cc3-country" id="${escape(uid)}">${escape(origin)}</span>
+        ${originCity ? `<span class="cc3-city">${escape(originCity)}</span>` : ""}
+      </div>
+      <svg class="cc3-flight" viewBox="0 0 184 60" aria-hidden="true">
+        <path d="M2 47C50 11 105 8 181 45"></path>
+        <g class="cc3-plane" transform="translate(86 2) rotate(9)">
+          <path d="M25.5 22.2 3.2 30.8 0 26.6l16.2-12.7L0 1.2 3.2-3l22.3 8.7L38.6-6.8c3.2-3 7.2-3.3 8.6-1.5 1.5 1.9-.1 5.5-3.3 8.5L34.3 10.7l18.2 7.1-3.4 4.1-24.4-3.7-11.2 11.6-4-2.6 8.1-13.1z"></path>
+        </g>
+      </svg>
+      <div class="cc3-place cc3-place-to">
+        <span class="cc3-label">To</span>
+        <span class="cc3-country">${escape(destination)}</span>
+        ${destCity ? `<span class="cc3-city">${escape(destCity)}</span>` : ""}
+      </div>
+      <div class="cc3-flag-shell cc3-flag-shell-sn"><span class="cc3-flag${flagClass(destCode)}" aria-hidden="true"></span></div>
+    </section>
+
+    <div class="cc3-rule"></div>
+
+    <section class="cc3-details">
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="9" width="28" height="25" rx="3"></rect><path d="M12 4v10M28 4v10M6 17h28"></path></svg>
         </div>
-        ${demandBody(demand, displayCurrency)}
-        ${ownerFooter({
-            name: ownerName,
-            photo: ownerPhoto,
-            verified,
-            role: "Expéditeur",
-            ownerId,
-            actions
-        })}
-      </article>`;
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Date limite</span>
+          <span class="cc3-value cc3-value--gold">${escape(dateLimite)}</span>
+        </div>
+      </div>
+      <div class="cc3-detail">
+        <div class="cc3-icon">
+          <svg viewBox="0 0 40 40" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 5l13 7v16l-13 7-13-7V12z"></path><path d="M20 5l13 7-13 7-13-7"></path><path d="M20 19v16"></path><path d="M7 12l13 7 13-7"></path></svg>
+        </div>
+        <div class="cc3-detail-txt">
+          <span class="cc3-d-label">Nombre de colis</span>
+          <span class="cc3-value">${escape(nbColis)} <span class="cc3-kg">colis</span></span>
+        </div>
+      </div>
+      <div class="cc3-detail cc3-detail-price cc3-detail-price--demand">
+        <div class="water-lens" aria-label="Détail de la demande">
+          <div class="water-lens__content">
+            ${phrases.premiere ? `<p class="cc3-demand-sentence cc3-demand-sentence--main">${phrases.premiere}</p>` : '<p class="cc3-demand-sentence cc3-demand-empty">Détail non précisé</p>'}
+            ${phrases.missingRate ? '<span class="cc3-demand-warn">Taux indisponible</span>' : ""}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    ${phrases.reste ? `
+    <section class="cc3-special-grid">
+      <button type="button" class="cc3-special-toggle cc3-special-toggle-gold" data-demand-expand="1" aria-expanded="false">
+        <span class="cc3-toggle-label">${escape(phrases.moreLabel)}</span>
+        <svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg>
+      </button>
+      <div class="cc3-accordion-body">
+        ${phrases.reste}
+      </div>
+    </section>` : ""}
+
+    ${footer}
+  </article>
+</div>`;
     }
 
     window.CCResultsCard = {
