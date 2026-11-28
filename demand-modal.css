@@ -186,6 +186,57 @@ body.dashboard-page .cc-seg-btn.active {
     border-color: var(--cc-accent-strong);
 }
 
+/* Choix de l'option (kilo / quantité) : deux boutons-phrases, apparus apres le nom.
+   Meme largeur et meme habillage que les champs du formulaire (croquis Yoyo : trois
+   rectangles empiles de largeur identique). */
+body.dashboard-page .cc-mode-pick {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.dashboard-page .cc-mode-ask {
+    margin: 0;
+    color: var(--cc-muted);
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+body.dashboard-page .cc-mode-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+body.dashboard-page .cc-mode-btn {
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 48px;
+    padding: 12px;
+    color: var(--cc-text);
+    background: var(--cc-surface-1);
+    border: 1px solid var(--cc-input-border);
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+body.dashboard-page .cc-mode-btn:hover { border-color: var(--cc-accent); }
+
+body.dashboard-page .cc-mode-btn.active {
+    color: var(--cc-accent-text);
+    background: var(--cc-accent-soft);
+    border-color: var(--cc-accent-strong);
+}
+
 body.dashboard-page .cc-price-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;

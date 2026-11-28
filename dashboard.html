@@ -19,7 +19,7 @@
         href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,700;0,800;1,400;1,700;1,800&family=JetBrains+Mono:wght@400;500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=20261106h">
-    <link rel="stylesheet" href="demand-modal.css?v=2">
+    <link rel="stylesheet" href="demand-modal.css?v=3">
     <!-- Drapeaux de la carte d'offre (comme sur la page des offres) -->
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
@@ -35,7 +35,7 @@
     <script defer src="admin-banner.js"></script>
     <!-- Carte d'offre partagée (identique à la page des offres) -->
     <script defer src="offer-card.js?v=20261101"></script>
-    <script defer src="demand-modal.js?v=20261106b"></script>
+    <script defer src="demand-modal.js?v=20261128a"></script>
     <script defer src="dashboard.js?v=20261105g"></script>
 </head>
 
@@ -541,18 +541,27 @@
                                     <label>Que souhaitez-vous envoyer ?</label>
                                     <input type="text" class="cc-colis-nom" aria-label="Que souhaitez-vous envoyer ?" placeholder="Ex. vêtements" maxlength="60" autocomplete="off">
                                 </div>
+                                <!-- Choix du mode : n'apparait qu'une fois le nom du colis saisi.
+                                     Deux boutons-phrases (data-mode lu par demand-modal.js). -->
+                                <div class="cc-mode-pick" hidden>
+                                    <p class="cc-mode-ask">Quelle option préférez-vous ?</p>
+                                    <div class="cc-mode-btns">
+                                        <button type="button" class="cc-seg-btn cc-mode-btn" data-mode="per_kg" aria-pressed="false">Je veux envoyer … kilo de <span class="cc-mode-nom">colis</span></button>
+                                        <button type="button" class="cc-seg-btn cc-mode-btn" data-mode="total" aria-pressed="false">Je veux envoyer … <span class="cc-mode-nom">colis</span></button>
+                                    </div>
+                                </div>
                                 <div class="cc-field cc-qty-field">
-                                    <label class="cc-qty-label">Combien d'articles ?</label>
-                                    <input type="number" class="cc-qty-input" aria-label="Combien d'articles ?" placeholder="Ex. 2" min="1" step="1" inputmode="numeric">
+                                    <label class="cc-qty-label">Combien de colis ?</label>
+                                    <input type="number" class="cc-qty-input" aria-label="Combien de colis ?" placeholder="Ex. 2" min="1" step="1" inputmode="numeric">
                                 </div>
                                 <div class="cc-field cc-kg-field">
                                     <label>Quel est le poids total estimé ? (kg)</label>
                                     <input type="number" class="cc-kg-input" aria-label="Quel est le poids total estimé ? (kg)" placeholder="Ex. 2" min="1" step="1" inputmode="decimal">
                                 </div>
-                                <div class="cc-field">
-                                    <label class="cc-price-label">Quel budget proposez-vous pour ce colis ?</label>
+                                <div class="cc-field cc-price-field">
+                                    <label class="cc-price-label">Combien proposez-vous ?</label>
                                     <div class="cc-price-row">
-                                        <input type="number" class="cc-price-input" aria-label="Quel budget proposez-vous pour ce colis ?" placeholder="Ex. 2500" min="0" step="any" inputmode="decimal">
+                                        <input type="number" class="cc-price-input" aria-label="Combien proposez-vous ?" placeholder="Ex. 2500" min="0" step="any" inputmode="decimal">
                                         <div class="cc-cur-picker"></div>
                                     </div>
                                 </div>

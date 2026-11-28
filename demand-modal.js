@@ -62,10 +62,12 @@
     }
 
     function getBoxMode(box) {
+        const buttons = box.querySelectorAll(".cc-seg-btn");
         const seg = box.querySelector(".cc-seg-btn.active");
-        // Nouveau formulaire : plus de « par kilo / par quantite ». Le budget porte
-        // sur le colis entier, donc mode « total » par defaut.
-        return seg ? seg.dataset.mode : "total";
+        if (seg) return seg.dataset.mode;
+        // Boutons de mode presents mais aucun choix : null (rien n'est encore choisi).
+        // Ancien balisage sans boutons : le budget porte sur le colis entier.
+        return buttons.length ? null : "total";
     }
 
     function boxCurrency(box) {
@@ -80,17 +82,35 @@
 
     function refreshBoxUi(box) {
         if (!box) return;
-        const aMode = Boolean(box.querySelector(".cc-seg-btn"));
-        const isKg = getBoxMode(box) === "per_kg";
+        const modeBtns = Array.from(box.querySelectorAll(".cc-seg-btn"));
+        const hasModeUi = modeBtns.length > 0;
+        const mode = getBoxMode(box);
+        const chosen = mode !== null && mode !== undefined;
+        const isKg = mode === "per_kg";
+        const name = getBoxName(box);
+
+        // 1. Les deux options n'apparaissent qu'APRES le nom du colis.
+        const pick = box.querySelector(".cc-mode-pick");
+        if (pick) pick.hidden = !name;
+
+        // 2. La phrase de chaque option reprend le nom saisi.
+        modeBtns.forEach((button) => {
+            const slot = button.querySelector(".cc-mode-nom");
+            if (slot) slot.textContent = name || "colis";
+        });
+
+        // 3. Champs : rien tant que l'option n'est pas choisie, puis UNIQUEMENT le
+        //    champ de l'option retenue (poids en kg, ou nombre de colis).
         const kgField = box.querySelector(".cc-kg-field");
         const qtyField = box.querySelector(".cc-qty-field");
-        // Sans boutons de mode (nouveau formulaire) : nombre d'articles ET poids
-        // total estime sont affiches en meme temps.
-        if (kgField) kgField.hidden = aMode ? !isKg : false;
-        if (qtyField) qtyField.hidden = aMode ? isKg : false;
-        const name = getBoxName(box);
+        const priceField = box.querySelector(".cc-price-field");
+        if (kgField) kgField.hidden = hasModeUi ? !isKg : false;
+        if (qtyField) qtyField.hidden = hasModeUi ? (isKg || !chosen) : false;
+        if (priceField) priceField.hidden = hasModeUi && !chosen;
+
         const qtyLabel = box.querySelector(".cc-qty-label");
         if (qtyLabel) {
+            // « Combien de {nom du colis} ? »
             qtyLabel.textContent = name ? `Combien de ${name} ?` : "Combien de colis ?";
             box.querySelector(".cc-qty-input")?.setAttribute("aria-label", qtyLabel.textContent);
         }
@@ -107,10 +127,8 @@
         const amountText = Number.isInteger(amount) ? String(amount) : amount.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
         if (!valid) priceLabel.textContent = "Combien proposez-vous ?";
         else if (isKg) priceLabel.textContent = `Combien proposez-vous pour ${amountText} kg${name ? ` de ${name}` : ""} ?`;
-        else {
-            const plural = amount > 1 && name && !/[sxz]$/i.test(name) ? `${name}s` : name;
-            priceLabel.textContent = `Combien proposez-vous pour ${amountText} ${plural || "colis"} ?`;
-        }
+        // Quantite : « pour {nombre} {nom du colis} » (le nom est repris tel quel).
+        else priceLabel.textContent = `Combien proposez-vous pour ${amountText} ${name || "colis"} ?`;
         priceInput.setAttribute("aria-label", priceLabel.textContent);
     }
 
@@ -142,10 +160,10 @@
         const clone = first.cloneNode(true);
         clone.querySelectorAll("input").forEach((input) => { input.value = ""; });
         clone.querySelectorAll(".is-invalid").forEach((element) => element.classList.remove("is-invalid"));
+        // Aucune option preselectionnee : le client choisit apres avoir tape le nom.
         clone.querySelectorAll(".cc-seg-btn").forEach((button) => {
-            const active = button.dataset.mode === "per_kg";
-            button.classList.toggle("active", active);
-            button.setAttribute("aria-pressed", active ? "true" : "false");
+            button.classList.remove("active");
+            button.setAttribute("aria-pressed", "false");
         });
         clone.querySelectorAll(".cc-cur-picker").forEach((host) => { host.innerHTML = ""; });
         delete clone.__ccPicker;
@@ -259,9 +277,8 @@
         if (first) {
             first.querySelectorAll("input").forEach((input) => { input.value = ""; });
             first.querySelectorAll(".cc-seg-btn").forEach((button) => {
-                const active = button.dataset.mode === "per_kg";
-                button.classList.toggle("active", active);
-                button.setAttribute("aria-pressed", active ? "true" : "false");
+                button.classList.remove("active");
+                button.setAttribute("aria-pressed", "false");
             });
             first.querySelectorAll(".cc-cur-picker").forEach((host) => { host.innerHTML = ""; });
             delete first.__ccPicker;
@@ -371,17 +388,30 @@
                 showError(`Indiquez ce que vous souhaitez envoyer (colis n°${index + 1}).`, box.querySelector(".cc-colis-nom"));
                 return false;
             }
-            const kgRaw = box.querySelector(".cc-kg-input")?.value || "";
-            const qtyRaw = box.querySelector(".cc-qty-input")?.value || "";
+            const name = getBoxName(box);
+            const hasModeUi = Boolean(box.querySelector(".cc-seg-btn"));
+            const mode = getBoxMode(box);
+            // Le client doit avoir choisi « … kilo de X » ou « … X ».
+            if (hasModeUi && !mode) {
+                showError(`Choisissez une option pour le colis n°${index + 1} : « Je veux envoyer … kilo de ${name} » ou « Je veux envoyer … ${name} ».`);
+                return false;
+            }
+            const kgField = box.querySelector(".cc-kg-input");
+            const qtyField = box.querySelector(".cc-qty-input");
+            const kgRaw = kgField?.value || "";
+            const qtyRaw = qtyField?.value || "";
             const kgVal = Number(kgRaw);
             const qtyVal = Number(qtyRaw);
             const kgOk = String(kgRaw).trim() !== "" && Number.isFinite(kgVal) && kgVal > 0;
             const qtyOk = String(qtyRaw).trim() !== "" && Number.isFinite(qtyVal) && qtyVal > 0;
-            // Le poids total est facultatif (« Optionnel ») : il faut au moins le
-            // nombre d'articles ou le poids.
-            // Tout est obligatoire sauf le poids total estime (facultatif, « Optionnel »).
-            if (!qtyOk) {
-                showError(`Indiquez combien d'articles pour le colis n°${index + 1}.`, box.querySelector(".cc-qty-input"));
+            // Un seul des deux champs compte : celui de l'option choisie.
+            if (mode === "per_kg") {
+                if (!kgOk) {
+                    showError(`Indiquez le poids total estimé du colis n°${index + 1} (en kg).`, kgField);
+                    return false;
+                }
+            } else if (!qtyOk) {
+                showError(`Indiquez combien de ${name} vous envoyez (colis n°${index + 1}).`, qtyField);
                 return false;
             }
             if (!kgOk) {
@@ -410,19 +440,24 @@
         const boxes = getBoxes();
         const items = boxes.map((box) => {
             const name = getBoxName(box);
+            // L'option choisie decide quel champ compte : poids (kilo) OU nombre de colis.
+            const mode = getBoxMode(box) || "total";
+            const isKg = mode === "per_kg";
             const kgRaw = box.querySelector(".cc-kg-input")?.value;
             const qtyRaw = box.querySelector(".cc-qty-input")?.value;
-            const hasKg = kgRaw !== undefined && String(kgRaw).trim() !== "" && Number.isFinite(Number(kgRaw));
-            const hasQty = qtyRaw !== undefined && String(qtyRaw).trim() !== "" && Number.isFinite(Number(qtyRaw));
+            const kgVal = Number(kgRaw);
+            const qtyVal = Number(qtyRaw);
+            const hasKg = isKg && String(kgRaw ?? "").trim() !== "" && Number.isFinite(kgVal) && kgVal > 0;
+            const hasQty = !isKg && String(qtyRaw ?? "").trim() !== "" && Number.isFinite(qtyVal) && qtyVal > 0;
             const priceRaw = box.querySelector(".cc-price-input")?.value;
             const hasPrice = priceRaw !== undefined && String(priceRaw).trim() !== "" && Number.isFinite(Number(priceRaw));
             return {
                 currency: boxCurrency(box),
                 item_type: name || null,
-                // Budget « pour ce colis » : c'est un montant total.
+                // Budget « pour ce colis » : c'est un montant total (dans les deux options).
                 price_mode: hasPrice ? "total" : null,
-                weight_kg: hasKg ? Number(kgRaw) : null,
-                quantity: hasQty ? Number(qtyRaw) : null,
+                weight_kg: hasKg ? kgVal : null,
+                quantity: hasQty ? qtyVal : null,
                 max_price_per_kg: null,
                 max_price_total: hasPrice ? Number(priceRaw) : null
             };
