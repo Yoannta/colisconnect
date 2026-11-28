@@ -333,7 +333,9 @@
             // Republier ne remet pas une échéance déjà passée.
             els.date.value = (!editing && raw && raw < todayISO()) ? "" : raw;
         }
-        setNoDateActive(false);
+        // Une demande modifiée sans échéance reste « Pas de date limite » (sinon la
+        // validation redemanderait un choix que l'utilisateur n'a jamais fait).
+        setNoDateActive(!(els.date?.value || ""));
 
         const items = parcelItems(parcel);
         while (getBoxes().length < items.length) {
@@ -384,6 +386,13 @@
             return false;
         }
         const date = els.date?.value || "";
+        const sansDate = Boolean(els.noDate?.classList.contains("active"));
+        // Date limite : le client doit TOUJOURS trancher — une date, ou « Pas de date limite ».
+        // (Avant, un champ vide passait sans rien demander.)
+        if (!date && !sansDate) {
+            showError("Indiquez une date limite ou choisissez « Pas de date limite ».", els.date);
+            return false;
+        }
         if (date && date < todayISO()) {
             showError("La date limite doit être aujourd'hui ou plus tard.", els.date);
             return false;
