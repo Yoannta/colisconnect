@@ -237,20 +237,45 @@
     }
     html += "</section>";
 
-    // --- ses demandes de trajet : MEMES cartes que la page de recherche ---
+    // --- ses demandes de trajet : MEME carte que les offres (CCOfferCard) ---
     html += '<section class="profil-section"><h2>Ses demandes</h2>';
     if (demandes.length) {
-      const composant = window.CCResultsCard;
-      if (composant && typeof composant.demand === "function") {
-        const cartes = demandes.map((d) => {
-          try {
-            return composant.demand(d, { currency: d.currency || "XOF", userId: id });
-          } catch (e) { return ""; }
-        }).join("");
-        html += '<div class="profil-demandes cc-card-grid cc-card-grid--inner cards-list cards-list--cc3">' + cartes + "</div>";
-      } else {
-        html += '<div class="profil-vide">Impossible d\'afficher les demandes pour le moment.</div>';
-      }
+      const cartes = demandes.map((d) => {
+        const items = Array.isArray(d.items) ? d.items : [];
+        const premier = items[0] || {};
+        const budget = premier.max_price_total ?? d.max_price_total ?? premier.max_price_per_kg ?? d.max_price_per_kg;
+        const poids = Number(premier.weight_kg) >= 1 ? Number(premier.weight_kg) : (Number(d.weight_kg) || 0);
+        const offreCarte = {
+          id: d.id,
+          user_id: id,
+          origin: d.origin,
+          destination: d.destination,
+          city_origin: d.origin_city,
+          city_destination: d.destination_city,
+          origin_country_code: d.origin_country_code || "",
+          destination_country_code: d.destination_country_code || "",
+          departure_date: d.needed_by_date,
+          available_kg: poids || items.length,
+          price_per_kg: budget,
+          base_currency: premier.currency || d.currency || "EUR",
+          mode: "",
+          status: "active",
+          ownerName: nom,
+          ownerProfilePhoto: profil.profile_photo || "",
+          ownerIsVerified: profil.is_verified === true
+        };
+        return window.CCOfferCard && window.CCOfferCard.html
+          ? window.CCOfferCard.html(offreCarte, {
+              currentUserId: (window.CCCommon && window.CCCommon.state && window.CCCommon.state.user && window.CCCommon.state.user.id) || null,
+              ownerNameFallback: nom,
+              ownerPhotoFallback: profil.profile_photo || "",
+              ownerVerifiedFallback: profil.is_verified === true,
+              dataAttr: 'data-demand-id="' + echap(d.id) + '"',
+              ariaLabel: "Voir cette demande"
+            })
+          : "";
+      }).join("");
+      html += '<div class="cards-list">' + cartes + "</div>";
     } else {
       html += '<div class="profil-vide">Aucune demande en cours pour le moment.</div>';
     }
