@@ -443,8 +443,12 @@
         const premiere = sentences.length ? sentences[0] : (description ? escape(description) : "");
         const suite = sentences.slice(1);
         const reste = [];
-        suite.forEach((html) => reste.push(`<p class="cc3-demand-sentence">${html}</p>`));
-        // Description libre : dans le dépliant si des phrases existent déjà.
+        // Chaque colis supplementaire reprend le MEME panneau clair que le premier.
+        suite.forEach((html) => reste.push(
+            `<div class="water-lens cc3-demand-lens"><div class="water-lens__content">` +
+            `<p class="cc3-demand-sentence">${html}</p></div></div>`
+        ));
+        // Description libre : dans le depliant si des phrases existent deja.
         if (description && sentences.length) {
             reste.push(`<p class="cc3-demand-desc">${escape(description)}</p>`);
         }
@@ -571,13 +575,13 @@
 
     ${phrases.reste ? `
     <section class="cc3-special-grid">
+      <div class="cc3-accordion-body">
+        ${phrases.reste}
+      </div>
       <button type="button" class="cc3-special-toggle cc3-special-toggle-gold" data-demand-expand="1" aria-expanded="false">
         <span class="cc3-toggle-label">${escape(phrases.moreLabel)}</span>
         <svg class="cc3-toggle-chevron" viewBox="0 0 20 20" aria-hidden="true"><path d="M5 8l5 5 5-5"></path></svg>
       </button>
-      <div class="cc3-accordion-body">
-        ${phrases.reste}
-      </div>
     </section>` : ""}
 
     ${footer}

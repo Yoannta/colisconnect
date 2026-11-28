@@ -21154,3 +21154,10 @@ body.results-page .cc-demand-colis {
 body.results-page.light .cc-demand-colis {
     color: #b07f17;
 }
+
+/* ── Thème clair : les panneaux de demande sont clairs, le texte doit être sombre
+   (le style de base du panneau force un texte crème, illisible sur fond clair). ── */
+body.results-page.light .cards-list .cc3-card .cc3-demand-sentence,
+body.results-page.light .cards-list .cc3-card .cc3-demand-desc {
+    color: #1f1a12;
+}
