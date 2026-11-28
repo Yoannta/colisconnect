@@ -84,10 +84,27 @@
         if (!box) return;
         const modeBtns = Array.from(box.querySelectorAll(".cc-seg-btn"));
         const hasModeUi = modeBtns.length > 0;
-        const mode = getBoxMode(box);
+        const name = getBoxName(box);
+        let mode = getBoxMode(box);
+
+        // Nom ENTIEREMENT efface : le choix et ses champs disparaissent, et les valeurs
+        // saisies sont oubliees (sinon elles reapparaitraient sur le nom suivant).
+        if (hasModeUi && !name && mode) {
+            modeBtns.forEach((button) => {
+                button.classList.remove("active");
+                button.setAttribute("aria-pressed", "false");
+            });
+            [".cc-kg-input", ".cc-qty-input", ".cc-price-input"].forEach((selecteur) => {
+                const champ = box.querySelector(selecteur);
+                if (!champ) return;
+                champ.value = "";
+                champ.classList.remove("is-invalid");
+            });
+            mode = null;
+        }
+
         const chosen = mode !== null && mode !== undefined;
         const isKg = mode === "per_kg";
-        const name = getBoxName(box);
 
         // 1. Les deux options n'apparaissent qu'APRES le nom du colis.
         const pick = box.querySelector(".cc-mode-pick");
