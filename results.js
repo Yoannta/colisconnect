@@ -2028,6 +2028,10 @@
                 showDemandError(`Indiquez combien d'articles pour le colis n°${index + 1}.`, box.querySelector(".cc-qty-input"));
                 return false;
             }
+            if (!kgOk) {
+                showDemandError(`Indiquez le poids total estimé du colis n°${index + 1} (1 kg minimum).`, box.querySelector(".cc-kg-input"));
+                return false;
+            }
             const priceField = box.querySelector(".cc-price-input");
             const priceRaw = priceField?.value;
             if (priceRaw === undefined || String(priceRaw).trim() === "") {

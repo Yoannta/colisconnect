@@ -418,7 +418,11 @@
             budget = converted.text;
         }
 
-        let phrase = `Je souhaite envoyer ${escape(sujet)}`;
+        // Le nom du colis prend la meme couleur que la date limite de la carte.
+        const sujetHtml = article
+            ? `${escape(article)} <span class="cc-demand-colis">${escape(nom)}</span>`
+            : `<span class="cc-demand-colis">${escape(nom)}</span>`;
+        let phrase = `Je souhaite envoyer ${sujetHtml}`;
         if (aPoids) phrase += ` de ${escape(item.weight_kg)} kg au total`;
         if (budget) phrase += ` et je propose un budget d’environ ${escape(budget)}`;
         phrase += ".";
