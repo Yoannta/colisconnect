@@ -35,6 +35,7 @@
     <link rel="stylesheet" href="assets/flag-icons/css/flag-icons.min.css">
     <link rel="stylesheet" href="style.css?v=20261106h">
     <link rel="stylesheet" href="results-refonte.css?v=20261103a">
+    <link rel="stylesheet" href="demand-modal.css?v=4">
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="supabase-init.js?v=2"></script>
@@ -46,7 +47,8 @@
     <script defer src="admin-banner.js"></script>
     <script defer src="offer-card.js?v=20261103a"></script>
     <script defer src="results-card.js?v=20261106b"></script>
-    <script defer src="results.js?v=20261106b"></script>
+    <script defer src="demand-modal.js?v=20261128a"></script>
+    <script defer src="results.js?v=20261128a"></script>
 </head>
 
 <body class="results-page">
@@ -340,7 +342,10 @@
                         <datalist id="demand-country-list"></datalist>
                         <div class="cc-field">
                             <label for="demand-date">Date limite</label>
-                            <input id="demand-date" type="date">
+                            <div class="demande-date-row">
+                                <input id="demand-date" type="date">
+                                <button type="button" class="demande-date-alt" id="demand-no-date" aria-pressed="false">Pas de date limite</button>
+                            </div>
                         </div>
                     </section>
 
@@ -355,18 +360,27 @@
                                     <label>Que souhaitez-vous envoyer ?</label>
                                     <input type="text" class="cc-colis-nom" aria-label="Que souhaitez-vous envoyer ?" placeholder="Ex. vêtements" maxlength="60" autocomplete="off">
                                 </div>
+                                <!-- Choix du mode : n'apparait qu'une fois le nom du colis saisi.
+                                     Deux boutons-phrases (data-mode lu par demand-modal.js). -->
+                                <div class="cc-mode-pick" hidden>
+                                    <p class="cc-mode-ask">Quelle option préférez-vous ?</p>
+                                    <div class="cc-mode-btns">
+                                        <button type="button" class="cc-seg-btn cc-mode-btn" data-mode="per_kg" aria-pressed="false">Je veux envoyer <span class="cc-mode-ex">2</span> kilo de <span class="cc-mode-nom">colis</span></button>
+                                        <button type="button" class="cc-seg-btn cc-mode-btn" data-mode="total" aria-pressed="false">Je veux envoyer <span class="cc-mode-ex">2</span> <span class="cc-mode-nom">colis</span></button>
+                                    </div>
+                                </div>
                                 <div class="cc-field cc-qty-field">
-                                    <label class="cc-qty-label">Combien d'articles ?</label>
-                                    <input type="number" class="cc-qty-input" aria-label="Combien d'articles ?" placeholder="Ex. 2" min="1" step="1" inputmode="numeric">
+                                    <label class="cc-qty-label">Combien de colis ?</label>
+                                    <input type="number" class="cc-qty-input" aria-label="Combien de colis ?" placeholder="Ex. 2" min="1" step="1" inputmode="numeric">
                                 </div>
                                 <div class="cc-field cc-kg-field">
                                     <label>Quel est le poids total estimé ? (kg)</label>
                                     <input type="number" class="cc-kg-input" aria-label="Quel est le poids total estimé ? (kg)" placeholder="Ex. 2" min="1" step="1" inputmode="decimal">
                                 </div>
-                                <div class="cc-field">
-                                    <label class="cc-price-label">Quel budget proposez-vous pour ce colis ?</label>
+                                <div class="cc-field cc-price-field">
+                                    <label class="cc-price-label">Combien proposez-vous ?</label>
                                     <div class="cc-price-row">
-                                        <input type="number" class="cc-price-input" aria-label="Quel budget proposez-vous pour ce colis ?" placeholder="Ex. 2500" min="0" step="any" inputmode="decimal">
+                                        <input type="number" class="cc-price-input" aria-label="Combien proposez-vous ?" placeholder="Ex. 2500" min="0" step="any" inputmode="decimal">
                                         <div class="cc-cur-picker"></div>
                                     </div>
                                 </div>
